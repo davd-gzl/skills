@@ -1,6 +1,6 @@
 ---
 name: writing-style
-description: Use when writing or editing docs, code comments, PR bodies, or review comments in any project in this workspace.
+description: Use when writing or editing docs, code comments, PR bodies, or review comments, in any project.
 ---
 
 # Writing style
@@ -18,8 +18,7 @@ Canonical style file for all visible prose; other skills point here.
 - Wrap committed docs and comments around 80 columns, no trailing whitespace. Never hard-wrap text destined for a GitHub PR body, issue, or comment: those fields render every newline, so write one unwrapped line per paragraph. A `comment_<model>.md` or `pr-body.md` draft is that text, not a committed doc: unwrap it in the file, so what ships is what was reviewed.
 - Never vouch for code with a bare adjective ("sound", "safe") or a bare absence ("nothing broken"). State the specific checks run and what each showed, or locate the findings.
 - Prefer one plain claim covering several verifications; list them separately only when the combined claim drops something load-bearing.
-- State a verification only when it is a runtime check the test suite cannot cover: a revert-repro, cross-language parity, an end-to-end path the harness cannot assert. When the only proof is the tests, name what they cover in one line and stop.
-- Open the workflow files and map every verification claim to the job that already runs it. Delete the ones that map. Linting, formatting, typechecking and the test suite belong to jobs the maintainer wrote, so repeating them reads as padding. What survives carries the reason the jobs cannot reach it, and that reason is usually structural: a rebase-merging repository builds only the tip of a branch, which makes "every commit typechecks alone" worth a line and "it typechecks" worth none.
+- State a verification only when it is a runtime check no CI job covers: a revert-repro, cross-language parity, an end-to-end path the harness cannot assert. Map every claim to the workflow job that already runs it and delete the ones that map; what survives carries the reason the job cannot reach it. When the only proof is the tests, name what they cover in one line and stop.
 - Plain words over jargon: "a caller can skip the admin check", not "no confused-deputy path". Jargon only when it saves real length and the reader surely knows it.
 - State the problem and stop. Keep a fix only when the remedy is non-obvious, and then name the outcome, not the steps.
 - Show the code, never a description of it. A question about what the code does is answered by the lines that answer it. A change in shape is shown as before and after, not narrated. Prose earns its place only where the code cannot speak: why the change exists, and what it rules out.

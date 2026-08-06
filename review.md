@@ -1,6 +1,6 @@
 ---
 name: review
-description: Adversarial review of a pull request, a branch, or a repository-level failure in any project in this workspace. Writes a severity-grouped review file plus a comment_<model>.md GitHub draft, posted only after user approval. Supports multi-target parallel dispatch and a deep multi-angle mode.
+description: Adversarial review of a pull request, a branch, or a repository-level failure in any project. Writes a severity-grouped review file plus a comment_<model>.md GitHub draft, posted only after user approval. Supports multi-target parallel dispatch and a deep multi-angle mode.
 argument-hint: <repo>#<pr-number> | <url> | <repo> <subject>
 ---
 
@@ -8,7 +8,7 @@ argument-hint: <repo>#<pr-number> | <url> | <repo> <subject>
 
 **Input:** `$ARGUMENTS` — a PR number or URL, a repo name plus a subject ("meet, the CI is red"), or several of these. Process each target independently.
 
-Write all visible prose per `skills/writing-style.md`, no exceptions. In every artifact: verdict first, then narrative, then findings. Make every reference clickable and every file readable without the chat. Make every artifact scannable without losing content: open with the state in one bold line; put anything with repeating structure in a table, one row each, consequence in the last column; keep reasoning by moving it into `<details>`, never by cutting it; bold the one number or word that carries the decision.
+Write all visible prose per `skills/writing-style.md`, no exceptions; its scannability rule covers every artifact here. In every artifact: verdict first, then narrative, then findings. Make every reference clickable, every file readable without the chat, and bold the one number or word that carries the decision.
 
 ## Workflow
 
@@ -21,7 +21,7 @@ Run in order for a single target; multi-target runs wrap this via *Parallel disp
 5. *Write tests* for test-shaped findings.
 6. Write the review file (*Output*).
 7. Draft `comment_<model>.md` (*GitHub review draft*), then run its *Final check* and QA agents. Skip for a PR the reviewer authored; see *Own PR*.
-8. Full `skills/writing-style.md` pass over every line of the review file and `comment_<model>.md`. First priority, never skipped, whatever the findings are worth. Re-run it after any later edit to that prose, including one made in response to a question about it. State which passes ran when handing over.
+8. The `skills/writing-style.md` Pass over every line of the review file and `comment_<model>.md`. First priority, never skipped, whatever the findings are worth. Re-run it after any later edit to that prose, including one made in response to a question about it. State which passes ran when handing over.
 9. One commit and one push covering everything. This push is pre-authorized; see *Rules*.
 10. Hand over. Link the `comment_<model>.md` draft, not only the review file. Add a "Decisions needed" list — borderline verdict, APPROVE confirmation, Open questions worth promoting — one line each; omit when empty. Post only on the literal word `post`.
 
@@ -279,6 +279,7 @@ Local checkout: `<the command that reproduces this state>`
 ### Format rules
 
 - `<status>` is `latest` when `<short-sha>` matches the current head, or `stale — +N commits since`.
+- A subject with no PR drops the PR-only metadata (URL, Author, Base) and titles the H1 by the subject; anchors per *Subjects*.
 - `Verify first`, `Diagram`, and `Not fixable by a pull request` never reach comment.md.
 - Every finding line gets a plain-English priority tag in every severity section; only a trivial nit drops it.
 - Prose in `<details>` by default; labeled sub-bullets only for tangible repros.

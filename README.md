@@ -32,10 +32,12 @@ Everything starts with a review, on a PR, a branch, or a red CI.
 10. **Hand over.** I read the draft and decide; nothing reaches GitHub until I
     say so.
 
-Around the review, two more skills: [`issue.md`](issue.md) drafts an issue
+Around the review, three more skills: [`issue.md`](issue.md) drafts an issue
 when a problem outlives its fix, stating the problem and never the remedy;
 [`pr-body.md`](pr-body.md) writes the PR title and body for a reader with no
-context, symptom first, looping until a full pass changes nothing.
+context, symptom first, looping until a full pass changes nothing; and
+[`report.md`](report.md) turns a period of repository activity into a status
+report, generated only after I have edited its context file.
 
 ## Why the style matters most
 

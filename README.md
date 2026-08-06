@@ -5,30 +5,37 @@ One file per task, each self-contained.
 
 ## How I work
 
-1. **Everything starts with a review.** On a PR, a branch, or a red CI,
-   [`review.md`](review.md) drives it: sync the checkout, read every changed
-   file in full plus its callers, then verify each claim with a real run. A
-   behavior claim ships with the run that proves it, and a repro that also
-   fires on the merge base is not a finding. Findings come out graded:
-   Critical, Warning, Missing test, Nit, Suggestion.
-2. **Two artifacts per review.** The review file is the complete record:
-   verdict, findings, repros, everything verified. The comment draft is the
-   postable one, pruned by hand comment by comment. Nothing reaches GitHub
-   until I say so.
-3. **A problem that outlives its fix gets an issue.** [`issue.md`](issue.md)
-   searches upstream first, then drafts one that states the problem and where
-   it comes from, never the remedy: naming a fix is designing it, and the
-   issue is the wrong place.
-4. **A fix gets a body worth its diff.** [`pr-body.md`](pr-body.md) writes the
-   title and the body for a reader with no context who must decide whether to
-   merge: symptom first, fix as a property of the new code, verification as
-   claims, and a revision loop that only stops when a full pass changes
-   nothing.
-5. **Style is enforced, not hoped for.**
-   [`writing-style.md`](writing-style.md) governs every visible line the other
-   skills produce, and its closing Pass runs over each artifact before it
-   ships: six mechanical checks, in order, against the file and not from
-   memory.
+Everything starts with a review, on a PR, a branch, or a red CI.
+[`review.md`](review.md) drives it in ten steps:
+
+1. **Fetch and understand.** Sync the checkout, pull the diff, read every
+   comment and past review, then read every changed file in full and map its
+   callers.
+2. **Re-review gate.** When a prior round exists, compare patch-ids to tell
+   new code from a branch that just moved on its base. A base-only move copies
+   the old round forward; nobody re-reviews unchanged code.
+3. **Reproduce.** Run the project's own CI commands locally. Every failure is
+   re-run on the merge base before the diff gets the blame.
+4. **Review the diff.** The hunt itself, under one discipline: a behavior
+   claim ships with the run that proves it, and a repro that also fires on the
+   merge base is not a finding.
+5. **Write the tests.** A finding whose fix is a test ships the test itself,
+   paste-ready, not a description of one.
+6. **Review file.** The complete record: verdict, findings graded Critical to
+   Suggestion, repros, every claim linked to the reviewed line.
+7. **Comment draft.** The postable artifact, one anchored comment per finding,
+   at most three sentences each, pruned by hand before anything ships.
+8. **Style pass.** The closing Pass of
+   [`writing-style.md`](writing-style.md): six mechanical checks, in order,
+   against the file and not from memory. Never skipped.
+9. **Commit and push.** The record lands in my workspace, nothing else moves.
+10. **Hand over.** I read the draft and decide; nothing reaches GitHub until I
+    say so.
+
+Around the review, two more skills: [`issue.md`](issue.md) drafts an issue
+when a problem outlives its fix, stating the problem and never the remedy;
+[`pr-body.md`](pr-body.md) writes the PR title and body for a reader with no
+context, symptom first, looping until a full pass changes nothing.
 
 ## Why the style matters most
 

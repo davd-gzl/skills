@@ -351,6 +351,7 @@ Full review: <link to the review file in this repo>
 
 ### Body rules
 
+- A finding with more than one case is a claim and a list, never a paragraph. One line for the claim and the mechanism it rests on, then one nested bullet per case, each naming its condition and its outcome. Put the cases where it does not bite beside the ones where it does: that list is what stops the claim being read as broader than it is, and it is the shape a reader can check their own code against.
 - The Body has exactly three jobs: cross-cutting synthesis the per-line comments cannot carry; unanchored findings and questions, one sentence each, gap then fix; and the verification pin ("verified on <short-sha>"). Cut everything else.
 - Never mention an anchored finding in the Body, in any form: no bullets, no recap, no "(inline)" pointer, no count.
 - Do not re-describe the change, list what passed, narrate the review process, or restate thread state.

@@ -37,7 +37,7 @@ Canonical style file for all visible prose; other skills point here.
 
 ## Pass
 
-Run this over every drafted artifact as the last step of writing it, against the file and not from memory. Where the artifact's own skill mandates a loop, `skills/pr-body.md` for one, run that loop first and this pass over its result. Report the outcome in the reply: what it changed, or that a full pass changed nothing.
+Run this over every drafted artifact as the last step of writing it, against the file and not from memory. Per artifact and per revision: having read this file earlier in the session does not discharge it, and each of the six steps is a search over the draft rather than an impression of it. When a draft comes back bloated or wrong, run the step that was skipped before proposing a new rule; the caps here are already binding. Where the artifact's own skill mandates a loop, `skills/pr-body.md` for one, run that loop first and this pass over its result. Report the outcome in the reply: what it changed, or that a full pass changed nothing.
 
 Take the checks in order. Each is a search over the draft, not an impression of it.
 

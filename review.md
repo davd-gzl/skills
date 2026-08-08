@@ -20,7 +20,7 @@ Run in order for a single target; multi-target runs wrap this via *Parallel disp
 4. *Review the diff*, or the failing surface.
 5. *Write tests* for test-shaped findings.
 6. Write the review file (*Output*).
-7. Draft `comment_<model>.md` (*GitHub review draft*), then run its *Final check* and QA agents. Skip for a PR the reviewer authored; see *Own PR*.
+7. Draft `comment_<model>.md` (*GitHub review draft*), then run its *Final check* and QA agents. Drafted whether or not anything will be posted: the draft is the artifact and `post` is the gate. Skip only for a PR the reviewer authored; see *Own PR*.
 8. The `skills/writing-style.md` Pass over every line of the review file and `comment_<model>.md`. First priority, never skipped, whatever the findings are worth. Re-run it after any later edit to that prose, including one made in response to a question about it. State which passes ran when handing over.
 9. One commit and one push covering everything. This push is pre-authorized; see *Rules*.
 10. Hand over. Link the `comment_<model>.md` draft, not only the review file. Add a "Decisions needed" list — borderline verdict, APPROVE confirmation, Open questions worth promoting — one line each; omit when empty. Post only on the literal word `post`.
@@ -142,6 +142,8 @@ Read every line. Look for: correctness (logic errors, nil checks, type assertion
 - For any claim that the diff *causes* a behavior, run the repro on the merge-base too. Reproduces there: pre-existing, causation false; attribute only the delta and state both numbers. A passing repro proves the behavior exists, never that the diff created it.
 - When a baseline run or a test kills a finding, drop the finding. Never keep the conclusion and attach a new rationale.
 - Treat every "bound" or "leak" claim as quantitative: name the quantity, vary what claims to bound it, confirm they track.
+- A reachability claim is proved by construction, never by survey. Build the smallest artifact that would fail if the claim were false and run it: for a capability leak that is a second realm doing the thing, not a test that builds its own victim, and not a grep for existing instances. "Nothing in the tree does this" answers a different question from "nothing stops this".
+- Vary the conditions before naming them. A finding that holds under one shape and not another states which, having tried both.
 - Run greps and lint in the reviewed checkout at the reviewed commit.
 - Confirm a symbol exists with the project's own linter or compiler, sanity-checked first with a bogus symbol.
 
@@ -186,6 +188,7 @@ Before pushing, read the final diff as a reviewer who did not write it, with the
 
 Shared by the review file and comment.md.
 
+- A private reviewed repo does not remove the links from `comment_<model>.md`. That comment is posted on the repo itself, so it reaches only people who already have access; the no-blob-link rule is about artifacts that live outside it. Strip links from the review file when a delta file says so, never from the comment.
 - Every `file:line` reference is a link to the reviewed repo's blob at the reviewed sha: `` [`file:line`](https://github.com/<repo>/blob/<short-sha>/<path>#L<line>) ``, ranges `#L<a>-L<b>`, `<short-sha>` from the round directory name. Applies to every reference, including files and tests cited by name. Never a bare backticked `file:line`.
 - Link every behavioral claim to the line that proves it, not only claims naming a symbol.
 - A blob link into a rendered file (`.md`) needs `?plain=1` before the `#L` anchor.
@@ -297,7 +300,7 @@ Local checkout: `<the command that reproduces this state>`
 - Severity is binary. Warning = a maintainer could plausibly block: correctness, security, decay, missing invariant. Nit = style, polish, optional. In doubt: Nit.
 - Severity measures whether the defect is real, not how big. A small genuine correctness bug is a Warning; magnitude goes in the details. Suggestion is for non-bugs: latent-only risks, design tradeoffs.
 - A cosmetic nit no enabled linter enforces stays in the review file with the config link and "not posted, no change needed". Check the linter config before flagging a style convention.
-- A pre-existing defect is in scope in exactly two cases: the diff is a sweep of that defect's class and missed it, or the change makes the code permanent. Name the sweep or the freeze, and say it predates the diff.
+- A pre-existing defect is in scope in exactly two cases: the diff is a sweep of that defect's class and missed it, or the change makes the code permanent. Name the sweep or the freeze, and say it predates the diff. Check both cases by reading the diff, never from recall: a diff that promotes something to a security boundary, or that adds a test asserting the behaviour, is the first case and the verdict moves with it.
 - Map the full call graph before claiming anything dead, redundant, or unused.
 - Never flag contribution-policy compliance as a code finding; mention it in the narrative only when it is why CI is red.
 - Post a deferred-scope or extension question only when there is a concrete risk or a decision the author must make now; otherwise Open questions.
@@ -367,9 +370,9 @@ Full review: <link to the review file in this repo>
 
 ### Building each inline comment
 
-1. **Anchor.** One `## <path>:<line>` section per finding, every severity; ranges `## <path>:<start>-<end>`. Line numbers reference the head commit (side RIGHT). Read those exact lines first; the anchor covers exactly the lines the sentence talks about.
+1. **Anchor.** One `## <path>:<line>` section per finding, every severity; ranges `## <path>:<start>-<end>`. Line numbers reference the head commit (side RIGHT). Read those exact lines first; the anchor covers exactly the lines the sentence talks about. Validate every anchor against the diff hunks now, not at posting time: a line outside the diff is rejected and takes the whole review with it, so that finding belongs in the Body and the draft has to say so.
 2. **Opener.** `Critical:` / `Nit:` / `Suggestion:` prefix matching the review file's band, then the TL;DR. A Warning gets NO prefix. A missing-test finding opens `Missing test:` plus the uncovered scenario. No bracketed priority tags in comment.md.
-3. **Sentences.** Hard cap 1-3 visible sentences; code blocks and `<details>` do not count; no headers, no bold. Order: gap and stake, evidence, fix sentence last. Over 3: cut evidence, never the gap.
+3. **Sentences.** Hard cap 1-3 visible sentences; code blocks and `<details>` do not count; no headers, no bold. Order: gap and stake, evidence, fix sentence last. Over 3: cut evidence, never the gap. What ships is the defect, the anchor and the repro: the reasoning, the prototyping cost and the verification pins stay in the review file, which is the record.
 4. **Fix sentence.** Default none, per `skills/writing-style.md`. Add only when the remedy is non-obvious and changes what the author would do; name the outcome, never the implementation path.
 5. **Links.** Every named file or test, every behavioral claim, per *Links & citations*.
 6. **Repro.** Critical and Warning get a collapsed repro block when the claim is behavioral.

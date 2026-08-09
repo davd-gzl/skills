@@ -39,7 +39,7 @@ Order the paragraphs, in both shapes:
 
 Do not over-explain: the reader has the diff. Give only the defect, the consequence, and the context the code cannot supply.
 
-Hyperlink everything per `skills/writing-style.md`, to the blob at the reviewed sha or upstream documentation.
+Hyperlink everything per `skills/writing-style.md`, to the blob at the branch under review or upstream documentation.
 
 State what the change does not achieve, up front: "This does not turn the check green. It clears one condition of three." Say what was deliberately not fixed, and why, whenever a reader would otherwise wonder.
 

@@ -21,15 +21,14 @@ Canonical style file for all visible prose; other skills point here.
 - State a verification only when it is a runtime check no CI job covers: a revert-repro, cross-language parity, an end-to-end path the harness cannot assert. Map every claim to the workflow job that already runs it and delete the ones that map; what survives carries the reason the job cannot reach it. When the only proof is the tests, name what they cover in one line and stop.
 - Plain words over jargon: "a caller can skip the admin check", not "no confused-deputy path". Jargon only when it saves real length and the reader surely knows it.
 - State the problem and stop. Keep a fix only when the remedy is non-obvious, and then name the outcome, not the steps.
-- Show the code, never a description of it. A question about what the code does is answered by the lines that answer it. A change in shape is shown as before and after, not narrated. Prose earns its place only where the code cannot speak: why the change exists, and what it rules out.
+- Show the code, never a description of it, and describe the change, never the diff. A question about what the code does is answered by the lines that answer it, and a change in shape is shown as before and after rather than narrated. Prose earns its place only where the code cannot speak: why the change exists, and what it rules out.
 - Write a commit sha bare in prose GitHub renders: no backticks, no link. Both suppress the native hovercard.
 - Never write a section to say it is empty. Delete the heading.
 - Link every named thing: a file, symbol, PR, issue, package, or external project gets a link the first time it appears.
 - A claim about someone else's platform carries the link that proves it. Never assert what a browser, OS, or runtime does from memory.
 - When the source states the reason, link the line and stop. Never restate in prose what a reader reaches in one click.
-- Describe the change, never the diff. Write only what the code cannot say: why the change is there, and what it rules out.
 - Never fold a live observation and a source read into one setup line. Name the setup only when the claim rests on it: the instance, the browser, the device, the command. The permalink already says which sha a source read came from.
-- A link into code carries the line: `#L37`, or `#L35-L42` for a range, on a `blob` URL pinned to a sha. Read the range back before shipping. Never link a bare file or a directory: link the one line that shows the claim.
+- A link into code carries the line: `#L37`, or `#L35-L42` for a range, on a `blob` URL. Read the range back before shipping. Never link a bare file or a directory: link the one line that shows the claim. Which ref the URL names is the reviewing skill's call, `skills/review.md` for one; this file only requires that the line be there and that the claim be on it.
 - A finding links the problem, never the definition. Point at the defective line: the unbounded call, the missing guard, the wrong operator, the line that breaks. A function's signature is where the reader ends up when you were too lazy to find the line, and it makes them hunt for what you already found. Link the `func` line only when the claim is about the symbol itself, never when the claim is a defect inside it.
 - Anchor every link on words already in the prose. Never write a sentence whose only job is to carry a link; fold it into a sentence that earns its place.
 - In code comments, keep the symbols a contributor needs, and link the canonical source instead of restating it.
@@ -38,16 +37,17 @@ Canonical style file for all visible prose; other skills point here.
 
 ## Pass
 
-Run this over every drafted artifact as the last step of writing it, against the file and not from memory. Per artifact and per revision: having read this file earlier in the session does not discharge it, and each of the six steps is a search over the draft rather than an impression of it. When a draft comes back bloated or wrong, run the step that was skipped before proposing a new rule; the caps here are already binding. Where the artifact's own skill mandates a loop, `skills/pr-body.md` for one, run that loop first and this pass over its result. Report the outcome in the reply: what it changed, or that a full pass changed nothing.
+Run this over every drafted artifact as the last step of writing it, against the file and not from memory. Per artifact and per revision: having read this file earlier in the session does not discharge it, and each of the seven steps is a search over the draft rather than an impression of it. When a draft comes back bloated or wrong, run the step that was skipped before proposing a new rule; the caps here are already binding. Where the artifact's own skill mandates a loop, `skills/pr-body.md` for one, run that loop first and this pass over its result. Report the outcome in the reply: what it changed, or that a full pass changed nothing.
 
 Take the checks in order. Each is a search over the draft, not an impression of it.
 
 1. **Mechanical bans.** Search the draft for the em-dash, `U+2014`, and for `(`. Every hit is a rewrite: a colon, a period or a comma for the first, a reworked sentence for the second. This check is first because it is the only one that cannot be argued with.
 2. **Verification padding.** For every claim that something passes, open the workflow file and find the job that already runs it. Delete the claim if the job exists. What survives names the reason the job cannot reach it.
-3. **Unlinked names.** List every file, symbol, package, PR, issue and project named in the draft. The first appearance of each carries a link. A link into code carries `#L37` or `#L35-L42` on a `blob` URL pinned to a sha; read the range back before shipping it.
+3. **Unlinked names.** List every file, symbol, package, PR, issue and project named in the draft. The first appearance of each carries a link. A link into code carries `#L37` or `#L35-L42` on a `blob` URL and points at the line the claim is about, never the definition of the symbol it happens to name; read the range back and confirm the claim is on it. `skills/review.md` fixes the ref: the branch under review, with a sha only in the two exceptions it names.
 4. **Sign-posting.** Search for "see below", "as mentioned", "the section above", and any sentence whose only job is to carry a link. Restructure so the content sits where the reader needs it.
 5. **Budget.** Count the words against the shape's own budget. Past it, cut; never restructure.
 6. **Bare adjectives.** Search for "sound", "correct", "safe", "fine", "nothing broken". Replace each with the check that was run and what it showed.
+7. **The cut.** Take each sentence in turn and delete its last clause. Read what remains: if it still carries the same fact, the same number and the same stake, keep the shorter one and repeat on it. Then read each sentence once, left to right, and rewrite any that needs a second pass to parse. Stop at the first cut that removes a fact, a number, or the reason the reader should care; past that point the line is being deleted rather than shortened, which is the worse failure. This step is last because every earlier one can add words, and it is a search like the others: every sentence, not a general intention to be brief.
 
 A pass that changes nothing is the exit condition. A pass never run is not the same thing, and reporting one as the other is worse than skipping it.
 

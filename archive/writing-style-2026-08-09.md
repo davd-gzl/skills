@@ -62,19 +62,6 @@ One-line comments, questions, chat replies. All rules above hold; the register i
 
 Sample, hand-typed: "You should rephrase that introduction and move it in #profiling-a-transaction".
 
-## Posted comments
-
-A comment posted to a pull request is the most compressed register: the defect or the fix, in the
-fewest words that still land it. Earlier snapshots of this file are in `archive/`; this is the
-tighter successor.
-
-- State the fix, or state the defect. Not both, unless the fix is non-obvious from the defect. `len(trail) > 1` is equivalent and simpler` needs no sentence explaining what the old code did wrong.
-- Cut every clause the fix already implies. `..., which the two-case list omits`, `..., that the current check misses`, `..., unlike the old code` all restate the gap the fix just closed. Delete them.
-- No process words: no `Verified`, `measured`, `I ran`, `reproduced`, `on <sha>`. Evidence lives in the collapsed repro or the review file, never in the visible line.
-- One clause of mechanism, only if the reader cannot act without it. `caller is an argument, not a frame` earns its place; a symbol-chain walkthrough does not.
-- Anchor and band do the framing work prose would otherwise carry. The `## path:line` header already says where; the `Nit:`/`Suggestion:`/`Missing test:` opener already says how much. Do not repeat either in the sentence.
-- Read the finished line and delete the last clause. If it still means the same thing, it was padding. Repeat.
-
 ## Provenance warning
 
 Most `davd-gzl` PR bodies and inline review comments on GitHub were produced by this workflow, not typed by hand. Do not mine them as style samples; re-derive from a fresh hand-typed sample when one appears.

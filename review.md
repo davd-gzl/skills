@@ -8,7 +8,7 @@ argument-hint: <repo>#<pr-number> | <url> | <repo> <subject>
 
 **Input:** `$ARGUMENTS` — a PR number or URL, a repo name plus a subject ("meet, the CI is red"), or several of these. Process each target independently.
 
-Write all visible prose per `skills/writing-style.md`, no exceptions; its scannability rule covers every artifact here. In every artifact: verdict first, then narrative, then findings. Make every reference clickable, every file readable without the chat, and bold the one number or word that carries the decision.
+Write all visible prose per `skills/writing-style.md`, no exceptions; its scannability rule covers every artifact here. In every artifact: verdict first, then narrative, then findings — except the review file, which opens with its Overview, then the verdict. Make every reference clickable, every file readable without the chat, and bold the one number or word that carries the decision.
 
 ## Workflow
 
@@ -120,7 +120,7 @@ git diff $(git merge-base <remote>/<base-branch> <new-sha>) <new-sha> | git patc
 - **New head is a merge of the base branch** — never base-only. Run `git show <new-sha> --cc`; any hunk it prints is conflict-resolution content, reviewed like any diff. Base commits may add tests the branch now fails, so run the affected suite on the new head.
 - **`<old-sha>` unreachable** — skip the gate, run a full round against the merge-base, note the fallback.
 
-Open every full re-review round with a round-note paragraph between the metadata block and the TL;DR: `Round <n>.` — how the head moved, what changed, which prior findings were resolved or carried.
+Open every full re-review round with a round-note paragraph between the metadata block and the Overview: `Round <n>.` — how the head moved, what changed, which prior findings were resolved or carried.
 
 ### Reproduce the failure
 
@@ -220,7 +220,8 @@ Local checkout: `<the command that reproduces this state>`
 
 <Round note — re-review and same-commit deep rounds only.>
 
-**TL;DR:** <1-2 plain-language sentences for a reader with zero context. No jargon, no findings, no decision. Always include.>
+## Overview
+<Always include. For a reader who knows the project but nothing of this work: what the change does, the problem it exists to solve, and how the pieces fit — 3-6 plain-language sentences, no jargon, no findings, no decision. Add an ASCII diagram only when the work cannot be understood without one — a call chain crossing files, a state machine, a trust boundary — the changed edge marked; drawing rules per the Diagrams section of `skills/pr-body.md`. Default is no diagram.>
 
 **Verdict: APPROVE / REQUEST CHANGES / NEEDS DISCUSSION / CLOSE** — <one terse sentence: decision plus open concerns by name> (<finding counts, nonzero bands only>). `CLOSE` only when the change should not land at all; cite the load-bearing reason in the same sentence.
 
@@ -229,9 +230,6 @@ Local checkout: `<the command that reproduces this state>`
 
 ## Summary
 <2-4 dense sentences: the bug/feature, why it matters (anchor numbers), one-sentence shape of the fix.>
-
-## Diagram
-<When the change is shape-y: a call chain crossing files, a state machine, an ordering change, a trust boundary. Mark the edge the diff changes; drawing rules per the Diagrams section of `skills/pr-body.md`. Skip when one sentence carries the shape.>
 
 ## Examples
 <Optional. Input-to-outcome rows making a semantics change tangible. No findings, no `file:line`, no decision. Skip for refactors, plumbing, bugfixes with no user-visible surface.>
@@ -283,7 +281,7 @@ Local checkout: `<the command that reproduces this state>`
 
 - `<status>` is `latest` when `<short-sha>` matches the current head, or `stale — +N commits since`.
 - A subject with no PR drops the PR-only metadata (URL, Author, Base) and titles the H1 by the subject; anchors per *Subjects*.
-- `Verify first`, `Diagram`, and `Not fixable by a pull request` never reach comment.md.
+- `Overview`, `Verify first`, and `Not fixable by a pull request` never reach comment.md.
 - Every finding line gets a plain-English priority tag in every severity section; only a trivial nit drops it.
 - Prose in `<details>` by default; labeled sub-bullets only for tangible repros.
 - No Test Results section: a review-worthy failure becomes a Critical or Warning; other results get no mention.

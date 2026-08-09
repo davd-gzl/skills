@@ -23,7 +23,7 @@ Run in order for a single target; multi-target runs wrap this via *Parallel disp
 7. Draft `comment_<model>.md` (*GitHub review draft*), then run its *Final check* and QA agents. Drafted whether or not anything will be posted: the draft is the artifact and `post` is the gate. Skip only for a PR the reviewer authored; see *Own PR*.
 8. The `skills/writing-style.md` Pass over every line of the review file and `comment_<model>.md`. First priority, never skipped, whatever the findings are worth. Re-run it after any later edit to that prose, including one made in response to a question about it. State which passes ran when handing over.
 9. One commit and one push covering everything. This push is pre-authorized; see *Rules*.
-10. Hand over. Link the `comment_<model>.md` draft, not only the review file. Add a "Decisions needed" list — borderline verdict, APPROVE confirmation, Open questions worth promoting — one line each; omit when empty. Post only on the literal word `post`.
+10. Hand over. Link the `comment_<model>.md` draft, not only the review file. Add a "Decisions needed" list — borderline verdict, Open questions worth promoting — one line each; omit when empty. Never list an APPROVE as needing confirmation. Post only on the literal word `post`.
 
 ## Subjects
 
@@ -408,7 +408,7 @@ Governed by the *Posted comments* section of `skills/writing-style.md`: state th
 
 - Never without the literal word `post` (or `upload`) in the current turn; `push` covers git push only. The same gate covers mutating already-posted content: update the draft, show the exact new text, touch GitHub only after approval.
 - A `gh` write refused 403 `Resource not accessible by personal access token` is a missing scope: never retry or work around. Record the refused command in the artifact's `Status:` line and end the reply with `post <github url of the artifact>` alone on its own line.
-- APPROVE is a human decision: state the verdict and wait for confirmation. A generic "post it" covers REQUEST_CHANGES and COMMENT only.
+- The word `post` covers every verdict, APPROVE included. Do not re-ask for confirmation because a review approves: post it on the same word as any other. A post still needs that word (never auto-post), but the confirmation step for APPROVE is gone.
 - Post every verdict as a PR review, never a plain issue comment: `gh api repos/<repo>/pulls/<number>/reviews -f event=<EVENT> -f body='...'`, inline comments as `comments[]` entries with `path`, `line`, `side=RIGHT`, `body`. Validate every anchor against the PR diff first: one rejected anchor takes the whole review with it; move those findings into the Body.
 - Thumbs-up acknowledged duplicates in the same `post`, from each SKIPped section's `Already raised:` URL. Inline thread: `gh api -X POST repos/<repo>/pulls/comments/<id>/reactions -f content=+1`; top-level: `.../issues/comments/<id>/reactions`. Skip targets already reacted to.
 - After a successful post, write the URLs back (`Posted: <review-url>` under the title, `[posted](<comment-url>)` on each anchor), commit and push.

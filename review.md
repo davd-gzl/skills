@@ -204,6 +204,8 @@ Shared by `**Repro:**` blocks in the review file and comment.md. A repro is the 
 - Start with `# from a local clone of <repo>:`, then the checkout command. Zero local paths, no trailing `git checkout <hash>` pin. Inline needed files with heredocs; never `curl`, never reference into the reviews tree. Clean up at the end.
 - Follow the block with the observed output in a second fenced block, trimmed to the signal-bearing 5–20 lines, `# …` marking omissions.
 - A repro demonstrates behavior. Source inspection and greps are not repros. Drop any repro whose only output is a passing run.
+- A measured number is committed with the artifact that produced it, in the round directory, before the number is written down anywhere. Scratch directories are wiped mid-session, and a number whose repro is gone is an assertion wearing a decimal point: delete it or re-measure it, never carry it forward on the strength of having once been true.
+- Run the repro from the draft, verbatim, as a reader would: extract the block from the file and execute it. Every number in the prose comes from that run's output, pasted, not from an earlier run, a rounder figure, or memory.
 - Heredoc behavioral tests (asserting the post-fix state: fail now, pass fixed) for Critical and Warning only. Nits and Suggestions cite the anchor; a one-line "confirmed behaviorally: X" note is enough.
 
 ## Output
@@ -300,6 +302,8 @@ Local checkout: `<the command that reproduces this state>`
 - A cosmetic nit no enabled linter enforces stays in the review file with the config link and "not posted, no change needed". Check the linter config before flagging a style convention.
 - A pre-existing defect is in scope in exactly two cases: the diff is a sweep of that defect's class and missed it, or the change makes the code permanent. Name the sweep or the freeze, and say it predates the diff. Check both cases by reading the diff, never from recall: a diff that promotes something to a security boundary, or that adds a test asserting the behaviour, is the first case and the verdict moves with it.
 - Map the full call graph before claiming anything dead, redundant, or unused.
+- Clearing something needs the same evidence as flagging it. "X is safe because guard G covers it" is a finding in reverse: find G's construction site, list its callers, and confirm X is one. Never infer that a guard reaches a member from a list the diff, its docs, or its author groups together; that grouping is the claim under review, not evidence for it. A cleared item whose mechanism you did not trace is unverified, and saying so costs one clause.
+- When the finding is "this member of a class was missed", measure the whole class in one harness and publish the table. It converts "you missed one" into "here is every member, and this is the only one", answers the reviewer's next question before they ask it, and is what catches a wrong safety claim about the members you were about to clear.
 - Never flag contribution-policy compliance as a code finding; mention it in the narrative only when it is why CI is red.
 - Post a deferred-scope or extension question only when there is a concrete risk or a decision the author must make now; otherwise Open questions.
 

@@ -69,6 +69,17 @@ A comment posted to a pull request is the most compressed register: the defect o
 fewest words that still land it. Earlier snapshots of this file are in `archive/`; this is the
 tighter successor.
 
+The settled shape, in order:
+
+1. **The finding, one or two sentences.** The defect, the measurement, and the single piece of mechanism the reader cannot derive. Nothing else: not the consequence the number implies, not the fix the defect implies, not what the change gets right.
+2. **A collapsed `<details>` repro**, in the harness the repo already uses, paste-and-run, header per `skills/review.md`.
+3. **One line above the output** saying what failed and why the failure is the finding.
+4. **The output**, pasted from a run of that exact block.
+5. **Mechanism and any sweep table**, after the output, still inside the `<details>`.
+6. **Inline findings**, each `## <path>:<line> [gh](<url>)` with the path a bare token, then a band prefix and plain sentences.
+
+Everything a reader needs to act sits above the fold; everything they need to check sits below it. Write the visible part first, then move each surviving sentence down until only 1 remains above.
+
 - State the fix, or state the defect. Not both, unless the fix is non-obvious from the defect. `len(trail) > 1` is equivalent and simpler` needs no sentence explaining what the old code did wrong.
 - Cut every clause the fix already implies. `..., which the two-case list omits`, `..., that the current check misses`, `..., unlike the old code` all restate the gap the fix just closed. Delete them.
 - No process words: no `Verified`, `measured`, `I ran`, `reproduced`, `on <sha>`. Evidence lives in the collapsed repro or the review file, never in the visible line.

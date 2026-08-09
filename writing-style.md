@@ -74,7 +74,3 @@ tighter successor.
 - One clause of mechanism, only if the reader cannot act without it. `caller is an argument, not a frame` earns its place; a symbol-chain walkthrough does not.
 - Anchor and band do the framing work prose would otherwise carry. The `## path:line` header already says where; the `Nit:`/`Suggestion:`/`Missing test:` opener already says how much. Do not repeat either in the sentence.
 - Read the finished line and delete the last clause. If it still means the same thing, it was padding. Repeat.
-
-## Provenance warning
-
-Most `davd-gzl` PR bodies and inline review comments on GitHub were produced by this workflow, not typed by hand. Do not mine them as style samples; re-derive from a fresh hand-typed sample when one appears.

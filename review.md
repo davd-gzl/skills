@@ -205,6 +205,7 @@ Shared by the review file and comment.md.
 Shared by `**Repro:**` blocks in the review file and comment.md. A repro is the runnable sequence demonstrating a claimed behavior.
 
 - Every empirical claim ships a copy-pasteable repro: fenced `bash`, self-contained, one clear pass/fail signal, restoring modified files at the end. Pin env vars only when depended on.
+- **No repro for a merge conflict.** The author meets it the moment they rebase, and nobody disputes that a conflict exists, so pasting `git merge-tree` output spends the comment on its least contested fact. State what the resolution costs and stop; the conflict itself is not the finding.
 - **No repro for a finding the reader confirms by looking at the app.** A click path and a keypress are the repro, and the author checks them faster in the browser they already have open than by installing a driver and booting a stack. A browser-driving script in a comment also rots on the first selector rename, and its length buries the one sentence that matters. Drive the app yourself to be sure the claim holds, keep the script in the review file as the record, and let the comment carry the steps in the finding sentence.
 - Start with `# from a local clone of <repo>:`, then the checkout command. Zero local paths, no trailing `git checkout <hash>` pin. Inline needed files with heredocs; never `curl`, never reference into the reviews tree. Clean up at the end.
 - Follow the block with the observed output in a second fenced block, trimmed to the signal-bearing 5–20 lines, `# …` marking omissions.

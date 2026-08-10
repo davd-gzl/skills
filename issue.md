@@ -27,7 +27,7 @@ Record what the search covered in the draft's `Status:` line, so a later reader 
 
 ## File
 
-Put `issue.md` in the review directory, `projects/<repo>/reviews/<slug>/<n>-<sha>/`, beside the review file: an issue can exist when no fix does. It opens with a header block, `Target:` (the opened issue URL, or else `https://github.com/<repo>/issues/new`) and `Status:`, then `## Title` and `## Body`.
+Put `issue.md` in the review directory, `projects/<repo>/reviews/<slug>/<n>-<sha>/`, beside the review file: an issue can exist when no fix does. It opens with a header block, `Target:` holding the opened issue URL, or else `https://github.com/<repo>/issues/new` and `Status:`, then `## Title` and `## Body`.
 
 ## Title
 
@@ -45,7 +45,7 @@ State the problem and where it comes from. Nothing else.
 
 - Write for the maintainer. Cut anything that is a record of how you found the problem: a tool that misled you, a step you had to repeat.
 - Lead with the fact that changes how everything after it reads: a count inflated by configuration, a failure that is old rather than new. A reader who meets it last has already misjudged everything above.
-- Give counts meaning, not just size: "89 findings, one code defect and 88 deployment configuration", not an inventory the reader must interpret alone.
+- Give counts meaning, never size alone: "89 findings, one code defect and 88 deployment configuration", not an inventory the reader must interpret alone.
 - Open with what a maintainer sees, and where. Count the consecutive failures and name the last pass instead of "for months". Link the failing thing itself: the check run's `html_url`, the workflow run, and for an external check its `details_url`.
 - Give the shape before the detail; use a diagram when several parts fail differently, per the Diagrams section of `skills/pr-body.md`.
 - Break the problem into parts, each with its count and source: which files, which rule, which subsystem.

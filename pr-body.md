@@ -9,12 +9,12 @@ Write for a reader with no context who must decide whether to merge. Cut every s
 
 Pick one of two shapes, by how many independent changes the PR carries. Read the matching model PR before drafting. Never mix the two.
 
-- **One concern** — models: [gno#5999](https://github.com/gnolang/gno/pull/5999), [#5996](https://github.com/gnolang/gno/pull/5996). Four short paragraphs, about 200 words, no headers. 200 is the target, not a minimum.
-- **Several independent changes** — model: [gno#6006](https://github.com/gnolang/gno/pull/6006). One `### <symbol>: <one-line diagnosis>` section per change, separated by `---`, each readable alone. Framing paragraphs first, then a one-line bridge counting what follows. About 150 words per section.
+- **One concern**, models: [gno#5999](https://github.com/gnolang/gno/pull/5999), [#5996](https://github.com/gnolang/gno/pull/5996). Four short paragraphs, about 200 words, no headers. 200 is the target, not a minimum.
+- **Several independent changes**, model: [gno#6006](https://github.com/gnolang/gno/pull/6006). One `### <symbol>: <one-line diagnosis>` section per change, separated by `---`, each readable alone. Framing paragraphs first, then a one-line bridge counting what follows. About 150 words per section.
 
 ## File
 
-Put `pr-body.md` in the change directory, `projects/<repo>/changes/<slug>/`. It opens with a header block: `Target:` (the opened PR URL, or else the `compare/...?expand=1` URL), `Head:` and `Base:` with shas, and `Status:` when there is something to say. Then `## Title`, `## Body`, and `## Visual evidence` only when there is something to attach. Only Title and Body get pasted into GitHub; `./scripts/post-fix.sh` opens the PR from this file.
+Put `pr-body.md` in the change directory, `projects/<repo>/changes/<slug>/`. It opens with a header block: `Target:` holding the opened PR URL, or else the `compare/...?expand=1` URL, `Head:` and `Base:` with shas, and `Status:` when there is something to say. Then `## Title`, `## Body`, and `## Visual evidence` only when there is something to attach. Only Title and Body get pasted into GitHub; `./scripts/post-fix.sh` opens the PR from this file.
 
 Write nothing about how the file was written: no shape label, no model PR, no round count. That record belongs in `plan.md`. Every line is either something the user pastes or something they act on; delete the rest.
 
@@ -24,7 +24,7 @@ Write prose, broken small.
 
 - Paragraphs of two to four sentences, one idea each. Five or more: split.
 - One-line paragraph for each turn in the argument; a skimmer reads only these.
-- No process headers ("Purpose", "Testing"). The only headers are the `###` sections of the multi-change shape.
+- No process headers such as Purpose or Testing. The only headers are the `###` sections of the multi-change shape.
 - No tables, no bullet lists, no bold, no emoji. Parallel content long enough to want a table means the multi-change shape.
 - A diagram wherever a shape is clearer drawn than written; see *Diagrams*.
 - No code block unless it is real observed output or a diagram, trimmed to the signal-bearing lines.

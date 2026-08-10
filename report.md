@@ -12,7 +12,7 @@ output; and a ping draft when stale items need chasing. The consuming
 workspace defines the team, the repositories, the categories and the markers;
 this file defines the mechanism.
 
-**Input:** `$ARGUMENTS` — optional date expression for the end date, default
+**Input:** `$ARGUMENTS`, an optional date expression for the end date, default
 today. Parse to YYYY-MM-DD.
 
 ## Workflow

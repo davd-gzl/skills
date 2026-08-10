@@ -344,7 +344,7 @@ Format:
 Event: APPROVE | REQUEST_CHANGES | COMMENT
 
 ## Body
-<One-line assessment folding in the verification pin ("verified on <short-sha>"), then one-sentence bullets for unanchored findings and questions only. When clean: "Looks good. Verified on <short-sha>: <CI-invisible check>." and nothing else.>
+<One-line assessment, then one-sentence bullets for unanchored findings only. When clean: "Looks good." plus one CI-invisible check, and nothing else.>
 
 Full review: <link to the review file in this repo>
 
@@ -360,14 +360,14 @@ Full review: <link to the review file in this repo>
 ### Body rules
 
 - A finding with more than one case is a claim and a list, never a paragraph. One line for the claim and the mechanism it rests on, then one nested bullet per case, each naming its condition and its outcome. Put the cases where it does not bite beside the ones where it does: that list is what stops the claim being read as broader than it is, and it is the shape a reader can check their own code against.
-- The Body has exactly three jobs: cross-cutting synthesis the per-line comments cannot carry; unanchored findings and questions, one sentence each, gap then fix; and the verification pin ("verified on <short-sha>"). Cut everything else.
+- The Body has exactly two jobs: cross-cutting synthesis the per-line comments cannot carry, and unanchored findings, one sentence each, gap then fix. Cut everything else.
 - Never mention an anchored finding in the Body, in any form: no bullets, no recap, no "(inline)" pointer, no count.
 - Do not re-describe the change, list what passed, narrate the review process, or restate thread state.
 - Stateless, like every inline comment: never name a round, never frame current code as a fix relative to a prior draft. State the code's current property, not its history.
 - A CI-invisible check must pass the verification rule in `skills/writing-style.md`; one that fails never appears. Nothing runtime-only checked: no verification line at all.
 - At most three checks, the strongest. State each as an action and its result ("reverting the fix reproduces the bug"), never as a characterization ("a real correctness gain"). When naming a revert, describe the concrete edit, tie cause to effect in one chain.
 - When a Body check asserts a property a committed test could assert, write the test instead.
-- End with "Repros run at <short-sha>."; when that sha still matches the head, fold the pin into the opening line.
+- **No sha pin in anything posted.** A review lands on the head the author is looking at, so naming the commit tells them what they already know and dates the comment the moment they push. The reviewed sha belongs in the review file's metadata, which is the record.
 
 ### General rules
 
@@ -395,8 +395,7 @@ Governed by the *Posted comments* section of `skills/writing-style.md`: state th
 - Lead with the specific gap. Never open by explaining the author's own code or restating what the change claims.
 - A latent-risk finding states the current safety in one clause and stops.
 - Lowercase a source's emphasis caps in prose; caps survive only in code spans.
-- Findings as facts ("X hangs forever"), not questions. A genuine question is one terse line, posted only when the answer changes the verdict or the author's next action.
-- A design or layering question caps at two sentences: the alternative in one clause, then whether the choice was deliberate.
+- **Never post a question.** State the position as the reviewer's own, in one line: "Escape should return to the previous level here, not close the panel." A question hands the reviewer's work back to the author and reads as hedging, where a stated position can be agreed with or refused in one reply. This covers design and layering calls, which were the last place questions survived.
 - Link the full review inside an inline comment only when the details block is not enough.
 
 ### Repros (comment.md deltas)

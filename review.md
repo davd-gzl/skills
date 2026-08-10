@@ -135,6 +135,8 @@ Open every full re-review round with a round-note paragraph between the metadata
 
 Read every line. Look for correctness defects: logic errors, missing nil checks, unchecked type assertions, off-by-one. Untested paths. Breaking changes without migration. Style inconsistencies. Reuse and simplification: duplicated helpers, foldable code, unclear naming, missing doc comments, undocumented invariants, filed as Suggestions or Nits, never blockers. Docs impact.
 
+**Refactor pass, over every added block.** Ask whether fewer lines carry the same behaviour: a value computed twice, a guard the caller already applied, memoization that stabilises nothing, an abstraction with one call site. Where they do, post the replacement as a `Refactor:` suggestion the author applies in one click, never prose describing the change, and record both line counts in the review file.
+
 **Verification discipline.** Every finding passes all of these before it enters the review:
 
 - Verify against the actual file, never from memory or a summary.
@@ -387,7 +389,7 @@ Full review: <link to the review file in this repo>
 - Order inline sections: Critical, Warning, Missing test, Nit, Suggestion; file order within a band.
 - Post only comments that change what the author does: fix, decide, or answer. "No change needed" findings stay in the review file. Severity never gates this: a Nit asking for a concrete modification gets its own section.
 - Never explain routine fixes: merge the base, regenerate assets, re-run a flaky job. A red check with a routine cause gets one short Body line, naming what is no longer readable rather than the fix.
-- **Never tell the author to rebase.** They meet the conflict the moment they try to merge, and a reviewer spending the body on it says nothing the branch does not already say. What a rebase costs, a behaviour it drops or a build it breaks, is a finding anchored on the line that carries it. Nothing else about the base branch reaches the comment.
+- **Never tell the author to rebase.** They meet the conflict the moment they try to merge, and a reviewer spending the body on it says nothing the branch does not already say. What a rebase costs, a behaviour it drops or a build it breaks, is a finding anchored on the line that carries it. Nothing else about the base branch reaches the comment. One exception: when the stale base is why the review is not an APPROVE, the Body says so in one line, because a withheld approval whose reason is unstated is the same defect in the other direction.
 
 ### Building each inline comment
 

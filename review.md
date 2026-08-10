@@ -207,6 +207,7 @@ Shared by `**Repro:**` blocks in the review file and comment.md. A repro is the 
 - Every empirical claim ships a copy-pasteable repro: fenced `bash`, self-contained, one clear pass/fail signal, restoring modified files at the end. Pin env vars only when depended on.
 - **No repro for a merge conflict.** The author meets it the moment they rebase, and nobody disputes it exists, so pasted conflict output spends the comment on its least contested fact. State what the resolution costs and stop; the conflict itself is not the finding.
 - **No repro for a finding the reader confirms by looking at the app.** The click path or keypress is the repro, and the author checks it faster in the app they already have open. A driver script in a comment rots on the first selector rename and buries the one sentence that matters. Drive the app yourself to confirm the claim, keep the script in the review file as the record, and let the finding sentence carry the steps.
+- **A clip replaces the written steps, and only the user can attach it.** A recording of the defect says in three seconds what a step list says in three lines, so when one exists the sentence drops the steps and states the rule the clip demonstrates. An image hosted in a private workspace will not render on someone else's pull request, so hand the file to the user and say it has to be dropped into the comment box; never post a link that renders as a broken image.
 - Start with `# from a local clone of <repo>:`, then the checkout command. Zero local paths, no trailing `git checkout <hash>` pin. Inline needed files with heredocs; never `curl`, never reference into the reviews tree. Clean up at the end.
 - Follow the block with the observed output in a second fenced block, trimmed to the signal-bearing 5-20 lines, `# …` marking omissions.
 - A repro whose output is a failure says so in one line directly above that output, naming what failed and why the failure is the finding. A fail-now, pass-once-fixed test prints `FAIL`, and a reader who meets `FAIL` cold concludes the repro is broken and stops reading; a framing at the top of the block does not survive a long heredoc in between.
@@ -340,7 +341,7 @@ A target with no PR, a branch or a repository-level failure, gets a GitHub issue
 
 Before writing a `Full review:` link into anything posted, check this repo's visibility with `gh repo view <this-repo> --json visibility`. Private: carry no link, inline the substance instead.
 
-Auto-SKIP duplicates: when another reviewer already raised a finding, prefix its header with `SKIP` while drafting, attribute the reviewer in the review file, and make `Already raised: <comment-url>` the section's first body line. When a section bundles an already-raised finding with a novel one, split it so the novel part posts.
+Auto-SKIP duplicates: when another reviewer already raised a finding, prefix its header with `SKIP` while drafting, attribute the reviewer in the review file, and make `Already raised: <comment-url>` the section's first body line. When a section bundles an already-raised finding with a novel one, split it so the novel part posts. Where the raised finding is one case of a broader one being posted, name that case in the broader sentence and link it to the original instead of splitting: it credits the earlier reviewer, and it shows the reader the general rule and its sharpest instance in one line.
 
 Format:
 
@@ -380,7 +381,7 @@ Full review: <link to the review file in this repo>
 
 ### General rules
 
-- `Event:` from verdict: APPROVE → APPROVE, REQUEST CHANGES → REQUEST_CHANGES, NEEDS DISCUSSION and CLOSE → COMMENT. The `Event:` line carries the verdict; the Body never restates it.
+- `Event:` defaults from the verdict: APPROVE → APPROVE, REQUEST CHANGES → REQUEST_CHANGES, NEEDS DISCUSSION and CLOSE → COMMENT. It is a default, not a lock: the user may post a lighter event than the verdict, and then the review file keeps the verdict while the draft records what went out. The `Event:` line carries it; the Body never restates it.
 - An own-PR target is not posted at all. If the user insists, `Event: COMMENT` whatever the verdict: GitHub rejects APPROVE and REQUEST_CHANGES on one's own PR.
 - Order inline sections: Critical, Warning, Missing test, Nit, Suggestion; file order within a band.
 - Post only comments that change what the author does: fix, decide, or answer. "No change needed" findings stay in the review file. Severity never gates this: a Nit asking for a concrete modification gets its own section.
@@ -410,7 +411,7 @@ Governed by the *Posted comments* section of `skills/writing-style.md`: state th
 ### Repros (comment.md deltas)
 
 - Attempt a repro for every Critical and Warning before drafting. No run proof: word it as an observation, never "I ran X". Source-visible facts: cite the anchor, drop the block.
-- A repro lives in exactly one file: comment.md owns it for findings anchored there; the review file states the result and links it. Line-specific repros stay with their comment; suite-wide ones go in a Body `<details>` block, pointed to.
+- A repro lives in exactly one file: comment.md owns it for findings anchored there; the review file states the result and links it. Line-specific repros stay with their comment; suite-wide ones go in a Body `<details>` block, pointed to. A finding the reader confirms in the app, and a merge conflict, ship none: the run that confirmed them stays in the review file.
 - A missing-test finding carries ready-to-add cases in a collapsed `<details><summary>test cases</summary>` block, in the file's own test style, paste-ready.
 
 ### Rounds & regeneration

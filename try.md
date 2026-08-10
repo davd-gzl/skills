@@ -47,7 +47,9 @@ Write the recipe into `projects/<repo>/AGENTS.md` the moment it is measured, wit
 
 1. **Hand over first.** The URL, the login, the click path. The user's own run is the fastest verification available and it costs nothing here.
 2. **Script the measurement, not the movie.** Once they report what they saw, drive the same path headless and print the state after each step. A table of states is what turns their observation into a finding, and it reruns in seconds. Save the script under the review's `tests/`.
-3. **Record only once the finding text is frozen**, and only on the word `video`. Reuse the measurement script: the recording adds an overlay naming each click and keypress, and captions that contradict a later correction are the cost of recording early.
+3. **Show the shot list before recording, and wait.** One numbered line per shot: the claim it proves, the clicks and keys in order, and what the screen must show for the claim to hold. The user reads that list in seconds and cuts the shots they do not want, where a recorded minute they did not ask for is a minute of both your time and theirs. A shot whose expected outcome cannot be written down is not understood well enough to film.
+4. **Record only once the finding text is frozen**, and only on the word `video`. Reuse the measurement script: the recording adds an overlay naming each click and keypress, and captions that contradict a later correction are the cost of recording early.
+5. **Re-run the shot list against the recording** before sending it. Every caption states a claim, and a caption the run contradicts is a false statement shipped in a file the user will forward.
 
 The overlay is the point: a video of a UI moving proves nothing about what was typed. Draw a marker at each click and name every key on screen, so a reader sees the input, not just the result. Export a GIF, which renders inline in a GitHub comment where an mp4 does not, and keep the mp4 beside it for anything longer than a few seconds. The files land in the review's `media/`, and reach the user in the chat.
 

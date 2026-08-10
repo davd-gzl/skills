@@ -162,6 +162,17 @@ When a finding's fix is a test the author should add, ship the test: write it un
 
 Start each test file with a comment block carrying exact repro commands runnable from a plain clone: no workspace paths, no `$HOME`. Pin `git checkout <hash>` in test-file headers only; review and comment.md repro blocks never pin. The header stands alone: the run block, then at most 2-3 lines covering mechanism, observed result at the pinned hash, and what changes when fixed. Name code paths by their actual symbol. One-line in-test comments per non-obvious step.
 
+## Overview page (`overview.html`)
+
+Write one when the subject is complex: the change spans subsystems, hinges on concepts the reader must learn first, or lands faster as a diagram or a simulator than as prose. Skip it for a docs-only change, a mechanical refactor or a small localized fix. An explicit ask from the user wins in both directions.
+
+- It goes at the review directory root, `projects/<repo>/reviews/<slug>/overview.html`, never inside a round directory: it explains the subject, not one commit.
+- One self-contained file: inline CSS and JS, no external request, light theme, the generating model named in the `<title>` and in the visible subtitle.
+- Explainer only, carrying no review state: no verdict, no findings, no reviewed sha, no round. Exactly one pointer out, a `Review files` link to the review directory.
+- Pick what fits: a plain-language explanation, a dataflow or state diagram, a decision table, before and after values, an interactive simulator mirroring the changed logic, a Concepts section when the subject needs one. No emoji.
+- A simulator mirroring the code is checked before it ships, against the project's own tests where they exist and against the mirrored source where they do not, and the page says which of the two it was.
+- Update it only when new commits change the subject's own files. A base-only head bump, a new finding, a verdict change and a new round never touch it.
+
 ## Preparing a fix
 
 Findings stay in `projects/<repo>/reviews/<slug>/<n>-<sha>/`; the work on them lives in `projects/<repo>/changes/<slug>/`. Link each tree to the other and never repeat what the other states. A change with no review behind it carries the same files minus the review links. The change directory carries:

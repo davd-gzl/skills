@@ -361,6 +361,7 @@ Full review: <link to the review file in this repo>
 
 - A finding with more than one case is a claim and a list, never a paragraph. One line for the claim and the mechanism it rests on, then one nested bullet per case, each naming its condition and its outcome. Put the cases where it does not bite beside the ones where it does: that list is what stops the claim being read as broader than it is, and it is the shape a reader can check their own code against.
 - The Body has exactly two jobs: cross-cutting synthesis the per-line comments cannot carry, and unanchored findings, one sentence each, gap then fix. Cut everything else.
+- **When every finding is anchored, the Body is one line and says nothing about them.** GitHub refuses an empty body on REQUEST_CHANGES and COMMENT, so a line has to exist; make it the shortest one that adds no claim, "Both fixes are inline." A Body that counts the findings, names their subject, or frames their severity is the same text a reader is about to read underneath, and reading it twice is how a two-finding review starts feeling like a long one.
 - Never mention an anchored finding in the Body, in any form: no bullets, no recap, no "(inline)" pointer, no count.
 - Do not re-describe the change, list what passed, narrate the review process, or restate thread state.
 - Stateless, like every inline comment: never name a round, never frame current code as a fix relative to a prior draft. State the code's current property, not its history.

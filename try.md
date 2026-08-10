@@ -8,22 +8,24 @@ argument-hint: <pr-number> on <repo> | <repo>#<pr> | <branch> on <repo> | <repo>
 
 **Input:** `$ARGUMENTS`. A PR and a repo as `<n> on <repo>` or `<repo>#<n>`, a branch as `<branch> on <repo>`, or a repo alone, which means its default branch. The repo name resolves to `projects/<repo>/`.
 
-The output is a URL, a login, the click path, and what to watch for. The user tests the change themselves in a browser. Never hand over a command to run.
+The output is a URL, a login, the click path, and what to watch for. The user tests the change themselves in a browser, in under a minute of their attention: a handover longer than that has already failed. Never hand over a command to run.
 
 ## Workflow
 
 1. **Read `projects/<repo>/AGENTS.md` first**, its *Local development* and *Ports* sections, before touching the checkout. It carries the boot recipe measured on this machine: system packages, runtime versions, seed data, whitelisted ports.
 2. **Read the target.** `gh pr view <n> --repo <owner>/<repo> --json title,state,isDraft,headRefName,body,files`. The changed-file list decides the boot shape: a frontend-only diff takes the backend from the existing checkout, nothing else rebuilt.
 3. **Sync**, per the root `AGENTS.md`: fetch every remote from inside `projects/<repo>/checkout`, never from the workspace root.
-4. **Worktree, never the checkout.** `git worktree add <scratchpad>/try-<repo>-<target> <sha>` off that checkout, at `refs/pull/<n>/head` fetched explicitly so a cross-fork PR resolves. The submodule gitlink never moves.
+4. **Worktree, never the checkout.** `git worktree add <scratchpad>/try-<repo>-<target> <sha>` off that checkout, at `refs/pull/<n>/head` fetched explicitly so a cross-fork PR resolves. Fetch it from the canonical remote, the repository the project develops in, which is often not `origin`: a fork does not carry the upstream pull refs and the fetch fails or lands on the wrong head. The submodule gitlink never moves.
    ```bash
-   git fetch <remote> "refs/pull/<n>/head:refs/remotes/<remote>/pr/<n>" -f
+   git fetch <canonical-remote> "refs/pull/<n>/head:refs/remotes/<canonical-remote>/pr/<n>" -f
    ```
 5. **Boot.** Recipe from `AGENTS.md`; absent one, derive it from the project's compose, build and package files. Long-running processes go to the background, logs in a scratch file. Reuse what is already built: rebuild only what the diff touches.
 6. **Resolve port collisions before starting, not after.** List the ports the stack publishes against what already listens, and move the collisions rather than killing the user's other stacks:
    ```bash
    ss -ltn | awk 'NR>1{print $4}' | sed 's/.*://' | sort -un
+   grep -nE '^\s+- "[0-9]+:' <compose-file>
    ```
+   The first lists what already listens, the second what the stack publishes. Produce both lists, never one.
    A port named in an auth config, a redirect whitelist or a CORS list is load-bearing and moves only to another whitelisted value; every other port is free to move.
 7. **Prove the running code is the target.** A boot that silently served the base branch looks identical on screen. Fetch a file the diff added straight from the dev server, or hit the route it added:
    ```bash
@@ -45,10 +47,10 @@ Write the recipe into `projects/<repo>/AGENTS.md` the moment it is measured, eac
 **The video is the last step, never the first.** Order: the user tries it by hand, the claim settles, the recording proves the settled claim.
 
 1. **Hand over first**, per the workflow's last step, and wait for the user's report before scripting anything.
-2. **Script the measurement, not the movie.** Once the user reports what they saw, drive the same path headless and print the state after each step. Save the script under the review's `tests/`.
+2. **Script the measurement, not the movie.** Once the user reports what they saw, drive the same path headless and print the state after each step as a table, one row per step. Save the script under the review's `tests/`.
 3. **Show the shot list before recording, and wait.** One numbered line per shot: the claim it proves, the clicks and keys in order, and what the screen must show for the claim to hold. A shot whose expected outcome cannot be written down is not understood well enough to film.
 4. **Record only once the finding text is frozen**, and only on the word `video`. Reuse the measurement script.
-5. **Re-run the shot list against the recording** before sending it. A caption the run contradicts is a false statement.
+5. **Re-run the shot list against the recording** before sending it. Every caption states a claim the run can contradict; a decorative caption makes the check pass vacuously.
 
 **The clip is the comment.** What ships beside it is one sentence naming the rule the clip demonstrates, per the posted-comment shape in `skills/writing-style.md`. A caption walking through the clicks describes what the reader is already watching, and the shot list is the reviewer's check, never posted.
 

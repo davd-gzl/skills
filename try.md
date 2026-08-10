@@ -31,7 +31,7 @@ The output is the user testing the change themselves, in a browser, in under a m
    curl -s http://localhost:<port>/src/<path-added-by-the-diff> | head -5
    ```
 8. **Smoke-test to the change, not to the front page.** Drive the app as far as the diff: log in, seed the fixture, enter the room, open the panel. Report the state you reached from the DOM or the API, not from a screenshot alone. When the diff is behavioural, exercise the behaviour once and report what it did.
-9. **Hand over.** URL, login, the click path in numbered steps, and one line per changed surface naming what to look at. Then the words: `video` when the change is visual, `stop` always.
+9. **Hand over, and stop there.** URL, login, the click path in numbered steps, and one line per changed surface naming what to look at. The user tries it themselves next, so do not script a drive of the whole feature before they have looked at it.
 
 ## Boot recipes
 
@@ -43,9 +43,15 @@ Write the recipe into `projects/<repo>/AGENTS.md` the moment it is measured, wit
 
 ## Video
 
-Offer it only when the diff touches a visual surface, and only as a word in the closing block. Never record unasked: a GIF costs a full drive of the app.
+**The video is the last step, never the first.** Recording costs a full scripted drive of the app, and every wording change to the finding costs it again. So the order is: the user tries it by hand, the claim settles, then the recording proves the settled claim.
 
-On `video`, drive the click path in the browser and export a GIF, which renders inline in a GitHub comment where an mp4 does not. Without a connected browser extension, fall back to a screenshot per step and say that is what happened. When a review directory for the target already exists, the file lands in its `media/`; otherwise it goes to the scratchpad and reaches the user in the chat.
+1. **Hand over first.** The URL, the login, the click path. The user's own run is the fastest verification available and it costs nothing here.
+2. **Script the measurement, not the movie.** Once they report what they saw, drive the same path headless and print the state after each step. A table of states is what turns their observation into a finding, and it reruns in seconds. Save the script under the review's `tests/`.
+3. **Record only once the finding text is frozen**, and only on the word `video`. Reuse the measurement script: the recording adds an overlay naming each click and keypress, and captions that contradict a later correction are the cost of recording early.
+
+The overlay is the point: a video of a UI moving proves nothing about what was typed. Draw a marker at each click and name every key on screen, so a reader sees the input, not just the result. Export a GIF, which renders inline in a GitHub comment where an mp4 does not, and keep the mp4 beside it for anything longer than a few seconds. The files land in the review's `media/`, and reach the user in the chat.
+
+A private workspace cannot embed the GIF in a comment on someone else's repo, so say so rather than writing a link that renders as a broken image.
 
 ## Teardown
 

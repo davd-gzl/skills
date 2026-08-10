@@ -308,6 +308,7 @@ Local checkout: `<the command that reproduces this state>`
 
 - No target finding count. Stop when the diff is read in full and the blast radius is mapped: callers, dependents, siblings.
 - State only what CI does not show, per `skills/writing-style.md`; never "tests pass", "lint clean", "build green".
+- A defect a CI job catches is never a comment, at any severity. Name the job that fails on it and drop the finding, because the author reads the red job before they read the review. What survives names the reason no job reaches it.
 - Severity is binary. Warning = a maintainer could plausibly block: correctness, security, decay, missing invariant. Nit = style, polish, optional. In doubt: Nit.
 - The verdict answers to the severities, and a surviving Warning rules out APPROVE. Reconcile before shipping: either the finding is a Nit and the band was wrong, or the verdict is COMMENT. COMMENT when the change improves strictly on its base and the Warning is a defect it did not introduce; REQUEST CHANGES when the branch causes the Warning or ships it to users. Either way the verdict line names the Warning and says why it does or does not block.
 - Severity measures whether the defect is real, not how big. A small genuine correctness bug is a Warning; magnitude goes in the details. Suggestion is for non-bugs: latent-only risks, design tradeoffs.
@@ -367,7 +368,7 @@ Full review: <link to the review file in this repo>
 
 - A finding with more than one case is a claim and a list, never a paragraph. One line for the claim and its mechanism, then one nested bullet per case naming its condition and outcome. Put the cases where it does not bite beside the ones where it does.
 - The Body has exactly two jobs: cross-cutting synthesis the per-line comments cannot carry, and unanchored findings, one sentence each, gap then fix. Cut everything else. One line is the size; a paragraph there is a finding that should have been anchored.
-- **Never write a Body line whose only job is to fill the field**: no line that counts the inline comments or points at them. Anchor what is about code; the Body carries what is about the branch, a stale base, a missing rebase, a conflict, with its repro collapsed under it.
+- **Never write a Body line whose only job is to fill the field**: no line that counts the inline comments or points at them. Anchor what is about code; the Body carries what is about the branch and survives the two rules below, which take a stale base, a rebase and a conflict out of it.
 - **An empty Body is refused at submit and accepted on edit.** The submit call rejects an empty string for REQUEST_CHANGES and COMMENT; a later edit of the same review sets it to empty and holds. A review whose every finding is anchored ships with its shortest true sentence and is cleared afterwards.
 - **Draft the smallest postable set first, then add on request.** Open with the one finding that changes what the author does next, and hold every other finding in the review file.
 - **Name the event beside the draft, never after it.** The review file's verdict is the reviewer's judgement and does not move. What gets posted, APPROVE, COMMENT or REQUEST_CHANGES, is the user's call: show it with the text and let one word settle both.

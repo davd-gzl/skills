@@ -50,6 +50,8 @@ Write the recipe into `projects/<repo>/AGENTS.md` the moment it is measured, eac
 4. **Record only once the finding text is frozen**, and only on the word `video`. Reuse the measurement script.
 5. **Re-run the shot list against the recording** before sending it. A caption the run contradicts is a false statement.
 
+**The clip is the comment.** What ships beside it is one sentence naming the rule the clip demonstrates, per the posted-comment shape in `skills/writing-style.md`. A caption walking through the clicks describes what the reader is already watching, and the shot list is the reviewer's check, never posted.
+
 A video of a UI moving proves nothing about what was typed: mark each click and name every key on screen. Export a GIF, which renders inline in a GitHub comment where an mp4 does not, and keep the mp4 beside it for anything longer than a few seconds. Files land in the review's `media/` and reach the user in the chat.
 
 A private workspace cannot embed the GIF in a comment on someone else's repo: say so rather than shipping a link that renders broken.

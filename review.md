@@ -366,7 +366,7 @@ Full review: <link to the review file in this repo>
 ### Body rules
 
 - A finding with more than one case is a claim and a list, never a paragraph. One line for the claim and its mechanism, then one nested bullet per case naming its condition and outcome. Put the cases where it does not bite beside the ones where it does: that list stops the claim reading broader than it is, and it is the shape a reader checks their own code against.
-- The Body has exactly two jobs: cross-cutting synthesis the per-line comments cannot carry, and unanchored findings, one sentence each, gap then fix. Cut everything else.
+- The Body has exactly two jobs: cross-cutting synthesis the per-line comments cannot carry, and unanchored findings, one sentence each, gap then fix. Cut everything else. One line is the size; a paragraph there is a finding that should have been anchored.
 - **Never write a Body line whose only job is to fill the field.** A line that only counts the inline comments or points at them says nothing a reader cannot see by scrolling, and a review that opens on filler reads as long before it says anything. Anchor what is about code; the Body carries what is about the branch, a stale base, a missing rebase, a conflict, with its repro collapsed under it.
 - **An empty Body is refused at submit and accepted on edit.** Measured on the reviews API: the submit call rejects an empty string for REQUEST_CHANGES and COMMENT, while a later edit of the same review sets it to empty and holds. So a review whose every finding is anchored ships with its shortest true sentence and is cleared afterwards, rather than carrying filler forever.
 - **Draft the smallest postable set first, then add on request.** Open with the one finding that changes what the author does next, and hold every other finding in the review file. A draft trimmed by the user across several rounds costs a round each time, and the findings that survive the trimming are the ones a first draft should have carried alone.
@@ -391,7 +391,7 @@ Full review: <link to the review file in this repo>
 
 1. **Anchor.** One `## <path>:<line>` section per finding, every severity; ranges `## <path>:<start>-<end>`. Line numbers reference the head commit, side RIGHT. Read those exact lines first; the anchor covers exactly the lines the sentence talks about. Validate every anchor against the diff hunks now, not at posting time: a line outside the diff is rejected and takes the whole review with it, so that finding belongs in the Body and the draft must say so.
 2. **Opener.** `Critical:` / `Nit:` / `Suggestion:` prefix matching the review file's band, then the TL;DR. A Warning gets NO prefix. A missing-test finding opens `Missing test:` plus the uncovered scenario. No bracketed priority tags in comment.md.
-3. **Sentences.** Hard cap 1-3 visible sentences; code blocks and `<details>` do not count; no headers, no bold. Order: gap and stake, evidence, fix sentence last. Over 3: cut evidence, never the gap. What ships is the defect, the anchor and the repro: the reasoning, the prototyping cost and the verification pins stay in the review file, which is the record.
+3. **Sentences.** One visible sentence, two only when the second carries an action the first does not; code blocks and `<details>` do not count; no headers, no bold. Order: gap and stake, evidence, fix sentence last. Over one: cut evidence, never the gap. What ships is the defect, the anchor and the repro: the reasoning, the prototyping cost and the verification pins stay in the review file, which is the record.
 4. **Fix sentence.** Default none, per `skills/writing-style.md`. Add only when the remedy is non-obvious and changes what the author would do; name the outcome, never the implementation path.
 5. **Links.** Every named file or test, every behavioral claim, per *Links & citations*.
 6. **Repro.** Critical and Warning get a collapsed repro block when the claim is behavioral.
@@ -437,9 +437,10 @@ Verify each line before handing over:
 1. The Full review line points at this repo and resolves.
 2. The Body names at most three checks, each runtime-only, none CI-visible, none recapping anchored findings.
 3. No repro block has a passing run as its only output.
-4. Every non-Warning inline comment opens with its band; Warnings open with the TL;DR. Every comment is at most 3 sentences, asks for a fix, a decision, or an answer, and carries no fix sentence its problem statement already implies.
-5. No verdict restating the `Event:` line, no bold, no imported emphasis caps, every `skills/writing-style.md` rule holds.
-6. Open every link and read the lines it lands on: each must contain the number, symbol, or behavior claimed, and every external link must resolve at the pinned ref.
+4. Every non-Warning inline comment opens with its band; Warnings open with the TL;DR. Every comment asks for a fix, a decision, or an answer, and carries no fix sentence its problem statement already implies.
+5. Count, do not judge: one visible sentence per section, one line or nothing in the Body, one section per distinct action. Count the `<details>` blocks too, and delete the one attached to a merge conflict or to anything the author confirms by opening the app.
+6. No verdict restating the `Event:` line, no bold, no imported emphasis caps, every `skills/writing-style.md` rule holds.
+7. Open every link and read the lines it lands on: each must contain the number, symbol, or behavior claimed, and every external link must resolve at the pinned ref.
 
 Then two QA agents, re-run on every regeneration of comment.md:
 

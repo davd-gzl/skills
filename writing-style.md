@@ -67,7 +67,7 @@ A comment posted to a pull request is the most compressed register: the defect o
 
 The settled shape, in order:
 
-1. **The finding, one or two sentences.** The defect, the measurement, and the single piece of mechanism the reader cannot derive. Nothing else: not the consequence the number implies, not the fix the defect implies, not what the change gets right.
+1. **The finding, one sentence.** The defect, the measurement, and the single piece of mechanism the reader cannot derive. Nothing else: not the consequence the number implies, not the fix the defect implies, not what the change gets right. A second sentence says the first one failed, and usually means the section holds two findings; split it and post the one that matters.
 2. **A collapsed `<details>` repro**, in the harness the repo already uses, paste-and-run, header per `skills/review.md`.
 3. **One line above the output** saying what failed and why the failure is the finding.
 4. **The output**, pasted from a run of that exact block.
@@ -75,6 +75,8 @@ The settled shape, in order:
 6. **Inline findings**, each `## <path>:<line> [gh](<url>)` with the path a bare token, then a band prefix and plain sentences.
 
 Everything a reader needs to act sits above the fold; everything they need to check sits below it. Write the visible part first, then move each surviving sentence down until one remains above.
+
+The whole comment is countable, and counting is the check: one sentence per section, one line or nothing in the body, and one section per distinct action the author has to take. Two sections that resolve in the same edit are one finding. Count before shipping; a draft that fails the count is not trimmed later, it is rewritten from the one finding that changes what the author does next.
 
 - State the fix, or state the defect, never both unless the fix is non-obvious from the defect.
 - Cut every clause the fix already implies.

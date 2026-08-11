@@ -170,17 +170,16 @@ Pair the defect with the baseline it breaks in one assertion, and ship both expe
 
 Start each test file with a comment block carrying exact repro commands runnable from a plain clone: no workspace paths, no `$HOME`. Pin `git checkout <hash>` in test-file headers only; review and comment.md repro blocks never pin. The header stands alone: the run block, then at most 2-3 lines covering mechanism, observed result at the pinned hash, and what changes when fixed. Name code paths by their actual symbol. One-line in-test comments per non-obvious step.
 
-## Overview page (`overview.html`)
+## Overview (`overview.md`)
 
-Write one when the subject is complex: the change spans subsystems, hinges on concepts the reader must learn first, or lands faster as a diagram or a simulator than as prose. Skip it for a docs-only change, a mechanical refactor or a small localized fix. An explicit ask from the user wins in both directions.
+Write one when the subject is complex: the change spans subsystems, hinges on concepts the reader must learn first, or lands faster as a diagram or a table than as prose. Skip it for a docs-only change, a mechanical refactor or a small localized fix. An explicit ask from the user wins in both directions.
 
-- It goes at the review directory root, `projects/<repo>/reviews/<slug>/overview.html`, never inside a round directory: it explains the subject, not one commit.
-- One self-contained file: inline CSS and JS, no external request, light theme, the generating model named in the `<title>` and in the visible subtitle.
-- Explainer only, carrying no review state: no verdict, no findings, no reviewed sha, no round. Exactly one pointer out, a `Review files` link to the review directory.
-- Pick what fits: a plain-language explanation, a dataflow or state diagram, a decision table, before and after values, an interactive simulator mirroring the changed logic, a Concepts section when the subject needs one. No emoji.
-- A simulator mirroring the code is checked before it ships, against the project's own tests where they exist and against the mirrored source where they do not, and the page says which of the two it was.
-- Update it only when new commits change the subject's own files. A base-only head bump, a new finding, a verdict change and a new round never touch it.
-- After writing or updating one, open it in the browser with `xdg-open <path>`, and link it from the review file's metadata block. Skip the open in a subagent or a batch run.
+- Markdown, never HTML. It goes at the review directory root, `projects/<repo>/reviews/<slug>/overview.md`, never inside a round directory: it explains the subject, not one commit. It renders where the reader already is, diffs line by line, and needs nothing opened.
+- Explainer only, carrying no review state: no verdict, no findings, no reviewed sha, no round. Name the generating model once, under the title.
+- Pick what fits: a plain-language explanation, a dataflow or state diagram as a `mermaid` block, a decision table, before and after values, a Concepts section when the subject needs one. No emoji, no inline HTML, no script.
+- Where a page would have used a simulator, compute the interesting inputs and put the results in a table. The reader gets the answer without moving a slider, and every number is checkable from the file.
+- Run the mirrored logic before publishing its numbers, against the project's own tests where they exist and against the mirrored source where they do not, and say which of the two it was.
+- Update it only when new commits change the subject's own files. A base-only head bump, a new finding, a verdict change and a new round never touch it. Link it from the review file's metadata block.
 
 ## Preparing a fix
 
@@ -252,7 +251,7 @@ URL: https://github.com/<repo>/pull/<number>
 Author: <author> | Base: <base> | Files: <count> | +<add> -<del>
 Reviewed by: <GitHub username> | Model: <model used> | Commit: <short-sha> (<status>)
 Local checkout: `<the command that reproduces this state>`
-Overview: [visual overview](../overview.html) <— only when the review directory has one>
+Overview: [overview](../overview.md) <— only when the review directory has one>
 
 <Round note. Re-review and same-commit deep rounds only.>
 

@@ -78,7 +78,7 @@ The settled shape, in order:
 
 Everything a reader needs to act sits above the fold; everything they need to check sits below it. Write the visible part first, then move each surviving sentence down until one remains above.
 
-**Count the words the author reads, not the words in the file.** Link text counts; the URL inside it does not, nor do the `## path:line` headers, the fenced blocks, or anything collapsed behind `<details>`. Measured against the reviewer's own posted reviews: 20 to 49 read-words per inline comment, median 27, and 27 to 50 for a whole review including its body. A draft at two hundred is not over-long by a little, it is carrying findings that belong in the review file.
+**Count the words the author reads, not the words in the file.** Link text counts; the URL inside it does not, nor do the `## path:line` headers, the fenced blocks, or anything collapsed behind `<details>`. Measured against the reviewer's own posted comments: 20 to 49 read-words per finding, median 27. That figure is a density, one finding written tightly, and never a budget for the review as a whole: a review carrying six findings costs six times it and is not over-long. Cut padding to reach it, never a finding. Every finding the author should see is anchored and posted; the total is whatever that comes to.
 
 The whole comment is countable, and counting is the check: one sentence per section, one line or nothing in the body, and one section per distinct action the author has to take. Two sections that resolve in the same edit are one finding. Count before shipping; a draft that fails the count is not trimmed later, it is rewritten from the one finding that changes what the author does next.
 

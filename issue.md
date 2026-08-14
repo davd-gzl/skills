@@ -65,7 +65,7 @@ This loop is mandatory. It is not the last polish on a body already finished: re
 2. The cause sits last and nothing follows it. Put a fact that only makes sense after the cause in that same paragraph, never above it.
 3. Cut or link every assertion the body does not prove. "The largest", "the heaviest", "the only": give the line that shows it, or give the contrast that makes the claim unnecessary.
 4. No sentence runs more than five words before its main verb. This fails on a subject carrying a relative clause, and the second person usually fixes it.
-5. Count the visible words each round. The body shrinks every round until it stops, and a round that grows it is a round that added a fact the issue does not need.
+5. Count the visible words each round. The body shrinks every round until it stops, and a round that grows it has added a fact the issue does not need. Trading a number for the word on screen is the one exception.
 
 Report the outcome: what the last round changed, or that a full pass changed nothing.
 

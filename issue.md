@@ -57,6 +57,18 @@ State the problem and where it comes from. Nothing else.
 
 A discussion-opener issue is shorter: open with "Opening this to start a discussion.", then three sections at most, and end on the last fact. No closing ask, no offer to send pull requests, no hedge that the problem may already be known.
 
+## Loop
+
+This loop is mandatory. It is not the last polish on a body already finished: revise against the checks below, repeat until a full pass changes nothing, then run the Pass in `skills/writing-style.md` over the result. A first draft is never the posted one.
+
+1. Every noun the reader meets is one they can see. Quote a setting as the label on screen and a value as the string in the menu; the code's own enum names appear nowhere in a body.
+2. The cause sits last and nothing follows it. Put a fact that only makes sense after the cause in that same paragraph, never above it.
+3. Cut or link every assertion the body does not prove. "The largest", "the heaviest", "the only": give the line that shows it, or give the contrast that makes the claim unnecessary.
+4. No sentence runs more than five words before its main verb. This fails on a subject carrying a relative clause, and the second person usually fixes it.
+5. Count the visible words each round. The body shrinks every round until it stops, and a round that grows it is a round that added a fact the issue does not need.
+
+Report the outcome: what the last round changed, or that a full pass changed nothing.
+
 ## Posting
 
 Never post without the literal word `post` in the current turn. On `post`, run `./scripts/post-fix.sh <review-dir> <change-dir>` yourself; it opens the issue and the pull request from the drafts and writes the URLs back into their `Target:` lines. To post standalone: `gh issue create -R <repo> --title "<title>" --body-file <path>`, body only, then write the URL into `Target:` yourself.

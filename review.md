@@ -147,7 +147,7 @@ Read every line. Look for correctness defects: logic errors, missing nil checks,
 
 - Verify against the actual file, never from memory or a summary.
 - Back every behavioral claim with an actual run, at every severity. Never assert stdlib or runtime behavior from memory.
-- **A proposed edit ships only after running both sides.** Four cases in a worktree: the defect case and the case the current code already handles, each with and without the edit. A term that looks like the defect is often the guard.
+- **A proposed edit ships only after running both sides.** Four cases in a worktree: the defect case and the case the current code already handles, each with and without the edit. A guard often looks like the defect.
 - **Enumerate the case space before writing the finding.** Two sets that must agree give four cells: both, first only, second only, neither. The neither cell is usually the live one.
 - **Report what the user loses, never the artifact that causes it.** A conflict, a deleted file, a moved import and a missing guard are mechanical facts; name the action that stops working, for whom, and where. Test it by reading the line cold as a maintainer, deciding in one pass whether to care.
 - **When the base has moved, build the merged state and run it.** Apply the base's version of the disputed hunk into the running branch, exercise the path, then revert.

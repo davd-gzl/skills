@@ -20,9 +20,9 @@ Canonical style file for all visible prose, and the file every other skill defer
 - Prefer one plain claim covering several verifications; list them separately only when the combined claim drops something load-bearing.
 - State a verification only when it is a runtime check no CI job covers: a revert-repro, cross-language parity, an end-to-end path the harness cannot assert. Map every claim to the job that already runs it and delete the ones that map; what survives carries the reason the job cannot reach it. When the only proof is the tests, name what they cover in one line and stop.
 - **Write the reader's words, not the codebase's.** Every term the project invented is jargon to the person reading the comment: the element's name, the API's name for a thing, the CSS property doing the work. Say the mouse, not the pointer; the area it is drawn in, not the tile; the picture does not fill it, not `object-fit: contain`. A sentence needing a term the reader has to look up has not explained the finding, it has named it.
-- **Three counts, never a judgement.** Words before the main verb: over five, rewrite. Subordinate clauses after it: over one, rewrite. Verbs before the first comma: two, rewrite.
+- **Three counts, never a judgement.** Words before the main verb: over five, rewrite. Subordinate clauses after it: over one, rewrite. Verbs before the first comma with the first arriving fourth or later: rewrite, since the clause sits inside the subject rather than after the verb.
 - **`but` never stands in for `except`.** Where the exception does not change the outcome, drop it.
-- **A rule carries no date and no incident.** No `Stated <date>`, no `Measured <date>`.
+- **A rule carries no date.** No `Stated <date>`, no `Measured <date>`, no clock time.
 - **A pronoun reaches back one clause, never two.** Repeat the noun.
 - **A connective states a relation that holds.** "while" and "though" promise a contrast, "so" and "because" promise cause: when the two facts merely sit beside each other, say they are related and stop. A joint that misdescribes the join sends the reader hunting for a tension that was never there.
 - Plain words over jargon: name the action a caller can take, never the pattern's label. Jargon only when it saves real length and the reader surely knows it, which a specialist's vocabulary rarely satisfies.
@@ -57,7 +57,7 @@ Take the checks in order. Each is a search over the draft, not an impression of 
 5. **Sign-posting.** Search for "see below", "as mentioned", "the section above", and any sentence whose only job is to carry a link. Restructure so the content sits where the reader needs it.
 6. **Budget.** Count the words against the shape's own budget. Past it, cut; never restructure.
 7. **Bare adjectives.** Search for "sound", "correct", "safe", "fine", "nothing broken". Replace each with the check that was run and what it showed.
-8. **Counts.** Per sentence: words before the main verb, over five; subordinate clauses after it, over one; verbs before the first comma, two. A participle in the subject is not a clause; a finite one is.
+8. **Counts.** Per sentence: words before the main verb, over five; subordinate clauses after it, over one; two verbs before the first comma with the first arriving fourth or later. A participle in the subject is not a clause; a finite one is.
 9. **Promises.** Every section opening `Suggestion:` names the edit in the next word. Otherwise the prefix is wrong, or the finding belongs in the review file.
 10. **The cut.** Delete each sentence's last clause. If what remains carries the same fact, the same number and the same stake, keep the shorter one and repeat. Then read each sentence once, left to right, and rewrite any that needs a second pass to parse. Stop at the first cut that removes a fact, a number, or the reason to care: past that the line is being deleted rather than shortened, which is the worse failure. Apply to every sentence.
 

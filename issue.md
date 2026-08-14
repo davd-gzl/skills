@@ -63,12 +63,13 @@ This loop is mandatory. It is not the last polish on a body already finished: re
 
 The goal is the text a maintainer reads once and understands, and that is the only goal. Shorter is usually how it is reached, never what it is for. A round that cuts a word and costs the reader a second pass has gone backwards, and a body that grows because a reader needed the sentence has gone forwards.
 
-1. Every noun the reader meets is one they can see. Quote a setting as the label on screen and a value as the string in the menu; the code's own enum names appear nowhere in a body.
-2. The cause sits last and nothing follows it. Put a fact that only makes sense after the cause in that same paragraph, never above it.
-3. Cut or link every assertion the body does not prove. "The largest", "the heaviest", "the only": give the line that shows it, or give the contrast that makes the claim unnecessary.
-4. No sentence runs more than five words before its main verb. This fails on a subject carrying a relative clause, and the second person usually fixes it.
-5. Every picture is introduced by a sentence saying what it shows and where it came from, the browser or the instance included. An image dropped in bare leaves the reader deciding whether it is a mockup.
-6. Read the finished body cold, as a maintainer who has never seen the code. Anywhere the eye goes back, split the sentence. That reading, not the word count, is what says the loop is done.
+1. Every word the reader meets is one they can see, verbs included. Quote a setting as the label on screen and a value as the string in the menu, and take the verb from the button rather than from the API: a camera is disabled, never muted. The code's own enum names appear nowhere in a body.
+2. Read the project's glossary while drafting, not after a reader stumbles. A term stops looking like jargon to whoever just read the file defining it, so the check cannot be your own ear.
+3. The cause sits last and nothing follows it. Put a fact that only makes sense after the cause in that same paragraph, never above it.
+4. Cut or link every assertion the body does not prove. "The largest", "the heaviest", "the only": give the line that shows it, or give the contrast that makes the claim unnecessary.
+5. No sentence runs more than five words before its main verb. This fails on a subject carrying a relative clause, and the second person usually fixes it.
+6. Every picture is introduced by a sentence saying what it shows and where it came from, the browser or the instance included. An image dropped in bare leaves the reader deciding whether it is a mockup.
+7. Read the finished body cold, as a maintainer who has never seen the code. Anywhere the eye goes back, split the sentence. That reading, not the word count, is what says the loop is done.
 
 Report the outcome: what the last round changed, or that a full pass changed nothing.
 

@@ -39,6 +39,14 @@ Order the paragraphs, in both shapes:
 
 Do not over-explain: the reader has the diff. Give only the defect, the consequence, and the context the code cannot supply.
 
+- Banned openers: "Today", "Currently", "At the moment", "This PR". The first sentence names what breaks, in plain present tense.
+- When the defect has a severe consequence and a mild one, lead with whichever is unambiguous. A severe example that looks like obvious garbage reads as correct rejection and hides the defect; the case where something plainly wrong is accepted is the one that lands.
+- Example values must be plausible. A version one step past the build shows the defect with nothing granted, where a version far past it invites "that should fail anyway". Quote the real string, and paste the actual error rather than describing it.
+- Explain why the existing guard failed only after the reader has watched it fail. When the defect is a disagreement between two builds, two nodes or two versions, say the disagreement is the defect and neither answer is: uniform rejection would be fine, differing answers are not.
+- State the problem, not its history. Why the mechanism was built, when it landed, and which change left it behind: none of it changes what the reader does.
+- Name a rider commit in one line and never offer to split it. The maintainer asks when they want that.
+- No caveat about a failure seen only locally. CI runs a different toolchain, so confirm the redness there before writing about it.
+
 Hyperlink everything per `skills/writing-style.md`, to the blob at the branch under review or upstream documentation.
 
 State what the change does not achieve, up front: "This does not turn the check green. It clears one condition of three." Say what was deliberately not fixed, and why, whenever a reader would otherwise wonder.

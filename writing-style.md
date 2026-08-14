@@ -7,6 +7,8 @@ description: Use when writing or editing docs, code comments, PR bodies, or revi
 
 Canonical style file for all visible prose, and the file every other skill defers to on a style conflict. Earlier snapshots live in `archive/` and are superseded by this one.
 
+The goal is one thing: a reader understands the text on a single pass. Every rule below serves that and none outranks it. Brevity is how clarity is usually reached, never what it is for. A cut that saves a word and costs a second read has failed, whatever budget it satisfies. Where a rule and the reader disagree the reader wins, and the rule is the thing that gets fixed.
+
 - Lead with the conclusion: the rule in a doc, the verdict in a review. If the first sentence is not the conclusion, move it up.
 - Pitch to the audience. A user-facing doc states what the reader observes in one or two sentences, then links the deeper doc; internals stay out.
 - Keep it small. The deeper doc has three parts, no more: the rule, one short example, the why in one sentence. No second example, no footnote, no table of cases. Deeper mechanism goes in code comments or the source, linked.
@@ -28,6 +30,7 @@ Canonical style file for all visible prose, and the file every other skill defer
 - Plain words over jargon: name the action a caller can take, never the pattern's label. Jargon only when it saves real length and the reader surely knows it, which a specialist's vocabulary rarely satisfies.
 - State the problem and stop. Keep a fix only when the remedy is non-obvious, and then name the outcome, not the steps.
 - Show the code, never a description of it, and describe the change, never the diff: answer a question about code with the lines that answer it, and show a change in shape as before and after. Prose only where the code cannot speak: why the change exists, and what it rules out.
+- **A picture is introduced, never dropped in.** The sentence before it says what it shows and where it came from, naming the browser, the instance or the command. A reader cannot tell a real run from a mockup by looking, so an unintroduced image argues nothing and the words it saved bought nothing.
 - Write a commit sha bare in prose GitHub renders: no backticks, no link.
 - Never write a section to say it is empty. Delete the heading.
 - Link every named thing: a file, symbol, PR, issue, package, or external project gets a link the first time it appears.
@@ -96,7 +99,7 @@ The whole comment is countable, and counting is the check: one sentence per sect
 
 - State the fix, or state the defect, never both unless the fix is non-obvious from the defect.
 - Cut every clause the fix already implies. A trailing clause naming what the current code omits, misses, or does differently restates the gap the fix has already closed; delete it.
-- No process words: no `Verified`, `measured`, `I ran`, `reproduced`, `on <sha>`. Evidence lives in the collapsed repro or the review file, never in the visible line.
+- No process words: no `Verified`, `measured`, `I ran`, `reproduced`, `on <sha>`. Evidence lives in the collapsed repro or the review file, never in the visible line. A picture is the exception, and it keeps the sentence naming what it shows and what produced it.
 - Give the data and stop. Delete the clause drawing the conclusion, the sentence naming the obvious fix, and the comparison to what the change gets right; keep the defect, the measurement, and the one piece of mechanism the reader cannot derive.
 - **A fact stating a condition says what breaks when it breaks, or is cut.**
 - **`Suggestion:` is a promise: the next word is the verb the author would type.** A gerund is not one. `Nit:` promises nothing.

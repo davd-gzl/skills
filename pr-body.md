@@ -80,13 +80,14 @@ Do not ship the first draft. Re-read against the checks below, revise, repeat un
 6. Skim it in ten seconds, first lines and diagrams only. If that skim does not give the merge decision, lift the argument's turns into one-line paragraphs.
 7. Check against the diff one last time. A body describing a change not in the diff is worse than none.
 
-Count the words after each of the first two rounds; the body must shrink each time. Past the shape's budget: cut, never restructure. Overflow detail belongs in the review file and the plan.
+Past the shape's budget: cut, never restructure. Overflow detail belongs in the review file and the plan. The count is never the target: the body is done when a cold read lands on the first pass, and a round that trades a word for a re-read has gone backwards.
 
 ## Visual evidence
 
 A screenshot for any user-visible surface; a short video or GIF for any interaction or motion.
 
 - Before and after, side by side, same viewport, same data. Crop to the surface.
+- A sentence above each image saying what it shows and what produced it, the browser and the version named. Without it a reader cannot tell a run from a mockup.
 - Attach by dragging into the PR body on GitHub. Keep the files under `projects/<repo>/changes/<slug>/media/`; mark each attachment point with the `media/` path. Never fabricate a `user-images` URL.
 - None for backend-only, tooling, or lint changes. Do not manufacture thoroughness.
 

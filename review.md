@@ -47,7 +47,7 @@ Use when `$ARGUMENTS` contains more than one target.
 
 3. Agents run concurrently, never sequenced.
 4. The parent runs the *Final check* and both QA agents over every returned draft, before the commit. A subagent's own pass never stands in for them.
-5. After all return, the parent makes a single commit and push covering all reviews.
+5. After all return, the parent makes a single commit and push covering all reviews, its subject naming every target.
 6. Reconcile before handing over. When agents on coupled targets disagree, re-derive the answer from the source, name the constraint both sides must satisfy, and write the same conclusion into every affected review file. Never ship contradicting drafts, and never settle it by taking one agent's summary.
 
 A batch target set, "review all": every open non-draft target absent from the review directory, minus bot-authored, WIP-titled, reviewer-authored, and already-reviewed ones. Check the forge itself per target, not only the review directory, and drop on any hit. Confirm the final list with the user before reviewing more than one target, naming what was dropped and why.
@@ -55,6 +55,8 @@ A batch target set, "review all": every open non-draft target absent from the re
 - A listing that returns exactly its `--limit` was clipped, not exhausted. Re-run higher before treating the set as complete.
 - Sync the workspace before reading the review directory, and state the synced head when confirming the set. When it cannot be synced, derive the set read-only from the remote tree, `git ls-tree -r --name-only <remote>/<branch> -- <reviews-path>`, never from the working tree.
 - Write the scope down before dispatch, in a status file beside the reviews: the confirmed set as a table, one row per target with its head sha and review directory, the dropped targets grouped by reason, and the steps to resume. Update it as results come back and commit it with the batch.
+- A target the reviewer authored leaves the set and is named as available on request. A self-review runs only when the user asks for that one target by number, never as batch scope.
+- When the run also covers already-reviewed targets whose head advanced, keep only the heads whose content changed: compare patch-ids per *Re-review rounds*, drop every base-only move, and drop every target the reviewer already approved on the forge.
 
 ### Deep mode (multi-angle, single target)
 
@@ -65,6 +67,7 @@ Trigger: the user asks for a **parallel**, **red-team / blue-team**, or **deeper
    - **Red team**: bugs, broken invariants, security holes, edge cases, missing validation, downstream footguns.
    - **Blue team**: missing tests, undocumented invariants, hardening gaps, misuse-inviting ergonomics, migration and rollback risk.
    - **Correctness**: does the code match the description and linked issue? Scope drift, silent behavior changes, contract mismatches.
+   - When the workspace carries a catalog of the project's recurring bug classes, name it in every lens prompt and have each lens walk the classes its angle covers. At synthesis, confirm every class was covered by at least one lens and walk the uncovered ones against the diff before finalizing.
 3. **Synthesize.** Dedupe, re-rank by the severity ladder, verify each finding per *Verification discipline*. Never keep a finding on an agent's summary alone.
 4. **Critic pass, exactly one round, parallel.** 2-3 critics in one message over the synthesized draft plus the diff and checkout, each with a distinct lens: verdict-check, missing-blocking, severity-calibration. Each returns ONLY findings that flip the verdict, raise a severity band, or add a missing Critical or Warning; otherwise exactly `NO_MATERIAL_FINDINGS`. Never send an open-ended "what's wrong" prompt. After: dedupe, re-read each cited `file:line`, drop what does not hold, revise. Never loop critics.
 5. **Claim-verification gate, parallel.** Before drafting comment.md, one agent extracts every falsifiable claim, behavioral, structural or numeric, and runs a check designed to prove each false. It returns only claims that fail or cannot be verified; re-read those against the code, drop or fix each. Facts only; severity and verdict belong to the critic pass.
@@ -94,6 +97,7 @@ Trigger: the user names a target or set to go out as an automated bot review; ne
 
 - Sync the checkout per the *Sync first* rule in `AGENTS.md`: `git remote -v`, fetch every remote, compare `git rev-list --left-right --count HEAD...<remote>/<branch>`. The canonical remote is often `upstream`.
 - Never review from a dirty tree without saying so. Never write into the reviewed checkout outside a dedicated fix branch.
+- **Review from a worktree, never from the checkout itself.** A checkout tracked as a submodule sits on whatever detached HEAD the last update left, so a grep, a lint run or a test suite there answers about code nobody is reviewing. `git worktree add <scratchpad>/<repo>-review-<target> <canonical-remote>/<default-branch>`, check the target out inside it, and run every command of the review there.
 - **A branch from outside the project gets a static danger pass before it is fetched into a local checkout**, nothing executed. Read the raw diff for: changes to the build and dependency surface, the CI workflows, the lockfile, the manifest, container files and any shell script; calls that execute, reach the network, read credentials or the environment, or write the filesystem; encoded or generated code; and Trojan Source, meaning non-ASCII added lines, bidirectional overrides, zero-width characters and homoglyphs. Say in the review what the pass covered and what it found, and carry anything not malicious but risky into the findings. `author_association` of `NONE` or `FIRST_TIME_CONTRIBUTOR` is the trigger, from `gh api repos/<repo>/pulls/<n> --jq '.author_association'`; `gh pr list --json` has no such field.
 - **A worktree that already exists is reused, never cleaned.** `worktree add` fails on an existing path: re-run only the checkout. It may carry uncommitted edits from another session, so never stash, clean or revert; report them and work around them.
 - For a PR: `gh pr view <number> -R <repo> --json title,body,author,baseRefName,headRefName,files,additions,deletions,commits` and `gh pr diff <number> -R <repo>`.
@@ -134,6 +138,7 @@ Open every full re-review round with a round-note paragraph between the metadata
 - Run the project's own test and lint commands, taken from its CI workflow file, never guessed. Match the invocation exactly, pinned versions included.
 - Record pass or fail per affected package or job.
 - Before attributing any failure to the diff, run the same check on the merge-base. A failure that also occurs there is pre-existing.
+- **Run the project's own tool from the branch's source, never an installed binary.** An installed binary exercises the code it was built from, not the branch's, so a change to the tool tests itself out of the run. A local toolchain newer than CI's is the same failure in the other direction: it drifts diagnostic text and reddens tests the diff never touched, which the merge-base baseline above catches.
 - A repository-level failure gets the same discipline: reproduce each condition on the default branch and identify the introducing commit where history allows.
 - When a target changes runtime behavior of a server or tool, boot it and exercise it live; record what was verified live in the Verified section.
 
@@ -222,6 +227,7 @@ Shared by the review file and comment.md.
 - Anchor a supporting link on words already in the prose; a named doc subsection links to its header line.
 - A link must prove the exact clause it anchors. Read the cited lines and confirm the number, symbol, or behavior appears in the range. One claim per anchor: two numbers, two links. For a pinned tag, fetch the file at that tag.
 - Attribute a behavior to what guarantees it: a toolchain detail cites the toolchain, never a spec that does not require it. When the spec guarantees less than observed, say so.
+- A bare sha autolinks only in the repository holding that commit. Prose in `comment_<model>.md` writes the reviewed repo's shas bare, for the hovercard; the review file keeps its own shas as they are, since the reviewed repo's sha resolves to nothing in the workspace repo.
 
 ## Repro rules
 
@@ -232,6 +238,7 @@ Shared by `**Repro:**` blocks in the review file and comment.md. A repro is the 
 - **No repro for a finding the reader confirms by looking at the app.** Drive the app yourself to confirm the claim, keep the script in the review file as the record, and let the finding sentence carry the steps.
 - **One screen, one run, a row per state.** A ledger gains a row per step, each holding the inputs the claim rests on beside the value on screen, sampled live from the page. The last frame tells the story to a reader who never presses play.
 - **A readout must never imply a transition that did not happen.** Label the absence of the container, not of the value; name a column for what it holds, not how it got there.
+- **A frontend finding never ships a scaffolded harness.** The author already runs the app, so a block that clones, installs a test runner, writes a config and a fixture by heredoc and then asserts, is work nobody does: they open the page instead. Post the clip, or the steps in the sentence, and keep the harness in the review file even when the claim is a number, where the number goes in the sentence with what it was counted over. This overrides the collapsed-repro rule for Critical and Warning on any surface the reader can reach in a browser.
 - **A clip replaces the written steps, and only the user can attach it.** When a clip exists, the sentence drops the steps and states the rule the clip demonstrates. An image hosted in a private workspace will not render on someone else's pull request: hand the file to the user to drop into the comment box, and never post a link that renders as a broken image.
 - Start with `# from a local clone of <repo>:`, then the checkout command. Zero local paths, no trailing `git checkout <hash>` pin. Inline needed files with heredocs; never `curl`, never reference into the reviews tree. Clean up at the end.
 - Follow the block with the observed output in a second fenced block, trimmed to the signal-bearing 5-20 lines, `# …` marking omissions.
@@ -344,6 +351,7 @@ Overview: [overview](../overview.md) <— only when the review directory has one
 - Clearing something needs the same evidence as flagging it. To clear "X is safe because guard G covers it": find G's construction site, list its callers, and confirm X is one. Never infer that a guard reaches a member from a grouping made by the diff, its docs, or its author. A cleared item whose mechanism was not traced is unverified; say so.
 - When the finding is a missed member of a class, measure the whole class in one harness and publish the table.
 - Never flag contribution-policy compliance as a code finding; mention it in the narrative only when it is why CI is red.
+- Never critique the project's own governing document, meaning its wording, the symbols it names or the claims it makes, and never reference it to editorialize. Where the code is wrong the finding is about the code, and where a code or test comment repeats a claim the document has outrun, the finding anchors on that comment.
 - Post a deferred-scope or extension question only when there is a concrete risk or a decision the author must make now; otherwise Open questions.
 
 ### Rules
@@ -459,6 +467,12 @@ Governed by the *Posted comments* section of `skills/writing-style.md`: state th
 - The word `post` covers every verdict, APPROVE included: post an approving review on the same word as any other, with no extra confirmation. A post still always needs the word; never auto-post.
 - Post every verdict as a PR review, never a plain issue comment: `gh api repos/<repo>/pulls/<number>/reviews -f event=<EVENT> -f body='...'`, inline comments as `comments[]` entries with `path`, `line`, `side=RIGHT`, `body`. Validate every anchor against the PR diff first: one rejected anchor takes the whole review with it; move those findings into the Body.
 - An unsubmitted review the author already has on the target swallows a new one: the comments land in that pending review instead of posting. Check for one before posting and fold the draft into it, or submit it first.
+- Comments cannot be added to a review already submitted. A draft carrying a `Posted:` line re-posts by rewriting that review in place, so every anchor it holds must already carry a `[posted]` link; one that does not aborts the re-post rather than posting a second review.
+- A reaction on the review body itself is not in the REST reactions API. Resolve the node id, then react through GraphQL, skipping any target where `viewerHasReacted` is already true:
+  ```bash
+  gh api repos/<repo>/pulls/<n>/reviews --jq '.[] | select(.id==<id>) | .node_id'
+  gh api graphql -f query='mutation($id:ID!){addReaction(input:{subjectId:$id,content:THUMBS_UP}){reaction{content}}}' -f id=<node-id>
+  ```
 - Thumbs-up acknowledged duplicates in the same `post`, from each SKIPped section's `Already raised:` URL. Inline thread: `gh api -X POST repos/<repo>/pulls/comments/<id>/reactions -f content=+1`; top-level: `.../issues/comments/<id>/reactions`. Skip targets already reacted to.
 - After a successful post, write the URLs back: `Posted: <review-url>` under the title, `[posted](<comment-url>)` on each anchor. Commit and push in the same turn as the post, never later: the `Posted:` line is what makes a re-post rewrite the existing review instead of adding a second one. Before any post, check whether the target already carries a review from this author and reconcile the draft first.
 

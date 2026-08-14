@@ -29,6 +29,23 @@ Record what the search covered in the draft's `Status:` line, so a later reader 
 
 Put `issue.md` in the review directory, `projects/<repo>/reviews/<slug>/<n>-<sha>/`, beside the review file: an issue can exist when no fix does. It opens with a header block, `Target:` holding the opened issue URL, or else `https://github.com/<repo>/issues/new` and `Status:`, then `## Title` and `## Body`.
 
+## Two kinds
+
+A defect issue reports what the code does; a feature request asks for what it does not do. Everything below is the defect shape unless it says otherwise.
+
+Read the repo's `.github/ISSUE_TEMPLATE/` before drafting either. Keep the headings it supplies, answer its questions in prose, and delete the bold prompts and the comments:
+
+```bash
+gh api repos/<repo>/contents/.github/ISSUE_TEMPLATE --jq '.[].name'
+```
+
+A feature request:
+
+- Titles what the reader could then do, never what is missing: "Let the chat be resized by dragging its border".
+- States what the code settles today, with the line that settles it, then proposes the change in one sentence. A feature request carrying no proposal is a complaint.
+- Puts one checkbox per piece when the ask has several, and nothing else in the list.
+- Answers the template's question about building it, in the repo's own words, on the last line.
+
 ## Title
 
 Measure the repo's own issue titles first; they rarely follow its commit convention, and applying that convention to an issue title is the common mistake.
@@ -51,7 +68,7 @@ State the problem and where it comes from. Nothing else.
 - Break the problem into parts, each with its count and source: which files, which rule, which subsystem.
 - State the root cause last, when it is checkable, with evidence a reader can open unauthenticated. A cause is a source, not a fix.
 - Do not explain the maintainers' own tooling to them. State what you observed and let them supply the reason.
-- Never write the remedy. Naming a fix is designing it, and the issue is the wrong place. If a part is already fixed, say so in one clause and link the pull request.
+- Never write the remedy for a defect. Naming a fix is designing it, and a defect issue is the wrong place; a feature request is the opposite and states its proposal. If a part is already fixed, say so in one clause and link the pull request.
 - Say nothing about severity, priority, or effort.
 - Length follows the repo's own issues.
 

@@ -9,6 +9,11 @@ Canonical style file for all visible prose, and the file every other skill defer
 
 The goal is one thing: a reader understands the text on a single pass. Every rule below serves that and none outranks it. Brevity is how clarity is usually reached, never what it is for. A cut that saves a word and costs a second read has failed, whatever budget it satisfies. Where a rule and the reader disagree the reader wins, and the rule is the thing that gets fixed.
 
+- **Read the author's own last ten before drafting anything published under their name.** They are the shape the draft has to match: the opening, the length, how a claim gets its link, whether a remedy is proposed and where it sits. A rule below that contradicts what they show is the rule that is wrong.
+  ```bash
+  gh api "repos/<repo>/pulls/comments?per_page=100" --jq '[.[]|select(.user.login=="<login>")]|.[0:10][]|.body'
+  gh api "repos/<repo>/issues?state=all&creator=<login>&per_page=10" --jq '.[]|"\(.title)\n\(.body)"'
+  ```
 - Lead with the conclusion: the rule in a doc, the verdict in a review. If the first sentence is not the conclusion, move it up.
 - Pitch to the audience. A user-facing doc states what the reader observes in one or two sentences, then links the deeper doc; internals stay out.
 - Keep it small. The deeper doc has three parts, no more: the rule, one short example, the why in one sentence. No second example, no footnote, no table of cases. Deeper mechanism goes in code comments or the source, linked.

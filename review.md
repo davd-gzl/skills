@@ -147,8 +147,8 @@ Read every line. Look for correctness defects: logic errors, missing nil checks,
 
 - Verify against the actual file, never from memory or a summary.
 - Back every behavioral claim with an actual run, at every severity. Never assert stdlib or runtime behavior from memory.
-- **A proposed edit is a behavioral claim, and ships only after running both sides.** Naming a line to change asserts that the defect goes and that nothing else moves, and a source read reaches neither. Apply it in a worktree and run four cases: the defect case and the case the current code already handles, each with and without the edit. A term that looks like the defect is often the guard.
-- **Enumerate the case space before writing the finding.** Where a finding turns on two sets that must agree, name every cell: in both, in the first only, in the second only, in neither. The neither cell is usually reachable today and usually the one the finding understates.
+- **A proposed edit ships only after running both sides.** Four cases in a worktree: the defect case and the case the current code already handles, each with and without the edit. A term that looks like the defect is often the guard.
+- **Enumerate the case space before writing the finding.** Two sets that must agree give four cells: both, first only, second only, neither. The neither cell is usually the live one.
 - **Report what the user loses, never the artifact that causes it.** A conflict, a deleted file, a moved import and a missing guard are mechanical facts; name the action that stops working, for whom, and where. Test it by reading the line cold as a maintainer, deciding in one pass whether to care.
 - **When the base has moved, build the merged state and run it.** Apply the base's version of the disputed hunk into the running branch, exercise the path, then revert.
 - **A synthetic event is not a run, for anything a user drives with a mouse or keyboard.** A dispatched event skips the focus moves, default actions and library handlers a real input goes through, so it passes where the real input fails. Drive the real app with real input; a synthetic event is only a probe for which listener fired.
@@ -230,8 +230,8 @@ Shared by `**Repro:**` blocks in the review file and comment.md. A repro is the 
 - Every empirical claim ships a copy-pasteable repro: fenced `bash`, self-contained, one clear pass/fail signal, restoring modified files at the end. Pin env vars only when depended on.
 - **No repro for a merge conflict.** State what the resolution costs and stop; the conflict itself is not the finding.
 - **No repro for a finding the reader confirms by looking at the app.** Drive the app yourself to confirm the claim, keep the script in the review file as the record, and let the finding sentence carry the steps.
-- **One screen, one run, and a row per state.** Panes halve both halves and double what the reader tracks. Carry the state in a ledger gaining a row per step, each row holding the inputs the claim rests on beside the value on screen, sampled live from the page. The last frame then tells the story to a reader who never presses play.
-- **A readout must never imply a transition that did not happen.** A cell reading "never set" above one holding a value says the step between them set it. Label the absence of the container, not of the value, and name a column for what it holds rather than how it got there.
+- **One screen, one run, a row per state.** A ledger gains a row per step, each holding the inputs the claim rests on beside the value on screen, sampled live from the page. The last frame tells the story to a reader who never presses play.
+- **A readout must never imply a transition that did not happen.** Label the absence of the container, not of the value; name a column for what it holds, not how it got there.
 - **A clip replaces the written steps, and only the user can attach it.** When a clip exists, the sentence drops the steps and states the rule the clip demonstrates. An image hosted in a private workspace will not render on someone else's pull request: hand the file to the user to drop into the comment box, and never post a link that renders as a broken image.
 - Start with `# from a local clone of <repo>:`, then the checkout command. Zero local paths, no trailing `git checkout <hash>` pin. Inline needed files with heredocs; never `curl`, never reference into the reviews tree. Clean up at the end.
 - Follow the block with the observed output in a second fenced block, trimmed to the signal-bearing 5-20 lines, `# …` marking omissions.
@@ -401,7 +401,7 @@ Full review: <link to the review file in this repo>
 - Never mention an anchored finding in the Body, in any form: no bullets, no recap, no pointer to it, no count.
 - Do not re-describe the change, list what passed, narrate the review process, or restate thread state.
 - Stateless, like every inline comment: never name a round, never frame current code as a fix relative to a prior draft. State the code's current property, not its history.
-- **Nothing about CI reaches the comment, whatever state the checks are in.** Red, green and waiting-for-approval are already on the pull request. The one exception the Body keeps is the stale-base sentence named below.
+- **Nothing about CI reaches the comment, in any check state.** The one exception is the stale-base sentence named below.
 - A CI-invisible check must pass the verification rule in `skills/writing-style.md`; one that fails never appears. Nothing runtime-only checked: no verification line at all.
 - At most three checks, the strongest. State each as an action and its result, never as a characterization. When naming a revert, describe the concrete edit and tie cause to effect in one chain.
 - When a Body check asserts a property a committed test could assert, write the test instead.
@@ -412,7 +412,7 @@ Full review: <link to the review file in this repo>
 - `Event:` defaults from the verdict: APPROVE → APPROVE, REQUEST CHANGES → REQUEST_CHANGES, NEEDS DISCUSSION and CLOSE → COMMENT. It is a default, not a lock: the user may post a lighter event than the verdict, and then the review file keeps the verdict while the draft records what went out. The `Event:` line carries it; the Body never restates it.
 - An own-PR target is not posted at all. If the user insists, `Event: COMMENT` whatever the verdict: GitHub rejects APPROVE and REQUEST_CHANGES on one's own PR.
 - Order inline sections: Critical, Warning, Missing test, Nit, Suggestion; file order within a band.
-- **A finding that needs a third explanation leaves the comment.** Two rewrites that fail to land mean it rests on context the reader does not have. Mark the section `SKIP` with a line saying why and keep it in the review file. A latent risk whose trigger nobody has pulled is the usual case.
+- **A finding that needs a third explanation leaves the comment.** Mark the section `SKIP` with a line saying why and keep it in the review file.
 - Post only comments that change what the author does: fix, decide, or answer. "No change needed" findings stay in the review file. Severity never gates this: a Nit asking for a concrete modification gets its own section.
 - Never explain routine fixes: merge the base, regenerate assets, re-run a flaky job. A red check with a routine cause gets one short Body line, naming what is no longer readable rather than the fix.
 - **Never tell the author to rebase.** They meet the conflict the moment they try to merge, and a reviewer spending the body on it says nothing the branch does not already say. What a rebase costs, a behaviour it drops or a build it breaks, is a finding anchored on the line that carries it. Nothing else about the base branch reaches the comment. One exception: when the stale base is why the review is not an APPROVE, the Body says so in one line, because a withheld approval whose reason is unstated is the same defect in the other direction.
@@ -447,7 +447,7 @@ Governed by the *Posted comments* section of `skills/writing-style.md`: state th
 ### Rounds & regeneration
 
 - Update comment.md whenever the review changes; it never lags.
-- **A draft embedding media hosted elsewhere is stale until that host is pushed.** Text and picture disagree silently under one filename. Push the media, then compare the raw URL's byte count against the file on disk. The host's API answers immediately; the raw URL lags minutes behind.
+- **A draft embedding media hosted elsewhere is stale until that host is pushed.** Push it, then compare the raw URL's byte count against the file on disk. The host's API answers immediately; the raw URL lags minutes.
 - Port carried findings verbatim; change only shas, repro URLs, and stale anchors. No round-relative phrasing.
 - A SKIPped finding stays SKIPped when ported, with a one-line note, until the user un-SKIPs it. Before regenerating, read the existing file and preserve every surviving `SKIP` marker.
 - When the head advanced past the reviewed commit: diff `<reviewed-sha>..<head>`, drop findings that diff fixed, re-run remaining repros on the new head, re-verify every anchor.
@@ -472,7 +472,7 @@ Verify each line before handing over:
 4. Every non-Warning inline comment opens with its band; Warnings open with the TL;DR. Every comment asks for a fix, a decision, or an answer, and carries no fix sentence its problem statement already implies.
 5. Count, do not judge: one visible sentence per section, one line or nothing in the Body, one section per distinct action. Count the `<details>` blocks too, and delete the one attached to a merge conflict or to anything the author confirms by opening the app.
 6. No verdict restating the `Event:` line, no bold, no imported emphasis caps, every `skills/writing-style.md` rule holds.
-7. Every `## <path>:<line>` header carries its `[gh]` link to the branch under review, which is the draft reader's only way into the code.
+7. Every `## <path>:<line>` header carries its `[gh]` link to the branch under review.
 8. Every embedded image resolves at its raw URL and its bytes match the file on disk.
 9. Open every link and read the lines it lands on: each must contain the number, symbol, or behavior claimed, and every external link must resolve at the pinned ref.
 

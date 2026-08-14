@@ -20,10 +20,10 @@ Canonical style file for all visible prose, and the file every other skill defer
 - Prefer one plain claim covering several verifications; list them separately only when the combined claim drops something load-bearing.
 - State a verification only when it is a runtime check no CI job covers: a revert-repro, cross-language parity, an end-to-end path the harness cannot assert. Map every claim to the job that already runs it and delete the ones that map; what survives carries the reason the job cannot reach it. When the only proof is the tests, name what they cover in one line and stop.
 - **Write the reader's words, not the codebase's.** Every term the project invented is jargon to the person reading the comment: the element's name, the API's name for a thing, the CSS property doing the work. Say the mouse, not the pointer; the area it is drawn in, not the tile; the picture does not fill it, not `object-fit: contain`. A sentence needing a term the reader has to look up has not explained the finding, it has named it.
-- **Three counts decide whether a sentence needs rewriting, and none is a judgement.** Words between the first word and the main verb: over five is a rewrite. Subordinate clauses after that verb: over one is a rewrite. Verbs before the first comma: two means a finite clause sits inside the subject. Reading it again and finding it clear is not the test, since the author parses their own sentence in one pass every time.
-- **`but` never stands in for `except`.** Prefer the rule without the exception, where the exception does not change the outcome.
-- **A rule never carries the date it was learned.** No `Stated <date>`, no `Measured <date>`, no incident behind it. The reader needs what to do; the sha, the link or the commit carries the rest.
-- **A pronoun reaches back one clause, never two.** `it`, `one`, `that` and a bare demonstrative resolve to the nearest candidate, rarely the intended one. Repeat the noun.
+- **Three counts, never a judgement.** Words before the main verb: over five, rewrite. Subordinate clauses after it: over one, rewrite. Verbs before the first comma: two, rewrite.
+- **`but` never stands in for `except`.** Where the exception does not change the outcome, drop it.
+- **A rule carries no date and no incident.** No `Stated <date>`, no `Measured <date>`.
+- **A pronoun reaches back one clause, never two.** Repeat the noun.
 - **A connective states a relation that holds.** "while" and "though" promise a contrast, "so" and "because" promise cause: when the two facts merely sit beside each other, say they are related and stop. A joint that misdescribes the join sends the reader hunting for a tension that was never there.
 - Plain words over jargon: name the action a caller can take, never the pattern's label. Jargon only when it saves real length and the reader surely knows it, which a specialist's vocabulary rarely satisfies.
 - State the problem and stop. Keep a fix only when the remedy is non-obvious, and then name the outcome, not the steps.
@@ -57,8 +57,8 @@ Take the checks in order. Each is a search over the draft, not an impression of 
 5. **Sign-posting.** Search for "see below", "as mentioned", "the section above", and any sentence whose only job is to carry a link. Restructure so the content sits where the reader needs it.
 6. **Budget.** Count the words against the shape's own budget. Past it, cut; never restructure.
 7. **Bare adjectives.** Search for "sound", "correct", "safe", "fine", "nothing broken". Replace each with the check that was run and what it showed.
-8. **Counts.** Per sentence: words before the main verb, over five; subordinate clauses after it, over one; verbs before the first comma, two. A participle modifying the subject is not a clause; a finite clause inside it is.
-9. **Promises.** Every section opening `Suggestion:` names the edit in the next word. No imperative means the prefix is wrong or the finding belongs in the review file.
+8. **Counts.** Per sentence: words before the main verb, over five; subordinate clauses after it, over one; verbs before the first comma, two. A participle in the subject is not a clause; a finite one is.
+9. **Promises.** Every section opening `Suggestion:` names the edit in the next word. Otherwise the prefix is wrong, or the finding belongs in the review file.
 10. **The cut.** Delete each sentence's last clause. If what remains carries the same fact, the same number and the same stake, keep the shorter one and repeat. Then read each sentence once, left to right, and rewrite any that needs a second pass to parse. Stop at the first cut that removes a fact, a number, or the reason to care: past that the line is being deleted rather than shortened, which is the worse failure. Apply to every sentence.
 
 A pass that changes nothing is the exit condition. Never report a pass not run as a pass that changed nothing.
@@ -98,8 +98,8 @@ The whole comment is countable, and counting is the check: one sentence per sect
 - Cut every clause the fix already implies. A trailing clause naming what the current code omits, misses, or does differently restates the gap the fix has already closed; delete it.
 - No process words: no `Verified`, `measured`, `I ran`, `reproduced`, `on <sha>`. Evidence lives in the collapsed repro or the review file, never in the visible line.
 - Give the data and stop. Delete the clause drawing the conclusion, the sentence naming the obvious fix, and the comparison to what the change gets right; keep the defect, the measurement, and the one piece of mechanism the reader cannot derive.
-- **A fact stating a condition carries what the condition holds off.** The rule above covers a number whose stake its own sentence already carries; a condition leaves the reader deriving it. Say what breaks when it breaks, or cut the fact.
-- **`Suggestion:` is a promise: the next word is the verb the author would type.** A gerund is not one. `Nit:` carries no such promise and may state a defect plainly.
+- **A fact stating a condition says what breaks when it breaks, or is cut.**
+- **`Suggestion:` is a promise: the next word is the verb the author would type.** A gerund is not one. `Nit:` promises nothing.
 - A number carries its repro directly under it, collapsed, in the same comment. Never leave the repro in a private review file while the number goes public.
 - One clause of mechanism, only if the reader cannot act without it; never a walkthrough.
 - The `## path:line` header already says where, and the band prefix, `Nit:`, `Suggestion:`, `Refactor:` or `Missing test:`, already says how much: repeat neither in the sentence. Name the kind in the prefix rather than leaving the reader to infer it: `Refactor:` when the same behaviour fits in fewer lines, so the author knows before the first word whether anything is broken.

@@ -25,6 +25,7 @@ The goal is one thing: a reader understands the text on a single pass. Every rul
 - **Reach for a word the reader owns, never one you invented.** That swap is the same failure in a new coat, and an invented place for a thing to be is its common shape. Where no plain equivalent exists, use a contrast the reader already holds, paused against stopped, or define the term in the sentence that first uses it.
 - **Three counts, never a judgement.** Words before the main verb: over five, rewrite. Subordinate clauses after it: over one, rewrite. Verbs before the first comma with the first arriving fourth or later: rewrite, since the clause sits inside the subject rather than after the verb.
 - **`but` never stands in for `except`.** Where the exception does not change the outcome, drop it.
+- **A finding names the scope, never one instance of it.** "a French browser" is an instance; "whatever the browser's language" is the scope. Check the member holding none of the named property, then write what that shows.
 - **A rule carries no date.** No `Stated <date>`, no `Measured <date>`, no clock time.
 - **A pronoun reaches back one clause, never two.** Repeat the noun.
 - **A connective states a relation that holds.** "while" and "though" promise a contrast, "so" and "because" promise cause: when the two facts merely sit beside each other, say they are related and stop. A joint that misdescribes the join sends the reader hunting for a tension that was never there.

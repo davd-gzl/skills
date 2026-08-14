@@ -486,9 +486,11 @@ Verify each line before handing over:
 4. Every non-Warning inline comment opens with its band; Warnings open with the TL;DR. Every comment asks for a fix, a decision, or an answer, and carries no fix sentence its problem statement already implies.
 5. Count, do not judge: one visible sentence per section, one line or nothing in the Body, one section per distinct action. Count the `<details>` blocks too, and delete the one attached to a merge conflict or to anything the author confirms by opening the app.
 6. No verdict restating the `Event:` line, no bold, no imported emphasis caps, every `skills/writing-style.md` rule holds.
-7. Every `## <path>:<line>` header carries its `[gh]` link to the branch under review.
-8. Every embedded image resolves at its raw URL and its bytes match the file on disk.
-9. Open every link and read the lines it lands on: each must contain the number, symbol, or behavior claimed, and every external link must resolve at the pinned ref.
+7. Every `Suggestion:` was applied in a worktree and run both ways, the case the finding is about and the case the current code already handles. Name both results in the review file.
+8. Every finding names the scope, not one instance of it. Run the member holding none of the named property, and widen the sentence to whatever that shows.
+9. Every `## <path>:<line>` header carries its `[gh]` link to the branch under review.
+10. Every embedded image resolves at its raw URL and its bytes match the file on disk.
+11. Open every link and read the lines it lands on: each must contain the number, symbol, or behavior claimed, and every external link must resolve at the pinned ref.
 
 Then two QA agents, re-run on every regeneration of comment.md:
 

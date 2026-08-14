@@ -63,7 +63,7 @@ Take the checks in order. Each is a search over the draft, not an impression of 
 6. **Budget.** Count the words against the shape's own budget. Past it, cut; never restructure.
 7. **Bare adjectives.** Search for "sound", "correct", "safe", "fine", "nothing broken". Replace each with the check that was run and what it showed.
 8. **Counts.** Per sentence: words before the main verb, over five; subordinate clauses after it, over one; two verbs before the first comma with the first arriving fourth or later. A participle in the subject is not a clause; a finite one is.
-9. **Promises.** Every section opening `Suggestion:` names the edit in the next word. Otherwise the prefix is wrong, or the finding belongs in the review file.
+9. **Promises.** Every edit named in prose is one the author has to retype. Move it into a ` ```suggestion ` block or cut it, and never ship one that was not run.
 10. **The cut.** Delete each sentence's last clause. If what remains carries the same fact, the same number and the same stake, keep the shorter one and repeat. Then read each sentence once, left to right, and rewrite any that needs a second pass to parse. Stop at the first cut that removes a fact, a number, or the reason to care: past that the line is being deleted rather than shortened, which is the worse failure. Apply to every sentence.
 
 A pass that changes nothing is the exit condition. Never report a pass not run as a pass that changed nothing.
@@ -104,7 +104,7 @@ The whole comment is countable, and counting is the check: one sentence per sect
 - No process words: no `Verified`, `measured`, `I ran`, `reproduced`, `on <sha>`. Evidence lives in the collapsed repro or the review file, never in the visible line. A picture is the exception, and it keeps the sentence naming what it shows and what produced it.
 - Give the data and stop. Delete the clause drawing the conclusion, the sentence naming the obvious fix, and the comparison to what the change gets right; keep the defect, the measurement, and the one piece of mechanism the reader cannot derive.
 - **A fact stating a condition says what breaks when it breaks, or is cut.**
-- **`Suggestion:` is a promise: the next word is the verb the author would type.** A gerund is not one. `Nit:` promises nothing.
+- **A band says how much, never what to type.** `Suggestion:` and `Nit:` open on the defect, same as every other finding. Where an exact edit exists, it ships as a GitHub ` ```suggestion ` block the author applies in one click, and it was run both ways before it shipped.
 - A number carries its repro directly under it, collapsed, in the same comment. Never leave the repro in a private review file while the number goes public.
 - One clause of mechanism, only if the reader cannot act without it; never a walkthrough.
 - The `## path:line` header already says where, and the band prefix, `Nit:`, `Suggestion:`, `Refactor:` or `Missing test:`, already says how much: repeat neither in the sentence. Name the kind in the prefix rather than leaving the reader to infer it: `Refactor:` when the same behaviour fits in fewer lines, so the author knows before the first word whether anything is broken.

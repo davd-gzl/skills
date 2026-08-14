@@ -43,7 +43,9 @@ A feature request:
 
 - Titles what the reader could then do, never what is missing: "Let the chat be resized by dragging its border".
 - States what the code settles today, with the line that settles it, then proposes the change in one sentence. A feature request carrying no proposal is a complaint.
-- Puts one checkbox per piece when the ask has several, and nothing else in the list.
+- Puts one checkbox per piece only where the pieces could ship separately. A single ask gets no list.
+- Runs as long as the ask and no longer: one ask is two sentences, five separable pieces are five checkboxes.
+- Answers only the template questions carrying a fact this ask needs. The considered-alternatives and migration prompts usually carry none, and the author's own issues drop them.
 - Answers the template's question about building it, in the repo's own words, on the last line.
 
 ## Title

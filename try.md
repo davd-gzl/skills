@@ -52,9 +52,16 @@ Write the recipe into `projects/<repo>/AGENTS.md` the moment it is measured, eac
 4. **Record only once the finding text is frozen**, and only on the word `video`. Reuse the measurement script.
 5. **Re-run the shot list against the recording** before sending it. Every caption states a claim the run can contradict; a decorative caption makes the check pass vacuously.
 
+- **When two defects ride together on screen, film the measurement, not the symptom.** A clip of the symptom cannot say which defect produced it, and a reader who spots the second cause reads the clip as overclaiming. Put the numbers the code itself computes on screen beside the input, and let the picture carry the reading rather than the consequence.
+- **One screen, one run, a row per state.** A ledger gains a row per step, each holding the inputs the claim rests on beside the value on screen, sampled live from the page. The last frame tells the story to a reader who never presses play.
+- **A readout must never imply a transition that did not happen.** Label the absence of the container, not of the value; name a column for what it holds, not how it got there.
+- **A clip replaces the written steps, and only the user can attach it.** When a clip exists, the sentence drops the steps and states the rule the clip demonstrates. An image hosted in a private workspace will not render on someone else's pull request: hand the file to the user to drop into the comment box, and never post a link that renders as a broken image.
+
 **The clip is the comment.** What ships beside it is one sentence naming the rule the clip demonstrates, per the posted-comment shape in `skills/writing-style.md`. A caption walking through the clicks describes what the reader is already watching, and the shot list is the reviewer's check, never posted.
 
-A video of a UI moving proves nothing about what was typed: mark each click and name every key on screen. Export a GIF, which renders inline in a GitHub comment where an mp4 does not, and keep the mp4 beside it for anything longer than a few seconds. Files land in the review's `media/` and reach the user in the chat.
+A video of a UI moving proves nothing about what was typed: mark each click and name every key on screen. Export a GIF, which renders inline in a GitHub comment where an mp4 does not and where a `<video>` tag does not play, and keep the mp4 beside it for anything longer than a few seconds. Files land in the review's `media/` and reach the user in the chat.
+
+Playwright's bundled ffmpeg writes webm only, and a `.gif` or `.mp4` output fails with `Error initializing the muxer`, which reads as a bad filter string and is not one. `./scripts/setup-browser-recording.sh` installs a static ffmpeg and the shared libraries Chromium needs, without root; convert with `fps=10,scale=640:-1` plus `palettegen` and `paletteuse`. What this machine can do is `./scripts/env-check.sh capture`, never a fact written down here.
 
 A private workspace cannot embed the GIF in a comment on someone else's repo: say so rather than shipping a link that renders broken.
 

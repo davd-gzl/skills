@@ -23,7 +23,11 @@ gh issue list -R <repo> --state all --limit 100 --json number,title --jq '.[]|"\
 gh api "search/issues?q=repo:<repo>+is:issue+<term>+OR+<term>" --jq '.total_count'
 ```
 
-Record what the search covered in the draft's `Status:` line, so a later reader sees the absence was checked, not assumed.
+Search every title, open and closed, then full text on the words a maintainer would have used, including the repo's own working language, across pull requests as well as issues. A reframing of the ask is a new search: the words that would find the duplicate moved with it, so a resize proposal is not covered by the sweep that cleared a move proposal.
+
+Record what the search covered in the draft's `Status:` line and name the nearest miss in the reply, because a reader cannot tell an absence that was checked from one that was assumed.
+
+Read the timeline of any issue already covering the problem for cross-references from pull requests in the same repository, and record each with its state. An open one means the issue is taken; a closed one usually means the obvious fix was tried and rejected. An issue ranked easy with that column empty has not been checked.
 
 ## File
 

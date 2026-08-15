@@ -1,6 +1,6 @@
 ---
 name: review
-description: Adversarial review of a pull request, a branch, or a repository-level failure in any project. Writes a severity-grouped review file plus a comment_<model>.md GitHub draft, posted only after user approval. Supports multi-target parallel dispatch and a deep multi-angle mode.
+description: Adversarial review of a pull request, a branch, or a repository-level failure in any project. Writes a severity-grouped review file, then the GitHub draft per skills/review-comment.md. Modes for multi-target and deep passes are in skills/review-modes.md.
 argument-hint: <repo>#<pr-number> | <url> | <repo> <subject>
 ---
 
@@ -20,8 +20,8 @@ Run in order for a single target; multi-target runs wrap this via *Parallel disp
 4. *Review the diff*, or the failing surface.
 5. *Write tests* for test-shaped findings.
 6. Write the review file per *Output*.
-7. Draft `comment_<model>.md` per *GitHub review draft*, then run its *Final check* and QA agents. Draft whether or not anything will be posted. Skip only for a PR the reviewer authored; see *Own PR*.
-8. Run the `skills/writing-style.md` Pass over every line of the review file and `comment_<model>.md`. Never skip it. Re-run it after any later edit to that prose, including an edit made in answer to a question about it. State which passes ran when handing over.
+7. Draft `comment_<model>.md` per `skills/review-comment.md`, then run its *Final check*. Draft whether or not anything will be posted. Skip only for a PR the reviewer authored; see *Own PR* in `skills/review-modes.md`.
+8. Run the `skills/writing-style.md` Pass over every line of the review file and `comment_<model>.md`, starting with `./scripts/prose-check.py <file>`. Re-run it after any later edit to that prose, including an edit made in answer to a question about it. State which passes ran when handing over.
 9. One commit and one push covering everything. This push is pre-authorized; see *Rules*.
 10. Hand over. Link the `comment_<model>.md` draft, not only the review file. Add a "Decisions needed" list, one line each: a borderline verdict, Open questions worth promoting. Omit when empty. Never list an APPROVE as needing confirmation. Post only on the literal word `post`.
 
@@ -36,60 +36,9 @@ Both live in `projects/<repo>/reviews/<slug>/`.
 
 ## Modes
 
-### Parallel dispatch (multi-target)
-
-Use when `$ARGUMENTS` contains more than one target.
-
-1. The parent prepares each checkout first, per *Fetch & understand*. Subagents never create worktrees or check out branches.
-2. Dispatch one Agent per target, all in one message, `subagent_type: general-purpose`:
-
-> Run the review workflow at `skills/review.md` on `<target>`, URL `<url>`. Read `skills/writing-style.md` before drafting any prose; every line of the review file and `comment_<model>.md` conforms to it. The checkout already exists at `<path>` with the target checked out: never create a worktree or switch branches. Follow every other step in that file. Do not commit, push, or post; the parent does that at the end. Report back the review file path and a one-paragraph summary of the verdict and headline findings.
-
-3. Agents run concurrently, never sequenced.
-4. The parent runs the *Final check* and both QA agents over every returned draft, before the commit. A subagent's own pass never stands in for them.
-5. After all return, the parent makes a single commit and push covering all reviews, its subject naming every target.
-6. Reconcile before handing over. When agents on coupled targets disagree, re-derive the answer from the source, name the constraint both sides must satisfy, and write the same conclusion into every affected review file. Never ship contradicting drafts, and never settle it by taking one agent's summary.
-
-A batch target set, "review all": every open non-draft target absent from the review directory, minus bot-authored, WIP-titled, reviewer-authored, and already-reviewed ones. Check the forge itself per target, not only the review directory, and drop on any hit. Confirm the final list with the user before reviewing more than one target, naming what was dropped and why.
-
-- A listing that returns exactly its `--limit` was clipped, not exhausted. Re-run higher before treating the set as complete.
-- Sync the workspace before reading the review directory, and state the synced head when confirming the set. When it cannot be synced, derive the set read-only from the remote tree, `git ls-tree -r --name-only <remote>/<branch> -- <reviews-path>`, never from the working tree.
-- Write the scope down before dispatch, in a status file beside the reviews: the confirmed set as a table, one row per target with its head sha and review directory, the dropped targets grouped by reason, and the steps to resume. Update it as results come back and commit it with the batch.
-- A reviewer-authored target is named as available on request. A self-review runs only when the user asks for that one target by number, never as batch scope.
-- When the run also covers already-reviewed targets whose head advanced, keep only the heads whose content changed: compare patch-ids per *Re-review rounds*, drop every base-only move, and drop every target the reviewer already approved on the forge.
-
-### Deep mode (multi-angle, single target)
-
-Trigger: the user asks for a **parallel**, **red-team / blue-team**, or **deeper** review of one target, or "review and loop until perfect". Deep mode runs many lenses on one target; everything else follows the normal flow: output format, comment.md, push rules.
-
-1. **Set up.** Run *Fetch & understand* and *Reproduce the failure* once; hand the same paths to every agent.
-2. **Dispatch lens agents**, one message, concurrent, `subagent_type: general-purpose`. Default three lenses; add more for large targets: perf, docs, API surface, ops impact. Each prompt is self-contained: checkout path, target, diff path, prior-review paths, one narrow lens. Each agent returns findings in this skill's severity model with `file:line` citations.
-   - **Red team**: bugs, broken invariants, security holes, edge cases, missing validation, downstream footguns.
-   - **Blue team**: missing tests, undocumented invariants, hardening gaps, misuse-inviting ergonomics, migration and rollback risk.
-   - **Correctness**: does the code match the description and linked issue? Scope drift, silent behavior changes, contract mismatches.
-   - When the workspace carries a catalog of the project's recurring bug classes, name it in every lens prompt and have each lens walk the classes its angle covers. At synthesis, confirm every class was covered by at least one lens and walk the uncovered ones against the diff before finalizing.
-3. **Synthesize.** Dedupe, re-rank by the severity ladder, verify each finding per *Verification discipline*. Never keep a finding on an agent's summary alone.
-4. **Critic pass, exactly one round, parallel.** 2-3 critics in one message over the synthesized draft plus the diff and checkout, each with a distinct lens: verdict-check, missing-blocking, severity-calibration. Each returns ONLY findings that flip the verdict, raise a severity band, or add a missing Critical or Warning; otherwise exactly `NO_MATERIAL_FINDINGS`. Never send an open-ended "what's wrong" prompt. After: dedupe, re-read each cited `file:line`, drop what does not hold, revise. Never loop critics.
-5. **Claim-verification gate, parallel.** Before drafting comment.md, one agent extracts every falsifiable claim, behavioral, structural or numeric, and runs a check designed to prove each false. It returns only claims that fail or cannot be verified; re-read those against the code, drop or fix each. Facts only; severity and verdict belong to the critic pass.
-6. **Output.** Normal flow. Metadata line: `Model: <model> (<intensity>, deep)`; ask when the intensity is unknown. Deep mode over an already-reviewed commit opens a new `<n+1>-<same-sha>` directory whose round note names the mode and which prior verdict it confirms or overturns.
-
-### Own PR (the reviewer authored it)
-
-Check with `gh pr view <number> --json author`. Findings land as commits on the branch, never as a review to post.
-
-- No `comment_<model>.md`, no `pr-body.md`, post nothing. The review file is still written.
-- Apply every mechanical fix in the checkout the review uses: comments, docs, tests, naming, dead code. Then *Run the CI locally* until green.
-- Never apply without asking: observable behavior changes, fixes to defects predating the branch, anything a maintainer would treat as a design decision. Present each as a named decision.
-- One commit per finding class, conventional subject. Push to the PR's head repository, never upstream.
-- Hand over the branch and shas, then what was left unapplied and the decision each needs.
-
-### Bot mode (automatic review)
-
-Trigger: the user names a target or set to go out as an automated bot review; never infer the set.
-
-- `Event: COMMENT` regardless of verdict; the review file keeps its verdict.
-- Body opens with `[AI bot - Automatic review]`, then one paragraph scoping the pass to technical checks, disclaiming design judgement and any merge verdict.
-- Findings, anchors, severities, repros unchanged. Verify every finding with a real run before posting.
+Four modes change part of this workflow: multi-target parallel dispatch, deep
+multi-angle, bot review, and a target the reviewer authored. Each is in
+`skills/review-modes.md`, read when its trigger fires.
 
 ## For each target
 
@@ -151,6 +100,8 @@ Read every line. Look for correctness defects: logic errors, missing nil checks,
 **Verification discipline.** Every finding passes all of these before it enters the review:
 
 - Verify against the actual file, never from memory or a summary.
+- **A finding carried from an earlier round is re-verified before it ships**, to the same standard as a new one. It arrived with a conclusion and no run attached, and the round that wrote it may have stopped one call short of the code that settles it. Follow the path to its end: the handler that queues the work, the store that debounces it, the default the framework already applies.
+- **Browser behaviour needs a browser, and headless is not one.** Anything the browser itself does rather than the page, exiting fullscreen on Escape, a shortcut, a permission prompt, is absent from a headless run and a null result there proves nothing. Run it headful on a virtual display, `xvfb-run -a`, before writing that it cannot be measured.
 - Back every behavioral claim with an actual run, at every severity. Never assert stdlib or runtime behavior from memory.
 - **Enumerate the case space before writing the finding.** Two sets that must agree give four cells: both, first only, second only, neither. The neither cell is usually the live one.
 - **Report what the user loses, never the artifact that causes it.** A conflict, a deleted file, a moved import and a missing guard are mechanical facts; name the action that stops working, for whom, and where. Test it by reading the line cold as a maintainer, deciding in one pass whether to care.
@@ -189,15 +140,9 @@ Write one when the subject is complex: the change spans subsystems, hinges on co
 
 ## Preparing a fix
 
-Findings stay in `projects/<repo>/reviews/<slug>/<n>-<sha>/`; the work on them lives in `projects/<repo>/changes/<slug>/`. Link each tree to the other and never repeat what the other states. A change with no review behind it carries the same files minus the review links. The change directory carries:
+Findings stay in `projects/<repo>/reviews/<slug>/<n>-<sha>/`; the work on them lives in `projects/<repo>/changes/<slug>/`, whose files and the shape of each are in `skills/plan.md`. Write the plan before any fix code, and present a change only when every `plan.md` item is done and verified. `./scripts/post-fix.sh` opens the issue and PR from the drafts, gated on the literal word `post`.
 
-- **`README.md`**: the single entry point, linking every other artifact: what is broken, what the fix does, status, the create-PR link, what is in the directory, the link to the review.
-- **`plan.md`**: written first, before any fix code, terse per `skills/writing-style.md`. Contains: the scope rule admitting a change; a table of what is in, one row per finding with its effect on the failing signal; what is out, with the decision each excluded item needs; the verification table, one row per CI job with real command and result; checks beyond the jobs; an Iterations section naming every round and what caught it, failures included.
-- **`pr-body.md`**: per `skills/pr-body.md`.
-- **`issue.md`**: only when no upstream issue covers the problem, per `skills/issue.md`.
-- **`checkout/`**: a submodule pinned to the branch: `git submodule add -b <branch> <fork-url> projects/<repo>/changes/<slug>/checkout`. Required whenever the fix is presented. Keep a worktree at `.worktrees/<repo>-<slug>/` as scratch, out of version control. Never write a fix into the reviewed checkout in place; restore it to its default branch.
-
-Present a change only when every `plan.md` item is done and verified. `./scripts/post-fix.sh` opens the issue and PR from the drafts, gated on the literal word `post`.
+A "review loop" means fixing every finding, then looping until nothing is left: apply each, re-run the checks, review again, and stop when a full pass adds nothing. Never hand a finding back as a suggestion, and never park one as an open question to keep the report tidy. What survives unapplied needs a decision only the user can make, and each is named as a decision rather than a leftover.
 
 `comment_<model>.md` stays the postable artifact: every finding's `## <path>:<line>` section stays in it, fixed-on-branch and deliberately-left-out alike, each closing with a line saying which. Never replace sections with a pointer to the review file.
 
@@ -221,9 +166,7 @@ Shared by the review file and comment.md.
 - A private reviewed repo does not strip links from `comment_<model>.md`; the no-blob-link rule covers artifacts living outside the reviewed repo. Strip links from the review file when a delta file says so, never from the comment.
 - Every `file:line` reference is a link to a blob on the branch under review: `` [`file:line`](https://github.com/<head-owner>/<repo>/blob/<head-branch>/<path>#L<line>) ``, ranges `#L<a>-L<b>`. Take both from `gh pr view <n> --json headRefName,headRepositoryOwner`: a fork's branch is not a ref in the upstream repo, so the upstream form 404s on every cross-fork pull request. This covers every reference, including files and tests cited by name. Never a bare backticked `file:line`.
 - Link the branch, not the sha. Re-verify anchors each round: lines move under a branch link. Pin a sha in exactly two cases: the branch is merged and deleted, or the claim is about code that has since changed and the point is what it said then.
-- Link every behavioral claim to the line that proves it, not only claims naming a symbol.
 - A blob link into a rendered file such as `.md` needs `?plain=1` before the `#L` anchor.
-- Anchor a supporting link on words already in the prose; a named doc subsection links to its header line.
 - A link must prove the exact clause it anchors. Read the cited lines and confirm the number, symbol, or behavior appears in the range. One claim per anchor: two numbers, two links. For a pinned tag, fetch the file at that tag.
 - Attribute a behavior to what guarantees it: a toolchain detail cites the toolchain, never a spec that does not require it. When the spec guarantees less than observed, say so.
 - A bare sha autolinks only in the repository holding that commit. Prose in `comment_<model>.md` writes the reviewed repo's shas bare, for the hovercard; the review file keeps its own shas as they are, since the reviewed repo's sha resolves to nothing in the workspace repo.
@@ -236,9 +179,6 @@ Settle where the repro goes before writing one. A finding on a surface the reade
 
 - Every empirical claim ships a copy-pasteable repro: fenced `bash`, self-contained, one clear pass/fail signal, restoring modified files at the end. Pin env vars only when depended on.
 - **No repro for a merge conflict.** State what the resolution costs and stop; the conflict itself is not the finding.
-- **One screen, one run, a row per state.** A ledger gains a row per step, each holding the inputs the claim rests on beside the value on screen, sampled live from the page. The last frame tells the story to a reader who never presses play.
-- **A readout must never imply a transition that did not happen.** Label the absence of the container, not of the value; name a column for what it holds, not how it got there.
-- **A clip replaces the written steps, and only the user can attach it.** When a clip exists, the sentence drops the steps and states the rule the clip demonstrates. An image hosted in a private workspace will not render on someone else's pull request: hand the file to the user to drop into the comment box, and never post a link that renders as a broken image.
 - Start with `# from a local clone of <repo>:`, then the checkout command. Zero local paths, no trailing `git checkout <hash>` pin. Inline needed files with heredocs; never `curl`, never reference into the reviews tree. Clean up at the end.
 - Follow the block with the observed output in a second fenced block, trimmed to the signal-bearing 5-20 lines, `# …` marking omissions.
 - A repro whose output is a failure says so in one line directly above that output, naming what failed and why the failure is the finding.
@@ -369,133 +309,9 @@ Overview: [overview](../overview.md) <— only when the review directory has one
 
 ## GitHub review draft (`comment_<model>.md`)
 
-Draft in the same directory, same `<model>`. The user prunes by hand: `SKIP` prefixed to a header, `## SKIP <path>:<line>`, drops the comment. Never delete a dropped comment; the marker survives regeneration.
-
-A target with no PR, a branch or a repository-level failure, gets a GitHub issue draft in the same filename: `Target:` and `Event: ISSUE` in place of the PR header, then `## Title`, `## Body`, and the anchored `## <path>:<line>` sections posting as plain headers inside the body. Each section still runs 1-3 sentences and closes with fixed-on-branch or left-out and why. Post with `gh issue create -R <repo> --title ... --body-file ...` under the same `post` gate.
-
-Before writing a `Full review:` link into anything posted, check this repo's visibility with `gh repo view <this-repo> --json visibility`. Private: carry no link, inline the substance instead.
-
-Auto-SKIP duplicates: when another reviewer already raised a finding, prefix its header with `SKIP` while drafting, attribute the reviewer in the review file, and make `Already raised: <comment-url>` the section's first body line. When a section bundles an already-raised finding with a novel one, split it so the novel part posts. Where the raised finding is one case of a broader one being posted, name that case in the broader sentence and link it to the original instead of splitting.
-
-Format:
-
-```markdown
-# Review: [#<number>](https://github.com/<repo>/pull/<number>)
-Event: APPROVE | REQUEST_CHANGES | COMMENT
-
-## Body
-<One-line assessment, then one-sentence bullets for unanchored findings only. When clean: "Looks good." plus one CI-invisible check, and nothing else.>
-
-Full review: <link to the review file in this repo>
-
-## <path>:<line>
-<1-3 sentences: the problem and why it matters>
-
-<details><summary>repro</summary>
-
-<fenced bash repro block + fenced observed-output block>
-</details>
-```
-
-### Body rules
-
-- A finding with more than one case is a claim and a list, never a paragraph. One line for the claim and its mechanism, then one nested bullet per case naming its condition and outcome. Put the cases where it does not bite beside the ones where it does.
-- The Body has exactly two jobs: cross-cutting synthesis the per-line comments cannot carry, and unanchored findings, one sentence each, gap then fix. Cut everything else. One line is the size; a paragraph there is a finding that should have been anchored.
-- **Never write a Body line whose only job is to fill the field**: no line that counts the inline comments or points at them. Anchor what is about code; the Body carries what is about the branch and survives the two rules below, which take a stale base, a rebase and a conflict out of it.
-- **An empty Body is refused at submit and accepted on edit.** The submit call rejects an empty string for REQUEST_CHANGES and COMMENT; a later edit of the same review sets it to empty and holds. A review whose every finding is anchored ships with its shortest true sentence and is cleared afterwards.
-- **Post every finding the author should act on, and open with the one that changes what they do next.** What stays behind in the review file is what needs no action from them: a check CI already reports, a finding already raised by someone else. Never drop a real finding to make the review shorter; shorten the finding instead.
-- **A measured defect on a line the diff touches is posted, whatever argument the measurement suggests against it.** It never fires, it predates the branch, the branch only makes it worse: each of those is the finding. Reasoning from a defect to its own exemption is the failure, and Open questions hold what the reviewer could not decide, never what they decided not to send.
-- **Name the event beside the draft, never after it.** The review file's verdict is the reviewer's judgement and does not move. What gets posted, APPROVE, COMMENT or REQUEST_CHANGES, is the user's call: show it with the text and let one word settle both.
-- Never mention an anchored finding in the Body, in any form: no bullets, no recap, no pointer to it, no count.
-- Do not re-describe the change, list what passed, narrate the review process, or restate thread state.
-- Stateless, like every inline comment: never name a round, never frame current code as a fix relative to a prior draft. State the code's current property, not its history.
-- **Nothing about CI reaches the comment, in any check state.** The one exception is the stale-base sentence named below.
-- A CI-invisible check must pass the verification rule in `skills/writing-style.md`; one that fails never appears. Nothing runtime-only checked: no verification line at all.
-- At most three checks, the strongest. State each as an action and its result, never as a characterization. When naming a revert, describe the concrete edit and tie cause to effect in one chain.
-- When a Body check asserts a property a committed test could assert, write the test instead.
-- **No sha pin in anything posted.** The reviewed sha belongs in the review file's metadata.
-
-### General rules
-
-- `Event:` defaults from the verdict: APPROVE → APPROVE, REQUEST CHANGES → REQUEST_CHANGES, NEEDS DISCUSSION and CLOSE → COMMENT. It is a default, not a lock: the user may post a lighter event than the verdict, and then the review file keeps the verdict while the draft records what went out. The `Event:` line carries it; the Body never restates it.
-- An own-PR target is not posted at all. If the user insists, `Event: COMMENT` whatever the verdict: GitHub rejects APPROVE and REQUEST_CHANGES on one's own PR.
-- Order inline sections: Critical, Warning, Missing test, Nit, Suggestion; file order within a band.
-- **A finding that needs a third explanation leaves the comment.** Mark the section `SKIP` with a line saying why and keep it in the review file.
-- Post only comments that change what the author does: fix, decide, or answer. "No change needed" findings stay in the review file. Severity never gates this: a Nit asking for a concrete modification gets its own section.
-- Never explain routine fixes: merge the base, regenerate assets, re-run a flaky job. A red check with a routine cause gets one short Body line, naming what is no longer readable rather than the fix.
-- **Never tell the author to rebase.** They meet the conflict the moment they try to merge, and a reviewer spending the body on it says nothing the branch does not already say. What a rebase costs, a behaviour it drops or a build it breaks, is a finding anchored on the line that carries it. Nothing else about the base branch reaches the comment. One exception: when the stale base is why the review is not an APPROVE, the Body says so in one line, because a withheld approval whose reason is unstated is the same defect in the other direction.
-
-### Building each inline comment
-
-1. **Anchor.** One `## <path>:<line>` section per finding, every severity; ranges `## <path>:<start>-<end>`. Line numbers reference the head commit, side RIGHT. Read those exact lines first; the anchor covers exactly the lines the sentence talks about. Validate every anchor against the diff hunks now, not at posting time: a line outside the diff is rejected and takes the whole review with it, so that finding belongs in the Body and the draft must say so.
-2. **Opener.** `Critical:` / `Nit:` / `Suggestion:` prefix matching the review file's band, then the TL;DR. A Warning gets NO prefix. A missing-test finding opens `Missing test:` plus the uncovered scenario. No bracketed priority tags in comment.md.
-3. **Sentences.** One visible sentence, two only when the second carries an action the first does not; code blocks and `<details>` do not count; no headers, no bold. Order: gap and stake, evidence, fix sentence last. Over one: cut evidence, never the gap. What ships is the defect, the anchor and the repro: the reasoning, the prototyping cost and the verification pins stay in the review file.
-4. **Fix sentence.** Default none, per `skills/writing-style.md`.
-5. **Links.** Every named file or test, every behavioral claim, per *Links & citations*.
-6. **Repro.** Critical and Warning get a collapsed repro block when the claim is behavioral.
-
-### Visible-text style
-
-Governed by the *Posted comments* section of `skills/writing-style.md`: state the fix or the defect in the fewest words, cut every clause the fix already implies, no process words. The rules below are the review-specific additions.
-
-- Essentials only: the problem and why it matters. No stacked clauses, no symbol-chain walkthroughs, no scenario-painting.
-- Do not re-prove the claim in visible text; mechanism and secondary evidence go in the repro block or the full review.
-- Lead with the specific gap. Never open by explaining the author's own code or restating what the change claims.
-- A latent-risk finding states the current safety in one clause and stops.
-- Lowercase a source's emphasis caps in prose; caps survive only in code spans.
-- **Never post a question.** State the position as the reviewer's own, in one line. This covers design and layering calls.
-- Link the full review inside an inline comment only when the details block is not enough.
-
-### Repros (comment.md deltas)
-
-- Attempt a repro for every Critical and Warning before drafting. No run proof: word it as an observation, never "I ran X". Source-visible facts: cite the anchor, drop the block.
-- A repro lives in exactly one file: comment.md owns it for findings anchored there; the review file states the result and links it. Line-specific repros stay with their comment; suite-wide ones go in a Body `<details>` block, pointed to.
-- A missing-test finding carries ready-to-add cases in a collapsed `<details><summary>test cases</summary>` block, in the file's own test style, paste-ready.
-
-### Rounds & regeneration
-
-- Update comment.md whenever the review changes; it never lags.
-- **A draft embedding media hosted elsewhere is stale until that host is pushed.** Push it, then compare the raw URL's byte count against the file on disk. The host's API answers immediately; the raw URL lags minutes.
-- Port carried findings verbatim; change only shas, repro URLs, and stale anchors. No round-relative phrasing.
-- A SKIPped finding stays SKIPped when ported, with a one-line note, until the user un-SKIPs it. Before regenerating, read the existing file and preserve every surviving `SKIP` marker.
-- When the head advanced past the reviewed commit: diff `<reviewed-sha>..<head>`, drop findings that diff fixed, re-run remaining repros on the new head, re-verify every anchor.
-
-### Posting
-
-- Never without the literal word `post` or `upload` in the current turn; `push` covers git push only. The same gate covers mutating already-posted content: update the draft, show the exact new text, touch GitHub only after approval.
-- A `gh` write refused 403 `Resource not accessible by personal access token` is a missing scope: never retry or work around. Record the refused command in the artifact's `Status:` line and end the reply with `post <github url of the artifact>` alone on its own line.
-- The word `post` covers every verdict, APPROVE included: post an approving review on the same word as any other, with no extra confirmation. A post still always needs the word; never auto-post.
-- Post every verdict as a PR review, never a plain issue comment: `gh api repos/<repo>/pulls/<number>/reviews -f event=<EVENT> -f body='...'`, inline comments as `comments[]` entries with `path`, `line`, `side=RIGHT`, `body`. Validate every anchor against the PR diff first: one rejected anchor takes the whole review with it; move those findings into the Body.
-- An unsubmitted review the author already has on the target swallows a new one: the comments land in that pending review instead of posting. Check for one before posting and fold the draft into it, or submit it first.
-- Comments cannot be added to a review already submitted. A draft carrying a `Posted:` line re-posts by rewriting that review in place, so every anchor it holds must already carry a `[posted]` link; one that does not aborts the re-post rather than posting a second review.
-- A reaction on the review body itself is not in the REST reactions API. Resolve the node id, then react through GraphQL, skipping any target where `viewerHasReacted` is already true:
-  ```bash
-  gh api repos/<repo>/pulls/<n>/reviews --jq '.[] | select(.id==<id>) | .node_id'
-  gh api graphql -f query='mutation($id:ID!){addReaction(input:{subjectId:$id,content:THUMBS_UP}){reaction{content}}}' -f id=<node-id>
-  ```
-- Thumbs-up acknowledged duplicates in the same `post`, from each SKIPped section's `Already raised:` URL. Inline thread: `gh api -X POST repos/<repo>/pulls/comments/<id>/reactions -f content=+1`; top-level: `.../issues/comments/<id>/reactions`. Skip targets already reacted to.
-- After a successful post, write the URLs back: `Posted: <review-url>` under the title, `[posted](<comment-url>)` on each anchor. Commit and push in the same turn as the post, never later: the `Posted:` line is what makes a re-post rewrite the existing review instead of adding a second one. Before any post, check whether the target already carries a review from this author and reconcile the draft first.
-
-### Final check
-
-Verify each line before handing over:
-
-1. The Full review line points at this repo and resolves.
-2. The Body names at most three checks, each runtime-only, none CI-visible, none recapping anchored findings.
-3. No repro block has a passing run as its only output.
-4. Every non-Warning inline comment opens with its band; Warnings open with the TL;DR. Every comment asks for a fix, a decision, or an answer, and carries no fix sentence its problem statement already implies.
-5. Count, do not judge: one visible sentence per section, one line or nothing in the Body, one section per distinct action. Count the `<details>` blocks too, and delete the one attached to a merge conflict or to anything the author confirms by opening the app.
-6. No verdict restating the `Event:` line, no bold, no imported emphasis caps, every `skills/writing-style.md` rule holds.
-7. Every `Suggestion:` was applied in a worktree and run both ways, the case the finding is about and the case the current code already handles. Run the path carrying no user action, the page load, the reconnect, the re-render: a guard exists for that path, the finding is about the path with a click in it, and dropping the guard is how a fix becomes the bug it was written against. Name every result in the review file.
-8. Every finding names the set it holds for, and the band follows the size of that set. One example value standing in for the set understates both: "a French browser" where every non-English browser fails is a Critical wearing a Warning's clothes.
-9. Every `## <path>:<line>` header carries its `[gh]` link to the branch under review.
-10. Every embedded image resolves at its raw URL and its bytes match the file on disk.
-11. Open every link and read the lines it lands on: each must contain the number, symbol, or behavior claimed, and every external link must resolve at the pinned ref.
-
-Then two QA agents, re-run on every regeneration of comment.md:
-
-- **Concision recheck**: one `Agent`, `subagent_type: general-purpose`, given the comment.md path, the checkout path, and the *Visible-text style* rules. Only question: can any line be shorter or clearer without dropping fact, stake, or fix? Apply the rewrites that hold against the cited lines.
-- **Citation audit**: one `Agent`, `subagent_type: general-purpose`, given both file paths and the checkout. For every link it fetches the target and returns only anchors whose lines do not contain the claim, plus unresolvable external links. It skips the `Full review:` self-link, which 404s until pushed. Fix each returned finding.
+Step 7 of the workflow. The draft, its body rules, the shape of each inline
+comment, the final check and the posting gate are in `skills/review-comment.md`.
+Draft it whether or not anything will be posted.
 
 ## Authoring this file
 

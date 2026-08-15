@@ -10,6 +10,7 @@
 # corpus recovers from over several turns, and a warning answered by raising its
 # threshold is the pollution this file exists to catch.
 
+import os
 import re
 import sys
 from collections import defaultdict
@@ -109,7 +110,49 @@ def normalize(sentence):
     return re.sub(r'[^a-z0-9 ]', '', s).strip()
 
 
-def check_file(path):
+# A rule pointing at a file or a section that does not exist. A pointer to a
+# section nobody wrote reads exactly like a pointer to one that does, and a split
+# leaves every reference to the moved half naming the wrong file.
+FILE_REF = re.compile(r'`\.?/?((?:skills|scripts|projects)/[A-Za-z0-9_.<>/-]+\.(?:md|py|sh))`')
+SECTION_REF = re.compile(r'(?<!\*)\*([A-Z][^*\n]{3,60}?)\*(?!\*)'
+                         r'(?:\s+(?:rule|section)?\s*(?:in|of)\s+`([^`]+)`)?')
+
+
+def check_refs(path, text, corpus, heading_index):
+    """Resolve every file and section a rule points at.
+
+    Headings match on prefix: a reference names the section, never its
+    parenthetical. Where the same line already names a file, that file is the
+    target, because "run its *Final check*" means the file just named.
+    """
+    out, bare = [], re.sub(r'^```.*?^```', '', text, flags=re.S | re.M)
+    for m in FILE_REF.finditer(bare):
+        target = m.group(1)
+        if '<' in target or os.path.exists(target):
+            continue
+        # A delta's paths are read from inside its own checkout, so a miss here
+        # is a lead rather than a defect.
+        out.append(('warn' if classify(path) == 'project' else 'error',
+                    bare[:m.start()].count('\n') + 1, 'xref',
+                    f'points at {target}, which does not exist'))
+    for m in SECTION_REF.finditer(bare):
+        name, where = m.group(1).rstrip('.,'), m.group(2)
+        if not where:
+            line = bare[bare.rfind('\n', 0, m.start()) + 1:bare.find('\n', m.end())]
+            named = re.findall(r'`((?:skills|projects)/[A-Za-z0-9_./-]+\.md|AGENTS\.md)`', line)
+            where = named[0] if named else None
+        target = where if where in heading_index else path
+        low = name.lower()
+        if any(h.startswith(low) for h in heading_index.get(target, ())):
+            continue
+        if re.search(r'\*\*' + re.escape(name), corpus.get(target, '')):
+            continue                      # a bold paragraph label is findable too
+        out.append(('warn', bare[:m.start()].count('\n') + 1, 'xref',
+                    f'*{name}* has no heading in {target}'))
+    return out
+
+
+def check_file(path, corpus=None, heading_index=None):
     try:
         text = open(path, encoding='utf-8').read()
     except OSError as exc:
@@ -161,6 +204,8 @@ def check_file(path):
         if '(' in stripped and not heading and not clean.lstrip().startswith('|'):
             findings.append(('warn', n, 'paren', 'parenthetical; rework into the sentence'))
 
+    findings += check_refs(path, text, corpus or {}, heading_index or {})
+
     cap = cap_for(path)
     if words > cap:
         level = 'error' if words > cap * 1.15 else 'warn'
@@ -189,10 +234,21 @@ def main(argv):
         print(__doc__ or 'usage: lint.py <files>')
         return 2
 
+    # Every heading in the corpus, so a reference into another file resolves.
+    corpus, heading_index = {}, {}
+    for path in paths:
+        try:
+            corpus[path] = open(path, encoding='utf-8').read()
+        except OSError:
+            corpus[path] = ''
+        headings = re.sub(r'^```.*?^```', '', corpus[path], flags=re.S | re.M)
+        heading_index[path] = {h.strip().lower()
+                               for h in re.findall(r'^#+\s+(.+)$', headings, re.M)}
+
     errors = 0
     health_rows, corpus = [], defaultdict(list)
     for path in paths:
-        findings, health, seen = check_file(path)
+        findings, health, seen = check_file(path, corpus, heading_index)
         for key, nums in seen.items():
             corpus[key].append((path, nums[0]))
         for level, line, code, message in sorted(findings, key=lambda f: (f[1], f[2])):

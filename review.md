@@ -12,7 +12,7 @@ Write all visible prose per `skills/writing-style.md`; its scannability rule cov
 
 ## Workflow
 
-Run in order for a single target; multi-target runs wrap this via *Parallel dispatch*. Run from the workspace root.
+Run in order for a single target; multi-target runs wrap this via *Parallel dispatch* in `skills/review-modes.md`. Run from the workspace root.
 
 1. *Fetch & understand*: sync the checkout, gather target data, read prior reviews.
 2. Run the *Re-review rounds* gate when a prior round exists.

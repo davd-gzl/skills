@@ -12,7 +12,7 @@ The output is a URL, a login, the click path, and what to watch for. The user te
 
 ## Workflow
 
-1. **Read `projects/<repo>/AGENTS.md` first**, its *Local development* and *Ports* sections, before touching the checkout. It carries the boot recipe measured on this machine: system packages, runtime versions, seed data, whitelisted ports.
+1. **Read `projects/<repo>/AGENTS.md` first**, its *Local development* and *Ports* sections, or the sibling file it points at, before touching the checkout. It carries the boot recipe measured on this machine: system packages, runtime versions, seed data, whitelisted ports.
 2. **Read the target.** `gh pr view <n> --repo <owner>/<repo> --json title,state,isDraft,headRefName,body,files`. The changed-file list decides the boot shape: a frontend-only diff takes the backend from the existing checkout, nothing else rebuilt.
 3. **Sync**, per the root `AGENTS.md`: fetch every remote from inside `projects/<repo>/checkout`, never from the workspace root.
 4. **Worktree, never the checkout.** `git worktree add <scratchpad>/try-<repo>-<target> <sha>` off that checkout, at `refs/pull/<n>/head` fetched explicitly so a cross-fork PR resolves. Fetch it from the canonical remote, the repository the project develops in, which is often not `origin`: a fork does not carry the upstream pull refs and the fetch fails or lands on the wrong head. The submodule gitlink never moves.

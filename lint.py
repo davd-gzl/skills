@@ -62,7 +62,9 @@ PLACEHOLDER = re.compile(r'<[a-z][a-z0-9 _/-]*>', re.I)
 
 
 def classify(path):
-    if path.endswith('AGENTS.md') and '/' in path.rstrip('AGENTS.md').strip('/'):
+    # Anything under projects/ is one repository's measurement log, whatever it
+    # is named: the delta itself, and the task files it splits into.
+    if path.startswith('projects/') or '/projects/' in path:
         return 'project'
     if '/skills/' in path or path.startswith('skills/'):
         return 'skill'

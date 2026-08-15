@@ -35,7 +35,7 @@ Order the paragraphs, in both shapes:
 1. The symptom, first sentence, in the reader's terms: what breaks, under what condition. Then the mechanism, named by symbol. Never open with what the change does.
 2. The fix, in a clause, stated as a property of the new code, not a narration of the edit.
 3. Anything riding along, each item with its own why.
-4. What was verified, in the framing paragraphs, never at the end: the one runtime check the jobs cannot show, stated as a claim. State the claim, never the methodology; the proof belongs in `plan.md`. Never "all tests pass", never a trailing verification section. A status the check list already carries is not one of these, whatever colour it is: a job that ran, a job that failed, a job that never started. The reader sees it on the page above the body, so writing it costs a paragraph and tells them nothing. Where the failure needs an explanation the checks cannot give, that explanation is a comment on the pull request, not a permanent line in its body.
+4. What was verified, in the framing paragraphs, never at the end: the one runtime check the jobs cannot show, stated as a claim. State the claim, never the methodology; the proof belongs in `plan.md`. Never "all tests pass", never a trailing verification section. The check list above the body already carries every job's status, green, red or never started, so repeating one spends a paragraph on what the reader has read. Where a failure needs an explanation the checks withhold, that explanation is a comment on the pull request; the body stays about the change.
 
 Do not over-explain: the reader has the diff. Give only the defect, the consequence, and the context the code cannot supply.
 

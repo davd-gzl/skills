@@ -45,7 +45,7 @@ ENV_NOUN = re.compile(
 ENV_ABSOLUTE = re.compile(
     r'\b(cannot|can never|is dead|never (start|run|work)|no \w+ binary|absent|not permitted'
     r'|will never|impossible|refused)\b', re.I)
-ENV_ESCAPE = re.compile(r'env-check|measure it|run it|check it|`[^`]*`')
+ENV_ESCAPE = re.compile(r'env-check|measure it|run it|check it|`[^`]*`|capability recorded')
 
 DATED = re.compile(r'\b(stated|measured|verified|as of|since)\s+(on\s+)?'
                    r'(\d{4}-\d{2}-\d{2}|\d{1,2}\s+\w+\s+\d{4}|\w+\s+\d{1,2},?\s+\d{4})\b', re.I)
@@ -249,6 +249,9 @@ def check_file(path, corpus=None, heading_index=None):
         'rules': len(rules), 'density': density if density else '-',
     }
     seen = defaultdict(list)
+    # A CLAUDE.md carries the same seven-line pointer everywhere on purpose.
+    if os.path.basename(path) == 'CLAUDE.md':
+        return findings, health, {}
     for n, _, clean in lines:
         for sentence in sentences(clean):
             key = normalize(sentence)

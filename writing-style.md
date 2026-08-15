@@ -9,7 +9,7 @@ Canonical style file for all visible prose, and the file every other skill defer
 
 The goal is one thing: a reader understands the text on a single pass. Every rule below serves that and none outranks it. Brevity is how clarity is usually reached, never what it is for. A cut that saves a word and costs a second read has failed, whatever budget it satisfies. Where a rule and the reader disagree the reader wins, and the rule is the thing that gets fixed.
 
-- **Read the author's own last ten before drafting anything published under their name.** They are the shape the draft has to match: the opening, the length, how a claim gets its link, whether a remedy is proposed and where it sits. A rule below that contradicts what they show is the rule that is wrong.
+- **Read what the author already published on this repo, of the kind being drafted.** A review comment takes its shape from their review comments, an issue from their issues: the opening, the length, how a claim gets its link, whether a remedy is proposed and where it sits. Read until the shape repeats, three at the least, and where they have published none, take the shape from what the repo has already accepted and say so in the handover. A rule below that contradicts what they show is the rule that is wrong.
   ```bash
   gh api "repos/<repo>/pulls/comments?per_page=100" --jq '[.[]|select(.user.login=="<login>")]|.[0:10][]|.body'
   gh api "repos/<repo>/issues?state=all&creator=<login>&per_page=10" --jq '.[]|"\(.title)\n\(.body)"'

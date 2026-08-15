@@ -33,7 +33,7 @@ Put `issue.md` in the review directory, `projects/<repo>/reviews/<slug>/<n>-<sha
 
 A defect issue reports what the code does; a feature request asks for what it does not do. Everything below is the defect shape unless it says otherwise.
 
-Read the repo's `.github/ISSUE_TEMPLATE/` before drafting either. Keep the headings it supplies, answer its questions in prose, and delete the bold prompts and the comments:
+Read the repo's `.github/ISSUE_TEMPLATE/` before drafting either. Keep its `##` headings, `## Feature Request` for one, and delete everything else it ships: the bold prompts, the italic hints, the HTML comments. A prompt left in the body is the form showing through the answer.
 
 ```bash
 gh api repos/<repo>/contents/.github/ISSUE_TEMPLATE --jq '.[].name'
@@ -46,7 +46,7 @@ A feature request:
 - Puts one checkbox per piece only where the pieces could ship separately. A single ask gets no list.
 - Runs as long as the ask and no longer: one ask is two sentences, five separable pieces are five checkboxes.
 - Answers only the template questions carrying a fact this ask needs. The considered-alternatives and migration prompts usually carry none, and the author's own issues drop them.
-- Answers the template's question about building it, in the repo's own words, on the last line.
+- Leaves the template's question about building it to the user. Never volunteer their time and never decline for them: carry the offer on the last line only when they have said they will build it, and otherwise say nothing.
 
 ## Title
 

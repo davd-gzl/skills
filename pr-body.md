@@ -95,7 +95,6 @@ Past the shape's budget: cut, never restructure. Overflow detail belongs in the 
 A screenshot for any user-visible surface; a short video or GIF for any interaction or motion.
 
 - Before and after, side by side, same viewport, same data. Crop to the surface.
-- A sentence above each image saying what it shows and what produced it, the browser and the version named. Without it a reader cannot tell a run from a mockup.
 - Attach by dragging into the PR body on GitHub. Keep the files under `projects/<repo>/changes/<slug>/media/`; mark each attachment point with the `media/` path. Never fabricate a `user-images` URL.
 - None for backend-only, tooling, or lint changes. Do not manufacture thoroughness.
 

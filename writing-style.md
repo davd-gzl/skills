@@ -5,7 +5,7 @@ description: Use when writing or editing docs, code comments, PR bodies, or revi
 
 # Writing style
 
-Canonical style file for all visible prose, and the file every other skill defers to on a style conflict. Earlier snapshots live in `archive/` and are superseded by this one.
+Canonical style file for all visible prose, and the file every other skill defers to on a style conflict.
 
 The goal is one thing: a reader understands the text on a single pass. Every rule below serves that and none outranks it. Brevity is how clarity is usually reached, never what it is for. A cut that saves a word and costs a second read has failed, whatever budget it satisfies. Where a rule and the reader disagree the reader wins, and the rule is the thing that gets fixed.
 
@@ -30,7 +30,7 @@ The goal is one thing: a reader understands the text on a single pass. Every rul
 - **Reach for a word the reader owns, never one you invented.** That swap is the same failure in a new coat, and an invented place for a thing to be is its common shape. Where no plain equivalent exists, use a contrast the reader already holds, paused against stopped, or define the term in the sentence that first uses it.
 - **Three counts, never a judgement.** Words before the main verb: over five, rewrite. Subordinate clauses after it: over one, rewrite. Verbs before the first comma with the first arriving fourth or later: rewrite, since the clause sits inside the subject rather than after the verb.
 - **`but` never stands in for `except`.** Where the exception does not change the outcome, drop it.
-- **A finding names the scope, never one instance of it.** "a French browser" is an instance; "whatever the browser's language" is the scope. Check the member holding none of the named property, then write what that shows.
+- **A finding names the scope, never one instance of it.** "a French browser" is an instance; "whatever the browser's language" is the scope.
 - **A rule carries no date.** No `Stated <date>`, no `Measured <date>`, no clock time.
 - **A pronoun reaches back one clause, never two.** Repeat the noun.
 - **A connective states a relation that holds.** "while" and "though" promise a contrast, "so" and "because" promise cause: when the two facts merely sit beside each other, say they are related and stop. A joint that misdescribes the join sends the reader hunting for a tension that was never there.
@@ -107,14 +107,12 @@ The whole comment is countable, and counting is the check: one sentence per sect
 - State the fix, or state the defect, never both unless the fix is non-obvious from the defect.
 - Cut every clause the fix already implies. A trailing clause naming what the current code omits, misses, or does differently restates the gap the fix has already closed; delete it.
 - No process words: no `Verified`, `measured`, `I ran`, `reproduced`, `on <sha>`. Evidence lives in the collapsed repro or the review file, never in the visible line. A picture is the exception, and it keeps the sentence naming what it shows and what produced it.
-- Give the data and stop. Delete the clause drawing the conclusion, the sentence naming the obvious fix, and the comparison to what the change gets right; keep the defect, the measurement, and the one piece of mechanism the reader cannot derive.
 - **A fact stating a condition says what breaks when it breaks, or is cut.**
 - **A band says how much, never what to type.** `Suggestion:` and `Nit:` open on the defect, same as every other finding. Where an exact edit exists, it ships as a GitHub ` ```suggestion ` block the author applies in one click, and it was run both ways before it shipped.
 - A number carries its repro directly under it, collapsed, in the same comment. Never leave the repro in a private review file while the number goes public.
-- One clause of mechanism, only if the reader cannot act without it; never a walkthrough.
 - The `## path:line` header already says where, and the band prefix, `Nit:`, `Suggestion:`, `Refactor:` or `Missing test:`, already says how much: repeat neither in the sentence. Name the kind in the prefix rather than leaving the reader to infer it: `Refactor:` when the same behaviour fits in fewer lines, so the author knows before the first word whether anything is broken.
 - Write sentences, not notation: no label fragment without a verb, no dropped pronoun. Every line is a grammatical sentence with a subject and a verb, readable once, left to right, without backtracking.
 - **Carry the expectation and the defect in one clause.** "X pulls Y toward the centre rather than holding it in place", never "X should hold Y, and pulls it toward the centre instead", which splices two halves onto a comma and switches subject in the middle.
 - The user's shorthand names the fact to convey, never the copy to post. Write the fact they named as a sentence for a reader who does not know the code.
 - Repair a draft the user wrote, never rewrite it. When they show their own text and ask whether it works, fix what is wrong, keep their words, their order and their register, then name each change so they can revert it. The rule above covers a note naming a fact, not a draft already written as prose.
-- Read the finished line and delete the last clause; if it still means the same thing, repeat, and stop when the next cut takes the stake with it. Test the finished line cold, as someone who has never seen the code, and when it fails, restore the clause carrying the consequence, not the one carrying the mechanism.
+- When a cut costs the reader a pass, restore the clause carrying the consequence, not the one carrying the mechanism.

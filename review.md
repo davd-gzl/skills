@@ -55,7 +55,7 @@ A batch target set, "review all": every open non-draft target absent from the re
 - A listing that returns exactly its `--limit` was clipped, not exhausted. Re-run higher before treating the set as complete.
 - Sync the workspace before reading the review directory, and state the synced head when confirming the set. When it cannot be synced, derive the set read-only from the remote tree, `git ls-tree -r --name-only <remote>/<branch> -- <reviews-path>`, never from the working tree.
 - Write the scope down before dispatch, in a status file beside the reviews: the confirmed set as a table, one row per target with its head sha and review directory, the dropped targets grouped by reason, and the steps to resume. Update it as results come back and commit it with the batch.
-- A target the reviewer authored leaves the set and is named as available on request. A self-review runs only when the user asks for that one target by number, never as batch scope.
+- A reviewer-authored target is named as available on request. A self-review runs only when the user asks for that one target by number, never as batch scope.
 - When the run also covers already-reviewed targets whose head advanced, keep only the heads whose content changed: compare patch-ids per *Re-review rounds*, drop every base-only move, and drop every target the reviewer already approved on the forge.
 
 ### Deep mode (multi-angle, single target)
@@ -138,7 +138,7 @@ Open every full re-review round with a round-note paragraph between the metadata
 - Run the project's own test and lint commands, taken from its CI workflow file, never guessed. Match the invocation exactly, pinned versions included.
 - Record pass or fail per affected package or job.
 - Before attributing any failure to the diff, run the same check on the merge-base. A failure that also occurs there is pre-existing.
-- **Run the project's own tool from the branch's source, never an installed binary.** An installed binary exercises the code it was built from, not the branch's, so a change to the tool tests itself out of the run. A local toolchain newer than CI's is the same failure in the other direction: it drifts diagnostic text and reddens tests the diff never touched, which the merge-base baseline above catches.
+- **Run the project's own tool from the branch's source, never an installed binary.** An installed binary exercises the code it was built from, not the branch's, so a change to the tool tests itself out of the run.
 - A repository-level failure gets the same discipline: reproduce each condition on the default branch and identify the introducing commit where history allows.
 - When a target changes runtime behavior of a server or tool, boot it and exercise it live; record what was verified live in the Verified section.
 
@@ -152,7 +152,6 @@ Read every line. Look for correctness defects: logic errors, missing nil checks,
 
 - Verify against the actual file, never from memory or a summary.
 - Back every behavioral claim with an actual run, at every severity. Never assert stdlib or runtime behavior from memory.
-- **A proposed edit ships only after running both sides.** Four cases in a worktree: the defect case and the case the current code already handles, each with and without the edit. A guard often looks like the defect.
 - **Enumerate the case space before writing the finding.** Two sets that must agree give four cells: both, first only, second only, neither. The neither cell is usually the live one.
 - **Report what the user loses, never the artifact that causes it.** A conflict, a deleted file, a moved import and a missing guard are mechanical facts; name the action that stops working, for whom, and where. Test it by reading the line cold as a maintainer, deciding in one pass whether to care.
 - **When the base has moved, build the merged state and run it.** Apply the base's version of the disputed hunk into the running branch, exercise the path, then revert.
@@ -237,14 +236,13 @@ Settle where the repro goes before writing one. A finding on a surface the reade
 
 - Every empirical claim ships a copy-pasteable repro: fenced `bash`, self-contained, one clear pass/fail signal, restoring modified files at the end. Pin env vars only when depended on.
 - **No repro for a merge conflict.** State what the resolution costs and stop; the conflict itself is not the finding.
-- **No repro for a finding the reader confirms by looking at the app.** Drive the app yourself to confirm the claim, keep the script in the review file as the record, and let the finding sentence carry the steps.
 - **One screen, one run, a row per state.** A ledger gains a row per step, each holding the inputs the claim rests on beside the value on screen, sampled live from the page. The last frame tells the story to a reader who never presses play.
 - **A readout must never imply a transition that did not happen.** Label the absence of the container, not of the value; name a column for what it holds, not how it got there.
 - **A clip replaces the written steps, and only the user can attach it.** When a clip exists, the sentence drops the steps and states the rule the clip demonstrates. An image hosted in a private workspace will not render on someone else's pull request: hand the file to the user to drop into the comment box, and never post a link that renders as a broken image.
 - Start with `# from a local clone of <repo>:`, then the checkout command. Zero local paths, no trailing `git checkout <hash>` pin. Inline needed files with heredocs; never `curl`, never reference into the reviews tree. Clean up at the end.
 - Follow the block with the observed output in a second fenced block, trimmed to the signal-bearing 5-20 lines, `# …` marking omissions.
 - A repro whose output is a failure says so in one line directly above that output, naming what failed and why the failure is the finding.
-- A repro demonstrates behavior. Source inspection and greps are not repros. Drop any repro whose only output is a passing run.
+- A repro demonstrates behavior. Source inspection and greps are not repros.
 - A fixture's header comment is three or four lines: what it asserts, the measurement, and that it fails at the reviewed head. The mechanism belongs in the finding. Keep a measured table; cut the prose around it.
 - Write the repro in the harness the repo already uses for that surface, found by reading the test the diff itself adds. A defect on a surface the project covers with an integration fixture belongs in that fixture format, not a unit test poking an internal function. Copy the neighbouring fixture's structure, naming and assertions.
 - Size the fixture against the threshold it asserts. A repro claiming a bound is exceeded must exceed it: check the input against the real constant.
@@ -367,7 +365,7 @@ Overview: [overview](../overview.md) <— only when the review directory has one
 - Draft `comment_<model>.md` before committing; one final push covers both, to this repo only. The push is pre-authorized for this skill and overrides any global ask-before-push rule.
 - Fold late findings into both files, verify each with a real run, commit and push in the same turn without asking. Posting still waits for `post`.
 - Never push to a reviewed repo's canonical remote; a fix branch goes to the fork.
-- Reviews may be published, with one exception: a finding exploitable against already-merged or deployed code is a security disclosure. Check the repo's `SECURITY.md`, keep it out of any public tree, and raise the disclosure decision with the user before writing anything. A finding on an open PR's own diff is fine at any severity.
+- Reviews may be published. A finding exploitable against already-merged or deployed code is not: it takes the disclosure gate in `skills/security-advisory.md` before anything is written. A finding on an open PR's own diff is fine at any severity.
 
 ## GitHub review draft (`comment_<model>.md`)
 
@@ -431,7 +429,7 @@ Full review: <link to the review file in this repo>
 1. **Anchor.** One `## <path>:<line>` section per finding, every severity; ranges `## <path>:<start>-<end>`. Line numbers reference the head commit, side RIGHT. Read those exact lines first; the anchor covers exactly the lines the sentence talks about. Validate every anchor against the diff hunks now, not at posting time: a line outside the diff is rejected and takes the whole review with it, so that finding belongs in the Body and the draft must say so.
 2. **Opener.** `Critical:` / `Nit:` / `Suggestion:` prefix matching the review file's band, then the TL;DR. A Warning gets NO prefix. A missing-test finding opens `Missing test:` plus the uncovered scenario. No bracketed priority tags in comment.md.
 3. **Sentences.** One visible sentence, two only when the second carries an action the first does not; code blocks and `<details>` do not count; no headers, no bold. Order: gap and stake, evidence, fix sentence last. Over one: cut evidence, never the gap. What ships is the defect, the anchor and the repro: the reasoning, the prototyping cost and the verification pins stay in the review file.
-4. **Fix sentence.** Default none, per `skills/writing-style.md`. Add only when the remedy is non-obvious and changes what the author would do; name the outcome, never the implementation path.
+4. **Fix sentence.** Default none, per `skills/writing-style.md`.
 5. **Links.** Every named file or test, every behavioral claim, per *Links & citations*.
 6. **Repro.** Critical and Warning get a collapsed repro block when the claim is behavioral.
 
@@ -450,7 +448,7 @@ Governed by the *Posted comments* section of `skills/writing-style.md`: state th
 ### Repros (comment.md deltas)
 
 - Attempt a repro for every Critical and Warning before drafting. No run proof: word it as an observation, never "I ran X". Source-visible facts: cite the anchor, drop the block.
-- A repro lives in exactly one file: comment.md owns it for findings anchored there; the review file states the result and links it. Line-specific repros stay with their comment; suite-wide ones go in a Body `<details>` block, pointed to. A finding the reader confirms in the app, and a merge conflict, ship none: the run that confirmed them stays in the review file.
+- A repro lives in exactly one file: comment.md owns it for findings anchored there; the review file states the result and links it. Line-specific repros stay with their comment; suite-wide ones go in a Body `<details>` block, pointed to.
 - A missing-test finding carries ready-to-add cases in a collapsed `<details><summary>test cases</summary>` block, in the file's own test style, paste-ready.
 
 ### Rounds & regeneration

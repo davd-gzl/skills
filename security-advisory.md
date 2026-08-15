@@ -96,9 +96,3 @@ Re-verify anything it flags yourself and apply only what survives.
   public issue. Triage access does not create advisories through the API, so the
   user pastes the body and the vector into the form.
 
-## Never
-
-- Name the private disclosure repository in any public file, commit message or
-  path.
-- Claim a finding that was not executed.
-- Leave a repro artifact inside the project checkout.

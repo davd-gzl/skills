@@ -33,7 +33,9 @@ Everything starts with a review, on a PR, a branch, or a red CI.
     say so.
 
 [`review-modes.md`](review-modes.md) holds what changes when a run covers many
-targets, goes deep, ships as a bot review, or lands on a PR I wrote myself.
+targets, goes deep, ships as a bot review, or lands on a PR I wrote myself, and
+[`review-output.md`](review-output.md) holds the review file's own shape, its
+metadata block and every section in order.
 
 Around the review, the rest. [`issue.md`](issue.md) drafts an issue when a
 problem outlives its fix, stating the problem and never the remedy.

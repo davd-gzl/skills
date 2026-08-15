@@ -21,7 +21,7 @@ Run in order for a single target; multi-target runs wrap this via *Parallel disp
 5. *Write tests* for test-shaped findings.
 6. Write the review file per *Output*.
 7. Draft `comment_<model>.md` per `skills/review-comment.md`, then run its *Final check*. Draft whether or not anything will be posted. Skip only for a PR the reviewer authored; see *Own PR* in `skills/review-modes.md`.
-8. Run the `skills/writing-style.md` Pass over every line of the review file and `comment_<model>.md`, starting with `./scripts/prose-check.py <file>`. Re-run it after any later edit to that prose, including an edit made in answer to a question about it. State which passes ran when handing over.
+8. Run the `skills/writing-style.md` Pass over every line of the review file and `comment_<model>.md`, starting with `./scripts/prose-check.py <file>`. Never skip it. Re-run it after any later edit to that prose, including an edit made in answer to a question about it. State which passes ran when handing over.
 9. One commit and one push covering everything. This push is pre-authorized; see *Rules*.
 10. Hand over. Link the `comment_<model>.md` draft, not only the review file. Add a "Decisions needed" list, one line each: a borderline verdict, Open questions worth promoting. Omit when empty. Never list an APPROVE as needing confirmation. Post only on the literal word `post`.
 

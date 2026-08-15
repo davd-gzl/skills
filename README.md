@@ -50,8 +50,8 @@ exploit, written up privately, disclosed through the project's own channel.
 [`review-history.md`](review-history.md) answers what was already reviewed,
 read-only, from the corpus on disk rather than by reviewing it again.
 [`report.md`](report.md) turns a period of repository activity into a status
-report. [`git.md`](git.md) covers the pushes that report success and move
-nothing.
+report, generated only after I have edited its context file. [`git.md`](git.md)
+covers the pushes that report success and move nothing.
 
 ## Why the style matters most
 

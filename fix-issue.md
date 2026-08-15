@@ -89,6 +89,54 @@ This mode never commits and never pushes without the word.
 5. **Report** which checks failed, how each was classified, what changed locally,
    and what still needs the user.
 
+## Measure the repo
+
+Before writing a commit message or a changelog line into someone else's
+repository, measure how that repository does it. Each command produces one
+number or one list, and each runs before the thing it measures is written. A
+convention read off the documentation, or inferred from the commit format, is
+not measured.
+
+**Merge style decides the commit split.** A rebase-merge repo lands every branch
+commit as-is in `git blame`, so each message stands alone. A squash-merge repo
+folds the branch into one commit, so that message belongs in the pull request
+title and body instead.
+
+**Commit body width and length.** The longest body line in characters, then the
+highest count of non-empty body lines. Keep the draft within both.
+
+```bash
+git log -40 --format='%b' <remote>/<branch> | grep -v '^$' | awk '{print length}' | sort -n | tail -1
+git log -30 --format='%h' <remote>/<branch> | while read c; do git log -1 --format='%b' $c | grep -cv '^$'; done | sort -n | tail -1
+```
+
+**Commit granularity**, commit count against diff size per merged pull request.
+Match what pull requests of your size do. A `<type>(<scope>)` convention does not
+force one commit per scope: check whether the default branch already carries a
+cross-cutting scope.
+
+```bash
+gh api "repos/<owner>/<repo>/pulls?state=closed&per_page=60&sort=updated&direction=desc" --jq '.[]|select(.merged_at!=null)|.number' |
+  while read n; do gh api repos/<owner>/<repo>/pulls/$n --jq '"\(.commits)\t\(.additions+.deletions)"'; done | sort -t$'\t' -k2 -n
+```
+
+**CHANGELOG placement and selection**, both invisible from the file alone. The
+first command counts the lines one merged pull request added. The second dates
+each `[Unreleased]` entry by the commit whose subject matches: ascending dates
+mean append at the bottom, descending mean prepend at the top, and an entry with
+no match was folded or hand-written. Where entries mirror commit subjects, use
+one identical string for the pull request title, the commit subject and the
+changelog line, one entry per commit.
+
+```bash
+gh api repos/<owner>/<repo>/pulls/<n>/files --jq '.[]|select(.filename=="CHANGELOG.md")|.patch' | grep -c '^+- '
+git show <remote>/<branch>:CHANGELOG.md | sed -n '/^## \[Unreleased\]/,/^## \[/p' | grep '^- ' | sed 's/^- //' |
+  while read -r s; do printf '%s  %s\n' "$(git log --format=%ad --date=short -1 -F --grep="$s" <remote>/<branch> | head -1)" "$s"; done
+```
+
+Write each measured answer into `projects/<repo>/AGENTS.md` with the command
+that produced it, per `skills/authoring.md`.
+
 ## `cleanup`
 
 ```bash

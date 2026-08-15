@@ -31,7 +31,9 @@ gh repo fork <owner>/<repo> --remote-only --remote-name fork
 ## `fix`
 
 1. **Understand.** `gh issue view <n> -R <repo>`, then read the code it names and
-   run the repro it carries.
+   run the repro it carries. Before editing, `git grep` the callers of the
+   function the issue names: one guard in the function they all route through
+   covers the siblings a patch on the reported path alone leaves broken.
 2. **Plan.** Write `plan.md` in `projects/<repo>/changes/<slug>/` before any fix
    code, per *Preparing a fix* in `skills/review.md`: root cause, approach, the
    files, how it is tested, and whatever design record the project requires of a

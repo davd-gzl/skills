@@ -27,6 +27,10 @@ decision each excluded item needs; a verification table, one row per CI job with
 its real command and result; the checks that ran beyond the jobs; and an
 Iterations section naming every round and what caught it, failures included.
 
+Size the first pull request to the smallest diff that closes the ask, and send
+every further capability to the out row with the decision it needs. A maintainer
+declining a large first branch sends back the whole branch, not the surplus.
+
 ## The change directory
 
 `projects/<repo>/changes/<slug>/`, holding the work on findings that stay in

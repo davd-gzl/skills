@@ -233,12 +233,13 @@ Shared by the review file and comment.md.
 
 Shared by `**Repro:**` blocks in the review file and comment.md. A repro is the runnable sequence demonstrating a claimed behavior.
 
+Settle where the repro goes before writing one. A finding on a surface the reader reaches in a browser ships no harness in the comment, whatever the rules below say: the author opens the page instead of cloning, installing a test runner and writing a config by heredoc. Post the clip, or the steps in the sentence, and keep the harness in the review file, the claim that is a number included, which goes in the sentence with what it was counted over.
+
 - Every empirical claim ships a copy-pasteable repro: fenced `bash`, self-contained, one clear pass/fail signal, restoring modified files at the end. Pin env vars only when depended on.
 - **No repro for a merge conflict.** State what the resolution costs and stop; the conflict itself is not the finding.
 - **No repro for a finding the reader confirms by looking at the app.** Drive the app yourself to confirm the claim, keep the script in the review file as the record, and let the finding sentence carry the steps.
 - **One screen, one run, a row per state.** A ledger gains a row per step, each holding the inputs the claim rests on beside the value on screen, sampled live from the page. The last frame tells the story to a reader who never presses play.
 - **A readout must never imply a transition that did not happen.** Label the absence of the container, not of the value; name a column for what it holds, not how it got there.
-- **A frontend finding never ships a scaffolded harness.** The author already runs the app, so a block that clones, installs a test runner, writes a config and a fixture by heredoc and then asserts, is work nobody does: they open the page instead. Post the clip, or the steps in the sentence, and keep the harness in the review file even when the claim is a number, where the number goes in the sentence with what it was counted over. This overrides the collapsed-repro rule for Critical and Warning on any surface the reader can reach in a browser.
 - **A clip replaces the written steps, and only the user can attach it.** When a clip exists, the sentence drops the steps and states the rule the clip demonstrates. An image hosted in a private workspace will not render on someone else's pull request: hand the file to the user to drop into the comment box, and never post a link that renders as a broken image.
 - Start with `# from a local clone of <repo>:`, then the checkout command. Zero local paths, no trailing `git checkout <hash>` pin. Inline needed files with heredocs; never `curl`, never reference into the reviews tree. Clean up at the end.
 - Follow the block with the observed output in a second fenced block, trimmed to the signal-bearing 5-20 lines, `# …` marking omissions.

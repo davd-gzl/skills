@@ -52,6 +52,11 @@ produced it, the sha it was found on, the date, what was tried first. That
 record is the artifact's, a `plan.md`, a review file, a commit message, and the
 lint rejects a date or a bare sha in a rule line.
 
+**Write what a measurement means, and the command, never the reading.** A count,
+a duration or a version frozen into a rule is right on the day it is taken and
+wrong afterwards, while the reader trusts it because it is specific. Keep the
+conclusion it supports and name the command that prints it fresh.
+
 **Bold is a rank, not a voice.** It marks the rules whose violation cannot be
 undone. When most bullets in a file are bold, the file has stopped ranking and
 the reader is back to sampling. The health table prints the share.

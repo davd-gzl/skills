@@ -125,6 +125,14 @@ cap. Raising a cap in `skills/lint.py` is a deliberate decision to carry more
 rules in every context window, and it is made in its own commit, alone, with the
 reason in the message.
 
+Two metrics, because a rule file and a measurement log fail differently. A rule
+file is capped on words: every rule in it loads on every turn its task runs, so
+growth is the cost. A `projects/` file is a log that earns its size by holding
+more measured rules, so it is capped on the size of each rule instead. Measured
+across this corpus, a skill and a small delta both run 23 to 38 words per rule;
+past 75 the rule is carrying the session that found it rather than the fact. Cut
+that clause, never the measurement.
+
 ## Contradictions
 
 Two rules that cannot both be followed cost a decision on every turn, and the

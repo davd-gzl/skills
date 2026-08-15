@@ -12,6 +12,7 @@
 
 import os
 import re
+import statistics
 import sys
 from collections import defaultdict
 
@@ -23,7 +24,13 @@ CAPS = {
     'skills/review-comment.md': 3000,
     'skills/writing-style.md': 3200,
 }
-CAP_BY_CLASS = {'skill': 1600, 'project': 2600, 'default': 2000}
+CAP_BY_CLASS = {'skill': 1600, 'project': 12000, 'default': 2000}
+
+# A project file is a log: it earns its size by holding more measured rules, so
+# a word cap flags growth that is the point. What catches bloat in a log is the
+# size of each rule. Measured across this corpus, a skill runs 23 to 38 words per
+# rule and a small delta the same; only the three largest deltas sit at 48 to 60.
+DENSITY_CAP = 75
 
 # A rule that tells the reader to stop measuring. The defect is the clause, not
 # the fact: a fact goes stale silently and the clause is what stops the check.
@@ -99,6 +106,14 @@ def prose_lines(text):
         line = HTML_TAG.sub('', line)
         out.append((n, raw, line))
     return out
+
+
+def rule_units(text):
+    """The smallest blocks that carry one rule, for the density measure."""
+    body = re.sub(r'^```.*?^```', '', text, flags=re.S | re.M)
+    body = re.sub(r'^---\n.*?\n---\n', '', body, flags=re.S)
+    return [' '.join(b.split()) for b in re.split(r'\n(?=\s*[-*] |\s*\d+\. |\n)', body)
+            if len(b.split()) >= 12 and not b.strip().startswith('#')]
 
 
 def sentences(line):
@@ -211,12 +226,27 @@ def check_file(path, corpus=None, heading_index=None):
         level = 'error' if words > cap * 1.15 else 'warn'
         findings.append((level, 0, 'budget', f'{words} words over the {cap} cap'))
 
+    # CLAUDE.md exists so Claude Code finds the rules at all; it holds a pointer
+    # and nothing else. Rules inside it are invisible to every other reader.
+    if os.path.basename(path) == 'CLAUDE.md' and words > 60:
+        findings.append(('error', 1, 'layout',
+                         f'{words} words in a CLAUDE.md; the rules belong in AGENTS.md '
+                         'beside it, which this file imports'))
+
+    rules = rule_units(text)
+    density = round(statistics.median(len(r.split()) for r in rules)) if len(rules) >= 8 else None
+    if density and density > DENSITY_CAP:
+        findings.append(('warn', 0, 'density',
+                         f'{density} words per rule against a {DENSITY_CAP} ceiling; '
+                         'cut the clause naming the session, not the rule'))
+
     health = {
         'words': words, 'cap': cap,
         'negation': round(negations * 100 / max(words, 1), 1),
         # Under eight bullets the share says nothing, so it is not reported.
         'bold': round(bold * 100 / len(bullets)) if len(bullets) >= 8 else '-',
         'bullets': len(bullets),
+        'rules': len(rules), 'density': density if density else '-',
     }
     seen = defaultdict(list)
     for n, _, clean in lines:
@@ -264,14 +294,15 @@ def main(argv):
         print(f'warn  [dupe] one rule in {len(places)} files: {where}\n      "{key[:90]}"')
 
     if not quiet and health_rows:
-        print(f'\n{"file":<34}{"words":>7}{"cap":>7}{"neg/100w":>10}{"bold%":>7}')
+        print(f'\n{"file":<34}{"words":>7}{"cap":>7}{"rules":>7}{"w/rule":>8}{"neg":>6}{"bold%":>7}')
         for path, h in health_rows:
             flag = '  <-- over' if h['words'] > h['cap'] else ''
-            print(f'{path:<34}{h["words"]:>7}{h["cap"]:>7}{h["negation"]:>10}{str(h["bold"]):>7}{flag}')
+            print(f'{path:<34}{h["words"]:>7}{h["cap"]:>7}{h["rules"]:>7}'
+                  f'{str(h["density"]):>8}{h["negation"]:>6}{str(h["bold"]):>7}{flag}')
         total = sum(h['words'] for _, h in health_rows)
         print(f'{"total":<34}{total:>7}')
-        print('\nneg/100w over 4.0 and bold% over 40 both mean the file has stopped '
-              'ranking its own rules.')
+        print('\nw/rule over 75 is a flabby rule, neg over 4.0 and bold% over 40 a file '
+              'that has stopped ranking its own.')
 
     print(f'\n{errors} error(s)' if errors else '\nno errors')
     return 1 if errors else 0

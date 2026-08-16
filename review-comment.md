@@ -5,16 +5,14 @@ description: Use when drafting, regenerating, or posting comment_<model>.md, the
 
 # The review comment
 
-`comment_<model>.md` is the deliverable and the review file is the record. Draft
-this first and spend the effort here: a finding that changes what the author does
-and lives only in the review file has not been reported, because the author never
-opens that file. Where the two disagree on wording, this one is right and the
-review file follows it.
+`comment_<model>.md` is the deliverable and the review file is the record, which
+holds the evidence, the arithmetic and the rejected attacks. Draft this first and
+spend the effort here: a finding that changes what the author does and lives only
+in the review file has not been reported, because the author never opens that
+file. Where the two disagree on wording, this one is right and the review file
+follows it.
 
-Draft in the round directory beside the review file, same `<model>`. Visible
-prose follows the *Posted comments* section of `skills/writing-style.md`.
-
-Draft in the same directory, same `<model>`. The user prunes by hand: `SKIP` prefixed to a header, `## SKIP <path>:<line>`, drops the comment. Never delete a dropped comment; the marker survives regeneration.
+Draft in the round directory beside the review file, same `<model>`. Visible prose follows the *Posted comments* section of `skills/writing-style.md`. The user prunes by hand: `SKIP` prefixed to a header, `## SKIP <path>:<line>`, drops the comment. Never delete a dropped comment; the marker survives regeneration.
 
 A target with no PR, a branch or a repository-level failure, gets a GitHub issue draft in the same filename: `Target:` and `Event: ISSUE` in place of the PR header, then `## Title`, `## Body`, and the anchored `## <path>:<line>` sections posting as plain headers inside the body. Each section still runs 1-3 sentences and closes with fixed-on-branch or left-out and why. Post with `gh issue create -R <repo> --title ... --body-file ...` under the same `post` gate.
 
@@ -49,7 +47,7 @@ Full review: <link to the review file in this repo>
 - **A finding naming an edit is anchored on the line that gets edited, and every demonstrative in it points at that anchor.** This timer, this map, this call carrying a link somewhere else is the symptom: the sentence wanted a second anchor and got a link instead.
 - **Never write a Body line whose only job is to fill the field**: no line that counts the inline comments or points at them. Anchor what is about code; the Body carries what is about the branch and survives the two rules below, which take a stale base, a rebase and a conflict out of it.
 - **An empty Body is refused at submit and accepted on edit.** The submit call rejects an empty string for REQUEST_CHANGES and COMMENT; a later edit of the same review sets it to empty and holds. A review whose every finding is anchored ships with its shortest true sentence and is cleared afterwards.
-- **Post every finding the author should act on, and open with the one that changes what they do next.** What stays behind in the review file is what needs no action from them: a check CI already reports, a finding already raised by someone else. Never drop a real finding to make the review shorter; shorten the finding instead.
+- **Post every finding the author should act on, and open with the one that changes what they do next.** An action is a fix, a decision or an answer, and severity never gates it: a Nit asking for a concrete modification gets its own section. What stays behind in the review file is what needs no action from them: a check CI already reports, a finding already raised by someone else. Never drop a real finding to make the review shorter; shorten the finding instead.
 - **A measured defect on a line the diff touches is posted, whatever argument the measurement suggests against it.** It never fires, it predates the branch, the branch only makes it worse: each of those is the finding. Reasoning from a defect to its own exemption is the failure, and Open questions hold what the reviewer could not decide, never what they decided not to send.
 - **Name the event beside the draft, never after it.** The review file's verdict is the reviewer's judgement and does not move. What gets posted, APPROVE, COMMENT or REQUEST_CHANGES, is the user's call: show it with the text and let one word settle both.
 - Never mention an anchored finding in the Body, in any form: no bullets, no recap, no pointer to it, no count.
@@ -66,10 +64,8 @@ Full review: <link to the review file in this repo>
 - `Event:` defaults from the verdict: APPROVE → APPROVE, REQUEST CHANGES → REQUEST_CHANGES, NEEDS DISCUSSION and CLOSE → COMMENT. It is a default, not a lock: the user may post a lighter event than the verdict, and then the review file keeps the verdict while the draft records what went out. The `Event:` line carries it; the Body never restates it.
 - An own-PR target is not posted at all. If the user insists, `Event: COMMENT` whatever the verdict: GitHub rejects APPROVE and REQUEST_CHANGES on one's own PR.
 - **Two defects where fixing one leaves the other are two sections, never one clause.** The test is the author's next edit: if applying the first still ships the second, the second has its own anchor, so that fixing the headline defect does not close the comment on a defect that survives it.
-- **The comment is the deliverable and the review file is the record.** Draft `comment_<model>.md` first, spend the effort there, and treat the review file as what holds the evidence, the arithmetic and the rejected attacks. A finding that changes what the author does and lives only in the review file has not been reported: the author never opens that file. When the two disagree on wording, the comment is right and the review file follows it.
 - Order findings by what the reader needs first: the one that makes the others legible leads, whatever its band, then Critical, Warning, Missing test, Nit, Suggestion; file order within a band.
 - **A finding that needs a third explanation leaves the comment.** Mark the section `SKIP` with a line saying why and keep it in the review file.
-- Post only comments that change what the author does: fix, decide, or answer. "No change needed" findings stay in the review file. Severity never gates this: a Nit asking for a concrete modification gets its own section.
 - Never explain routine fixes: merge the base, regenerate assets, re-run a flaky job. A red check with a routine cause gets one short Body line, naming what is no longer readable rather than the fix.
 - **Never tell the author to rebase.** They meet the conflict the moment they try to merge, and a reviewer spending the body on it says nothing the branch does not already say. What a rebase costs, a behaviour it drops or a build it breaks, is a finding anchored on the line that carries it. Nothing else about the base branch reaches the comment. One exception: when the stale base is why the review is not an APPROVE, the Body says so in one line, because a withheld approval whose reason is unstated is the same defect in the other direction.
 
@@ -103,6 +99,11 @@ Governed by the *Posted comments* section of `skills/writing-style.md`: state th
 
 ### Rounds & regeneration
 
+- **Before offering a draft to the user, measure its target and offer the live ones alone.** Merged, closed, or already carrying a review from this reviewer means the draft is a record rather than a pending action, and a handover listing it asks them to decide something they decided already. Write the answer into the draft's `Status:` line in the same turn, so the next session reads the file instead of the API.
+  ```bash
+  gh api repos/<repo>/pulls/<n> --jq '"\(.state) \(.merged)"'
+  gh api --paginate repos/<repo>/pulls/<n>/reviews --jq '.[]|select(.user.login=="<login>")|.state'
+  ```
 - Update comment.md whenever the review changes; it never lags.
 - **A draft embedding media hosted elsewhere is stale until that host is pushed.** Push it, then compare the raw URL's byte count against the file on disk. The host's API answers immediately; the raw URL lags minutes.
 - Port carried findings verbatim; change only shas, repro URLs, and stale anchors. No round-relative phrasing.
@@ -114,7 +115,7 @@ Governed by the *Posted comments* section of `skills/writing-style.md`: state th
 - Never without the literal word `post` or `upload` in the current turn; `push` covers git push only. The same gate covers mutating already-posted content: update the draft, show the exact new text, touch GitHub only after approval.
 - A `gh` write refused 403 `Resource not accessible by personal access token` is a missing scope: never retry or work around. Record the refused command in the artifact's `Status:` line and end the reply with `post <github url of the artifact>` alone on its own line.
 - The word `post` covers every verdict, APPROVE included: post an approving review on the same word as any other, with no extra confirmation. A post still always needs the word; never auto-post.
-- Post every verdict as a PR review, never a plain issue comment: `gh api repos/<repo>/pulls/<number>/reviews -f event=<EVENT> -f body='...'`, inline comments as `comments[]` entries with `path`, `line`, `side=RIGHT`, `body`. Validate every anchor against the PR diff first: one rejected anchor takes the whole review with it; move those findings into the Body.
+- Post every verdict as a PR review, never a plain issue comment: `gh api repos/<repo>/pulls/<number>/reviews -f event=<EVENT> -f body='...'`, inline comments as `comments[]` entries with `path`, `line`, `side=RIGHT`, `body`.
 - **A pending review the user already has on the target takes the draft's findings, and the two go out as one review.** GitHub folds new comments into it rather than opening a second, so the draft joins their unsent line rather than displacing it. Never submit theirs alone, and never ask them to clear it first. `POST /repos/<repo>/pulls/<n>/comments` cannot append: it opens a review of its own and answers `422 user_id can only have one pending review per pull request`. Add each anchor through GraphQL `addPullRequestReviewThread` against the review's `node_id`, then `POST /repos/<repo>/pulls/<n>/reviews/<review-id>/events` with the event and the body submits both.
   ```bash
   gh api graphql -f query='mutation($rid:ID!,$path:String!,$line:Int!,$body:String!){addPullRequestReviewThread(input:{pullRequestReviewId:$rid,path:$path,line:$line,side:RIGHT,body:$body}){thread{id}}}' -f rid=<node-id> -f path=<path> -F line=<n> -f body=<body>

@@ -46,6 +46,7 @@ Full review: <link to the review file in this repo>
 
 - A finding with more than one case is a claim and a list, never a paragraph. One line for the claim and its mechanism, then one nested bullet per case naming its condition and outcome. Put the cases where it does not bite beside the ones where it does.
 - The Body has exactly two jobs: cross-cutting synthesis the per-line comments cannot carry, and unanchored findings, one sentence each, gap then fix. Cut everything else. One line is the size; a paragraph there is a finding that should have been anchored.
+- **A finding naming an edit is anchored on the line that gets edited, and every demonstrative in it points at that anchor.** This timer, this map, this call carrying a link somewhere else is the symptom: the sentence wanted a second anchor and got a link instead.
 - **Never write a Body line whose only job is to fill the field**: no line that counts the inline comments or points at them. Anchor what is about code; the Body carries what is about the branch and survives the two rules below, which take a stale base, a rebase and a conflict out of it.
 - **An empty Body is refused at submit and accepted on edit.** The submit call rejects an empty string for REQUEST_CHANGES and COMMENT; a later edit of the same review sets it to empty and holds. A review whose every finding is anchored ships with its shortest true sentence and is cleared afterwards.
 - **Post every finding the author should act on, and open with the one that changes what they do next.** What stays behind in the review file is what needs no action from them: a check CI already reports, a finding already raised by someone else. Never drop a real finding to make the review shorter; shorten the finding instead.
@@ -66,7 +67,7 @@ Full review: <link to the review file in this repo>
 - An own-PR target is not posted at all. If the user insists, `Event: COMMENT` whatever the verdict: GitHub rejects APPROVE and REQUEST_CHANGES on one's own PR.
 - **Two defects where fixing one leaves the other are two sections, never one clause.** The test is the author's next edit: if applying the first still ships the second, the second has its own anchor, so that fixing the headline defect does not close the comment on a defect that survives it.
 - **The comment is the deliverable and the review file is the record.** Draft `comment_<model>.md` first, spend the effort there, and treat the review file as what holds the evidence, the arithmetic and the rejected attacks. A finding that changes what the author does and lives only in the review file has not been reported: the author never opens that file. When the two disagree on wording, the comment is right and the review file follows it.
-- Order inline sections: Critical, Warning, Missing test, Nit, Suggestion; file order within a band.
+- Order findings by what the reader needs first: the one that makes the others legible leads, whatever its band, then Critical, Warning, Missing test, Nit, Suggestion; file order within a band.
 - **A finding that needs a third explanation leaves the comment.** Mark the section `SKIP` with a line saying why and keep it in the review file.
 - Post only comments that change what the author does: fix, decide, or answer. "No change needed" findings stay in the review file. Severity never gates this: a Nit asking for a concrete modification gets its own section.
 - Never explain routine fixes: merge the base, regenerate assets, re-run a flaky job. A red check with a routine cause gets one short Body line, naming what is no longer readable rather than the fix.
@@ -98,6 +99,7 @@ Governed by the *Posted comments* section of `skills/writing-style.md`: state th
 - Attempt a repro for every Critical and Warning before drafting. No run proof: word it as an observation, never "I ran X". Source-visible facts: cite the anchor, drop the block.
 - A repro lives in exactly one file: comment.md owns it for findings anchored there; the review file states the result and links it. Line-specific repros stay with their comment; suite-wide ones go in a Body `<details>` block, pointed to.
 - A missing-test finding carries ready-to-add cases in a collapsed `<details><summary>test cases</summary>` block, in the file's own test style, paste-ready.
+- **A table or repro no remaining sentence cites leaves the comment.** Tightening a finding takes its number with it, and the evidence block outlives the claim it was proving: it then reads as support for an argument nobody is making. Re-read every collapsed block against the visible text on each revision, and move the orphan to the review file.
 
 ### Rounds & regeneration
 

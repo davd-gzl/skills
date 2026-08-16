@@ -14,7 +14,7 @@ The goal is one thing: a reader understands the text on a single pass. Every rul
   gh api "repos/<repo>/pulls/comments?per_page=100" --jq '[.[]|select(.user.login=="<login>")]|.[0:10][]|.body'
   gh api "repos/<repo>/issues?state=all&creator=<login>&per_page=10" --jq '.[]|"\(.title)\n\(.body)"'
   ```
-- Lead with the conclusion: the rule in a doc, the verdict in a review. If the first sentence is not the conclusion, move it up.
+- Lead with the conclusion, in the document and in each finding inside it: the rule in a doc, the verdict in a review, what breaks before the line that breaks it. If the first clause is not the conclusion, move it up.
 - Pitch to the audience. A user-facing doc states what the reader observes in one or two sentences, then links the deeper doc; internals stay out.
 - Keep it small. The deeper doc has three parts, no more: the rule, one short example, the why in one sentence. No second example, no footnote, no table of cases. Deeper mechanism goes in code comments or the source, linked.
 - Write headings that mean something before the section is read. Define a term before first use.
@@ -28,6 +28,15 @@ The goal is one thing: a reader understands the text on a single pass. Every rul
 - State a verification only when it is a runtime check no CI job covers: a revert-repro, cross-language parity, an end-to-end path the harness cannot assert. Map every claim to the job that already runs it and delete the ones that map; what survives carries the reason the job cannot reach it. When the only proof is the tests, name what they cover in one line and stop.
 - **Write the reader's words, not the codebase's.** Every term the project invented is jargon to the person reading the comment: the element's name, the API's name for a thing, the CSS property doing the work. Say the mouse, not the pointer; the area it is drawn in, not the tile; the picture does not fill it, not `object-fit: contain`. A sentence needing a term the reader has to look up has not explained the finding, it has named it.
 - **Reach for a word the reader owns, never one you invented.** That swap is the same failure in a new coat, and an invented place for a thing to be is its common shape. Where no plain equivalent exists, use a contrast the reader already holds, paused against stopped, or define the term in the sentence that first uses it.
+- **A claim carries why it holds, not only the link that proves it.** A link is
+  where a reader checks a fact, never where they learn it, so the clause that
+  lands it goes in the sentence: the ceiling is 0, and 0 is the value that turns
+  the check off. A second sentence of background is a tutorial nobody asked for.
+- **One word, one job, across the whole artifact.** A verb doing duty for what
+  the code sets and for what the reader sees costs a pass every time it appears,
+  and close is the common one: closing a panel, closing a socket and closing an
+  issue want three verbs. List the repeated content words before shipping and
+  give each meaning its own.
 - **Three counts, never a judgement.** Words before the main verb: over five, rewrite. Subordinate clauses after it: over one, rewrite. Verbs before the first comma with the first arriving fourth or later: rewrite, since the clause sits inside the subject rather than after the verb.
 - **`but` never stands in for `except`.** Where the exception does not change the outcome, drop it.
 - **A finding names the scope, never one instance of it.** "a French browser" is an instance; "whatever the browser's language" is the scope.
@@ -105,6 +114,7 @@ Everything a reader needs to act sits above the fold; everything they need to ch
 
 The whole comment is countable, and counting is the check: one sentence per section, one line or nothing in the body, and one section per distinct action the author has to take. Two sections that resolve in the same edit are one finding. Count before shipping; a draft that fails the count is not trimmed later, it is rewritten from the one finding that changes what the author does next.
 
+- **Several findings in one block go as a list, one bullet per problem.** Each bullet carries its own links, so a reader connects a claim to the line it rests on without holding a paragraph in their head. Prose is for the block carrying one finding.
 - State the fix, or state the defect, never both unless the fix is non-obvious from the defect.
 - Cut every clause the fix already implies. A trailing clause naming what the current code omits, misses, or does differently restates the gap the fix has already closed; delete it.
 - No process words: no `Verified`, `measured`, `I ran`, `reproduced`, `on <sha>`. Evidence lives in the collapsed repro or the review file, never in the visible line. A picture is the exception, and it keeps the sentence naming what it shows and what produced it.
@@ -116,4 +126,4 @@ The whole comment is countable, and counting is the check: one sentence per sect
 - **Carry the expectation and the defect in one clause.** "X pulls Y toward the centre rather than holding it in place", never "X should hold Y, and pulls it toward the centre instead", which splices two halves onto a comma and switches subject in the middle.
 - The user's shorthand names the fact to convey, never the copy to post. Write the fact they named as a sentence for a reader who does not know the code.
 - Repair a draft the user wrote, never rewrite it. When they show their own text and ask whether it works, fix what is wrong, keep their words, their order and their register, then name each change so they can revert it. The rule above covers a note naming a fact, not a draft already written as prose.
-- When a cut costs the reader a pass, restore the clause carrying the consequence, not the one carrying the mechanism.
+- When a cut costs the reader a pass, restore the clause carrying the consequence.

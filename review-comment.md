@@ -145,6 +145,7 @@ Verify each line before handing over:
 9. Every `## <path>:<line>` header carries its `[gh]` link to the branch under review.
 10. Every embedded image resolves at its raw URL and its bytes match the file on disk.
 11. Open every link and read the lines it lands on: each must contain the number, symbol, or behavior claimed, and every external link must resolve at the pinned ref.
+12. **Re-run every claim against the tree before the draft is shown, including the ones carried from an earlier revision.** Each rewrite moves a fact off the line that supported it, and a sentence that was true in the paragraph it came from goes out as a claim nobody checked. Print the code beside the sentence: `boots clean` was wrong for a config the guard rejects, and `prewarm already loads Silero` holds only where the flag it sits behind is on.
 
 Then two QA agents, re-run on every regeneration of comment.md:
 

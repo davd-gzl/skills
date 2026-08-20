@@ -27,6 +27,7 @@ Write prose, broken small.
 - No process headers such as Purpose or Testing. The only headers are the `###` sections of the multi-change shape.
 - No tables, no bullet lists, no bold, no emoji. Parallel content long enough to want a table means the multi-change shape.
 - A diagram wherever a shape is clearer drawn than written; see *Diagrams*.
+- A body using role words the reader may not share, an operator against a room owner for one, closes on a collapsed `<details>` block titled Glossary, one short line per word. It sits under the last paragraph so the body stays a straight read for whoever already has the words.
 - No code block unless it is real observed output or a diagram, trimmed to the signal-bearing lines.
 - Symbols in backticks. Delta from `skills/writing-style.md`: an in-repo symbol needs no link.
 

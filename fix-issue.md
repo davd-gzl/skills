@@ -46,17 +46,23 @@ gh repo fork <owner>/<repo> --remote-only --remote-name fork
    git -C <scratchpad>/<repo>-fix-<id> checkout -b <branch>
    ```
    `<id>` is the issue number where one exists, a short slug otherwise.
-4. **Implement** inside the worktree. Never commit, push, or open a pull request
+4. **Weigh each finding before building it.** A review lists what is true, not
+   what is worth the code. Name what implementing one costs in files and what it
+   buys in cases a user actually hits: a suggestion covering a transition nobody
+   has been through yet goes to the pull request body's leaves-out sentence,
+   where the maintainer can ask for it. A finding whose absence makes the feature
+   not work is never in this class.
+5. **Implement** inside the worktree. Never commit, push, or open a pull request
    without the word. Run the formatter and the auto-fixer the CI lint job runs,
    over the changed packages, before any push: that job fails on their diff
    independently of the linter's own findings. Comments follow
    `skills/writing-style.md`, two lines carrying what the code cannot say; a
    reachability chain and the story of how the bug was found belong in the pull
    request body.
-5. **Report** the changed files and what each change does.
-6. **Keep the worktree.** It carries review feedback, rebases and follow-up work
+6. **Report** the changed files and what each change does.
+7. **Keep the worktree.** It carries review feedback, rebases and follow-up work
    until the pull request merges.
-7. **Schedule the CI check**, once the pull request is open, with the `/schedule`
+8. **Schedule the CI check**, once the pull request is open, with the `/schedule`
    skill: one `fix-issue ci <number>` run, timed to the project's own CI window,
    never recurring. Skip it when the user watches the checks themselves.
 

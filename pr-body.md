@@ -7,10 +7,11 @@ description: Write the title and body of a pull request. Use whenever a change i
 
 Write for a reader with no context who must decide whether to merge. Cut every sentence that does not help that decision. Prose follows `skills/writing-style.md`; the rules below are the PR-body deltas.
 
-Pick one of two shapes, by how many independent changes the PR carries. Read the matching model PR before drafting. Never mix the two.
+Pick one of three shapes, by what the pull request carries. Read the matching model PR before drafting. Never mix them.
 
 - **One concern**, models: [gno#5999](https://github.com/gnolang/gno/pull/5999), [#5996](https://github.com/gnolang/gno/pull/5996). Four short paragraphs, about 200 words, no headers. 200 is the target, not a minimum.
 - **Several independent changes**, model: [gno#6006](https://github.com/gnolang/gno/pull/6006). One `### <symbol>: <one-line diagnosis>` section per change, separated by `---`, each readable alone. Framing paragraphs first, then a one-line bridge counting what follows. About 150 words per section.
+- **One change carrying several decisions**, model: [meet#1619](https://github.com/suitenumerique/meet/pull/1619). `## Problem` in two or three short paragraphs, then `## Design` with one `###` per decision a reviewer could have made differently: what the reader sees, what the interface is, who it answers, what it costs, what is left out. The headings carry the skim here, where the other two shapes leave that to the first line of each paragraph, so this one runs longer and the budget below does not bind it.
 
 ## File
 
@@ -24,10 +25,10 @@ Write prose, broken small.
 
 - Paragraphs of two to four sentences, one idea each. Five or more: split.
 - One-line paragraph for each turn in the argument; a skimmer reads only these.
-- No process headers such as Purpose or Testing. The only headers are the `###` sections of the multi-change shape.
+- No process headers such as Purpose or Testing. Headers are the `###` sections of the multi-change shape, or the `## Problem` and `## Design` of the decisions shape, and never anything else.
 - No tables, no bullet lists, no bold, no emoji. Parallel content long enough to want a table means the multi-change shape.
 - A diagram wherever a shape is clearer drawn than written; see *Diagrams*.
-- A body using role words the reader may not share, an operator against a room owner for one, closes on a collapsed `<details>` block titled Glossary, one short line per word. It sits under the last paragraph so the body stays a straight read for whoever already has the words.
+- A body using role words the reader may not share, an operator against a room owner for one, closes on a collapsed `<details>` block titled Glossary, one entry per word and a blank line between them so each renders on its own. It sits under the last paragraph so the body stays a straight read for whoever already has the words.
 - No code block unless it is real observed output or a diagram, trimmed to the signal-bearing lines.
 - Symbols in backticks. Delta from `skills/writing-style.md`: an in-repo symbol needs no link.
 

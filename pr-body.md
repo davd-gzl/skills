@@ -40,6 +40,8 @@ Order the paragraphs, in both shapes:
 
 Do not over-explain: the reader has the diff. Give only the defect, the consequence, and the context the code cannot supply.
 
+**A body carries the calls, never the coverage.** Which endpoints got the check, which case the guard catches, what each test asserts: the reader opens the diff for all of it, and a paragraph listing it reads as arguing the work was thorough. What survives is the decision a reviewer could have made differently: what the default keeps working, what fails loudly rather than quietly, what is deliberately left alone.
+
 - Banned openers: "Today", "Currently", "At the moment", "This PR". The first sentence names what breaks, in plain present tense.
 - When the defect has a severe consequence and a mild one, lead with whichever is unambiguous. A severe example that looks like obvious garbage reads as correct rejection and hides the defect; the case where something plainly wrong is accepted is the one that lands.
 - Example values must be plausible. A version one step past the build shows the defect with nothing granted, where a version far past it invites "that should fail anyway". Quote the real string, and paste the actual error rather than describing it.

@@ -93,6 +93,18 @@ Governed by the *Posted comments* section of `skills/writing-style.md`: state th
 - **A layer named is a symbol named.** "on the model", "in the serializer", "at the view" tells the reader where the code is not, never what putting it there would cost. Name the class and the call that makes the claim true, `BaseModel.save()` running `full_clean()` on every write for one, then the consequence in the same sentence.
 - Link the full review inside an inline comment only when the details block is not enough.
 
+### A self-review on your own pull request
+
+Three notes at most, each on a line where a reviewer's first question is why not
+the obvious alternative: the deeper layer that was rejected, the value that
+reaches the model without passing the check, the idiom the file uses everywhere
+else. The code comment beside the line says what it does; the note carries what
+was ruled out and what it would have cost. Past three, a self-review is narrating
+the diff.
+
+Draft them in `self-review.md` beside `pr-body.md`, one `## <path>:<line>` section
+each, and post them as one review with `event: COMMENT`.
+
 ### Repros (comment.md deltas)
 
 - Attempt a repro for every Critical and Warning before drafting. No run proof: word it as an observation, never "I ran X". Source-visible facts: cite the anchor, drop the block.

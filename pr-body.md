@@ -32,6 +32,7 @@ Write prose, broken small.
 
 Order the paragraphs, in both shapes:
 
+0. Where an issue is being closed, `Fixes #1076` alone on the first line, above everything. GitHub reads that line and closes the issue on merge, and a maintainer triaging the queue sees the ask before the symptom. Name the issue there and nowhere else in the body.
 1. The symptom, first sentence, in the reader's terms: what breaks, under what condition. Then the mechanism, named by symbol. Never open with what the change does.
 2. The fix, in a clause, stated as a property of the new code, not a narration of the edit.
 3. Anything riding along, each item with its own why.

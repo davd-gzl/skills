@@ -51,6 +51,7 @@ Full review: <link to the review file in this repo>
 - **Post every finding the author should act on, and open with the one that changes what they do next.** An action is a fix, a decision or an answer, and severity never gates it: a Nit asking for a concrete modification gets its own section. What stays behind in the review file is what needs no action from them: a check CI already reports, a finding already raised by someone else. Never drop a real finding to make the review shorter; shorten the finding instead.
 - **A measured defect on a line the diff touches is posted, whatever argument the measurement suggests against it.** It never fires, it predates the branch, the branch only makes it worse: each of those is the finding. Reasoning from a defect to its own exemption is the failure, and Open questions hold what the reviewer could not decide, never what they decided not to send.
 - **Name the event beside the draft, never after it.** The review file's verdict is the reviewer's judgement and does not move. What gets posted, APPROVE, COMMENT or REQUEST_CHANGES, is the user's call: show it with the text and let one word settle both.
+- **The draft's `Event:` is what goes out.** Never soften it on the way to the forge: an `APPROVE` posted as a `COMMENT` because a past turn asked for one reads as the reviewer withholding approval, and the user finds out by looking. The event changes when they name the new one in the turn, and a stale default is raised as a question rather than resolved quietly.
 - Never mention an anchored finding in the Body, in any form: no bullets, no recap, no pointer to it, no count.
 - Do not re-describe the change, list what passed, narrate the review process, or restate thread state.
 - Stateless, like every inline comment: never name a round, never frame current code as a fix relative to a prior draft. State the code's current property, not its history.
@@ -89,6 +90,7 @@ Governed by the *Posted comments* section of `skills/writing-style.md`: state th
 - A latent-risk finding states the current safety in one clause and stops.
 - Lowercase a source's emphasis caps in prose; caps survive only in code spans.
 - **Never post a question.** State the position as the reviewer's own, in one line. This covers design and layering calls.
+- **A layer named is a symbol named.** "on the model", "in the serializer", "at the view" tells the reader where the code is not, never what putting it there would cost. Name the class and the call that makes the claim true, `BaseModel.save()` running `full_clean()` on every write for one, then the consequence in the same sentence.
 - Link the full review inside an inline comment only when the details block is not enough.
 
 ### Repros (comment.md deltas)

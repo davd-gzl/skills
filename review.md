@@ -98,6 +98,13 @@ Read every line. Look for correctness defects: logic errors, missing nil checks,
 
 **Refactor pass, over every added block.** Ask whether fewer lines carry the same behaviour: a value computed twice, a guard the caller already applied, memoization that stabilises nothing, an abstraction with one call site. Where they do, post the replacement as a `Refactor:` suggestion the author applies in one click, never prose describing the change, and record both line counts in the review file.
 
+**A silent fallback where a human has to decide is a finding.** Code that cannot
+satisfy a rule and quietly returns the old value leaves nobody told: the state
+that needs a person belongs in the return, a flag beside it or an error, and the
+surface that person reads has to carry it. The same pass covers a lookup into a
+fixed list, `list.index(value)` and friends, which raises on a value the list
+lost and takes every read of that record down with it.
+
 **Verification discipline.** Every finding passes all of these before it enters the review:
 
 - Verify against the actual file, never from memory or a summary.

@@ -95,12 +95,11 @@ Governed by the *Posted comments* section of `skills/writing-style.md`: state th
 
 ### A self-review on your own pull request
 
-Three notes at most, each on a line where a reviewer's first question is why not
-the obvious alternative: the deeper layer that was rejected, the value that
-reaches the model without passing the check, the idiom the file uses everywhere
-else. The code comment beside the line says what it does; the note carries what
-was ruled out and what it would have cost. Past three, a self-review is narrating
-the diff.
+Three notes at most, each on a genuinely hard line: an implementation choice a
+reader would contest, or a specificity of this codebase they cannot know. A value
+that reaches the database without passing the check earns one; a style choice
+does not. Two or three sentences each, enough for a reader with no context and no
+more. Past three, a self-review is narrating the diff.
 
 Draft them in `self-review.md` beside `pr-body.md`, one `## <path>:<line>` section
 each, and post them as one review with `event: COMMENT`.

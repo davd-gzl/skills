@@ -21,7 +21,7 @@ from collections import defaultdict
 CAPS = {
     'AGENTS.md': 3200,                  # workspace root, loaded on every turn
     'skills/review.md': 5000,           # the longest workflow, and the one to keep cutting
-    'skills/review-comment.md': 3000,
+    'skills/review-comment.md': 3750,  # the deliverable; every other review file defers to it
     'skills/writing-style.md': 3200,
 }
 CAP_BY_CLASS = {'skill': 1600, 'project': 12000, 'default': 2000}

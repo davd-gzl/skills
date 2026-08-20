@@ -101,6 +101,12 @@ that reaches the database without passing the check earns one; a style choice
 does not. Two or three sentences each, enough for a reader with no context and no
 more. Past three, a self-review is narrating the diff.
 
+**A note repeating the anchored line's own comment is deleted, not reworded.**
+That comment sits on screen beside it, so the note says nothing already unread.
+Read every line inside the anchor, docstrings included, against the draft: where
+the code carries the point, the note has no job, and where neither carries it the
+comment takes it, since a future reader meets the line without the pull request.
+
 Draft them in `self-review.md` beside `pr-body.md`, one `## <path>:<line>` section
 each, and post them as one review with `event: COMMENT`.
 

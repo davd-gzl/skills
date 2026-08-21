@@ -110,6 +110,14 @@ comment takes it, since a future reader meets the line without the pull request.
 Draft them in `self-review.md` beside `pr-body.md`, one `## <path>:<line>` section
 each, and post them as one review with `event: COMMENT`.
 
+### Answering a finding on your own pull request
+
+The register is the shortest thing that settles it, and a bot's findings go as a
+list, one bullet each. A finding that holds is fixed in the same turn rather than
+reported back, and the bullet is `Fixed: <sha>`. One that does not gets the
+sentence that refutes it and a collapsed run. Never argue a finding across a
+paragraph: the reader is deciding whether to look, not reading the analysis.
+
 ### Repros (comment.md deltas)
 
 - Attempt a repro for every Critical and Warning before drafting. No run proof: word it as an observation, never "I ran X". Source-visible facts: cite the anchor, drop the block.

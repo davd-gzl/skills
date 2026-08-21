@@ -112,8 +112,10 @@ each, and post them as one review with `event: COMMENT`.
 
 ### Answering a finding on your own pull request
 
-The register is the shortest thing that settles it, and a bot's findings go as a
-list, one bullet each. A finding that holds is fixed in the same turn rather than
+The register is the shortest thing that settles it. A bot posts each finding
+twice, once inline and once as a summary comment, and the reply belongs in the
+inline thread, where it nests under the finding it answers: a summary comment
+cannot be threaded at all. A finding that holds is fixed in the same turn rather than
 reported back, and the bullet is `Fixed: <sha>`. One that does not gets the
 sentence that refutes it and a collapsed run. Never argue a finding across a
 paragraph: the reader is deciding whether to look, not reading the analysis.

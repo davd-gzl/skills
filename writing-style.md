@@ -87,7 +87,7 @@ A pass that changes nothing is the exit condition. Never report a pass not run a
 
 One-line comments, questions, chat replies. All rules above hold; the register is clipped.
 
-- One idea. Stop when it lands.
+- One idea, in the fewest lines that settle it. No headings, no sections, no recap of what was already said. Stop when it lands.
 - Imperative, never a request.
 - Open with `And` or `But` when adding to a previous point.
 - No greeting, no thanks, no apology, no "just", no "I think", no "feel free".

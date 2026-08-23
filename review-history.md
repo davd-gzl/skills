@@ -151,6 +151,11 @@ prose. Open that file rather than reporting the verdict unknown.
 - The corpus reflects the reviewed sha, not the target's current head. Before
   presenting a finding as live, check that the head moved, or say plainly that it
   was not checked.
+- Before calling a draft unposted, read the target's live review state alongside
+  the round shas: `gh pr view <n> --json reviewDecision,latestReviews`. A review
+  stands until it is dismissed, so an approval given at an older sha still holds,
+  and a draft repeating that verdict adds nothing. Report the draft only where
+  its verdict differs from what stands.
 - Never infer "unreviewed" from a miss under one glob. Match the leading number
   across every review directory first: slugs drift and repositories differ.
 - Prefer `find` to a bare glob in an ad-hoc command. The interactive shell is

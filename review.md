@@ -19,7 +19,7 @@ Run in order for a single target; multi-target runs wrap this via *Parallel disp
 3. *Reproduce the failure*, or run the tests for a PR.
 4. *Review the diff*, or the failing surface.
 5. *Write tests* for test-shaped findings.
-6. Write the review file per *Output*.
+6. Write `overview.md` per *Overview*, then the review file per *Output*.
 7. Draft `comment_<model>.md` per `skills/review-comment.md`, then run its *Final check*. Draft whether or not anything will be posted. Skip only for a PR the reviewer authored; see *Own PR* in `skills/review-modes.md`.
 8. Run the `skills/writing-style.md` Pass over every line of the review file and `comment_<model>.md`, starting with `./scripts/prose-check.py <file>`. Never skip it. Re-run it after any later edit to that prose, including an edit made in answer to a question about it. State which passes ran when handing over.
 9. One commit and one push covering everything. This push is pre-authorized; see *Rules*.
@@ -137,7 +137,7 @@ Start each test file with a comment block carrying exact repro commands runnable
 
 ## Overview (`overview.md`)
 
-Write one when the subject is complex: the change spans subsystems, hinges on concepts the reader must learn first, or lands faster as a diagram or a table than as prose. Skip it for a docs-only change, a mechanical refactor or a small localized fix. An explicit ask from the user wins in both directions.
+Write one for every target, before the review file. The verdict and the findings are written for a reader who already knows the subject; the overview is the only artifact that assumes nothing, and the reader who most needs it is the one deciding whether to open the diff at all. A judgement call about whether the subject is complex enough was the rule this replaces, and it answered "skip" for subjects a reader could not follow.
 
 - Markdown, never HTML. It goes at the review directory root, `projects/<repo>/reviews/<slug>/overview.md`, never inside a round directory: it explains the subject, not one commit. It renders where the reader already is, diffs line by line, and needs nothing opened.
 - Explainer only, carrying no review state: no verdict, no findings, no reviewed sha, no round. Name the generating model once, under the title.

@@ -14,7 +14,7 @@ The goal is one thing: a reader understands the text on a single pass. Every rul
   gh api "repos/<repo>/pulls/comments?per_page=100" --jq '[.[]|select(.user.login=="<login>")]|.[0:10][]|.body'
   gh api "repos/<repo>/issues?state=all&creator=<login>&per_page=10" --jq '.[]|"\(.title)\n\(.body)"'
   ```
-- Lead with the conclusion, in the document and in each finding inside it: the rule in a doc, the verdict in a review, what breaks before the line that breaks it. If the first clause is not the conclusion, move it up.
+- Lead with the conclusion, in the document and in each finding inside it: the rule in a doc, the verdict in a review, what breaks before the line that breaks it. **An explanation makes it a `TLDR` heading**, two or three lines carrying the whole answer, so a reader who stops there has it and everything below is for checking. That covers a reply explaining code, a mechanism or a change, and an `overview.md`.
 - Pitch to the audience. A user-facing doc states what the reader observes in one or two sentences, then links the deeper doc; internals stay out.
 - Keep it small. The deeper doc has three parts, no more: the rule, one short example, the why in one sentence. No second example, no footnote, no table of cases. Deeper mechanism goes in code comments or the source, linked.
 - Write headings that mean something before the section is read. Define a term before first use.
@@ -40,7 +40,6 @@ The goal is one thing: a reader understands the text on a single pass. Every rul
 - **Three counts, never a judgement.** Words before the main verb: over five, rewrite. Subordinate clauses after it: over one, rewrite. Verbs before the first comma with the first arriving fourth or later: rewrite, since the clause sits inside the subject rather than after the verb.
 - **`but` never stands in for `except`.** Where the exception does not change the outcome, drop it.
 - **A finding names the scope, never one instance of it.** "a French browser" is an instance; "whatever the browser's language" is the scope.
-- **A rule carries no date.** No `Stated <date>`, no `Measured <date>`, no clock time.
 - **A pronoun reaches back one clause, never two.** Repeat the noun.
 - **A connective states a relation that holds.** "while" and "though" promise a contrast, "so" and "because" promise cause: when the two facts merely sit beside each other, say they are related and stop. A joint that misdescribes the join sends the reader hunting for a tension that was never there.
 - Plain words over jargon: name the action a caller can take, never the pattern's label. Jargon only when it saves real length and the reader surely knows it, which a specialist's vocabulary rarely satisfies.
@@ -62,7 +61,7 @@ The goal is one thing: a reader understands the text on a single pass. Every rul
 - Two lines is the budget for a code comment and one line for a docstring. Write the one fact the reader cannot get from the lines beside it, in the words of someone who has never read this codebase: a room id, not a UUID. A docstring opens on what the caller gets back and never restates the line under it. A guard earns one sentence more, naming what it prevents, where deleting it would break nothing a test can see. Longer than that belongs in the pull request body. A comment carrying three facts is a design note in the wrong file: the alternative that was rejected, the failure the shape prevents and the invariant behind it belong in the ADR, the plan or the commit message, which a reader can skip and the code cannot. Where a second fact is load-bearing for the line under it, keep that one and move the rest.
 - **Mark an opinion as an opinion.** Write "I think" in front of a preference about how the code should look or behave, so a reader tells taste from defect at a glance. Never attach it to something measured, which needs no owner, and never use it to soften a finding: a defect stays flat and unhedged.
 - In a review, lead with the verdict only where no separate field carries it. One finding per block, headed by its file:line. State the problem directly; never soften with "Optional" or "non-blocking". Keep CI and merge noise out of the findings.
-- Scannable, without losing anything. Lead with the state in one line, put anything with repeating structure in a table, findings left out, jobs run, commits, one row each with the consequence in the last column, and keep the reasoning behind a `<details>` block rather than cutting it: completeness lives there, speed lives above it.
+- Scannable, without losing anything. Put anything with repeating structure in a table, findings left out, jobs run, commits, one row each with the consequence in the last column, and keep the reasoning behind a `<details>` block rather than cutting it: completeness lives there, speed lives above it.
 
 ## Pass
 

@@ -43,6 +43,8 @@ same files minus the review links.
   directory, the link to the review.
 - `plan.md` and `spec.md`, above.
 - `pr-body.md`, per `skills/pr-body.md`.
+- `overview.md`, where the subject needs explaining before the diff, per
+  *Overview* in `skills/review.md`.
 - `issue.md`, only where no upstream issue covers the problem, per
   `skills/issue.md`.
 - `checkout/`: a submodule pinned to the branch,

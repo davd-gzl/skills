@@ -139,9 +139,10 @@ Start each test file with a comment block carrying exact repro commands runnable
 
 Write one for every target, before the review file. The verdict and the findings are written for a reader who already knows the subject; the overview is the only artifact that assumes nothing, and the reader who most needs it is the one deciding whether to open the diff at all. A judgement call about whether the subject is complex enough was the rule this replaces, and it answered "skip" for subjects a reader could not follow.
 
-- Markdown, never HTML. It goes at the review directory root, `projects/<repo>/reviews/<slug>/overview.md`, never inside a round directory: it explains the subject, not one commit. It renders where the reader already is, diffs line by line, and needs nothing opened.
+- Write it as `overview.md`, never `overview.html`: GitHub serves an `.html` blob as source, so the reader downloads the file to read it.
+- It goes at the review directory root, `projects/<repo>/reviews/<slug>/overview.md`, never inside a round directory: it explains the subject, not one commit.
 - Explainer only, carrying no review state: no verdict, no findings, no reviewed sha, no round. Name the generating model once, under the title.
-- Pick what fits: a plain-language explanation, a dataflow or state diagram as a `mermaid` block, a decision table, before and after values, a Concepts section when the subject needs one. No emoji, no inline HTML, no script.
+- Use anything GitHub renders: a `mermaid` diagram, a `$$` formula, a decision table, before and after values, a `> [!NOTE]`, a `<details>` fold, a committed image, a Concepts section. No emoji, and nothing needing a script or a click, which the blob page strips.
 - Where a page would have used a simulator, compute the interesting inputs and put the results in a table. The reader gets the answer without moving a slider, and every number is checkable from the file.
 - Run the mirrored logic before publishing its numbers, against the project's own tests where they exist and against the mirrored source where they do not, and say which of the two it was.
 - Update it only when new commits change the subject's own files. A base-only head bump, a new finding, a verdict change and a new round never touch it. Link it from the review file's metadata block.

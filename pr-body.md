@@ -5,20 +5,20 @@ description: Write the title and body of a pull request. Use whenever a change i
 
 # PR body
 
-Write for a reader with no context who must decide whether to merge. Cut every sentence that does not help that decision. Prose follows `skills/writing-style.md`; the rules below are the PR-body deltas.
+Write for a reader with no context who must decide whether to merge. Prose follows `skills/writing-style.md`; the rules below are the PR-body deltas.
 
 Pick one of three shapes, by what the pull request carries. Read the matching model PR before drafting. Never mix them.
 
 - **A docs change**, whatever it carries. Under 150 words, no headers, no section per correction. The diff is prose a reader reads directly, so listing what each page now says spends the body on what the page already says: name what was wrong, name what it costs, and stop. This shape wins over the three below even when the change spans a dozen files.
-- **One concern**, models: [gno#5999](https://github.com/gnolang/gno/pull/5999), [#5996](https://github.com/gnolang/gno/pull/5996). Four short paragraphs, about 200 words, no headers. 200 is the target, not a minimum.
+- **One concern**, models: [gno#5999](https://github.com/gnolang/gno/pull/5999), [#5996](https://github.com/gnolang/gno/pull/5996). Four short paragraphs, about 200 words, no headers: a target, not a minimum.
 - **Several independent changes**, model: [gno#6006](https://github.com/gnolang/gno/pull/6006). One `### <symbol>: <one-line diagnosis>` section per change, separated by `---`, each readable alone. Framing paragraphs first, then a one-line bridge counting what follows. About 150 words per section.
-- **One change carrying several decisions**, model: [meet#1619](https://github.com/suitenumerique/meet/pull/1619). `## Problem` in two or three short paragraphs, then `## Design` with one `###` per decision a reviewer could have made differently: what the reader sees, what the interface is, who it answers, what it costs, what is left out. The headings carry the skim here, where the other two shapes leave that to the first line of each paragraph, so this one runs longer and the budget below does not bind it. It closes on `## What to review closely`, one bullet per part a reviewer should open, each a single line naming the part, why it matters and what it leads to, anchored on the line it sends them to. It opens on the design page where one exists, linked on its own line above the first `###`.
+- **One change carrying several decisions**, model: [meet#1619](https://github.com/suitenumerique/meet/pull/1619). `## Problem` in two or three short paragraphs, then `## Design` with one `###` per decision a reviewer could have made differently: what the reader sees, the interface, who it answers, what it costs, what is left out. The headings carry the skim, so this shape runs longer and the budget below does not bind it. It closes on `## What to review closely`, one single-line bullet per part a reviewer should open: the part, why it matters and what it leads to, anchored on the line it sends them to. It opens on the design page where one exists, linked on its own line above the first `###`.
 
 ## File
 
 Put `pr-body.md` in the change directory, `projects/<repo>/changes/<slug>/`. It opens with a header block: `Target:` holding the opened PR URL, or else the `compare/...?expand=1` URL, `Head:` and `Base:` with shas, and `Status:` when there is something to say. Then `## Title`, `## Body`, and `## Visual evidence` only when there is something to attach. Only Title and Body get pasted into GitHub; `./scripts/post-fix.sh` opens the PR from this file.
 
-Write nothing about how the file was written: no shape label, no model PR, no round count. That record belongs in `plan.md`. Every line is either something the user pastes or something they act on; delete the rest.
+Write nothing about how the file was written: no shape label, no model PR, no round count; that record belongs in `plan.md`. Every line is something the user pastes or acts on; delete the rest.
 
 ## Shape
 
@@ -26,36 +26,36 @@ Write prose, broken small.
 
 - Paragraphs of two to four sentences, one idea each. Five or more: split.
 - One-line paragraph for each turn in the argument; a skimmer reads only these.
-- No process headers such as Purpose or Testing. Headers are the `###` sections of the multi-change shape, or the `## Problem` and `## Design` of the decisions shape, and never anything else.
+- No process headers such as Purpose or Testing: the only headers are the multi-change shape's `###` sections and the decisions shape's `## Problem` and `## Design`.
 - No tables, no bullet lists, no bold, no emoji. Parallel content long enough to want a table means the multi-change shape.
 - A diagram wherever a shape is clearer drawn than written; see *Diagrams*.
-- A body using role words the reader may not share, an operator against a room owner for one, closes on a collapsed `<details>` block titled Glossary, one entry per word and a blank line between them so each renders on its own. It sits under the last paragraph so the body stays a straight read for whoever already has the words.
-- No code block unless it is real observed output or a diagram, trimmed to the signal-bearing lines.
+- A body using role words the reader may not share, an operator against a room owner for one, closes on a collapsed `<details>` block titled Glossary under the last paragraph: one entry per word, a blank line between them so each renders on its own, and the body stays a straight read for whoever already has the words.
+- No code block unless real observed output or a diagram, trimmed to the signal-bearing lines.
 - Symbols in backticks. Delta from `skills/writing-style.md`: an in-repo symbol needs no link.
 
 Order the paragraphs, in both shapes:
 
-0. Where an issue is being closed, `Fixes #1076` alone on the first line, above everything. GitHub reads that line and closes the issue on merge, and a maintainer triaging the queue sees the ask before the symptom. Name the issue there and nowhere else in the body.
+0. Where an issue is being closed, `Fixes #1076` alone on the first line, above everything: GitHub closes the issue on merge from it, and a triaging maintainer sees the ask before the symptom. Name the issue there and nowhere else in the body.
 1. The symptom, first sentence, in the reader's terms: what breaks, under what condition. Then the mechanism, named by symbol. Never open with what the change does.
 2. The fix, in a clause, stated as a property of the new code, not a narration of the edit.
 3. Anything riding along, each item with its own why.
-4. What was verified, in the framing paragraphs, never at the end: the one runtime check the jobs cannot show, stated as a claim. State the claim, never the methodology; the proof belongs in `plan.md`. Never "all tests pass", never a trailing verification section. The check list above the body already carries every job's status, green, red or never started, so repeating one spends a paragraph on what the reader has read. Where a failure needs an explanation the checks withhold, that explanation is a comment on the pull request; the body stays about the change.
+4. What was verified, in the framing paragraphs, never at the end: the one runtime check the jobs cannot show, stated as a claim, never the methodology; the proof belongs in `plan.md`. Never "all tests pass", never a trailing verification section: the check list above the body already carries every job's status. Where a failure needs an explanation the checks withhold, that explanation is a comment on the pull request; the body stays about the change.
 
-Do not over-explain: the reader has the diff. Give only the defect, the consequence, and the context the code cannot supply.
+The reader has the diff: give only the defect, the consequence, and the context the code cannot supply.
 
-**A body carries the calls, never the coverage.** Which endpoints got the check, which case the guard catches, what each test asserts: the reader opens the diff for all of it, and a paragraph listing it reads as arguing the work was thorough. What survives is the decision a reviewer could have made differently: what the default keeps working, what fails loudly rather than quietly, what is deliberately left alone.
+**A body carries the calls, never the coverage.** Which endpoints got the check, which case the guard catches, what each test asserts: the reader opens the diff for all of it. What survives is the decision a reviewer could have made differently: what the default keeps working, what fails loudly rather than quietly, what is deliberately left alone.
 
 - Banned openers: "Today", "Currently", "At the moment", "This PR". The first sentence names what breaks, in plain present tense.
-- When the defect has a severe consequence and a mild one, lead with whichever is unambiguous. A severe example that looks like obvious garbage reads as correct rejection and hides the defect; the case where something plainly wrong is accepted is the one that lands.
+- When the defect has a severe consequence and a mild one, lead with whichever is unambiguous. A severe example that looks like obvious garbage reads as correct rejection and hides the defect; the plainly wrong case that gets accepted lands.
 - Example values must be plausible. A version one step past the build shows the defect with nothing granted, where a version far past it invites "that should fail anyway". Quote the real string, and paste the actual error rather than describing it.
-- Explain why the existing guard failed only after the reader has watched it fail. When the defect is a disagreement between two builds, two nodes or two versions, say the disagreement is the defect and neither answer is: uniform rejection would be fine, differing answers are not.
-- State the problem, not its history. Why the mechanism was built, when it landed, and which change left it behind: none of it changes what the reader does.
+- Explain why the existing guard failed only after the reader has watched it fail. When the defect is a disagreement between two builds, two nodes or two versions, say the disagreement is the defect and neither answer is.
+- State the problem, not its history: why the mechanism was built, when it landed, which change left it behind.
 - Name a rider commit in one line and never offer to split it. The maintainer asks when they want that.
-- No caveat about a failure seen only locally. CI runs a different toolchain, so confirm the redness there before writing about it.
+- No caveat about a failure seen only locally: CI runs a different toolchain, so confirm the redness there first.
 
 Hyperlink everything per `skills/writing-style.md`, to the blob at the branch under review or upstream documentation.
 
-State what the change does not achieve, up front: "This does not turn the check green. It clears one condition of three." Say what was deliberately not fixed, and why, whenever a reader would otherwise wonder.
+State what the change does not achieve, up front: "This does not turn the check green. It clears one condition of three." Say what was deliberately not fixed, and why, whenever a reader would wonder.
 
 ## Title
 
@@ -63,14 +63,14 @@ Lowercase after the scope, no trailing period. Name the outcome, not the edit: "
 
 ## Diagrams
 
-Draw one whenever the reader would otherwise assemble a shape in their head from sentences: which of N checks fails, a trust boundary, a before and after, an ordering change.
+Draw one whenever the reader would assemble a shape in their head from sentences: which of N checks fails, a trust boundary, a before and after, an ordering change.
 
 ASCII in a fenced block by default; Mermaid only past six nodes or crossing edges.
 
 - Label nodes with real symbols and numbers, never placeholders.
 - Mark the thing the PR changes with an arrow and three words.
 - One diagram per idea; two small beat one big.
-- The diagram replaces the sentences it makes redundant. Delete them.
+- Delete the sentences the diagram makes redundant.
 - Under about twelve lines; over that, split or cut nodes.
 
 ```
@@ -91,10 +91,10 @@ Do not ship the first draft. Re-read against the checks below, revise, repeat un
 3. Replace every adjective with a number, or delete it.
 4. Every claim traceable: a behaviour statement has a run behind it, a limit statement names the limit. Neither: cut it or get the evidence.
 5. Read it aloud; anywhere you re-parse, split the sentence.
-6. Skim it in ten seconds, first lines and diagrams only. If that skim does not give the merge decision, lift the argument's turns into one-line paragraphs.
+6. Skim it in ten seconds, first lines and diagrams only. If that does not give the merge decision, lift the argument's turns into one-line paragraphs.
 7. Check against the diff one last time. A body describing a change not in the diff is worse than none.
 
-Past the shape's budget: cut, never restructure. Overflow detail belongs in the review file and the plan. The count is never the target: the body is done when a cold read lands on the first pass, and a round that trades a word for a re-read has gone backwards.
+Past the shape's budget: cut, never restructure. Overflow detail belongs in the review file and the plan. The count is never the target: the body is done when a cold read lands on the first pass.
 
 ## Visual evidence
 

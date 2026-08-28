@@ -8,9 +8,8 @@ description: Use when drafting, regenerating, or posting comment_<model>.md, the
 `comment_<model>.md` is the deliverable and the review file is the record, which
 holds the evidence, the arithmetic and the rejected attacks. Draft this first and
 spend the effort here: a finding that changes what the author does and lives only
-in the review file has not been reported, because the author never opens that
-file. Where the two disagree on wording, this one is right and the review file
-follows it.
+in the review file has not been reported. Where the two disagree on wording,
+this one is right and the review file follows it.
 
 Draft in the round directory beside the review file, same `<model>`. Visible prose follows the *Posted comments* section of `skills/writing-style.md`. The user prunes by hand: `SKIP` prefixed to a header, `## SKIP <path>:<line>`, drops the comment. Never delete a dropped comment; the marker survives regeneration.
 
@@ -51,7 +50,7 @@ Full review: <link to the review file in this repo>
 - **Post every finding the author should act on, and open with the one that changes what they do next.** An action is a fix, a decision or an answer, and severity never gates it: a Nit asking for a concrete modification gets its own section. What stays behind in the review file is what needs no action from them: a check CI already reports, a finding already raised by someone else. Never drop a real finding to make the review shorter; shorten the finding instead.
 - **A measured defect on a line the diff touches is posted, whatever argument the measurement suggests against it.** It never fires, it predates the branch, the branch only makes it worse: each of those is the finding. Reasoning from a defect to its own exemption is the failure, and Open questions hold what the reviewer could not decide, never what they decided not to send.
 - **Name the event beside the draft, never after it.** The review file's verdict is the reviewer's judgement and does not move. What gets posted, APPROVE, COMMENT or REQUEST_CHANGES, is the user's call: show it with the text and let one word settle both.
-- **The draft's `Event:` is what goes out.** Never soften it on the way to the forge: an `APPROVE` posted as a `COMMENT` because a past turn asked for one reads as the reviewer withholding approval, and the user finds out by looking. The event changes when they name the new one in the turn, and a stale default is raised as a question rather than resolved quietly.
+- **The draft's `Event:` is what goes out.** Never soften it on the way to the forge: an `APPROVE` posted as a `COMMENT` because a past turn asked for one reads as the reviewer withholding approval. The event changes when they name the new one in the turn, and a stale default is raised as a question rather than resolved quietly.
 - Never mention an anchored finding in the Body, in any form: no bullets, no recap, no pointer to it, no count.
 - Do not re-describe the change, list what passed, narrate the review process, or restate thread state.
 - Stateless, like every inline comment: never name a round, never frame current code as a fix relative to a prior draft. State the code's current property, not its history.
@@ -65,7 +64,7 @@ Full review: <link to the review file in this repo>
 
 - `Event:` defaults from the verdict: APPROVE → APPROVE, REQUEST CHANGES → REQUEST_CHANGES, NEEDS DISCUSSION and CLOSE → COMMENT. It is a default, not a lock: the user may post a lighter event than the verdict, and then the review file keeps the verdict while the draft records what went out. The `Event:` line carries it; the Body never restates it.
 - An own-PR target is not posted at all. If the user insists, `Event: COMMENT` whatever the verdict: GitHub rejects APPROVE and REQUEST_CHANGES on one's own PR.
-- **Two defects where fixing one leaves the other are two sections, never one clause.** The test is the author's next edit: if applying the first still ships the second, the second has its own anchor, so that fixing the headline defect does not close the comment on a defect that survives it.
+- **Two defects where fixing one leaves the other are two sections, never one clause.** The test is the author's next edit: if applying the first still ships the second, the second has its own anchor.
 - Order findings by what the reader needs first: the one that makes the others legible leads, whatever its band, then Critical, Warning, Missing test, Nit, Suggestion; file order within a band.
 - **A finding that needs a third explanation leaves the comment.** Mark the section `SKIP` with a line saying why and keep it in the review file.
 - Never explain routine fixes: merge the base, regenerate assets, re-run a flaky job. A red check with a routine cause gets one short Body line, naming what is no longer readable rather than the fix.
@@ -77,7 +76,7 @@ Full review: <link to the review file in this repo>
 2. **Opener.** `Critical:` / `Nit:` / `Suggestion:` prefix matching the review file's band, then the TL;DR. A Warning gets NO prefix. A missing-test finding opens `Missing test:` plus the uncovered scenario. No bracketed priority tags in comment.md.
 3. **Sentences.** One visible sentence, two only when the second carries an action the first does not; code blocks and `<details>` do not count; no headers, no bold. Order: gap and stake, evidence, fix sentence last. Over one: cut evidence, never the gap. What ships is the defect, the anchor and the repro: the reasoning, the prototyping cost and the verification pins stay in the review file.
 4. **Fix sentence.** Default none, per `skills/writing-style.md`.
-5. **Links.** Every named file or test, every behavioral claim, per *Links & citations*.
+5. **Links.** Every named file or test, every behavioral claim, per *Links & citations* in `skills/review.md`.
 6. **Repro.** Critical and Warning get a collapsed repro block when the claim is behavioral.
 
 ### Visible-text style

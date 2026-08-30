@@ -7,9 +7,9 @@ description: Write the title and body of a pull request. Use whenever a change i
 
 Write for a reader with no context who must decide whether to merge. Prose follows `skills/writing-style.md`; the rules below are the PR-body deltas.
 
-Pick one of three shapes, by what the pull request carries. Read the matching model PR before drafting. Never mix them.
+Pick one of four shapes, by what the pull request carries. Read the matching model PR before drafting. Never mix them.
 
-- **A docs change**, whatever it carries. Under 150 words, no headers, no section per correction. The diff is prose a reader reads directly, so listing what each page now says spends the body on what the page already says: name what was wrong, name what it costs, and stop. This shape wins over the three below even when the change spans a dozen files.
+- **A docs change.** Under 150 words, no headers, no section per correction. The reader reads the pages themselves, so the body never restates what they now say: name what was wrong, name what it costs, and stop. One spanning a dozen files still takes this shape.
 - **One concern**, models: [gno#5999](https://github.com/gnolang/gno/pull/5999), [#5996](https://github.com/gnolang/gno/pull/5996). Four short paragraphs, about 200 words, no headers: a target, not a minimum.
 - **Several independent changes**, model: [gno#6006](https://github.com/gnolang/gno/pull/6006). One `### <symbol>: <one-line diagnosis>` section per change, separated by `---`, each readable alone. Framing paragraphs first, then a one-line bridge counting what follows. About 150 words per section.
 - **One change carrying several decisions**, model: [meet#1619](https://github.com/suitenumerique/meet/pull/1619). `## Problem` in two or three short paragraphs, then `## Design` with one `###` per decision a reviewer could have made differently: what the reader sees, the interface, who it answers, what it costs, what is left out. The headings carry the skim, so this shape runs longer and the budget below does not bind it. It closes on `## What to review closely`, one single-line bullet per part a reviewer should open: the part, why it matters and what it leads to, anchored on the line it sends them to. It opens on the design page where one exists, linked on its own line above the first `###`.

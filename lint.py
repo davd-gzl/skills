@@ -19,7 +19,7 @@ from collections import defaultdict
 # Words. Raising a cap is a decision to hold more rules in every context window,
 # never the fix for a file that outgrew it: fold two rules or evict one instead.
 CAPS = {
-    'AGENTS.md': 3200,                  # workspace root, loaded on every turn
+    'AGENTS.md': 2000,                  # workspace root, loaded on every turn
     'skills/review.md': 5000,           # the longest workflow, and the one to keep cutting
     'skills/review-comment.md': 3750,  # the deliverable; every other review file defers to it
     'skills/writing-style.md': 3800,  # every other file defers to it on a conflict

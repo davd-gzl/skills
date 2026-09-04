@@ -1,7 +1,9 @@
 # Skills
 
 My skills: the instruction sets my agents load before working on my projects.
-One file per task, each self-contained, each loaded only when its task comes up.
+One file per task, each self-contained, each read only when its task comes up,
+through a command that records the read so nothing is written before its skill
+was read.
 
 ## How I work
 
@@ -39,21 +41,18 @@ metadata block and every section in order.
 
 Around the review, the rest. [`issue.md`](issue.md) drafts an issue when a
 problem outlives its fix, stating the problem and never the remedy.
-[`plan.md`](plan.md) writes the spec and the plan before any fix code, and
-numbers every call a human should argue with. [`pr-body.md`](pr-body.md) writes
-the PR title and body for a reader with no context, symptom first, looping until
-a full pass changes nothing. [`fix-issue.md`](fix-issue.md) takes an issue to a
-pull request on my fork, planned first, implemented in a worktree, then watches
-its CI. [`try.md`](try.md) boots a project locally so I can click through the
+[`change.md`](change.md) takes an issue or a finding to a pull request on my
+fork: the spec and the plan first, numbering every call a human should argue
+with, then the fix in a worktree, the local CI run and the self-review.
+[`pr-body.md`](pr-body.md) writes the PR title and body for a reader with no
+context, symptom first, looping until a full pass changes nothing. [`try.md`](try.md) boots a project locally so I can click through the
 change myself, and records it when the claim is visual.
-[`security-advisory.md`](security-advisory.md) handles the findings a review
-cannot publish, the ones that work against deployed code: verified by running the
-exploit, written up privately, disclosed through the project's own channel.
-[`review-history.md`](review-history.md) answers what was already reviewed,
-read-only, from the corpus on disk rather than by reviewing it again.
 [`report.md`](report.md) turns a period of repository activity into a status
 report, generated only after I have edited its context file. [`git.md`](git.md)
-covers the pushes that report success and move nothing.
+covers the identity every commit takes, where a push goes, and the pushes that
+report success and move nothing. A finding that works against deployed code is
+a disclosure, gated by the workspace invariants; the write-up shape sits in
+[`archive/`](archive/).
 
 ## Why the style matters most
 

@@ -1,6 +1,6 @@
 ---
 name: authoring
-description: Use when adding, editing, or removing a rule in any AGENTS.md, CLAUDE.md, or skill file. Defines where a rule lives, the shape it takes, and what it displaces.
+description: Use when adding, editing, or removing a rule in any AGENTS.md, harness dotfile, or skill file. Defines where a rule lives, the shape it takes, and what it displaces.
 ---
 
 # Authoring a rule
@@ -24,7 +24,9 @@ Run `./skills/lint.py <files>` before committing any edit here. Errors block.
 | What this machine can do | No file. It is a command, see *Capabilities* |
 
 One home each. A rule worth stating in two files is one rule stated in the
-broader file and linked from the narrower, and the lint reports the copy.
+broader file and linked from the narrower, and the lint reports the copy. A
+prompt delegating a task to an agent names the skill file and never restates
+its steps.
 
 A rule about a repository never goes in the core skill, and a rule about every
 repository never goes in one project's delta. Both mistakes read as correct
@@ -164,5 +166,7 @@ contradiction wearing a hat.
   comes out well-formed against the rules that were read.
 - Re-read after `git -C skills log -1` shows a commit that was not there before.
   Another session moves the pin mid-turn.
+- A rule that proved unclear, missing or wrong during use is corrected in its
+  file in the same turn, before the work that exposed it continues.
 - Run `./skills/lint.py` over every file the edit touched, plus the workspace
   root `AGENTS.md`, and fix what it reports rather than narrowing what it reads.

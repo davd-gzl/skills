@@ -84,14 +84,14 @@ A discussion-opener issue is shorter: open with "Opening this to start a discuss
 
 Revise against the two checks below until a full pass changes nothing, then run the Pass in `skills/writing-style.md` over the result. A first draft is never the posted one.
 
-1. Every word the reader meets is one they can see, verbs included. Quote a setting as the label on screen and a value as the string in the menu, and take the verb from the button rather than from the API: a camera is disabled, never muted. The code's own enum names appear nowhere in a body.
+1. Every word the reader meets is one they can see, verbs included. Quote a setting as the label on screen and a value as the string in the menu, and take the verb from the button rather than from the API: a camera is disabled, never muted. The code's own enum names appear nowhere in a body. Check each term against the glossary in `projects/<repo>/AGENTS.md`: a term stops looking like jargon to whoever just read the file defining it, so the check cannot be your own ear.
 2. The cause sits last and nothing follows it. A fact that only makes sense after the cause goes in that same paragraph, never above it.
 
 Report the outcome: what the last round changed, or that a full pass changed nothing.
 
 ## Posting
 
-Never post without the literal word `post` in the current turn. On `post`, run `./scripts/post-fix.sh <review-dir> <change-dir>` yourself; it opens the issue and the pull request from the drafts and writes the URLs back into their `Target:` lines. To post standalone: `gh issue create -R <repo> --title "<title>" --body-file <path>`, body only, then write the URL into `Target:` yourself.
+Never post without the literal word `post` in the current turn. On `post`, run `./scripts/post-fix.sh` per *Presenting the change* in `skills/change.md`. To post standalone: `gh issue create -R <repo> --title "<title>" --body-file <path>`, body only, then write the URL into `Target:` yourself.
 
 Check whether the repo actually uses labels before setting any.
 

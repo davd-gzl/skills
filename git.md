@@ -1,12 +1,60 @@
 ---
 name: git
-description: Use when a turn will commit, push, resolve a stale branch, or touch a submodule or worktree in this workspace. Covers what git does silently and reports as success.
+description: Use when a turn will commit, push, sync a checkout, resolve a stale branch, or touch a submodule or worktree in this workspace. Covers the identity every commit takes, where a push goes, and what git does silently and reports as success.
 ---
 
 # Git in this workspace
 
-The ways a push here reports success while moving nothing. When a push may
-happen at all is the workspace `AGENTS.md`; this file assumes the word is given.
+When a push may happen at all is the workspace `AGENTS.md`; this file assumes
+the word is given.
+
+## Commit identity
+
+Two handles, by the visibility of the destination repo: the user's own for a
+public destination, and for a private one a machine handle tied to no account,
+so the commit counts toward nobody's graph. The handles and the repos each
+covers are in the workspace's `workspace.md`, and the gate asks for that file
+before every commit. Author and committer are always the same, and both are
+set on every history-writing command, because the environment on this machine
+carries all four of `GIT_AUTHOR_NAME`, `GIT_AUTHOR_EMAIL`, `GIT_COMMITTER_NAME`
+and `GIT_COMMITTER_EMAIL` wrong, and the environment beats `git config` and
+`git -c`. `rebase` and `cherry-pick` take the committer from the environment
+exactly as `commit` does.
+
+```bash
+GIT_COMMITTER_NAME=<name> GIT_COMMITTER_EMAIL=<email> \
+  git commit --author='<name> <<email>>' -m '<subject>'
+```
+
+Measure a destination the table does not name:
+`gh repo view <owner>/<repo> --json visibility`. A fix branch under
+`projects/<repo>/changes/<slug>/checkout/` targets a public upstream and takes
+the user's handle even though the parent tree is private; only the parent's own
+commit takes the machine handle. A machine identity in either field of a public
+commit is co-authorship in another shape. Check with
+`git log -1 --format='%an <%ae> / %cn <%ce>'` before pushing, and leave past
+commits as they are.
+
+## Sync a checkout
+
+Before the first task in a checkout and before reading any state out of its
+tree. The workspace-level sync, `./scripts/sync.sh`, does not reach inside a
+submodule.
+
+1. Enter the checkout. `git remote -v` there, and fetch every remote it lists.
+2. `git rev-list --left-right --count HEAD...<remote>/<branch>` per remote. The
+   numbers are commits only on HEAD, then commits only on the remote.
+3. Decide which remote is canonical, meaning where the project actually
+   develops. Often `upstream`, not `origin`.
+
+Take the distant version. Diverged, meaning both numbers are nonzero, resets the
+local branch onto the remote rather than merging or rebasing. Report after the
+reset: every commit and file it dropped, and whether the same content survives on
+the remote under another sha.
+
+Stage the paths the turn touched, never the whole tree, and read
+`git show --stat` before pushing. Run the CI locally first, per *Fix* in
+`skills/change.md`.
 
 ## Where a push goes
 
@@ -24,6 +72,10 @@ refused push puts the turn's whole output on one branch and one pull request
 there, and later work cherry-picks onto it. The fork
 `davd-gzl/gno-agent-workspace` is abandoned.
 
+A commit stays on top of a pushed branch, whatever the repo's measured
+granularity: squashing an already-pushed branch costs a second force push, and
+the maintainer squashes at merge.
+
 A skill edit lands in `davd-gzl/skills`. Every consumer tracks `branch = main`,
 so nobody needs a bump to read it, and a commit whose whole diff is a gitlink is
 not made.
@@ -31,20 +83,11 @@ not made.
 ## The parent races other sessions
 
 Another machine pushes to this workspace mid-turn, so a push refused as
-non-fast-forward is the normal case and not an error. Fetch, rebase, push, and
-repeat: five collisions in one turn is a measured figure, not a bad day. Stop on
-a conflict rather than resolving it, and report the files.
-
-```bash
-for i in 1 2 3 4 5; do
-  git fetch -q origin
-  [ "$(git rev-list --count HEAD..origin/main)" = 0 ] || git rebase origin/main || { git rebase --abort; break; }
-  git push -q origin main && break
-done
-```
-
-Set both identity pairs on that rebase. `rebase` and `cherry-pick` take the
-committer from the environment exactly as `commit` does.
+non-fast-forward is the normal case and not an error.
+`./scripts/sync-push.sh '<subject>' <path>...` commits the named paths, rebases
+over what landed, retries, and carries the other session's uncommitted files
+across the rebase. Stop on a conflict rather than resolving it, and report the
+files.
 
 ## Submodules
 
@@ -81,11 +124,10 @@ A submodule sits on a detached HEAD, and every failure here follows from that.
   revision while the loop around it keeps going and reports clean for every
   commit. Write `git show "${c}:review.md"`.
   `./scripts/env-check.sh shell` names the shell in play.
-- **Stage the paths the turn touched, and read `git show --stat` before
-  pushing.** A tree that looks current is a snapshot of its last sync, and a
-  deletion the other side never touched merges silently. Stage under `set -e`: a
-  `git add` naming a path already staged as deleted exits nonzero and stages
-  nothing beside it, so the commit carries the deletion alone.
+- **Stage under `set -e` with care.** A `git add` naming a path already staged
+  as deleted exits nonzero and stages nothing beside it, so the commit carries
+  the deletion alone. A tree that looks current is a snapshot of its last sync,
+  and a deletion the other side never touched merges silently.
 
 ## A stale branch
 

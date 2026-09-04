@@ -7,16 +7,17 @@ argument-hint: <issue-number|url|description>
 # Change
 
 **Input:** `$ARGUMENTS`: an issue number, a URL, or a free-text description. A
-finding exploitable against merged or deployed code is not a change until the
-disclosure gate in the workspace `AGENTS.md` Invariants has run.
+finding exploitable against merged or deployed code is read from its disclosure
+repository, and is not a change until the gate in the workspace `AGENTS.md`
+Invariants has run.
 
-Read `projects/<repo>/AGENTS.md` before the first command: the build and test
-commands and what the project demands of a contribution live there, measured.
+Read the project's own `AGENTS.md` and `projects/<repo>/AGENTS.md` before the
+first command: the build and test commands and what the project demands of a
+contribution live there, measured.
 Where a convention is missing, `./scripts/measure-repo.sh <checkout>
 <remote>/<branch> <owner>/<repo>` prints the merge style, the commit body width
 and length, the commit granularity and the changelog placement; write each
-answer into that file with the command, per `skills/authoring.md`. A convention
-read off the documentation, or inferred from the commit format, is not measured.
+answer into that file with the command, per `skills/authoring.md`.
 
 Prose follows `skills/writing-style.md`. The title and body are
 `skills/pr-body.md`. An issue for a problem no upstream issue covers is
@@ -28,7 +29,7 @@ Prose follows `skills/writing-style.md`. The title and body are
 in `projects/<repo>/reviews/<slug>/<n>-<sha>/`. Link each tree to the other and
 never repeat what the other states. A change with no review behind it carries
 the same files minus the review links, and the kind of change goes in its
-`README.md`, never in the path.
+`README.md`, never in the path. The two trees link each other.
 
 - `README.md`: the single entry point, linking every other artifact. What is
   broken, what the fix does, status, the create-PR link, what is in the
@@ -37,12 +38,13 @@ the same files minus the review links, and the kind of change goes in its
 - `pr-body.md`, per `skills/pr-body.md`.
 - `overview.md`, where the subject needs explaining before the diff, per
   *Overview* in `skills/review.md`.
-- `issue.md`, only where no upstream issue covers the problem.
+- `issue.md`, only where no upstream issue covers the problem, stays in the
+  review directory per `skills/issue.md` and is linked from `README.md`.
 - `checkout/`: a submodule pinned to the branch,
   `git submodule add -b <branch> <fork-url> projects/<repo>/changes/<slug>/checkout`,
   required whenever the fix is presented. The worktree stays scratch, out of
-  version control. A fix is never written into the reviewed checkout in place,
-  which is restored to its default branch.
+  version control. Only the fix branch ever enters the reviewed checkout, and
+  never in place: the checkout is restored to its default branch.
 
 ## Spec and plan
 
@@ -53,9 +55,9 @@ Written before any fix code, split by audience per
   requirements, the acceptance criteria, what is out of scope. No technology is
   named in it. Write one where no review has settled the behaviour.
 - `plan.md` is how: root cause, approach, the files, how it is tested, the
-  commit split, whatever design record the project requires of a change this
-  size, and an Iterations section naming every round and what caught it,
-  failures included.
+  commit split, the threat model and the module inventory where the change is
+  large enough to need them, and an Iterations section naming every round and
+  what caught it, failures included.
 
 Test the split: a reader judging the behaviour never needs the plan, and a
 reader implementing never guesses the behaviour.
@@ -67,9 +69,7 @@ CI job with its real command and result, plus the checks that ran beyond the
 jobs.
 
 Size the first pull request to the smallest diff that closes the ask, and send
-every further capability to the out row with the decision it needs. A
-maintainer declining a large first branch sends back the whole branch, not the
-surplus.
+every further capability to the out row with the decision it needs.
 
 ### Numbered open calls
 
@@ -87,10 +87,8 @@ argue with, so list every one. The human meets each call three times:
 3. The change `README.md` gathers every call from both documents under
    `## Waiting on a human`, naming the one or two to weigh first.
 
-Link every symbol, setting, file, issue and section named in any of it, to the
-blob at the base sha or to the section carrying the detail. In the handover
-reply, repeat the first call in full and link the rest: chat is gone next
-session.
+In the handover reply, repeat the first call in full and link the rest: chat is
+gone next session.
 
 ## Setup
 
@@ -106,23 +104,23 @@ gh repo fork <owner>/<repo> --remote-only --remote-name fork
 
 1. **Understand.** `gh issue view <n> -R <repo>`, then read the code it names
    and run the repro it carries. Before editing, `git grep` the callers of the
-   function the issue names: one guard in the function they all route through
-   covers the siblings a patch on the reported path alone leaves broken.
-2. **Plan**, per *Spec and plan* above, before any fix code.
+   function the issue names: one guard where they all route through covers the
+   siblings.
+2. **Plan**, per *Spec and plan* above.
 3. **Worktree**, never the checkout, which is a submodule whose gitlink moves
    the moment a branch lands in it:
    ```bash
    git -C <checkout> fetch <canonical-remote> <default-branch>
-   git -C <checkout> worktree add <scratch>/<repo>-fix-<id> <canonical-remote>/<default-branch>
-   git -C <scratch>/<repo>-fix-<id> checkout -b <branch>
+   git -C <checkout> worktree add .worktrees/<repo>-fix-<id> <canonical-remote>/<default-branch>
+   git -C .worktrees/<repo>-fix-<id> checkout -b <branch>
    ```
    `<id>` is the issue number where one exists, a short slug otherwise.
-4. **Weigh each finding before building it.** A review lists what is true, not
-   what is worth the code. Name what implementing one costs in files and what
+4. **Weigh each finding before building it.** Name what implementing one costs in files and what
    it buys in cases a user actually hits: a suggestion covering a transition
    nobody has been through yet goes to the pull request body's leaves-out
-   sentence, where the maintainer can ask for it. A finding whose absence makes
-   the feature not work is never in this class.
+   sentence, where the maintainer can ask for it, never to a second issue,
+   which puts a tracker item in front of maintainers who did not ask for one. A
+   finding whose absence makes the feature not work is never in this class.
 5. **Implement** inside the worktree. Never commit, push, or open a pull
    request without the word. Run the formatter and the auto-fixer the CI lint
    job runs, over the changed packages, before any push: that job fails on
@@ -137,15 +135,16 @@ gh repo fork <owner>/<repo> --remote-only --remote-name fork
    only the user can make, and each is named as a decision rather than a
    leftover. `comment_<model>.md` stays the postable artifact: every finding's
    `## <path>:<line>` section stays in it, fixed-on-branch and
-   deliberately-left-out alike, each closing with a line saying which.
+   deliberately-left-out alike, each closing with a line saying which, never a
+   pointer to the review file.
 7. **Run the CI locally.** Reproduce every job the diff touches, loop until
    green before pushing. Take the command from the workflow file, never the
-   Makefile or README, and match it exactly: a `check` target may be formatting
-   only. Report a job that cannot run locally as not run, never as passing,
+   Makefile or README, read what each script runs, and match it exactly: a
+   `check` target may be formatting only. Report a job that cannot run locally as not run, never as passing,
    naming the missing dependency and the closest real substitute. When a change
    makes a linter cover new files, prove it walks them: introduce a violation,
    see it reported, remove it. When a suppression comment moves, prove it still
-   suppresses. For a behaviour-preserving refactor of a pure function, ship an
+   suppresses: delete it, see the error, restore it. For a behaviour-preserving refactor of a pure function, ship an
    equivalence proof over a large input set.
 8. **Self-review.** Before pushing, read the final diff as a reviewer who did
    not write it, with the *Verification discipline* and severity model of
@@ -163,10 +162,10 @@ proposing a pull request carries
 `https://github.com/<upstream>/compare/<base>...<fork-owner>:<repo>:<branch>`
 as a hyperlink, with the file and line counts in the sentence.
 
-Every change opens on the fork first: before a pull request goes upstream, the
-same branch opens on the user's fork, so they read the diff, the title, the
-body and the checks where they will appear. The upstream one opens only after
-they say so, in a later turn. On a repo the user does not own it opens as a
+Every change opens on the fork first, so the user reads the diff, the title,
+the body and the checks where they will appear. The fork pull request is what
+`post` is given against; the upstream one opens only after they say so, in a
+later turn. On a repo the user does not own it opens as a
 draft, which `./scripts/post-fix.sh` passes, and the user marks it ready after
 revising it; on their own repos it opens ready. The fork pull request closes
 when the upstream one opens, unasked and with no comment on it.

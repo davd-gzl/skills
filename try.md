@@ -14,7 +14,7 @@ The output is a URL, a login, the click path, and what to watch for. The user te
 
 1. Read `projects/<repo>/AGENTS.md` first, its *Local development* and *Ports* sections, or the sibling file it points at, before touching the checkout. It carries the boot recipe measured on this machine: system packages, runtime versions, seed data, whitelisted ports.
 2. Read the target. `gh pr view <n> --repo <owner>/<repo> --json title,state,isDraft,headRefName,body,files`. The changed-file list decides the boot shape: a frontend-only diff takes the backend from the existing checkout, nothing else rebuilt.
-3. Sync, per the root `AGENTS.md`: fetch every remote from inside `projects/<repo>/checkout`, never from the workspace root.
+3. Sync, per *Sync a checkout* in `skills/git.md`, from inside `projects/<repo>/checkout`, never from the workspace root.
 4. Worktree, never the checkout. `git worktree add <scratch>/try-<repo>-<target> <sha>` off that checkout, at `refs/pull/<n>/head` fetched explicitly so a cross-fork PR resolves. Fetch it from the canonical remote, the repository the project develops in, which is often not `origin`: a fork does not carry the upstream pull refs and the fetch fails or lands on the wrong head. The submodule gitlink never moves.
    ```bash
    git fetch <canonical-remote> "refs/pull/<n>/head:refs/remotes/<canonical-remote>/pr/<n>" -f
@@ -60,6 +60,8 @@ The video is the last step, never the first. Order: the user tries it by hand, t
 The clip is the comment. What ships beside it is one sentence naming the rule the clip demonstrates, per the posted-comment shape in `skills/writing-style.md`. A caption walking through the clicks describes what the reader is already watching, and the shot list is the reviewer's check, never posted.
 
 A video of a UI moving proves nothing about what was typed: mark each click and name every key on screen. Export a GIF, which renders inline in a GitHub comment where an mp4 does not and where a `<video>` tag does not play, and keep the mp4 beside it for anything longer than a few seconds. Files land in the review's `media/` and reach the user in the chat, each with its URL beside the preview, since the preview scrolls away.
+
+Stills and a scripted walkthrough come from `./scripts/capture-web.mjs`, headless, and `./scripts/clip.sh` turns a recording into the GIF and the mp4; each header carries its usage.
 
 Playwright's bundled ffmpeg writes webm only, and a `.gif` or `.mp4` output fails with `Error initializing the muxer`, which reads as a bad filter string and is not one. `./scripts/setup-browser-recording.sh` installs a static ffmpeg and the shared libraries Chromium needs, without root; convert with `fps=10,scale=640:-1` plus `palettegen` and `paletteuse`. What this machine can do is `./scripts/env-check.sh capture`, never a fact written down here.
 

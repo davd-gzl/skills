@@ -23,7 +23,7 @@ Run in order for a single target; multi-target runs wrap this via *Parallel disp
 7. Draft `comment_<model>.md` per `skills/review-comment.md`, then run its *Final check*. Draft whether or not anything will be posted. Skip only for a PR the reviewer authored; see *Own PR* in `skills/review-modes.md`.
 8. Run the `skills/writing-style.md` Pass over every line of the review file and `comment_<model>.md`, starting with `./scripts/prose-check.py <file>`. Never skip it. Re-run it after any later edit to that prose, including an edit made in answer to a question about it. State which passes ran when handing over.
 9. One commit and one push covering everything. This push is pre-authorized; see *Rules*.
-10. Hand over. Link the `comment_<model>.md` draft, not only the review file. Add a "Decisions needed" list, one line each: a borderline verdict, Open questions worth promoting. Omit when empty. Never list an APPROVE as needing confirmation. Post only on the literal word `post`.
+10. Hand over. Link the `comment_<model>.md` draft, not only the review file. Add a "Decisions needed" list, one line each: a borderline verdict, Open questions worth promoting. Omit when empty. Never list an APPROVE as needing confirmation. Post only on the literal word `post`. Acting on the findings is `skills/change.md`; they stay here.
 
 ## Subjects
 
@@ -44,7 +44,7 @@ multi-angle, and a target the reviewer authored. Each is in
 
 ### Fetch & understand
 
-- Sync the checkout per the *Sync first* rule in `AGENTS.md`: `git remote -v`, fetch every remote, compare `git rev-list --left-right --count HEAD...<remote>/<branch>`. The canonical remote is often `upstream`.
+- Sync the checkout per *Sync a checkout* in `skills/git.md`: `git remote -v`, fetch every remote, compare `git rev-list --left-right --count HEAD...<remote>/<branch>`. The canonical remote is often `upstream`.
 - Never review from a dirty tree without saying so. Never write into the reviewed checkout outside a dedicated fix branch.
 - **Review from a worktree, never from the checkout itself.** A checkout tracked as a submodule sits on whatever detached HEAD the last update left, so a grep, a lint run or a test suite there answers about code nobody is reviewing. `git worktree add <scratch>/<repo>-review-<target> <canonical-remote>/<default-branch>`, check the target out inside it, and run every command of the review there.
 - **A branch from outside the project gets a static danger pass before it is fetched into a local checkout**, nothing executed. Read the raw diff for: changes to the build and dependency surface, the CI workflows, the lockfile, the manifest, container files and any shell script; calls that execute, reach the network, read credentials or the environment, or write the filesystem; encoded or generated code; and Trojan Source, meaning non-ASCII added lines, bidirectional overrides, zero-width characters and homoglyphs. Say in the review what the pass covered and what it found, and carry anything not malicious but risky into the findings. `author_association` of `NONE` or `FIRST_TIME_CONTRIBUTOR` is the trigger, from `gh api repos/<repo>/pulls/<n> --jq '.author_association'`; `gh pr list --json` has no such field.
@@ -151,11 +151,6 @@ Write one for every target, before the review file. The verdict and the findings
 - Where a page would have used a simulator, compute the interesting inputs and put the results in a table. The reader gets the answer without moving a slider, and every number is checkable from the file.
 - Run the mirrored logic before publishing its numbers, against the project's own tests where they exist and against the mirrored source where they do not, and say which of the two it was.
 - Update it only when new commits change the subject's own files. A base-only head bump, a new finding, a verdict change and a new round never touch it. Link it from the review file's metadata block.
-
-## Preparing a fix
-
-The work on the findings lives in `projects/<repo>/changes/<slug>/`, per
-`skills/change.md`, and the findings stay here.
 
 ## Links & citations
 

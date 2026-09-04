@@ -12,54 +12,54 @@ The output is a URL, a login, the click path, and what to watch for. The user te
 
 ## Workflow
 
-1. **Read `projects/<repo>/AGENTS.md` first**, its *Local development* and *Ports* sections, or the sibling file it points at, before touching the checkout. It carries the boot recipe measured on this machine: system packages, runtime versions, seed data, whitelisted ports.
-2. **Read the target.** `gh pr view <n> --repo <owner>/<repo> --json title,state,isDraft,headRefName,body,files`. The changed-file list decides the boot shape: a frontend-only diff takes the backend from the existing checkout, nothing else rebuilt.
-3. **Sync**, per the root `AGENTS.md`: fetch every remote from inside `projects/<repo>/checkout`, never from the workspace root.
-4. **Worktree, never the checkout.** `git worktree add <scratchpad>/try-<repo>-<target> <sha>` off that checkout, at `refs/pull/<n>/head` fetched explicitly so a cross-fork PR resolves. Fetch it from the canonical remote, the repository the project develops in, which is often not `origin`: a fork does not carry the upstream pull refs and the fetch fails or lands on the wrong head. The submodule gitlink never moves.
+1. Read `projects/<repo>/AGENTS.md` first, its *Local development* and *Ports* sections, or the sibling file it points at, before touching the checkout. It carries the boot recipe measured on this machine: system packages, runtime versions, seed data, whitelisted ports.
+2. Read the target. `gh pr view <n> --repo <owner>/<repo> --json title,state,isDraft,headRefName,body,files`. The changed-file list decides the boot shape: a frontend-only diff takes the backend from the existing checkout, nothing else rebuilt.
+3. Sync, per the root `AGENTS.md`: fetch every remote from inside `projects/<repo>/checkout`, never from the workspace root.
+4. Worktree, never the checkout. `git worktree add <scratch>/try-<repo>-<target> <sha>` off that checkout, at `refs/pull/<n>/head` fetched explicitly so a cross-fork PR resolves. Fetch it from the canonical remote, the repository the project develops in, which is often not `origin`: a fork does not carry the upstream pull refs and the fetch fails or lands on the wrong head. The submodule gitlink never moves.
    ```bash
    git fetch <canonical-remote> "refs/pull/<n>/head:refs/remotes/<canonical-remote>/pr/<n>" -f
    ```
-5. **Boot.** Recipe from `AGENTS.md`; absent one, derive it from the project's compose, build and package files. Long-running processes go to the background, logs in a scratch file. Reuse what is already built: rebuild only what the diff touches.
-6. **Resolve port collisions before starting, not after.** List the ports the stack publishes against what already listens, and move the collisions rather than killing the user's other stacks:
+5. Boot. Recipe from `AGENTS.md`; absent one, derive it from the project's compose, build and package files. Long-running processes go to the background, logs in a scratch file. Reuse what is already built: rebuild only what the diff touches.
+6. Resolve port collisions before starting, not after. List the ports the stack publishes against what already listens, and move the collisions rather than killing the user's other stacks:
    ```bash
    ss -ltn | awk 'NR>1{print $4}' | sed 's/.*://' | sort -un
    grep -nE '^\s+- "[0-9]+:' <compose-file>
    ```
    The first lists what already listens, the second what the stack publishes. Produce both lists, never one.
    A port named in an auth config, a redirect whitelist or a CORS list is load-bearing and moves only to another whitelisted value; every other port is free to move.
-7. **Prove the running code is the target.** A boot that silently served the base branch looks identical on screen. Fetch a file the diff added straight from the dev server, or hit the route it added:
+7. Prove the running code is the target. A boot that silently served the base branch looks identical on screen. Fetch a file the diff added straight from the dev server, or hit the route it added:
    ```bash
    curl -s http://localhost:<port>/<path-the-diff-added> | head -5
    ```
-8. **Smoke-test to the change, not the front page.** Drive the app as far as the diff: log in, seed the fixture, reach the screen it changes. Report the state from the DOM or the API, not from a screenshot alone. When the diff is behavioural, exercise the behaviour once and report what it did.
-9. **Hand over, and stop.** URL, login, the click path in numbered steps, and one line per changed surface naming what to look at. Do not script a drive of the whole feature before the user has looked.
+8. Smoke-test to the change, not the front page. Drive the app as far as the diff: log in, seed the fixture, reach the screen it changes. Report the state from the DOM or the API, not from a screenshot alone. When the diff is behavioural, exercise the behaviour once and report what it did.
+9. Hand over, and stop. URL, login, the click path in numbered steps, and one line per changed surface naming what to look at. Do not script a drive of the whole feature before the user has looked.
 
 ## Boot recipes
 
 Write the recipe into `projects/<repo>/AGENTS.md` the moment it is measured, each failure with its symptom. A recipe from the project's own documentation is not measured until it has run here.
 
-- **Backend from the checkout, frontend from the worktree**, when the diff is frontend-only. Boot the backend once and reuse it for every later run.
-- **Fixture first.** Seed data a manual test needs is in place before the URL is handed over, never a step the user discovers.
-- **A failure inside the boot is reported, never patched around.** A stack the PR broke is the finding; say so and stop.
+- Backend from the checkout, frontend from the worktree, when the diff is frontend-only. Boot the backend once and reuse it for every later run.
+- Fixture first. Seed data a manual test needs is in place before the URL is handed over, never a step the user discovers.
+- A failure inside the boot is reported, never patched around. A stack the PR broke is the finding; say so and stop.
 
 ## Video
 
-**The video is the last step, never the first.** Order: the user tries it by hand, the claim settles, the recording proves the settled claim.
+The video is the last step, never the first. Order: the user tries it by hand, the claim settles, the recording proves the settled claim.
 
-1. **Hand over first**, per the workflow's last step, and wait for the user's report before scripting anything.
-2. **Script the measurement, not the movie.** Once the user reports what they saw, drive the same path headless and print the state after each step as a table, one row per step. Save the script under the review's `tests/`.
-3. **Show the shot list before recording, and wait.** One numbered line per shot: the claim it proves, the clicks and keys in order, and what the screen must show for the claim to hold. A shot whose expected outcome cannot be written down is not understood well enough to film.
-4. **Record only once the finding text is frozen**, and only on the word `video`. Reuse the measurement script.
-5. **Re-run the shot list against the recording** before sending it. Every caption states a claim the run can contradict; a decorative caption makes the check pass vacuously.
+1. Hand over first, per the workflow's last step, and wait for the user's report before scripting anything.
+2. Script the measurement, not the movie. Once the user reports what they saw, drive the same path headless and print the state after each step as a table, one row per step. Save the script under the review's `tests/`.
+3. Show the shot list before recording, and wait. One numbered line per shot: the claim it proves, the clicks and keys in order, and what the screen must show for the claim to hold. A shot whose expected outcome cannot be written down is not understood well enough to film.
+4. Record only once the finding text is frozen, and only on the word `video`. Reuse the measurement script.
+5. Re-run the shot list against the recording before sending it. Every caption states a claim the run can contradict; a decorative caption makes the check pass vacuously.
 
-- **When two defects ride together on screen, film the measurement, not the symptom.** A clip of the symptom cannot say which defect produced it, and a reader who spots the second cause reads the clip as overclaiming. Put the numbers the code itself computes on screen beside the input, and let the picture carry the reading rather than the consequence.
-- **One screen, one run, a row per state.** A ledger gains a row per step, each holding the inputs the claim rests on beside the value on screen, sampled live from the page. The last frame tells the story to a reader who never presses play.
-- **A readout must never imply a transition that did not happen.** Label the absence of the container, not of the value; name a column for what it holds, not how it got there.
-- **A clip replaces the written steps, and only the user can attach it.** When a clip exists, the sentence drops the steps and states the rule the clip demonstrates. An image hosted in a private workspace will not render on someone else's pull request: hand the file to the user to drop into the comment box, and never post a link that renders as a broken image.
+- When two defects ride together on screen, film the measurement, not the symptom. A clip of the symptom cannot say which defect produced it, and a reader who spots the second cause reads the clip as overclaiming. Put the numbers the code itself computes on screen beside the input, and let the picture carry the reading rather than the consequence.
+- One screen, one run, a row per state. A ledger gains a row per step, each holding the inputs the claim rests on beside the value on screen, sampled live from the page. The last frame tells the story to a reader who never presses play.
+- A readout must never imply a transition that did not happen. Label the absence of the container, not of the value; name a column for what it holds, not how it got there.
+- A clip replaces the written steps, and only the user can attach it. When a clip exists, the sentence drops the steps and states the rule the clip demonstrates. An image hosted in a private workspace will not render on someone else's pull request: hand the file to the user to drop into the comment box, and never post a link that renders as a broken image.
 
-**The clip is the comment.** What ships beside it is one sentence naming the rule the clip demonstrates, per the posted-comment shape in `skills/writing-style.md`. A caption walking through the clicks describes what the reader is already watching, and the shot list is the reviewer's check, never posted.
+The clip is the comment. What ships beside it is one sentence naming the rule the clip demonstrates, per the posted-comment shape in `skills/writing-style.md`. A caption walking through the clicks describes what the reader is already watching, and the shot list is the reviewer's check, never posted.
 
-A video of a UI moving proves nothing about what was typed: mark each click and name every key on screen. Export a GIF, which renders inline in a GitHub comment where an mp4 does not and where a `<video>` tag does not play, and keep the mp4 beside it for anything longer than a few seconds. Files land in the review's `media/` and reach the user in the chat.
+A video of a UI moving proves nothing about what was typed: mark each click and name every key on screen. Export a GIF, which renders inline in a GitHub comment where an mp4 does not and where a `<video>` tag does not play, and keep the mp4 beside it for anything longer than a few seconds. Files land in the review's `media/` and reach the user in the chat, each with its URL beside the preview, since the preview scrolls away.
 
 Playwright's bundled ffmpeg writes webm only, and a `.gif` or `.mp4` output fails with `Error initializing the muxer`, which reads as a bad filter string and is not one. `./scripts/setup-browser-recording.sh` installs a static ffmpeg and the shared libraries Chromium needs, without root; convert with `fps=10,scale=640:-1` plus `palettegen` and `paletteuse`. What this machine can do is `./scripts/env-check.sh capture`, never a fact written down here.
 
@@ -72,6 +72,6 @@ The worktree and the stack survive the turn. On `stop`, kill the processes, remo
 ## Rules
 
 - **Nothing reaches the target repository.** No commit, branch, push, comment or review.
-- **Never edit the PR's code**, including the config it ships. A local-only file the boot needs lives in the scratchpad or a gitignored path, never in the diff.
-- **Report what did not run.** A stack that could not start on this host is not a passing test, and a step skipped for a missing device or key is named in the handover.
+- **Never edit the PR's code**, including the config it ships. A local-only file the boot needs lives in the scratch directory or a gitignored path, never in the diff.
+- Report what did not run. A stack that could not start on this host is not a passing test, and a step skipped for a missing device or key is named in the handover.
 - Findings noticed while driving the app belong in the reply as observations, not in a review file. A finding worth writing down means running the review skill on the target.

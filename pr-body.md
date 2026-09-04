@@ -104,13 +104,4 @@ A screenshot for any user-visible surface; a short video or GIF for any interact
 - Attach by dragging into the PR body on GitHub. Keep the files under `projects/<repo>/changes/<slug>/media/`; mark each attachment point with the `media/` path. Never fabricate a `user-images` URL.
 - None for backend-only, tooling, or lint changes. Do not manufacture thoroughness.
 
-Capture with Playwright, driving the app booted from the change branch:
-
-```bash
-npm i -D playwright && npx playwright install chromium
-npx playwright screenshot --viewport-size=1280,800 http://localhost:3000/<route> after.png
-```
-
-For motion, `page.video` in a Playwright script, or record and convert with `ffmpeg -i in.webm -vf fps=12 out.gif`.
-
-Chromium pulls roughly 150 MB, so ask before installing. When it cannot be installed, say the screenshot is missing and why. Never describe what a screenshot would have shown as though it were evidence.
+Capture per *Video* in `skills/try.md`, which owns the recording rules. When no capture can be made, say the screenshot is missing and why, never what it would have shown.

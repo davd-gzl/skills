@@ -36,8 +36,8 @@ Both live in `projects/<repo>/reviews/<slug>/`.
 
 ## Modes
 
-Four modes change part of this workflow: multi-target parallel dispatch, deep
-multi-angle, bot review, and a target the reviewer authored. Each is in
+Three modes change part of this workflow: multi-target parallel dispatch, deep
+multi-angle, and a target the reviewer authored. Each is in
 `skills/review-modes.md`, read when its trigger fires.
 
 ## For each target
@@ -46,7 +46,7 @@ multi-angle, bot review, and a target the reviewer authored. Each is in
 
 - Sync the checkout per the *Sync first* rule in `AGENTS.md`: `git remote -v`, fetch every remote, compare `git rev-list --left-right --count HEAD...<remote>/<branch>`. The canonical remote is often `upstream`.
 - Never review from a dirty tree without saying so. Never write into the reviewed checkout outside a dedicated fix branch.
-- **Review from a worktree, never from the checkout itself.** A checkout tracked as a submodule sits on whatever detached HEAD the last update left, so a grep, a lint run or a test suite there answers about code nobody is reviewing. `git worktree add <scratchpad>/<repo>-review-<target> <canonical-remote>/<default-branch>`, check the target out inside it, and run every command of the review there.
+- **Review from a worktree, never from the checkout itself.** A checkout tracked as a submodule sits on whatever detached HEAD the last update left, so a grep, a lint run or a test suite there answers about code nobody is reviewing. `git worktree add <scratch>/<repo>-review-<target> <canonical-remote>/<default-branch>`, check the target out inside it, and run every command of the review there.
 - **A branch from outside the project gets a static danger pass before it is fetched into a local checkout**, nothing executed. Read the raw diff for: changes to the build and dependency surface, the CI workflows, the lockfile, the manifest, container files and any shell script; calls that execute, reach the network, read credentials or the environment, or write the filesystem; encoded or generated code; and Trojan Source, meaning non-ASCII added lines, bidirectional overrides, zero-width characters and homoglyphs. Say in the review what the pass covered and what it found, and carry anything not malicious but risky into the findings. `author_association` of `NONE` or `FIRST_TIME_CONTRIBUTOR` is the trigger, from `gh api repos/<repo>/pulls/<n> --jq '.author_association'`; `gh pr list --json` has no such field.
 - **A worktree that already exists is reused, never cleaned.** `worktree add` fails on an existing path: re-run only the checkout. It may carry uncommitted edits from another session, so never stash, clean or revert; report them and work around them.
 - For a PR: `gh pr view <number> -R <repo> --json title,body,author,baseRefName,headRefName,files,additions,deletions,commits` and `gh pr diff <number> -R <repo>`.
@@ -154,24 +154,8 @@ Write one for every target, before the review file. The verdict and the findings
 
 ## Preparing a fix
 
-Findings stay in `projects/<repo>/reviews/<slug>/<n>-<sha>/`; the work on them lives in `projects/<repo>/changes/<slug>/`, whose files and the shape of each are in `skills/plan.md`. Write the plan before any fix code, and present a change only when every `plan.md` item is done and verified. `./scripts/post-fix.sh` opens the issue and PR from the drafts, gated on the literal word `post`.
-
-A "review loop" means fixing every finding, then looping until nothing is left: apply each, re-run the checks, review again, and stop when a full pass adds nothing. Never hand a finding back as a suggestion, and never park one as an open question to keep the report tidy. What survives unapplied needs a decision only the user can make, and each is named as a decision rather than a leftover.
-
-`comment_<model>.md` stays the postable artifact: every finding's `## <path>:<line>` section stays in it, fixed-on-branch and deliberately-left-out alike, each closing with a line saying which. Never replace sections with a pointer to the review file.
-
-### Run the CI locally
-
-Reproduce every job the diff touches, loop until green before pushing.
-
-- Take the command from the workflow file, never the Makefile or README, and match it exactly. Read what each script runs: a `check` target may be formatting only.
-- Report a job that cannot run locally as not run, never as passing. Name the missing dependency and the closest real substitute.
-- When a change makes a linter cover new files, prove it walks them: introduce a violation, see it reported, remove it. When a suppression comment moves, prove it still suppresses: delete it, see the error, restore it.
-- For a behavior-preserving refactor of a pure function, ship an equivalence proof over a large input set.
-
-### Self-review
-
-Before pushing, read the final diff as a reviewer who did not write it, with the same *Verification discipline* and severity model. Fix what it finds and record it in the plan's Iterations section. Never silently amend it away.
+The work on the findings lives in `projects/<repo>/changes/<slug>/`, per
+`skills/change.md`, and the findings stay here.
 
 ## Links & citations
 
@@ -239,16 +223,10 @@ filling each are in `skills/review-output.md`.
 - Draft `comment_<model>.md` before committing; one final push covers both, to this repo only. The push is pre-authorized for this skill and overrides any global ask-before-push rule.
 - Fold late findings into both files, verify each with a real run, commit and push in the same turn without asking. Posting still waits for `post`.
 - Never push to a reviewed repo's canonical remote; a fix branch goes to the fork.
-- Reviews may be published. A finding exploitable against already-merged or deployed code is not: it takes the disclosure gate in `skills/security-advisory.md` before anything is written. A finding on an open PR's own diff is fine at any severity.
+- Reviews may be published. A finding exploitable against already-merged or deployed code is not: it takes the disclosure gate in the workspace `AGENTS.md` Invariants before anything is written. A finding on an open PR's own diff is fine at any severity.
 
 ## GitHub review draft (`comment_<model>.md`)
 
 Step 7 of the workflow. The draft, its body rules, the shape of each inline
 comment, the final check and the posting gate are in `skills/review-comment.md`.
 Draft it whether or not anything will be posted.
-
-## Authoring this file
-
-- Only directives, imperative, plus the definitions a reader needs to apply them. No justifications, no war-stories.
-- A prompt delegating to this skill points at it, never restates the steps.
-- When a rule proves unclear, missing, or wrong during use, update it in the same turn. Cross-target conventions belong here; one-off specifics do not.

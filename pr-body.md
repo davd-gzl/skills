@@ -12,7 +12,7 @@ Pick one of four shapes, by what the pull request carries. Read the matching mod
 - **A docs change.** No headers, no section per correction, no word count to hit. The reader reads the pages themselves, so the body never restates what they now say: name what was wrong, name what it costs, and stop. One spanning a dozen files still takes this shape.
 - **One concern**, models: [gno#5999](https://github.com/gnolang/gno/pull/5999), [#5996](https://github.com/gnolang/gno/pull/5996). Four short paragraphs, about 200 words, no headers: a target, not a minimum.
 - **Several independent changes**, model: [gno#6006](https://github.com/gnolang/gno/pull/6006). One `### <symbol>: <one-line diagnosis>` section per change, separated by `---`, each readable alone. Framing paragraphs first, then a one-line bridge counting what follows. About 150 words per section.
-- **One change carrying several decisions**, model: [meet#1619](https://github.com/suitenumerique/meet/pull/1619). `## Problem` in two or three short paragraphs, then `## Design` with one `###` per decision a reviewer could have made differently: what the reader sees, the interface, who it answers, what it costs, what is left out. The headings carry the skim, so this shape runs longer and the budget below does not bind it. It closes on `## What to review closely`, one single-line bullet per part a reviewer should open: the part, why it matters and what it leads to, anchored on the line it sends them to. It opens on the design page where one exists, linked on its own line above the first `###`. A `###` carrying one sentence is not a decision: fold it into its neighbour, since a heading over a single line costs the skim a stop and returns nothing.
+- **One change carrying several decisions**, model: [meet#1619](https://github.com/suitenumerique/meet/pull/1619). `## Problem` in two or three short paragraphs, then `## Design` with one `###` per decision a reviewer could have made differently: what the reader sees, the interface, who it answers, what it costs, what is left out. The headings carry the skim, so this shape runs longer and the budget below does not bind it. It closes on `## What to review closely`, one single-line bullet per part a reviewer should open: the part, why it matters and what it leads to, anchored on the line it sends them to. It opens on the design page where one exists, linked on its own line above the first `###`. A `###` carrying one sentence is not a decision: fold it into its neighbour.
 
 ## File
 
@@ -49,7 +49,7 @@ The reader has the diff: give only the defect, the consequence, and the context 
 - When the defect has a severe consequence and a mild one, lead with whichever is unambiguous. A severe example that looks like obvious garbage reads as correct rejection and hides the defect; the plainly wrong case that gets accepted lands.
 - Example values must be plausible. A version one step past the build shows the defect with nothing granted, where a version far past it invites "that should fail anyway". Quote the real string, and paste the actual error rather than describing it.
 - Explain why the existing guard failed only after the reader has watched it fail. When the defect is a disagreement between two builds, two nodes or two versions, say the disagreement is the defect and neither answer is.
-- State what is there, never how it got there: not the problem's history, why the mechanism was built, when it landed, which change left it behind; not the branch's either, what an earlier round carried, what this one drops, what it was rewritten from. A reader who was not there wants the change, and one who was reads the diff. Both histories go in `plan.md`.
+- State what is there, never how it got there: neither the problem's history, why the mechanism was built, when it landed, which change left it behind, nor the branch's, what an earlier round carried or what this one drops. Both histories go in `plan.md`.
 - Name a rider commit in one line and never offer to split it. The maintainer asks when they want that.
 - No caveat about a failure seen only locally: CI runs a different toolchain, so confirm the redness there first.
 
@@ -88,11 +88,8 @@ Do not ship the first draft. Re-read against the checks below, revise, repeat un
 
 1. Would someone with no context understand the first sentence? If it needs a symbol they have not met, rewrite in observable terms.
 2. Cut every sentence that does not change the merge decision: diff restating, process narration, "this PR" openers.
-3. Replace every adjective with a number, or delete it.
-4. Every claim traceable: a behaviour statement has a run behind it, a limit statement names the limit. Neither: cut it or get the evidence.
-5. Read it aloud; anywhere you re-parse, split the sentence.
-6. Skim it in ten seconds, first lines and diagrams only. If that does not give the merge decision, lift the argument's turns into one-line paragraphs.
-7. Check against the diff one last time. A body describing a change not in the diff is worse than none.
+3. Skim it in ten seconds, first lines and diagrams only. If that does not give the merge decision, lift the argument's turns into one-line paragraphs.
+4. Check against the diff one last time. A body describing a change not in the diff is worse than none.
 
 Past the shape's budget: cut, never restructure. Overflow detail belongs in the review file and the plan. The count is never the target: the body is done when a cold read lands on the first pass.
 
@@ -102,6 +99,6 @@ A screenshot for any user-visible surface; a short video or GIF for any interact
 
 - Before and after, side by side, same viewport, same data. Crop to the surface.
 - Attach by dragging into the PR body on GitHub. Keep the files under `projects/<repo>/changes/<slug>/media/`; mark each attachment point with the `media/` path. Never fabricate a `user-images` URL.
-- None for backend-only, tooling, or lint changes. Do not manufacture thoroughness.
+- None for backend-only, tooling, or lint changes.
 
 Capture per *Video* in `skills/try.md`, which owns the recording rules. When no capture can be made, say the screenshot is missing and why, never what it would have shown.

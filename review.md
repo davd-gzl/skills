@@ -98,6 +98,11 @@ Read every line. Look for correctness defects: logic errors, missing nil checks,
 
 **Refactor pass, over every added block.** Ask whether fewer lines carry the same behaviour: a value computed twice, a guard the caller already applied, memoization that stabilises nothing, an abstraction with one call site. Where they do, post the replacement as a `Refactor:` suggestion the author applies in one click, never prose describing the change, and record both line counts in the review file.
 
+**Inline a local read once that exists only to fit the line width**, and let the
+formatter wrap the expression instead. A name is a claim that something is worth
+naming, so one repeating the expression beside it promises several uses where
+there is one, and the reader looks for the others.
+
 **A silent fallback where a human has to decide is a finding.** Code that cannot
 satisfy a rule and quietly returns the old value leaves nobody told: the state
 that needs a person belongs in the return, a flag beside it or an error, and the

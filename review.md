@@ -182,7 +182,7 @@ Settle where the repro goes before writing one. A finding on a surface the reade
 - A measured number is committed with the artifact that produced it, in the round directory, before the number is written down anywhere. A number whose repro is gone: delete it or re-measure it, never carry it forward.
 - Run the repro from the draft, verbatim: extract the block from the file and execute it. Every number in the prose comes from that run's output, pasted, never from an earlier run, a rounder figure, or memory.
 - Heredoc behavioral tests, asserting the post-fix state, fail now and pass fixed, for Critical and Warning only. Nits and Suggestions cite the anchor; a one-line "confirmed behaviorally: X" note is enough.
-- **Film every finding whose symptom shows on screen, in the round that finds it, unasked.** Drive the app, crop to the thing in question, and ship the clip beside the finding in both artifacts. Where the browser cannot reach it, name what it needed and what stood in.
+- **Film every finding whose symptom shows on screen, in the round that finds it, unasked.** Ship the clip beside the finding in both artifacts, captured per the picture rule in `skills/writing-style.md`. Where the browser cannot reach the screen, name what stood in for it.
 
 ## Output
 

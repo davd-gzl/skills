@@ -1,6 +1,6 @@
 ---
 name: review-modes
-description: Use when a review covers more than one target, or when the user asks for a deep, parallel, or red-team pass, or for a bot review, or when the reviewer authored the target. Extends skills/review.md; everything not named here follows that file.
+description: Use when a review covers more than one target, or when the user asks for a deep, parallel, or red-team pass, or when the reviewer authored the target. Extends skills/review.md; everything not named here follows that file.
 ---
 
 # Review modes
@@ -14,7 +14,7 @@ rules are unchanged. Read that file first.
 Use when `$ARGUMENTS` contains more than one target.
 
 1. The parent prepares each checkout first, per *Fetch & understand* in `skills/review.md`. Subagents never create worktrees or check out branches.
-2. Dispatch one Agent per target, all in one message, `subagent_type: general-purpose`:
+2. Dispatch one agent per target, all at once, each with this prompt:
 
 > Run the review workflow at `skills/review.md` on `<target>`, URL `<url>`. Read `skills/writing-style.md` before drafting any prose; every line of the review file and `comment_<model>.md` conforms to it. The checkout already exists at `<path>` with the target checked out: never create a worktree or switch branches. Follow every other step in that file. Do not commit, push, or post; the parent does that at the end. Report back the review file path and a one-paragraph summary of the verdict and headline findings.
 
@@ -37,7 +37,7 @@ A batch target set, "review all": every open non-draft target absent from the re
 Trigger: the user asks for a **parallel**, **red-team / blue-team**, or **deeper** review of one target, or "review and loop until perfect". Deep mode runs many lenses on one target; everything else follows the normal flow: output format, comment.md, push rules.
 
 1. **Set up.** Run *Fetch & understand* and *Reproduce the failure* in `skills/review.md` once; hand the same paths to every agent.
-2. **Dispatch lens agents**, one message, concurrent, `subagent_type: general-purpose`. Default three lenses; add more for large targets: perf, docs, API surface, ops impact. Each prompt is self-contained: checkout path, target, diff path, prior-review paths, one narrow lens. Each agent returns findings in this skill's severity model with `file:line` citations.
+2. **Dispatch lens agents**, concurrent. Default three lenses; add more for large targets: perf, docs, API surface, ops impact. Each prompt is self-contained: checkout path, target, diff path, prior-review paths, one narrow lens. Each agent returns findings in this skill's severity model with `file:line` citations.
    - **Red team**: bugs, broken invariants, security holes, edge cases, missing validation, downstream footguns.
    - **Blue team**: missing tests, undocumented invariants, hardening gaps, misuse-inviting ergonomics, migration and rollback risk.
    - **Correctness**: does the code match the description and linked issue? Scope drift, silent behavior changes, contract mismatches.
@@ -52,16 +52,7 @@ Trigger: the user asks for a **parallel**, **red-team / blue-team**, or **deeper
 Check with `gh pr view <number> --json author`. Findings land as commits on the branch, never as a review to post.
 
 - No `comment_<model>.md`, no `pr-body.md`, post nothing. The review file is still written.
-- Apply every mechanical fix in the checkout the review uses: comments, docs, tests, naming, dead code. Then *Run the CI locally* in `skills/review.md` until green.
+- Apply every mechanical fix in the checkout the review uses: comments, docs, tests, naming, dead code. Then *Fix* step 7 in `skills/change.md`, the local CI run, until green.
 - Never apply without asking: observable behavior changes, fixes to defects predating the branch, anything a maintainer would treat as a design decision. Present each as a named decision.
 - One commit per finding class, conventional subject. Push to the PR's head repository, never upstream.
 - Hand over the branch and shas, then what was left unapplied and the decision each needs.
-
-### Bot mode (automatic review)
-
-Trigger: the user names a target or set to go out as an automated bot review; never infer the set.
-
-- `Event: COMMENT` regardless of verdict; the review file keeps its verdict.
-- Body opens with `[AI bot - Automatic review]`, then one paragraph scoping the pass to technical checks, disclaiming design judgement and any merge verdict.
-- Findings, anchors, severities, repros unchanged. Verify every finding with a real run before posting.
-

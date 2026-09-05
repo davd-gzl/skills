@@ -87,6 +87,9 @@ A pass that changes nothing is the exit condition. Never report a pass not run a
 One-line comments, questions, chat replies. All rules above hold; the register is clipped.
 
 - One idea, in the fewest lines that settle it. No recap of what was already said. Stop when it lands.
+- **A status table lists what is outstanding.** A row whose work is finished
+  leaves it, and the count of what is left goes in the line under it. The same
+  rule as reporting a defect rather than a check that held, applied to a table.
 - **A reply answering more than one thing is split, one labelled part per thing asked.** A bold lead-in or a short heading, in the order the user asked, so they see which part answers which before reading a word of it. One thing asked stays one block with no label: a heading over a single answer is furniture.
 - Imperative, never a request.
 - Open with `And` or `But` when adding to a previous point.

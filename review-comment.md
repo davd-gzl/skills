@@ -26,7 +26,7 @@ Format:
 Event: APPROVE | REQUEST_CHANGES | COMMENT
 
 ## Body
-<One-line assessment, then one-sentence bullets for unanchored findings only. When clean: "Looks good." plus one CI-invisible check, and nothing else.>
+<One-sentence bullets for unanchored findings only. When clean: "Looks good." and nothing else.>
 
 Full review: <link to the review file in this repo>
 
@@ -56,8 +56,7 @@ Full review: <link to the review file in this repo>
 - Do not re-describe the change, list what passed, narrate the review process, or restate thread state.
 - Stateless, like every inline comment: never name a round, never frame current code as a fix relative to a prior draft. State the code's current property, not its history.
 - Nothing about CI reaches the comment, in any check state. The one exception is the stale-base sentence named below.
-- A CI-invisible check must pass the verification rule in `skills/writing-style.md`; one that fails never appears. Nothing runtime-only checked: no verification line at all.
-- At most three checks, the strongest. State each as an action and its result, never as a characterization. When naming a revert, describe the concrete edit and tie cause to effect in one chain.
+- **The Body names what is broken, never what held.** A check that passed, a mutation that reddened the right test, a suite that stayed green: each is the reviewer's working, and the author did not ask for it. It goes in the review file, or in a collapsed `<details>` beside the finding it supports, and never in visible text. A clean review's Body is `Looks good.` and stops.
 - When a Body check asserts a property a committed test could assert, write the test instead.
 - No sha pin in anything posted. The reviewed sha belongs in the review file's metadata.
 

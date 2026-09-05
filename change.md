@@ -129,14 +129,13 @@ gh repo fork <owner>/<repo> --remote-only --remote-name fork
    reachability chain and the story of how the bug was found belong in the pull
    request body.
 6. **Loop.** Fix every finding, then loop until nothing is left: apply each,
-   re-run the checks, review again, and stop when a full pass adds nothing.
-   Never hand a finding back as a suggestion, and never park one as an open
-   question to keep the report tidy. What survives unapplied needs a decision
-   only the user can make, and each is named as a decision rather than a
-   leftover. `comment_<model>.md` stays the postable artifact: every finding's
-   `## <path>:<line>` section stays in it, fixed-on-branch and
-   deliberately-left-out alike, each closing with a line saying which, never a
-   pointer to the review file.
+   re-run the checks, review again, and stop when a full pass adds nothing. That
+   empty pass runs unasked and is what the handover waits for. Never hand a
+   finding back as a suggestion, and never park one as an open question to keep
+   the report tidy. What survives unapplied needs a decision only the user can
+   make, and each is named as a decision rather than a leftover.
+   `comment_<model>.md` stays the postable artifact, per
+   `skills/review-comment.md`.
 7. **Run the CI locally.** Reproduce every job the diff touches, loop until
    green before pushing. Take the command from the workflow file, never the
    Makefile or README, read what each script runs, and match it exactly: a

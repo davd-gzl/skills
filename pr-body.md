@@ -49,7 +49,7 @@ The reader has the diff: give only the defect, the consequence, and the context 
 - When the defect has a severe consequence and a mild one, lead with whichever is unambiguous. A severe example that looks like obvious garbage reads as correct rejection and hides the defect; the plainly wrong case that gets accepted lands.
 - Example values must be plausible. A version one step past the build shows the defect with nothing granted, where a version far past it invites "that should fail anyway". Quote the real string, and paste the actual error rather than describing it.
 - Explain why the existing guard failed only after the reader has watched it fail. When the defect is a disagreement between two builds, two nodes or two versions, say the disagreement is the defect and neither answer is.
-- State what is there, never how it got there: neither the problem's history, why the mechanism was built, when it landed, which change left it behind, nor the branch's, what an earlier round carried or what this one drops. Both histories go in `plan.md`.
+- State what is there, never how it got there: neither the problem's history, why the mechanism was built, when it landed, which change left it behind, nor the branch's, what an earlier round carried or what this one drops. Both histories go in `plan.md`, and no line points at the decision record the change ships.
 - Name a rider commit in one line and never offer to split it. The maintainer asks when they want that.
 - No caveat about a failure seen only locally: CI runs a different toolchain, so confirm the redness there first.
 

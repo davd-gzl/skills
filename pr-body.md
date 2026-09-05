@@ -10,9 +10,9 @@ Write for a reader with no context who must decide whether to merge. Prose follo
 Pick one of four shapes, by what the pull request carries. Read the matching model PR before drafting. Never mix them.
 
 - **A docs change.** No headers, no section per correction, no word count to hit. The reader reads the pages themselves, so the body never restates what they now say: name what was wrong, name what it costs, and stop. One spanning a dozen files still takes this shape.
-- **One concern**, models: [gno#5999](https://github.com/gnolang/gno/pull/5999), [#5996](https://github.com/gnolang/gno/pull/5996). Four short paragraphs, about 200 words, no headers: a target, not a minimum.
+- **One concern**, models: [gno#5999](https://github.com/gnolang/gno/pull/5999), [#5996](https://github.com/gnolang/gno/pull/5996). Four short paragraphs, about 200 words, under `## Problem` and `## Fix`: a target, not a minimum. Every bug fix takes this shape, never the decisions one below, which is for a feature.
 - **Several independent changes**, model: [gno#6006](https://github.com/gnolang/gno/pull/6006). One `### <symbol>: <one-line diagnosis>` section per change, separated by `---`, each readable alone. Framing paragraphs first, then a one-line bridge counting what follows. About 150 words per section.
-- **One change carrying several decisions**, model: [meet#1619](https://github.com/suitenumerique/meet/pull/1619). `## Problem` in two or three short paragraphs, then `## Design` with one `###` per decision a reviewer could have made differently: what the reader sees, the interface, who it answers, what it costs, what is left out. The headings carry the skim, so this shape runs longer and the budget below does not bind it. It closes on `## What to review closely`, one single-line bullet per part a reviewer should open: the part, why it matters and what it leads to, anchored on the line it sends them to. It opens on the design page where one exists, linked on its own line above the first `###`. A `###` carrying one sentence is not a decision: fold it into its neighbour.
+- **One change carrying several decisions**, model: [meet#1619](https://github.com/suitenumerique/meet/pull/1619). `## Problem` in two or three short paragraphs, then `## Design` with one `###` per decision a reviewer could have made differently: what the reader sees, the interface, who it answers, what it costs, what is left out. The headings carry the skim, so this shape runs longer and the budget below does not bind it. It closes on `## What to review closely` where the diff is too large to read whole, one single-line bullet per part a reviewer should open: the part, why it matters and what it leads to, anchored on the line it sends them to. It opens on the design page where one exists, linked on its own line above the first `###`. A `###` carrying one sentence is not a decision: fold it into its neighbour.
 
 ## File
 
@@ -26,20 +26,20 @@ Write prose, broken small.
 
 - Paragraphs of two to four sentences, one idea each. Five or more: split.
 - One-line paragraph for each turn in the argument; a skimmer reads only these.
-- No process headers such as Purpose or Testing: the only headers are the multi-change shape's `###` sections and the decisions shape's `## Problem` and `## Design`.
+- No process headers such as Purpose or Testing. Each shape above names the headers it takes; nothing else gets one.
 - No tables, no bullet lists, no bold, no emoji. Parallel content long enough to want a table means the multi-change shape.
 - A diagram wherever a shape is clearer drawn than written; see *Diagrams*.
 - A body using role words the reader may not share, an operator against a room owner for one, closes on a collapsed `<details>` block titled Glossary under the last paragraph: one entry per word, a blank line between them so each renders on its own, and the body stays a straight read for whoever already has the words.
 - No code block unless real observed output or a diagram, trimmed to the signal-bearing lines.
 - Symbols in backticks. Delta from `skills/writing-style.md`: an in-repo symbol needs no link.
 
-Order the paragraphs, in both shapes:
+Order the paragraphs, in every shape:
 
 0. Where an issue is being closed, `Fixes #1076` alone on the first line, above everything: GitHub closes the issue on merge from it, and a triaging maintainer sees the ask before the symptom. Name the issue there and nowhere else in the body.
 1. The symptom, first sentence, in the reader's terms: what breaks, under what condition. Then the mechanism, named by symbol. Never open with what the change does.
 2. The fix, in a clause, stated as a property of the new code, not a narration of the edit.
 3. Anything riding along, each item with its own why.
-4. What was verified, in the framing paragraphs, never at the end: the one runtime check the jobs cannot show, stated as a claim, never the methodology; the proof belongs in `plan.md`. Never "all tests pass", never a trailing verification section: the check list above the body already carries every job's status. Where a failure needs an explanation the checks withhold, that explanation is a comment on the pull request; the body stays about the change.
+4. What was verified, in the framing paragraphs, never at the end: the one runtime check the jobs cannot show, stated as a claim; the proof belongs in `plan.md`. Never "all tests pass" and never a trailing verification section, since the check list above the body carries every job's status. A redness seen only locally is confirmed on CI before it reaches the body, and an explanation the checks withhold is a comment on the pull request.
 
 The reader has the diff: give only the defect, the consequence, and the context the code cannot supply.
 
@@ -51,7 +51,6 @@ The reader has the diff: give only the defect, the consequence, and the context 
 - Explain why the existing guard failed only after the reader has watched it fail. When the defect is a disagreement between two builds, two nodes or two versions, say the disagreement is the defect and neither answer is.
 - State what is there, never how it got there: neither the problem's history, why the mechanism was built, when it landed, which change left it behind, nor the branch's, what an earlier round carried or what this one drops. Both histories go in `plan.md`, and no line points at the decision record the change ships.
 - Name a rider commit in one line and never offer to split it. The maintainer asks when they want that.
-- No caveat about a failure seen only locally: CI runs a different toolchain, so confirm the redness there first.
 
 Hyperlink everything per `skills/writing-style.md`, to the blob at the branch under review or upstream documentation.
 

@@ -102,12 +102,16 @@ gh repo fork <owner>/<repo> --remote-only --remote-name fork
 
 ## Fix
 
-1. **Understand.** `gh issue view <n> -R <repo>`, then read the code it names
+1. **Check that nothing already covers the problem**, before the branch exists.
+   Search the target repo's open and merged pull requests and its issues for the
+   symbol the finding names, then the review corpus on disk and the upstream the
+   repo forks. A duplicate found after the diff is a diff thrown away.
+2. **Understand.** `gh issue view <n> -R <repo>`, then read the code it names
    and run the repro it carries. Before editing, `git grep` the callers of the
    function the issue names: one guard where they all route through covers the
    siblings.
-2. **Plan**, per *Spec and plan* above.
-3. **Worktree**, never the checkout, which is a submodule whose gitlink moves
+3. **Plan**, per *Spec and plan* above.
+4. **Worktree**, never the checkout, which is a submodule whose gitlink moves
    the moment a branch lands in it:
    ```bash
    git -C <checkout> fetch <canonical-remote> <default-branch>
@@ -115,20 +119,18 @@ gh repo fork <owner>/<repo> --remote-only --remote-name fork
    git -C .worktrees/<repo>-fix-<id> checkout -b <branch>
    ```
    `<id>` is the issue number where one exists, a short slug otherwise.
-4. **Weigh each finding before building it.** Name what implementing one costs in files and what
+5. **Weigh each finding before building it.** Name what implementing one costs in files and what
    it buys in cases a user actually hits: a suggestion covering a transition
    nobody has been through yet goes to the pull request body's leaves-out
    sentence, where the maintainer can ask for it, never to a second issue,
    which puts a tracker item in front of maintainers who did not ask for one. A
    finding whose absence makes the feature not work is never in this class.
-5. **Implement** inside the worktree. Never commit, push, or open a pull
+6. **Implement** inside the worktree. Never commit, push, or open a pull
    request without the word. Run the formatter and the auto-fixer the CI lint
    job runs, over the changed packages, before any push: that job fails on
    their diff independently of the linter's own findings. Comments follow
-   `skills/writing-style.md`, two lines carrying what the code cannot say; a
-   reachability chain and the story of how the bug was found belong in the pull
-   request body.
-6. **Loop.** Fix every finding, then loop until nothing is left: apply each,
+   `skills/writing-style.md`.
+7. **Loop.** Fix every finding, then loop until nothing is left: apply each,
    re-run the checks, review again, and stop when a full pass adds nothing. That
    empty pass runs unasked and is what the handover waits for. Never hand a
    finding back as a suggestion, and never park one as an open question to keep
@@ -136,7 +138,7 @@ gh repo fork <owner>/<repo> --remote-only --remote-name fork
    make, and each is named as a decision rather than a leftover.
    `comment_<model>.md` stays the postable artifact, per
    `skills/review-comment.md`.
-7. **Run the CI locally.** Reproduce every job the diff touches, loop until
+8. **Run the CI locally.** Reproduce every job the diff touches, loop until
    green before pushing. Take the command from the workflow file, never the
    Makefile or README, read what each script runs, and match it exactly: a
    `check` target may be formatting only. Report a job that cannot run locally as not run, never as passing,
@@ -145,12 +147,12 @@ gh repo fork <owner>/<repo> --remote-only --remote-name fork
    see it reported, remove it. When a suppression comment moves, prove it still
    suppresses: delete it, see the error, restore it. For a behaviour-preserving refactor of a pure function, ship an
    equivalence proof over a large input set.
-8. **Self-review.** Before pushing, read the final diff as a reviewer who did
+9. **Self-review.** Before pushing, read the final diff as a reviewer who did
    not write it, with the *Verification discipline* and severity model of
    `skills/review.md`. Fix what it finds and record it in the plan's Iterations
    section, never silently amend it away.
-9. **Report** the changed files and what each change does.
-10. **Keep the worktree.** It carries review feedback, rebases and follow-up
+10. **Report** the changed files and what each change does.
+11. **Keep the worktree.** It carries review feedback, rebases and follow-up
     work until the pull request merges.
 
 ## Presenting the change

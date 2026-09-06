@@ -57,16 +57,15 @@ Written before any fix code, split by audience per
 - `plan.md` is how: root cause, approach, the files, how it is tested, the
   commit split, the threat model and the module inventory where the change is
   large enough to need them, and an Iterations section naming every round and
-  what caught it, failures included.
+  what caught it, failures included. Write one where the fix has a second
+  defensible shape, or a call for a human, or a diff nobody reads in one sitting.
+  A fix with one shape and no call goes straight to the body.
 
-Test the split: a reader judging the behaviour never needs the plan, and a
-reader implementing never guesses the behaviour.
 
-`plan.md` also carries what admits a change into scope: a table of what is in,
-one row per finding with its effect on the failing signal; what is out, with
-the decision each excluded item needs; and a verification table, one row per
-CI job with its real command and result, plus the checks that ran beyond the
-jobs.
+`plan.md` also carries what admits a change into scope: what is in, one row per
+finding with its effect on the failing signal; what is out, with the decision
+each excluded item needs; and one row per CI job with its real command and
+result, the checks beyond the jobs included.
 
 Size the first pull request to the smallest diff that closes the ask, and send
 every further capability to the out row with the decision it needs.
@@ -74,8 +73,7 @@ every further capability to the out row with the decision it needs.
 ### Numbered open calls
 
 An open call is a decision the document made that a human could reasonably
-make differently. A document listing none is hiding the choices a human should
-argue with, so list every one. The human meets each call three times:
+make differently. A document listing none is hiding them, so list every one. The human meets each call three times:
 
 1. `spec.md` and `plan.md` open with `## Decisions for a human`, right after
    the summary: a table, one row per call, with the identifier, the call, what
@@ -126,38 +124,38 @@ gh repo fork <owner>/<repo> --remote-only --remote-name fork
    which puts a tracker item in front of maintainers who did not ask for one. A
    finding whose absence makes the feature not work is never in this class.
 6. **Implement** inside the worktree. Never commit, push, or open a pull
-   request without the word. Run the formatter and the auto-fixer the CI lint
-   job runs, over the changed packages, before any push: that job fails on
-   their diff independently of the linter's own findings. Comments follow
-   `skills/writing-style.md`.
-7. **Loop.** Fix every finding, then loop until nothing is left: apply each,
-   re-run the checks, review again, and stop when a full pass adds nothing. That
-   empty pass runs unasked and is what the handover waits for. Never hand a
-   finding back as a suggestion, and never park one as an open question to keep
-   the report tidy. What survives unapplied needs a decision only the user can
-   make, and each is named as a decision rather than a leftover.
+   request without the word. Comments follow `skills/writing-style.md`.
+7. **Run the CI locally.** Reproduce every job the diff touches, loop until
+   green before pushing, the formatter and the auto-fixer included: that job
+   fails on their diff whatever the linter itself found. Take the command from
+   the workflow file, never the Makefile or README, read what each script runs,
+   and match it exactly: a `check` target may be formatting only. Report a job
+   that cannot run locally as not run, never as passing, naming the missing
+   dependency and the closest real substitute. A check whose reach the diff
+   changes, a linter now walking new files or a suppression that moved, is
+   proved by breaking what it covers, watching it fire, and restoring it. For a
+   behaviour-preserving refactor of a pure function, ship an equivalence proof
+   over a large input set.
+8. **Loop over the whole diff, green, until a pass adds nothing.** Read it as a
+   reviewer who did not write it, with the *Verification discipline* and
+   severity model of `skills/review.md`, and the harness simplification pass in
+   the same read, `/simplify` here, a simplification on the last round being
+   worth a defect. Apply each, re-run the checks, read again. That empty pass
+   runs unasked and gates the handover. Never hand a finding back as a
+   suggestion, and never park one as an open question to keep the report tidy.
+   What survives unapplied needs a decision only the user can make, and each is
+   named as a decision rather than a leftover. Record what each round caught in
+   the plan where there is one, never silently amend it away.
    `comment_<model>.md` stays the postable artifact, per
    `skills/review-comment.md`.
-8. **Run the CI locally.** Reproduce every job the diff touches, loop until
-   green before pushing. Take the command from the workflow file, never the
-   Makefile or README, read what each script runs, and match it exactly: a
-   `check` target may be formatting only. Report a job that cannot run locally as not run, never as passing,
-   naming the missing dependency and the closest real substitute. When a change
-   makes a linter cover new files, prove it walks them: introduce a violation,
-   see it reported, remove it. When a suppression comment moves, prove it still
-   suppresses: delete it, see the error, restore it. For a behaviour-preserving refactor of a pure function, ship an
-   equivalence proof over a large input set.
-9. **Self-review.** Before pushing, read the final diff as a reviewer who did
-   not write it, with the *Verification discipline* and severity model of
-   `skills/review.md`. Fix what it finds and record it in the plan's Iterations
-   section, never silently amend it away.
-10. **Report** the changed files and what each change does.
-11. **Keep the worktree.** It carries review feedback, rebases and follow-up
+9. **Report** the changed files and what each change does.
+10. **Keep the worktree.** It carries review feedback, rebases and follow-up
     work until the pull request merges.
 
 ## Presenting the change
 
-A fix is presented once every item in its own `plan.md` is done and verified.
+A fix is presented once every item in its own `plan.md` is done and verified,
+or once the loop above closes where there is no plan.
 An item that stayed undone is named, with the decision it needs. The reply
 proposing a pull request carries
 `https://github.com/<upstream>/compare/<base>...<fork-owner>:<repo>:<branch>`

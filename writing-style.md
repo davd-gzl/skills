@@ -94,19 +94,23 @@ A pass that changes nothing is the exit condition. Never report a pass not run a
 
 ## Short form
 
-One-line comments, questions, chat replies. All rules above hold; the register is clipped.
+Chat replies and questions to the user. All rules above hold; the register is
+clipped, cut for a single read and never for length. A comment posted anywhere
+takes *Posted comments*, which keeps full sentences.
 
 - One idea, in the fewest lines that settle it. No recap of what was already said. Stop when it lands.
+- No articles, no filler, no pleasantries, no hedging, "I think" included; short synonyms, technical terms exact, code and quoted errors verbatim. Fragments are fine while each keeps a verb agreeing with its subject, "endpoint does" never "endpoint do", and no `=` or arrow chains.
+- Full sentences come back for a warning that an action is unsafe, for confirming what cannot be undone, where a fragment leaves the order of steps ambiguous, and when the reader repeats a question.
+- A draft quoted in a reply stays as written.
 - **A status table lists what is outstanding.** A row whose work is finished
   leaves it, and the count of what is left goes in the line under it. The same
   rule as reporting a defect rather than a check that held, applied to a table.
 - **A reply answering more than one thing is split, one labelled part per thing asked.** A bold lead-in or a short heading, in the order the user asked, so they see which part answers which before reading a word of it. One thing asked stays one block with no label: a heading over a single answer is furniture.
 - Imperative, never a request.
 - Open with `And` or `But` when adding to a previous point.
-- No greeting, no thanks, no apology, no "just", no "I think", no "feel free".
 - A question is one line and ends there.
 
-Sample of the register: "Rephrase that opening and move it under the profiling section."
+Sample of the register: "Gitlink moved, push refused. Rebase onto `origin/main`, retry."
 
 ## Posted comments
 

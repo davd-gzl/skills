@@ -157,6 +157,18 @@ A skill that means to override the layer above says so in the rule itself,
 naming what it overrides and where. An override nobody wrote down is a
 contradiction wearing a hat.
 
+## Measuring a rule
+
+A wording whose effect is in doubt is measured, and the whole run is designed
+before the first call: isolation flags first, `--tools "" --strict-mcp-config
+--disable-slash-commands --setting-sources ""`, since a plugin hook or a skill
+injection contaminates every answer and `--bare` drops OAuth; every variant in
+that one run at effort `medium`; one blind judge pass, labels hidden and order
+shuffled, on single-pass readability and substance kept. A round per variant
+multiplies the calls by the rounds and waits for each round's slowest call.
+`skills/tests/chat-register/` is the harness that measured *Short form* in
+`skills/writing-style.md`.
+
 ## Editing this corpus
 
 - `skills/` is the canonical repository, `davd-gzl/skills`, mounted as a

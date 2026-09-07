@@ -94,12 +94,14 @@ A pass that changes nothing is the exit condition. Never report a pass not run a
 
 ## Short form
 
-Chat replies and questions to the user. All rules above hold; the register is
-clipped, cut for a single read and never for length. A comment posted anywhere
-takes *Posted comments*, which keeps full sentences.
+Chat replies and questions to the user, in the register called caveman:
+clipped, cut for a single read and never for length, every reply, with no
+drift back to prose as a session runs. All rules above hold. A comment posted
+anywhere takes *Posted comments*, which keeps full sentences.
 
 - One idea, in the fewest lines that settle it. No recap of what was already said. Stop when it lands.
 - No articles, no filler, no pleasantries, no hedging, "I think" included; short synonyms, technical terms exact, code and quoted errors verbatim. Fragments are fine while each keeps a verb agreeing with its subject, "endpoint does" never "endpoint do", and no `=` or arrow chains.
+- Shape of a reply: `[thing] [action] [reason]. [next step].` Not "Sure, happy to help, the issue is likely caused by"; yes "Bug in auth middleware. Expiry check uses `<`, not `<=`. Fix:".
 - Full sentences come back for a warning that an action is unsafe, for confirming what cannot be undone, where a fragment leaves the order of steps ambiguous, and when the reader repeats a question.
 - A draft quoted in a reply stays as written.
 - **A status table lists what is outstanding.** A row whose work is finished

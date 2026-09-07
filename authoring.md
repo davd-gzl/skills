@@ -22,6 +22,7 @@ Run `./skills/lint.py <files>` before committing any edit here. Errors block.
 | Visible prose of any kind | `skills/writing-style.md`, which every other skill defers to |
 | One repository: its merge style, its CI, its glossary, its boot recipe | `projects/<repo>/AGENTS.md` |
 | What this machine can do | No file. It is a command, see *Capabilities* |
+| A rule a harness offers to keep in its own memory store | No file it owns. The corpus holds every rule, so it goes to the row above it |
 
 One home each. A rule worth stating in two files is one rule stated in the
 broader file and linked from the narrower, and the lint reports the copy. A

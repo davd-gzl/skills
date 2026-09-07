@@ -90,6 +90,8 @@ Take the checks in order. Each is a search over the draft, not an impression of 
 8. **Counts and promises**, the three counts above and every edit named in prose rather than shipped as a ` ```suggestion ` block: `./scripts/prose-check.py` names both.
 9. **The cut.** Delete each sentence's last clause. If what remains carries the same fact, the same number and the same stake, keep the shorter one and repeat. Then read each sentence once, left to right, and rewrite any that needs a second pass to parse. Stop at the first cut that removes a fact, a number, or the reason to care: past that the line is being deleted rather than shortened, which is the worse failure. Apply to every sentence.
 
+10. **Gutted sentences.** For every sentence this revision cut a clause from, name what it still asserts. Where the claim lived in the removed words, delete the sentence and write what belongs in its place; keeping the residue leaves a slot filled by a line that states nothing.
+
 A pass that changes nothing is the exit condition. Never report a pass not run as a pass that changed nothing.
 
 ## Short form

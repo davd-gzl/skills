@@ -12,7 +12,7 @@ One block per target, this exact format:
 
 URL: https://github.com/<repo>/pull/<number>
 Author: <author> | Base: <base> | Files: <count> | +<add> -<del>
-Reviewed by: <GitHub username> | Model: <model used> | Commit: <short-sha> (<status>)
+Reviewed by: <GitHub username> | Model: <model used>, effort <tier> | Commit: <short-sha> (<status>)
 Local checkout: `<the command that reproduces this state>`
 Overview: [overview](../overview.md) <— only when the review directory has one>
 
@@ -74,6 +74,8 @@ Overview: [overview](../overview.md) <— only when the review directory has one
 ## Open questions
 <Optional. Thoughts the reviewer should see but not posted: deferred-scope follow-ups, extensions, design musings. One terse line each, ending with why it wasn't posted.>
 ```
+
+The effort tier is `xhigh` unless the session says otherwise, and is never asked for. It is on this line because `scripts/post-review.sh` builds the AI marker from it and refuses a post without it.
 
 
 ## Format rules

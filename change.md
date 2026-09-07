@@ -1,6 +1,6 @@
 ---
 name: change
-description: Use when taking an issue or a review finding to a pull request. Covers the change directory, spec.md and plan.md with their numbered open calls, the worktree, the fix, the CI run and the self-review, and the pull request on the fork.
+description: Use when taking an issue or a review finding to a pull request. Covers the change directory, spec.md and plan.md with their numbered open calls, the worktree, the fix, the CI run, and the pull request on the fork.
 argument-hint: <issue-number|url|description>
 ---
 
@@ -174,7 +174,6 @@ reads `issue.md` and `pr-body.md`, creates what is missing, links the pull
 request to the issue, and writes both URLs into the drafts' `Target:` lines. A
 `Target:` holding a real URL counts as open, so a re-run finishes a partial
 failure. Use `--dry-run` when anything about the drafts is uncertain, and
-commit the updated drafts after. The word carries the change's own notes with
-it: the lines drafted in `self-review.md`, per `skills/review-comment.md`, go
-up in the same action, and a note whose line the branch no longer carries is
-deleted rather than rewritten, with `self-review.md` recording what went.
+commit the updated drafts after. Nothing else goes up with it: the pull request
+carries its body and no note from its own author, per
+`skills/review-comment.md`.

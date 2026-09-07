@@ -43,7 +43,8 @@ Around the review, the rest. [`issue.md`](issue.md) drafts an issue when a
 problem outlives its fix, stating the problem and never the remedy.
 [`change.md`](change.md) takes an issue or a finding to a pull request on my
 fork: the spec and the plan first, numbering every call a human should argue
-with, then the fix in a worktree, the local CI run and the self-review.
+with, then the fix in a worktree, the local CI run and the loop that reads the
+whole diff back.
 [`pr-body.md`](pr-body.md) writes the PR title and body for a reader with no
 context, symptom first, looping until a full pass changes nothing. [`try.md`](try.md) boots a project locally so I can click through the
 change myself, and records it when the claim is visual.

@@ -63,7 +63,7 @@ Full review: <link to the review file in this repo>
 ### General rules
 
 - `Event:` defaults from the verdict: APPROVE → APPROVE, REQUEST CHANGES → REQUEST_CHANGES, NEEDS DISCUSSION and CLOSE → COMMENT. It is a default, not a lock: the user may post a lighter event than the verdict, and then the review file keeps the verdict while the draft records what went out. The `Event:` line carries it; the Body never restates it.
-- An own-PR target is not posted at all. If the user insists, `Event: COMMENT` whatever the verdict: GitHub rejects APPROVE and REQUEST_CHANGES on one's own PR.
+- Never review your own pull request. No review, no inline note, no `self-review.md`: an author annotating their own diff is read as talking to themselves, and what a reader needs from the line belongs in the line's own comment or in the body. What the diff read back turns up goes in the change's `plan.md`. If the user asks for one anyway, `Event: COMMENT`: GitHub rejects APPROVE and REQUEST_CHANGES on one's own pull request.
 - Two defects where fixing one leaves the other are two sections, never one clause. The test is the author's next edit: if applying the first still ships the second, the second has its own anchor.
 - Order findings by what the reader needs first: the one that makes the others legible leads, whatever its band, then Critical, Warning, Missing test, Nit, Suggestion; file order within a band.
 - A finding that needs a third explanation leaves the comment. Mark the section `SKIP` with a line saying why and keep it in the review file.
@@ -91,23 +91,6 @@ Governed by the *Posted comments* section of `skills/writing-style.md`: state th
 - Never post a question. State the position as the reviewer's own, in one line. This covers design and layering calls.
 - A layer named is a symbol named. "on the model", "in the serializer", "at the view" tells the reader where the code is not, never what putting it there would cost. Name the class and the call that makes the claim true, `BaseModel.save()` running `full_clean()` on every write for one, then the consequence in the same sentence.
 - Link the full review inside an inline comment only when the details block is not enough.
-
-### A self-review on your own pull request
-
-Three notes at most, each on a genuinely hard line: an implementation choice a
-reader would contest, or a specificity of this codebase they cannot know. A value
-that reaches the database without passing the check earns one; a style choice
-does not. Two or three sentences each, enough for a reader with no context and no
-more. Past three, a self-review is narrating the diff.
-
-A note repeating the anchored line's own comment is deleted, not reworded.
-That comment sits on screen beside it, so the note says nothing already unread.
-Read every line inside the anchor, docstrings included, against the draft: where
-the code carries the point, the note has no job, and where neither carries it the
-comment takes it, since a future reader meets the line without the pull request.
-
-Draft them in `self-review.md` beside `pr-body.md`, one `## <path>:<line>` section
-each, and post them as one review with `event: COMMENT`.
 
 ### Answering a finding on your own pull request
 

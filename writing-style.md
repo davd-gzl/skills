@@ -9,11 +9,22 @@ Canonical style file for all visible prose, and the file every other skill defer
 
 The goal is one thing: a reader understands the text on a single pass. Every rule below serves that and none outranks it. Brevity is how clarity is usually reached, never what it is for. A cut that saves a word and costs a second read has failed, whatever budget it satisfies. Where a rule and the reader disagree the reader wins, and the rule is the thing that gets fixed.
 
-- **Read what the author already published on this repo, of the kind being drafted.** A review comment takes its shape from their review comments, an issue from their issues: the opening, the length, how a claim gets its link, whether a remedy is proposed and where it sits. Read until the shape repeats, three at the least, and where they have published none, take the shape from what the repo has already accepted and say so in the handover. A rule below that contradicts what they show is the rule that is wrong.
-  ```bash
-  gh api "repos/<repo>/pulls/comments?per_page=100" --jq '[.[]|select(.user.login=="<login>")]|.[0:10][]|.body'
-  gh api "repos/<repo>/issues?state=all&creator=<login>&per_page=10" --jq '.[]|"\(.title)\n\(.body)"'
-  ```
+## Measure first
+
+**Read what the author already published on this repo, of the kind being drafted, before the first drafted sentence.** A review comment takes its shape from their review comments, an issue from their issues, a pull request body from their bodies: the opening, the length, whether a claim carries a link, whether a picture appears at all. Count, never skim: words, headings, links, images. Where they have published none, take the shape from what the repo has already accepted and say so in the handover. A rule below that contradicts what they show is the rule that is wrong.
+
+```bash
+gh api "repos/<repo>/pulls?state=closed&per_page=100&sort=updated&direction=desc" --jq '.[]|select(.merged_at!=null and .user.login=="<login>" and .body!=null)|.body'
+gh api "repos/<repo>/pulls/comments?per_page=100" --jq '[.[]|select(.user.login=="<login>")]|.[0:10][]|.body'
+gh api "repos/<repo>/issues?state=all&creator=<login>&per_page=10" --jq '.[]|"\(.title)\n\(.body)"'
+```
+
+The counts go into `projects/<repo>/AGENTS.md` in the same turn, per
+`skills/authoring.md`, so the next session reads them through the gate instead
+of measuring again.
+
+## The rules
+
 - Lead with the conclusion, in the document and in each finding inside it: the rule in a doc, the verdict in a review, what breaks before the line that breaks it. **An explanation makes it a `TLDR` heading**, two or three lines carrying the whole answer, so a reader who stops there has it and everything below is for checking. That covers a reply explaining code, a mechanism or a change, and an `overview.md`.
 - Pitch to the audience. A user-facing doc states what the reader observes in one or two sentences, then links the deeper doc; internals stay out.
 - Keep it small. The deeper doc has three parts, no more: the rule, one short example, the why in one sentence. No second example, no footnote, no table of cases. Deeper mechanism goes in code comments or the source, linked.
@@ -65,20 +76,19 @@ The goal is one thing: a reader understands the text on a single pass. Every rul
 
 ## Pass
 
-Run this over every drafted artifact as the last step of writing it, against the file and not from memory, per artifact and per revision. Having read this file earlier in the session does not discharge it, and each of the ten steps is a search over the draft. When a draft comes back bloated or wrong, run the step that was skipped before proposing a new rule. Where the artifact's own skill mandates a loop, `skills/pr-body.md` for one, run that loop first and this pass over its result. Report the outcome in the reply: what it changed, or that a full pass changed nothing.
+Run this over every drafted artifact as the last step of writing it, against the file and not from memory, per artifact and per revision. Having read this file earlier in the session does not discharge it. When a draft comes back bloated or wrong, run the step that was skipped before proposing a new rule. Where the artifact's own skill mandates a loop, `skills/pr-body.md` for one, run that loop first and this pass over its result. Report the outcome in the reply: what it changed, or that a full pass changed nothing.
 
 Take the checks in order. Each is a search over the draft, not an impression of it.
 
-1. **Mechanical bans.** Search for the em-dash, `U+2014`, and for `(`. Every hit is a rewrite: a colon, a period or a comma for the first, a reworked sentence for the second.
+1. **Mechanical bans**, the em-dash and the parenthesis: `./scripts/prose-check.py` and `./skills/lint.py` name every hit.
 2. **Verification padding.** For every claim that something passes, open the workflow file and find the job that already runs it. Delete the claim if the job exists. What survives names the reason the job cannot reach it.
 3. **Unlinked names.** List every file, symbol, package, PR, issue and project named in the draft. The first appearance of each carries a link. A link into code carries `#L37` or `#L35-L42` on a `blob` URL and points at the line the claim is about, never the definition; read the range back and confirm the claim is on it. `skills/review.md` fixes the ref: the branch under review, with a sha only in the two exceptions it names.
-4. **Unproved claims.** List every sentence asserting a fact about the code, a default, a type, a bound, a count, a call site, and confirm the words stating it carry a link to the line that shows it. Two facts in one sentence need two. Then list every sentence asserting what a browser, an operating system, a runtime, a device or a third-party library does. Each carries a link to the documentation that states it, or the run that produced it, or the words naming it unmeasured. One with none of the three is deleted, never softened, and the sentences around it are re-read: a claim that cannot be sourced is often load-bearing for the one beside it.
+4. **Unproved claims.** List every sentence asserting a fact about the code, a default, a type, a bound, a count, a call site, and confirm the words stating it carry a link to the line that shows it. Two facts in one sentence need two. A claim about a browser, a runtime or a third-party library carries the run, the documentation, or the words naming it unmeasured; one with none of the three is deleted, never softened.
 5. **Sign-posting.** Search for "see below", "as mentioned", "the section above", and any sentence whose only job is to carry a link. Restructure so the content sits where the reader needs it.
 6. **Budget.** Count the words against the shape's own budget. Past it, cut; never restructure.
 7. **Bare adjectives.** Search for "sound", "correct", "safe", "fine", "nothing broken", and for every adjective of degree, "large", "slow", "many", "old". Replace each with the number, or with the check that was run and what it showed, or delete it.
-8. **Counts.** Per sentence: words before the main verb, over five; subordinate clauses after it, over one; two verbs before the first comma with the first arriving fourth or later. A participle in the subject is not a clause; a finite one is.
-9. **Promises.** Every edit named in prose is one the author has to retype. Move it into a ` ```suggestion ` block or cut it, and never ship one that was not run.
-10. **The cut.** Delete each sentence's last clause. If what remains carries the same fact, the same number and the same stake, keep the shorter one and repeat. Then read each sentence once, left to right, and rewrite any that needs a second pass to parse. Stop at the first cut that removes a fact, a number, or the reason to care: past that the line is being deleted rather than shortened, which is the worse failure. Apply to every sentence.
+8. **Counts and promises**, the three counts above and every edit named in prose rather than shipped as a ` ```suggestion ` block: `./scripts/prose-check.py` names both.
+9. **The cut.** Delete each sentence's last clause. If what remains carries the same fact, the same number and the same stake, keep the shorter one and repeat. Then read each sentence once, left to right, and rewrite any that needs a second pass to parse. Stop at the first cut that removes a fact, a number, or the reason to care: past that the line is being deleted rather than shortened, which is the worse failure. Apply to every sentence.
 
 A pass that changes nothing is the exit condition. Never report a pass not run as a pass that changed nothing.
 

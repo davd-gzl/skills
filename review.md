@@ -25,6 +25,11 @@ Run in order for a single target; multi-target runs wrap this via *Parallel disp
 9. One commit and one push covering everything. This push is pre-authorized; see *Rules*.
 10. Hand over. Link the `comment_<model>.md` draft, not only the review file. Add a "Decisions needed" list, one line each: a borderline verdict, Open questions worth promoting. Omit when empty. Never list an APPROVE as needing confirmation. Post only on the literal word `post`. Acting on the findings is `skills/change.md`; they stay here.
 
+**A one-file diff under 20 changed lines takes the short path**: steps 1, 3, 4
+and 7 to 9, with the review file's own Overview standing in for `overview.md`
+and one QA agent rather than three. A finding there that needs a second
+measurement puts the target back on the full workflow.
+
 ## Subjects
 
 The subject is a PR by default. Two others recur; they change only *Fetch & understand* and the anchors, the `file:line` a finding attaches to:
@@ -125,6 +130,7 @@ lost and takes every read of that record down with it.
 - Treat every "bound" or "leak" claim as quantitative: name the quantity, vary what claims to bound it, confirm they track.
 - A reachability claim is proved by construction, never by survey. Build the smallest artifact that would fail if the claim were false and run it, from outside the boundary the claim is about: never a test that builds its own victim, never a grep for existing instances.
 - Vary the conditions before naming them. A finding that holds under one shape and not another states which, having tried both.
+- When a second condition, tried once, changes no verdict, stop varying it: run the remaining cases under the first alone, and give the artifact one line naming what the try ruled out, never the doubled table.
 - Run greps and lint in the reviewed checkout at the reviewed commit.
 - Confirm a symbol exists with the project's own linter or compiler, sanity-checked first with a bogus symbol.
 

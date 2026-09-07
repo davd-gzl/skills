@@ -17,7 +17,7 @@ Run `./skills/lint.py <files>` before committing any edit here. Errors block.
 | The rule is about | It lives in |
 | --- | --- |
 | An action that cannot be taken back: a publish, a push, a delete, a rewrite | The Invariants section of the workspace `AGENTS.md` |
-| How the agent talks to the user, and what waits for a word | The workspace `AGENTS.md` |
+| What waits for a word, and which repo a push may reach | The workspace `AGENTS.md` |
 | One task, whatever the repository: reviewing, drafting a body, filing an issue | The matching `skills/<task>.md` |
 | Visible prose of any kind | `skills/writing-style.md`, which every other skill defers to |
 | One repository: its merge style, its CI, its glossary, its boot recipe | `projects/<repo>/AGENTS.md` |

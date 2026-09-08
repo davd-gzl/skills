@@ -4,11 +4,11 @@
 # Checks rule files against the contract in authoring.md.
 #
 #   ./skills/lint.py AGENTS.md skills/*.md
-#   ./skills/lint.py --quiet <files>     errors only, no health table
+#   ./skills/lint.py --quiet <files>     findings only, no health table
 #
-# Errors block a commit. Warnings are the health table: they measure drift the
-# corpus recovers from over several turns, and a warning answered by raising its
-# threshold is the pollution this file exists to catch.
+# Nothing here blocks. Every finding is a warning: a rough rule lands, and a
+# later pass fixes it. A warning answered by raising its threshold is the
+# pollution this file exists to catch.
 
 import os
 import re
@@ -16,19 +16,9 @@ import statistics
 import sys
 from collections import defaultdict
 
-# Words. Raising a cap is a decision to hold more rules in every context window,
-# never the fix for a file that outgrew it: fold two rules or evict one instead.
-CAPS = {
-    'AGENTS.md': 2000,                  # workspace root, loaded on every turn
-    'skills/review.md': 5000,           # the longest workflow, and the one to keep cutting
-    'skills/review-comment.md': 3750,  # the deliverable; every other review file defers to it
-    'skills/writing-style.md': 3800,  # every other file defers to it on a conflict
-}
-CAP_BY_CLASS = {'skill': 1600, 'project': 12000, 'default': 2000}
-
-# A project file is a log: it earns its size by holding more measured rules, so
-# a word cap flags growth that is the point. What catches bloat in a log is the
-# size of each rule. Measured across this corpus, a skill runs 23 to 38 words per
+# A file has no word cap: a rule leaves for a reason, never for the count, and
+# the word count is printed so growth is seen. What catches bloat is the size of
+# each rule. Measured across this corpus, a skill runs 23 to 38 words per
 # rule and a small delta the same; only the three largest deltas sit at 48 to 60.
 DENSITY_CAP = 75
 
@@ -77,15 +67,6 @@ def classify(path):
     if '/skills/' in path or path.startswith('skills/'):
         return 'skill'
     return 'default'
-
-
-def cap_for(path):
-    for key, cap in CAPS.items():
-        # A bare filename matches only at the root. Without this every
-        # projects/<repo>/AGENTS.md inherits the root file's larger cap.
-        if path == key or ('/' in key and path.endswith('/' + key)):
-            return cap
-    return CAP_BY_CLASS[classify(path)]
 
 
 def prose_lines(text):
@@ -221,11 +202,6 @@ def check_file(path, corpus=None, heading_index=None):
 
     findings += check_refs(path, text, corpus or {}, heading_index or {})
 
-    cap = cap_for(path)
-    if words > cap:
-        level = 'error' if words > cap * 1.15 else 'warn'
-        findings.append((level, 0, 'budget', f'{words} words over the {cap} cap'))
-
     # CLAUDE.md exists so Claude Code finds the rules at all; it holds a pointer
     # and nothing else. Rules inside it are invisible to every other reader.
     if os.path.basename(path) == 'CLAUDE.md' and words > 60:
@@ -241,7 +217,7 @@ def check_file(path, corpus=None, heading_index=None):
                          'cut the clause naming the session, not the rule'))
 
     health = {
-        'words': words, 'cap': cap,
+        'words': words,
         'negation': round(negations * 100 / max(words, 1), 1),
         # Under eight bullets the share says nothing, so it is not reported.
         'bold': round(bold * 100 / len(bullets)) if len(bullets) >= 8 else '-',
@@ -278,15 +254,15 @@ def main(argv):
         heading_index[path] = {h.strip().lower()
                                for h in re.findall(r'^#+\s+(.+)$', headings, re.M)}
 
-    errors = 0
+    found = 0
     health_rows, corpus = [], defaultdict(list)
     for path in paths:
         findings, health, seen = check_file(path, corpus, heading_index)
         for key, nums in seen.items():
             corpus[key].append((path, nums[0]))
         for level, line, code, message in sorted(findings, key=lambda f: (f[1], f[2])):
-            mark = 'ERROR' if level == 'error' else 'warn '
-            errors += level == 'error'
+            mark = 'warn '
+            found += 1
             print(f'{mark} {path}:{line} [{code}] {message}')
         if health:
             health_rows.append((path, health))
@@ -297,18 +273,17 @@ def main(argv):
         print(f'warn  [dupe] one rule in {len(places)} files: {where}\n      "{key[:90]}"')
 
     if not quiet and health_rows:
-        print(f'\n{"file":<34}{"words":>7}{"cap":>7}{"rules":>7}{"w/rule":>8}{"neg":>6}{"bold%":>7}')
+        print(f'\n{"file":<34}{"words":>7}{"rules":>7}{"w/rule":>8}{"neg":>6}{"bold%":>7}')
         for path, h in health_rows:
-            flag = '  <-- over' if h['words'] > h['cap'] else ''
-            print(f'{path:<34}{h["words"]:>7}{h["cap"]:>7}{h["rules"]:>7}'
-                  f'{str(h["density"]):>8}{h["negation"]:>6}{str(h["bold"]):>7}{flag}')
+            print(f'{path:<34}{h["words"]:>7}{h["rules"]:>7}'
+                  f'{str(h["density"]):>8}{h["negation"]:>6}{str(h["bold"]):>7}')
         total = sum(h['words'] for _, h in health_rows)
         print(f'{"total":<34}{total:>7}')
         print('\nw/rule over 75 is a flabby rule, neg over 4.0 and bold% over 40 a file '
               'that has stopped ranking its own.')
 
-    print(f'\n{errors} error(s)' if errors else '\nno errors')
-    return 1 if errors else 0
+    print(f'\n{found} warning(s), nothing blocks' if found else '\nnothing to report')
+    return 0
 
 
 if __name__ == '__main__':

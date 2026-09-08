@@ -10,7 +10,8 @@ by a model with a finite budget for it. A file that holds every rule ever
 written enforces none of them reliably: the reader samples. So a rule earns its
 place against the rules already there, and adding one is a trade.
 
-Run `./skills/lint.py <files>` before committing any edit here. Errors block.
+Run `./skills/lint.py <files>` before committing any edit here. It warns and
+never blocks: a rough rule lands, and a later pass fixes it.
 
 ## Where it goes
 
@@ -139,19 +140,15 @@ A rule leaves when any of these holds:
   believing it: `git grep` the name.
 - It restates what the tool already refuses to do.
 
-A file over its cap splits: a section moves whole to a sibling file the index
-points at. A rule leaves only for the reasons above, never for the count, since
-a cut for length cannot tell the fact from the filler. Raising a cap in
-`skills/lint.py` is made in its own commit, alone, with the reason in the
-message.
+A file splits on its trigger, never on its size. A section that fires at a
+different moment from the rest of its file, a reply beside repository rules,
+booting beside reviewing, is its own file, read when that moment comes and
+named in the index. A rule leaves only for the reasons above, never for the
+count, since a cut for length cannot tell the fact from the filler.
 
-Two metrics, because a rule file and a measurement log fail differently. A rule
-file is capped on words: every rule in it loads on every turn its task runs, so
-growth is the cost. A `projects/` file is a log that earns its size by holding
-more measured rules, so it is capped on the size of each rule instead. Measured
-across this corpus, a skill and a small delta both run 23 to 38 words per rule;
-past 75 the rule is carrying the session that found it rather than the fact. Cut
-that clause, never the measurement.
+`skills/lint.py` prints every file's word count and its median words per rule,
+and neither is a cap. Past 75 words a rule is carrying the session that found it
+rather than the fact: cut that clause, never the measurement.
 
 ## Contradictions
 

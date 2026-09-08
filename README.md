@@ -90,8 +90,8 @@ closing block. The session start hook puts it in context.
 Rules cost attention on every turn that loads them, so the set only shrinks on
 purpose. [`authoring.md`](authoring.md) says where a rule goes, what shape it
 takes, and what a new one displaces. [`lint.py`](lint.py) enforces the part a
-script can: word budgets, the rank the bold marks, negation density, dates and
-shas inside rules, and the clause that tells a reader to stop measuring an
+script can: the rank the bold marks, negation density, dates and shas inside
+rules, and the clause that tells a reader to stop measuring an
 environment that has since changed.
 
 ```bash

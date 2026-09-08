@@ -222,11 +222,11 @@ class ReadRecord(GateCase):
 class Check(GateCase):
     PATH = 'projects/meet/changes/x/pr-body.md'
 
-    def test_refuses_with_the_command_to_run(self):
+    def test_names_the_reads_to_run_and_lets_it_through(self):
         err = io.StringIO()
         with redirect_stderr(err):
             rc = gate.main(['check', self.PATH])
-        self.assertEqual(rc, 2)
+        self.assertEqual(rc, 0)
         self.assertEqual(err.getvalue().splitlines(), [
             f'Run ./scripts/skill meet before writing {self.PATH}',
             f'Run ./scripts/skill pr-body before writing {self.PATH}',
@@ -242,7 +242,7 @@ class Check(GateCase):
         err = io.StringIO()
         with redirect_stderr(err):
             rc = gate.main(['check', 'git'])
-        self.assertEqual(rc, 2)
+        self.assertEqual(rc, 0)
         self.assertEqual(err.getvalue().splitlines(), [
             'Run ./scripts/skill git before a commit or push',
             'Run ./scripts/skill workspace before a commit or push'])
@@ -360,37 +360,41 @@ class BashTargets(unittest.TestCase):
 
 
 class ClaudeHook(GateCase):
-    def test_a_malformed_payload_blocks(self):
+    def test_a_malformed_payload_warns_and_lets_it_through(self):
         err = io.StringIO()
         with redirect_stderr(err):
             rc = gate.main(['hook-claude'], stdin=io.StringIO('not json'))
-        self.assertEqual(rc, 2)
+        self.assertEqual(rc, 0)
         self.assertIn('skill-gate', err.getvalue())
 
     def run_hook(self, payload):
-        err = io.StringIO()
-        with redirect_stderr(err):
-            rc = gate.main(['hook-claude'], stdin=io.StringIO(json.dumps(payload)))
-        return rc, err.getvalue()
+        err, out = io.StringIO(), io.StringIO()
+        with redirect_stderr(err), redirect_stdout(out):
+            rc = gate.main(['hook-claude'], stdin=io.StringIO(json.dumps(payload)), stdout=out)
+        text = out.getvalue()
+        return rc, json.loads(text)['hookSpecificOutput']['additionalContext'] if text else ''
 
-    def test_write_of_an_unread_artifact_is_refused(self):
-        rc, err = self.run_hook({'tool_name': 'Write', 'tool_input': {
+    def test_write_of_an_unread_artifact_injects_its_skills(self):
+        rc, context = self.run_hook({'tool_name': 'Write', 'tool_input': {
             'file_path': str(self.root / 'projects/meet/changes/x/spec.md')}})
-        self.assertEqual(rc, 2)
-        self.assertIn('Run ./scripts/skill change', err)
+        self.assertEqual(rc, 0)
+        for piece in ('# change', '# writing-style', '# meet', 'the write goes ahead'):
+            self.assertIn(piece, context)
+        for name in ('change', 'writing-style', 'meet'):
+            self.assertTrue(gate.is_read(name), name)
 
     def test_edit_after_the_reads_passes(self):
         for name in ('meet', 'change', 'writing-style'):
             gate.record_read(name)
-        rc, _ = self.run_hook({'tool_name': 'Edit', 'tool_input': {
+        rc, context = self.run_hook({'tool_name': 'Edit', 'tool_input': {
             'file_path': str(self.root / 'projects/meet/changes/x/spec.md')}})
-        self.assertEqual(rc, 0)
+        self.assertEqual((rc, context), (0, ''))
 
     def test_bash_write_is_parsed(self):
-        rc, err = self.run_hook({'tool_name': 'Bash', 'tool_input': {
+        rc, context = self.run_hook({'tool_name': 'Bash', 'tool_input': {
             'command': 'cat > projects/meet/reviews/x/1-a/issue.md <<EOF\nx\nEOF'}})
-        self.assertEqual(rc, 2)
-        self.assertIn('Run ./scripts/skill issue', err)
+        self.assertEqual(rc, 0)
+        self.assertIn('# issue', context)
 
     def test_other_tools_pass(self):
         rc, _ = self.run_hook({'tool_name': 'Read', 'tool_input': {'file_path': 'x'}})
@@ -406,12 +410,12 @@ class PreCommit(GateCase):
         err = io.StringIO()
         with redirect_stderr(err):
             rc = gate.main(['pre-commit'], cwd=str(repo))
-        self.assertEqual(rc, 2)
+        self.assertEqual(rc, 0)
         self.assertIn('Run ./scripts/skill git before a commit or push', err.getvalue())
         self.assertIn('Run ./scripts/skill workspace before a commit or push', err.getvalue())
 
 
-    def test_staged_mapped_path_is_refused_until_read(self):
+    def test_staged_mapped_path_is_named_until_read(self):
         repo = self.root
         subprocess.run(['git', 'init', '-q', str(repo)], check=True)
         target = repo / 'projects/meet/changes/x/plan.md'
@@ -421,7 +425,7 @@ class PreCommit(GateCase):
         err = io.StringIO()
         with redirect_stderr(err):
             rc = gate.main(['pre-commit'], cwd=str(repo))
-        self.assertEqual(rc, 2)
+        self.assertEqual(rc, 0)
         self.assertIn('Run ./scripts/skill change', err.getvalue())
         for name in ('meet', 'change', 'writing-style', 'git', 'workspace'):
             gate.record_read(name)
@@ -444,7 +448,7 @@ class PrePush(GateCase):
         err = io.StringIO()
         with redirect_stderr(err):
             rc = gate.main(['pre-push'], stdin=io.StringIO(line), cwd=str(repo))
-        self.assertEqual(rc, 2)
+        self.assertEqual(rc, 0)
         self.assertIn('Run ./scripts/skill change before writing projects/meet/changes/x/plan.md', err.getvalue())
         for name in ('meet', 'change', 'writing-style'):
             gate.record_read(name)

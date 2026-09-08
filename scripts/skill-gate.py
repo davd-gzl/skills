@@ -3,17 +3,19 @@
 
 NOT AUDITED — AI-generated tooling. Review before executing in any privileged context.
 
-A mapped artifact is written only after the skill governing it was read in this
-session through `./scripts/skill <name>`, which prints the file and records the
-read. Any other way of reading records nothing.
+A mapped artifact's skill is in context before the artifact is written: the
+hooks put it there, and `./scripts/skill <name>` prints and records any other.
+A write, commit or push that comes first gets the missing skill put in context
+with a warning. Nothing here blocks: a rough draft lands, a later pass fixes it.
 
   ./scripts/skill-gate.py read <name>       print skills/<name>.md, projects/<name>/AGENTS.md or <name>.md, record it
-  ./scripts/skill-gate.py check <path>...   exit 2 naming each missing read; `git` stands for a commit or push,
+  ./scripts/skill-gate.py check <path>...   name each missing read on stderr; `git` stands for a commit or push,
                                             which needs skills/git.md and workspace.md
   ./scripts/skill-gate.py pre-commit        check the paths staged in the repo at cwd, plus `git`
   ./scripts/skill-gate.py pre-push          check every path the pushed commits touch, plus `git`; git's
                                             pre-push lines on stdin
-  ./scripts/skill-gate.py hook-claude       Claude Code PreToolUse adapter, hook JSON on stdin
+  ./scripts/skill-gate.py hook-claude       Claude Code PreToolUse adapter, hook JSON on stdin: the missing
+                                            skills whole in the context, recorded, and the write goes ahead
   ./scripts/skill-gate.py session-start     Claude Code SessionStart adapter, hook JSON on stdin: runs
                                             scripts/sync.sh on a new session, puts writing-style, reply, git and
                                             workspace whole in the context and records them; after a
@@ -387,9 +389,10 @@ def check(paths, base=None):
 
 
 def report(messages):
+    """Warn on stderr and let the action through."""
     for line in messages:
         print(line, file=sys.stderr)
-    return 2 if messages else 0
+    return 0
 
 
 def cmd_read(name, stdout):
@@ -573,7 +576,8 @@ def cmd_prompt(stdin, stdout):
     return 0
 
 
-def cmd_hook_claude(stdin):
+def cmd_hook_claude(stdin, stdout):
+    """The skills a write still lacks go into the context whole, and the write proceeds."""
     payload = json.load(stdin)
     tool = payload.get('tool_name', '')
     inp = payload.get('tool_input', {}) or {}
@@ -584,7 +588,13 @@ def cmd_hook_claude(stdin):
         paths = sorted(bash_targets(inp.get('command', '')))
     else:
         return 0
-    return report(check(paths, base))
+    names = []
+    for p in paths:
+        wanted = [n for n in COMMIT_READS if not is_read(n)] if p == 'git' else missing_reads(p, base)
+        names += [n for n in wanted if n not in names]
+    inject(names, 'Rules this write calls for, in context now and recorded for this session; the write goes ahead.',
+           'PreToolUse', stdout)
+    return 0
 
 
 def main(argv, stdin=None, stdout=None, cwd=None):
@@ -602,14 +612,14 @@ def main(argv, stdin=None, stdout=None, cwd=None):
         if op == 'pre-push':
             return cmd_pre_push(stdin or sys.stdin, cwd or os.getcwd())
         if op == 'hook-claude':
-            return cmd_hook_claude(stdin or sys.stdin)
+            return cmd_hook_claude(stdin or sys.stdin, stdout or sys.stdout)
         if op == 'session-start':
             return cmd_session_start(stdin or sys.stdin, stdout or sys.stdout)
         if op == 'prompt':
             return cmd_prompt(stdin or sys.stdin, stdout or sys.stdout)
-    except Exception as e:  # a gate that cannot decide refuses; a context hook that cannot decide stays quiet
+    except Exception as e:  # a hook that cannot decide says so and never blocks
         print(f'skill-gate: {e}', file=sys.stderr)
-        return 0 if op in ('session-start', 'prompt') else 2
+        return 0
     print(f'unknown command: {" ".join(argv)}', file=sys.stderr)
     return 2
 

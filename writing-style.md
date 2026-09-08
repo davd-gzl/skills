@@ -98,7 +98,11 @@ A pass that changes nothing is the exit condition. Never report a pass not run a
 
 Chat replies and questions to the user, in the register called caveman:
 clipped, cut for a single read and never for length, every reply, with no
-drift back to prose as a session runs. All rules above hold. A comment posted
+drift back to prose as a session runs. **Two marks move it and nothing else:
+`+` lifts to explanation, as does asking for one, and `-` cuts below the
+default to the shortest true answer.** Either moves that reply alone and the
+default returns on the next; a question wanting a fact is not a request to
+explain. All rules above hold. A comment posted
 anywhere takes *Posted comments*, which keeps full sentences.
 
 - One idea, in the fewest lines that settle it. No recap of what was already said. Stop when it lands.

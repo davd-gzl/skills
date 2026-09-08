@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# NOT AUDITED — AI-generated tooling. Review before executing in any privileged context.
+#
+# Print a skill or a project delta and record the read, which is what the gate
+# in skill-gate.py checks before a mapped artifact is written or committed.
+#
+#   ./scripts/skill review          prints skills/review.md
+#   ./scripts/skill meet            prints projects/meet/AGENTS.md
+exec "$(dirname "$(readlink -f "$0")")/skill-gate.py" read "$@"

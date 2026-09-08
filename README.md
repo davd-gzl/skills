@@ -65,6 +65,23 @@ that cannot be said simply is not understood yet. Depth is never lost, it just
 lives in the review file; the comment carries only what changes what the author
 does next.
 
+## The read gate
+
+[`scripts/skill-gate.py`](scripts/skill-gate.py) is what makes "read the skill
+first" hold without anyone remembering it. It records every read made through
+`scripts/skill <name>`, refuses a write or a commit of an artifact whose skill
+this session has not read, and puts the rules in the context itself: the three
+every session needs as it opens, the task's and the repository's on the prompt
+that names them, everything again after a compaction. A workspace mounts this
+repository at `skills/` and wires it in its harness settings and its git config;
+[`scripts/git-hooks/`](scripts/git-hooks/) holds the commit and push hooks.
+
+```bash
+git config core.hooksPath skills/scripts/git-hooks
+git -C skills config core.hooksPath scripts/git-hooks
+python3 -m unittest discover -s skills/scripts/tests
+```
+
 ## Keeping this corpus honest
 
 Rules cost attention on every turn that loads them, so the set only shrinks on

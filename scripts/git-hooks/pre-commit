@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# NOT AUDITED — AI-generated tooling. Review before executing in any privileged context.
+#
+# Refuse a commit carrying a mapped artifact whose governing skill was not read
+# this session. Installed once per clone, in the workspace and in skills/:
+#
+#   git config core.hooksPath scripts/git-hooks
+#   git -C skills config core.hooksPath ../scripts/git-hooks
+exec "$(dirname "$(readlink -f "$0")")/../skill-gate.py" pre-commit

@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# NOT AUDITED — AI-generated tooling. Review before executing in any privileged context.
+#
+# Refuse a push carrying a mapped artifact whose governing skill was not read
+# this session, whatever made the commit: merge, rebase, cherry-pick, --no-verify.
+exec "$(dirname "$(readlink -f "$0")")/../skill-gate.py" pre-push

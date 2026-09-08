@@ -55,6 +55,12 @@ produced it, the sha it was found on, the date, what was tried first. That
 record is the artifact's, a `plan.md`, a review file, a commit message, and the
 lint rejects a date or a bare sha in a rule line.
 
+**Cut the draft before committing it.** A rule arrives carrying the round that
+produced it, because that is what the writer has in mind. Read it back and
+delete every sentence that is not the trigger, the action or the tell: what it
+cost, what was tried first, how many attempts. That half goes in the commit
+message, which is where the next reader looks for it.
+
 **Write what a measurement means, and the command, never the reading.** A count,
 a duration or a version frozen into a rule is right on the day it is taken and
 wrong afterwards, while the reader trusts it because it is specific. Keep the

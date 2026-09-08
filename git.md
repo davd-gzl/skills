@@ -58,14 +58,11 @@ Stage the paths the turn touched, never the whole tree, and read
 
 ## Where a push goes
 
-**A pull request's branch lives in its head repository, which is a fork whenever
-`isCrossRepository` is true.** Read it before the push, never infer it from the
-URL the pull request is browsed at:
-`gh pr view <n> -R <upstream> --json headRepositoryOwner,headRefName,isCrossRepository`.
-A 403 on a pull request branch is a wrong destination before it is a missing
-permission, and reporting it as permission sends the user to ask for access they
-already have somewhere else. Check the head owner, then `gh api
-repos/<owner>/<repo> --jq .permissions`, and only then say a push cannot happen.
+**A pull request's branch lives in its head repository, a fork whenever
+`isCrossRepository` is true.** Read
+`gh pr view <n> -R <upstream> --json headRepositoryOwner,isCrossRepository`
+before the push, never the URL it is browsed at. A 403 there is the wrong
+destination before it is a missing permission.
 
 1. The token can write it and the repo is the user's: straight to the default
    branch, no feature branch, no `gh pr create`.

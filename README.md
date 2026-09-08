@@ -82,6 +82,9 @@ git -C skills config core.hooksPath scripts/git-hooks
 python3 -m unittest discover -s skills/scripts/tests
 ```
 
+[`reply.md`](reply.md) is how a reply to me reads: the register, the links, the
+closing block. The session start hook puts it in context.
+
 ## Keeping this corpus honest
 
 Rules cost attention on every turn that loads them, so the set only shrinks on

@@ -20,6 +20,7 @@ Run `./skills/lint.py <files>` before committing any edit here. Errors block.
 | What waits for a word, and which repo a push may reach | The workspace `AGENTS.md` |
 | One task, whatever the repository: reviewing, drafting a body, filing an issue | The matching `skills/<task>.md` |
 | Visible prose of any kind | `skills/writing-style.md`, which every other skill defers to |
+| How a reply to the user reads: the register, its links, its closing block | `skills/reply.md` |
 | One repository: its merge style, its CI, its glossary, its boot recipe | `projects/<repo>/AGENTS.md` |
 | What this machine can do | No file. It is a command, see *Capabilities* |
 | A rule a harness offers to keep in its own memory store | No file it owns. The corpus holds every rule, so it goes to the row above it |
@@ -59,7 +60,8 @@ lint rejects a date or a bare sha in a rule line.
 produced it, because that is what the writer has in mind. Read it back and
 delete every sentence that is not the trigger, the action or the tell: what it
 cost, what was tried first, how many attempts. That half goes in the commit
-message, which is where the next reader looks for it.
+message, which is where the next reader looks for it. A rule is cut once, here,
+at the length it keeps; nothing later cuts it for length.
 
 **Write what a measurement means, and the command, never the reading.** A count,
 a duration or a version frozen into a rule is right on the day it is taken and
@@ -134,10 +136,11 @@ A rule leaves when any of these holds:
   believing it: `git grep` the name.
 - It restates what the tool already refuses to do.
 
-Where a file is over its cap, the fix is folding and eviction, never a higher
-cap. Raising a cap in `skills/lint.py` is a deliberate decision to carry more
-rules in every context window, and it is made in its own commit, alone, with the
-reason in the message.
+A file over its cap splits: a section moves whole to a sibling file the index
+points at. A rule leaves only for the reasons above, never for the count, since
+a cut for length cannot tell the fact from the filler. Raising a cap in
+`skills/lint.py` is made in its own commit, alone, with the reason in the
+message.
 
 Two metrics, because a rule file and a measurement log fail differently. A rule
 file is capped on words: every rule in it loads on every turn its task runs, so

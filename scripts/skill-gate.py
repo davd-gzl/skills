@@ -15,7 +15,7 @@ read. Any other way of reading records nothing.
                                             pre-push lines on stdin
   ./scripts/skill-gate.py hook-claude       Claude Code PreToolUse adapter, hook JSON on stdin
   ./scripts/skill-gate.py session-start     Claude Code SessionStart adapter, hook JSON on stdin: runs
-                                            scripts/sync.sh on a new session, puts writing-style, git and
+                                            scripts/sync.sh on a new session, puts writing-style, reply, git and
                                             workspace whole in the context and records them; after a
                                             compaction or a resume, everything this session had read
   ./scripts/skill-gate.py prompt            Claude Code UserPromptSubmit adapter: the skills the prompt's
@@ -453,7 +453,7 @@ def cmd_pre_push(stdin, cwd):
     return report(check(['git', *sorted(relative(top / p) or str(top / p) for p in paths)]))
 
 
-ALWAYS = ['writing-style', 'git', 'workspace']
+ALWAYS = ['writing-style', 'reply', 'git', 'workspace']
 
 # Prompt words to the skills they call for. Over-matching is the design: a read
 # costs context once per session, a missed rule costs the user a turn.
@@ -545,7 +545,7 @@ def inject(names, header, event, stdout, extra=()):
 
 
 def cmd_session_start(stdin, stdout):
-    """Sync on startup and clear; the always-read three every time, plus everything already read after a compaction or resume."""
+    """Sync on startup and clear; the always-read four every time, plus everything already read after a compaction or resume."""
     source = _payload(stdin).get('source', 'startup')
     extra = []
     if source in ('startup', 'clear'):

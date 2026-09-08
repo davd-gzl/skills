@@ -30,6 +30,7 @@ A batch target set, "review all": every open non-draft target absent from the re
 - Sync the workspace before reading the review directory, and state the synced head when confirming the set. When it cannot be synced, derive the set read-only from the remote tree, `git ls-tree -r --name-only <remote>/<branch> -- <reviews-path>`, never from the working tree.
 - Write the scope down before dispatch, in a status file beside the reviews: the confirmed set as a table, one row per target with its head sha and review directory, the dropped targets grouped by reason, and the steps to resume. Update it as results come back and commit it with the batch.
 - A reviewer-authored target is named as available on request. A self-review runs only when the user asks for that one target by number, never as batch scope.
+- An external contributor's target leaves the set. It is reviewed only when the user names it.
 - When the run also covers already-reviewed targets whose head advanced, keep only the heads whose content changed: compare patch-ids per *Re-review rounds* in `skills/review.md`, drop every base-only move, and drop every target the reviewer already approved on the forge.
 
 ### Deep mode (multi-angle, single target)

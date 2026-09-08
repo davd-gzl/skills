@@ -123,7 +123,8 @@ gh repo fork <owner>/<repo> --remote-only --remote-name fork
    sentence, where the maintainer can ask for it, never to a second issue,
    which puts a tracker item in front of maintainers who did not ask for one. A
    finding whose absence makes the feature not work is never in this class.
-6. **Implement** inside the worktree. Never commit, push, or open a pull
+6. **Implement** inside the worktree. A defect met on the way is fixed in the
+   same worktree and named in the body. Never commit, push, or open a pull
    request without the word. Comments follow `skills/writing-style.md`.
 7. **Run the CI locally.** Reproduce every job the diff touches, loop until
    green before pushing, the formatter and the auto-fixer included: that job

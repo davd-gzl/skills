@@ -63,6 +63,13 @@ cost, what was tried first, how many attempts. That half goes in the commit
 message, which is where the next reader looks for it. A rule is cut once, here,
 at the length it keeps; nothing later cuts it for length.
 
+**Read a new rule against the mistake that earned it, and keep it only if it
+forbids what you did.** A rule drafted in the turn it was earned comes out
+shaped to excuse that turn: the escape clause, `may`, `where justified`, `unless
+the context differs`, arrives because the writer needs the last hour to have
+been defensible, and it licenses the next reader instead of constraining them.
+Write the one that would have stopped it.
+
 **Write what a measurement means, and the command, never the reading.** A count,
 a duration or a version frozen into a rule is right on the day it is taken and
 wrong afterwards, while the reader trusts it because it is specific. Keep the
@@ -77,16 +84,12 @@ read by someone who has not seen the incident behind it.
 
 ## Capabilities
 
-What the machine can do is measured, never written down. `./scripts/env-check.sh`
-prints it: privileges, containers, capture, the shell, the authenticated
-account. A rule needing one of those facts names the command and lets the reader
-read the answer.
-
-A capability recorded as absent stays recorded after the box gains it, and the
-next session answers from the file instead of the machine. That is worse than
-having no rule: the reader stops checking and states the stale answer with
-confidence. The lint blocks the clause that causes it, `stop re-deriving` and its
-neighbours, and warns wherever a capability is named with no command beside it.
+What the machine can do is measured, never written down: `./scripts/env-check.sh`,
+per *Capabilities* in `workspace.md`, which carries why a recorded capability goes
+stale. A rule needing one of those facts names the command and lets the reader
+read the answer. The lint blocks the clause that records one instead, `stop
+re-deriving` and its neighbours, and warns wherever a capability is named with no
+command beside it.
 
 What does get written down is what a command cannot show: which recipe worked,
 what a failure looked like, the fixture a manual test needs. Those go in
@@ -167,17 +170,8 @@ A skill that means to override the layer above says so in the rule itself,
 naming what it overrides and where. An override nobody wrote down is a
 contradiction wearing a hat.
 
-## Measuring a rule
-
-A wording whose effect is in doubt is measured, and the whole run is designed
-before the first call: isolation flags first, `--tools "" --strict-mcp-config
---disable-slash-commands --setting-sources ""`, since a plugin hook or a skill
-injection contaminates every answer and `--bare` drops OAuth; every variant in
-that one run at effort `medium`; one blind judge pass, labels hidden and order
-shuffled, on single-pass readability and substance kept. A round per variant
-multiplies the calls by the rounds and waits for each round's slowest call.
-`skills/tests/chat-register/` is the harness that measured *Short form* in
-`skills/writing-style.md`.
+A wording whose effect is in doubt is measured rather than argued, per
+`skills/authoring-measurement.md`.
 
 ## Editing this corpus
 

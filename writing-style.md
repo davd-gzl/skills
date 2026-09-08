@@ -11,7 +11,7 @@ The goal is one thing: a reader understands the text on a single pass. Every rul
 
 ## Measure first
 
-**Read what the author already published on this repo, of the kind being drafted, before the first drafted sentence.** A review comment takes its shape from their review comments, an issue from their issues, a pull request body from their bodies: the opening, the length, whether a claim carries a link, whether a picture appears at all. Count, never skim: words, headings, links, images. Where they have published none, take the shape from what the repo has already accepted and say so in the handover. A rule below that contradicts what they show is the rule that is wrong.
+**Read what the author already published on this repo, of the kind being drafted, before the first drafted sentence.** A review comment takes its shape from their review comments, an issue from their issues, a pull request body from their bodies: the opening, the length, whether a claim carries a link, whether a picture appears at all. Count, never skim: words, headings, links, images. Where they have published none, take the shape from what the repo has already accepted and say so in the handover. A rule below that contradicts what they show is the rule that is wrong. **The counts settle the shape and are never a target**: drafting to a median opens the body on whatever fits rather than on what the reader needs. Where the corpus holds several authors, the reference is the account it posts under, and another author's shape is a deviation to state.
 
 ```bash
 gh api "repos/<repo>/pulls?state=closed&per_page=100&sort=updated&direction=desc" --jq '.[]|select(.merged_at!=null and .user.login=="<login>" and .body!=null)|.body'

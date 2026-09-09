@@ -112,11 +112,9 @@ Everything starts with a review, on a PR, a branch, or a red CI.
 
 ## The chat register
 
-cvm is the Short form section of [`writing-style.md`](writing-style.md):
-clipped, cut for a single read and never for length, no articles, no filler, no
-pleasantries, no hedging, fragments that keep their verb, one idea per line.
-Full sentences come back for a warning that an action is unsafe, for confirming
-what cannot be undone, and where a fragment leaves the order of steps ambiguous.
+cvm is the register every chat reply takes, defined in the Short form section
+of [`writing-style.md`](writing-style.md). The rules live there and are not
+restated here.
 
 [`tests/chat-register/`](tests/chat-register/) is the harness that chose the
 wording: candidate wordings against no rule and against the caveman plugin on

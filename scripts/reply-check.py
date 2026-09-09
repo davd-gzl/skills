@@ -38,10 +38,12 @@ WORD = re.compile(r"[A-Za-z][A-Za-z'’-]*")
 CLOSING = re.compile(r'^\s*[📋▶]')
 DID = re.compile(r'^\s*\**Did:')
 
-REGISTER = ('Rewrite in cvm, the Short form of skills/writing-style.md: no articles, no filler, '
-            'no pleasantries, no hedging, fragments that keep their verb, one idea per line, stop '
-            'when it lands. Sample: "Gitlink moved, push refused. Rebase onto `origin/main`, retry." '
-            'A quoted draft stays as written; a `+` reply is exempt.')
+REGISTER = ('Rewrite in cvm, the Short form of skills/writing-style.md: no filler, no pleasantries, '
+            'no hedging, lead with the answer, one idea per paragraph, stop when it lands. Drop an '
+            'article only where the sentence still reads in one pass; stacked article-free fragments '
+            'are the failure this register prevents, never its target. Sample: "Gitlink moved, push '
+            'refused. Rebase onto `origin/main`, retry." A quoted draft stays as written; a `+` reply '
+            'is exempt.')
 
 
 def prose(text):

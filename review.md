@@ -118,8 +118,9 @@ lost and takes every read of that record down with it.
 
 **Check every claim the diff writes about itself before clearing the code it
 decorates.** A godoc, a comment, a test header, the description and a decision
-record name symbols, counts and tests: grep each symbol, count each number, run
-each test the prose says catches something. A claim that fails anchors a finding
+record name symbols, counts, tests and shapes they call safe: grep each symbol,
+count each number, run each test the prose says catches something, and run each
+shape the prose calls bounded or harmless. A claim that fails anchors a finding
 on the code or the comment, per *Calibration*.
 
 **Make every test the diff adds go red before crediting it.** Revert the fix,
@@ -127,9 +128,9 @@ swap the configuration the test claims to pin, and plant a sentinel panic in a
 body a comment says runs. A test still green after that pins nothing: it is a
 Warning on the test, and the claim it decorated stays unverified.
 
-**Sweep again, by shape, any class the diff removes one member of.** Grep the
-package for the return type, the signature or the pattern the removed member
-had, never its name: the sibling that was missed carries a different name and
+**Sweep again, by shape, any class the diff removes or rewrites one member
+of.** Grep the package for the return type, the signature, the sentence or the
+pattern that member had, never its name: the sibling that was missed carries a different name and
 the same shape, and it is in scope per *Calibration*.
 
 **Feed a path the diff makes reachable for the first time its extremes.** When a
@@ -230,7 +231,7 @@ filling each are in `skills/review-output.md`.
 - **Weigh the recovery before the band, and read the finding's own limits paragraph as the reader will.** A reproduction proves the defect is reachable and says nothing about what it costs. Where the write-up already says the state is recoverable, the attack unrepeatable, or the loss one more ordinary transaction, that paragraph has set the band and it is low: a defect whose worst case is doing the same thing again is a Nit, however cleanly it reproduces. The tell is a finding arguing its own severity down in its second half while its first half claims the opposite.
 - **A published vector decodes itself, and the score line is what opens it.** The severity line goes in the `<summary>`, so it reads as it always did and expands to one row per metric: the code beside the metric's name, its rating, then what that metric means for this finding, never boilerplate. The score is then stated once, not in a metadata row as well. No link: a reader cannot get this from `AV:N`, and an advisory that needs a third party to be readable has taken a dependency for nothing.
 - **Score the vector from what the attack requires, and never move a base metric once a band has been named.** Editing `UI`, `PR` or `AV` in the turn someone asks for a different severity is scoring backwards, whatever reason the edit carries. Deployment context has its own metrics: raise `IR`, `CR` or `AR`, publish the environmental score beside the base one, and the higher band is computed rather than asserted.
-- **A finding about an ADR is a Nit, whatever it concerns.** An ADR records a decision and ships no behaviour, so an omission in one costs a paragraph and never a defect: the permanence it fails to state, the alternative it skips, the filename it keeps. Where the omission matters because the code depends on it, the finding is on the code and the ADR is the evidence.
+- **A finding about an ADR's own text is a Nit, whatever it concerns.** An ADR records a decision and ships no behaviour, so an omission in one costs a paragraph and never a defect: the permanence it fails to state, the alternative it skips, the filename it keeps. Its claims about the code are run like a comment's, per *Review the diff*, and one that fails is a finding on the code with the ADR as the evidence.
 - A cosmetic nit no enabled linter enforces carries the config link and ships `SKIP`, per `skills/review-comment.md`. Check the linter config before flagging a style convention.
 - A finding about a code comment's own wording ships `SKIP`, whatever band it lands in: it changes no behaviour, so it does not earn an inline slot by default. Keep the measurement that shows the comment wrong in the review file.
 - A pre-existing defect is in scope in three cases: the diff sweeps that defect's class and missed it, the change makes the code permanent, or the change makes the defect reachable for the first time. Name the sweep, the freeze or the new path, and say it predates the diff. Read the diff, never recall: promoting something to a security boundary, or adding a test asserting the behaviour, is the first case, and the verdict moves with it.

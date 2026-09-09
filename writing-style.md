@@ -80,7 +80,7 @@ Run this over every drafted artifact as the last step of writing it, against the
 
 Take the checks in order. Each is a search over the draft, not an impression of it.
 
-1. **Mechanical bans**, the em-dash and the parenthesis: `./scripts/prose-check.py` and `./skills/lint.py` name every hit.
+1. **Mechanical bans**, the em-dash, the parenthesis, and a hard-wrapped body or comment: `./scripts/prose-check.py` and `./skills/lint.py` name every hit.
 2. **Verification padding.** For every claim that something passes, open the workflow file and find the job that already runs it. Delete the claim if the job exists. What survives names the reason the job cannot reach it.
 3. **Unlinked names.** List every file, symbol, package, PR, issue and project named in the draft. The first appearance of each carries a link. A link into code carries `#L37` or `#L35-L42` on a `blob` URL and points at the line the claim is about, never the definition; read the range back and confirm the claim is on it. `skills/review.md` fixes the ref: the branch under review, with a sha only in the two exceptions it names.
 4. **Unproved claims.** List every sentence asserting a fact about the code, a default, a type, a bound, a count, a call site, and confirm the words stating it carry a link to the line that shows it. Two facts in one sentence need two. A claim about a browser, a runtime or a third-party library carries the run, the documentation, or the words naming it unmeasured; one with none of the three is deleted, never softened.

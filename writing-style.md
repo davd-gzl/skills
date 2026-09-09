@@ -56,7 +56,7 @@ of measuring again.
 - Plain words over jargon: name the action a caller can take, never the pattern's label. Jargon only when it saves real length and the reader surely knows it, which a specialist's vocabulary rarely satisfies.
 - State the problem and stop. Keep a fix only when the remedy is non-obvious, and then name the outcome, not the steps.
 - Show the code, never a description of it, and describe the change, never the diff: answer a question about code with the lines that answer it, and show a change in shape as before and after. Prose only where the code cannot speak: why the change exists, and what it rules out.
-- **A picture is introduced, never dropped in.** The sentence before it says what it shows and where it came from, naming the browser, the instance or the command. A reader cannot tell a real run from a mockup by looking, so an unintroduced image argues nothing. Where a claim is visible on screen, drive the app and capture it cropped to the thing in question, store the file under the artifact's `media/` directory, and embed it by its `raw.githubusercontent.com` URL so it renders inside a GitHub comment. Where the screen cannot be reached from here, name the login or device it needed. A clip runs at the speed someone will sit through: speed up the stretch that argues nothing, and keep the elapsed time on screen so the real timing survives the change.
+- **A picture is introduced, never dropped in.** The sentence before it says what it shows and where it came from, naming the browser, the instance or the command, and it is written as a blockquote, `> ` before it, so the reader sees a caption rather than another paragraph of the argument. A reader cannot tell a real run from a mockup by looking, so an unintroduced image argues nothing. Where a claim is visible on screen, drive the app and capture it cropped to the thing in question, store the file under the artifact's `media/` directory, and embed it by its `raw.githubusercontent.com` URL so it renders inside a GitHub comment. Read that URL back before shipping and compare its byte count with the file on disk: the host's API answers at once, and the raw URL serves the previous bytes for minutes after a replace. Where the screen cannot be reached from here, name the login or device it needed. A clip runs at the speed someone will sit through: speed up the stretch that argues nothing, and keep the elapsed time on screen so the real timing survives the change.
 - **Keep a real person's name out of a fixture, a test and a draft.** A copyright line copied from a real file carries an individual who never asked to appear in the repository, and the fixture needs the shape: `Copyright (c) 2019 The Authors` tests exactly what a real name tests. An organisation or project is fine, and so is a module path containing a surname, since both are how the thing is cited everywhere. Where the provenance matters, name the file or repository the shape came from and stop there.
 - Write a commit sha bare in prose GitHub renders: no backticks, no link. In a reply, link it: chat autolinks nothing.
 - Never write a section to say it is empty. Delete the heading.
@@ -95,13 +95,16 @@ A pass that changes nothing is the exit condition. Never report a pass not run a
 
 ## Short form
 
-Chat replies and questions to the user, in the register called caveman:
+Chat replies and questions to the user, in the register called cvm:
 clipped, cut for a single read and never for length, every reply, with no
 drift back to prose as a session runs. **Two marks move it and nothing else:
 `+` lifts to explanation, as does asking for one, and `-` cuts below the
 default to the shortest true answer.** Either moves that reply alone and the
 default returns on the next; a question wanting a fact is not a request to
-explain. All rules above hold. A comment posted
+explain. All rules above hold. **The harness measures every reply before it
+goes out**, `skills/scripts/reply-check.py`: articles per hundred words, words
+per sentence, hedges and pleasantries, code and quoted drafts excluded, and
+hands the numbers back with the register for a rewrite. A `+` reply is exempt. A comment posted
 anywhere takes *Posted comments*, which keeps full sentences.
 
 - One idea, in the fewest lines that settle it. No recap of what was already said. Stop when it lands.

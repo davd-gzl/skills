@@ -46,7 +46,8 @@ fork: the spec and the plan first, numbering every call a human should argue
 with, then the fix in a worktree, the local CI run and the loop that reads the
 whole diff back.
 [`pr-body.md`](pr-body.md) writes the PR title and body for a reader with no
-context, symptom first, looping until a full pass changes nothing. [`try.md`](try.md) boots a project locally so I can click through the
+context, symptom first, in one of the four shapes under [`pr-body/`](pr-body/),
+looping until a full pass changes nothing. [`try.md`](try.md) boots a project locally so I can click through the
 change myself, and records it when the claim is visual.
 [`report.md`](report.md) turns a period of repository activity into a status
 report, generated only after I have edited its context file. [`git.md`](git.md)
@@ -67,6 +68,9 @@ does next.
 
 ## The read gate
 
+[`scripts/reply-check.py`](scripts/reply-check.py) measures every reply I get
+against the chat register before it reaches me, and hands the numbers back for a
+rewrite when a long session has drifted to prose.
 [`scripts/skill-gate.py`](scripts/skill-gate.py) is what makes "read the skill
 first" hold without anyone remembering it. It records every read made through
 `scripts/skill <name>`, refuses a write or a commit of an artifact whose skill

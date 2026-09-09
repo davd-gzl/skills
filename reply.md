@@ -34,6 +34,13 @@ Every reply, in any workspace. In context from the session start hook.
   its verb. Each is a `[label](<url>)` into the workspace repo's `blob/main`,
   never a local path or a command. Emoji: 📋 ▶ only; 🗺 does not render for
   this user.
+- **A reply finishing a piece of work accounts for it against the corpus**,
+  which is what the user reads it to debug: one plain line per step, in order,
+  naming the skill that governed the step and what it produced, and a loop
+  carrying its round count so an empty pass is visible. Never the code it
+  touched, which the artifacts hold, and never a mechanic no skill named. It
+  sits above the closing block, which carries what waits rather than what
+  happened.
 - **A reply reporting a publish opens with the full URL of what went out**, one
   per artifact the action created, before any account of it. Elsewhere a link is
   a label, which is what buries a published URL written as one.

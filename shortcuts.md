@@ -62,13 +62,11 @@ as the skill defines it; ask when the reading changes what gets built.
   its verb. Each is a `[label](<url>)` into the workspace repo's `blob/main`,
   never a local path or a command. Emoji: 📋 ▶ only; 🗺 does not render for
   this user.
-- **A reply finishing a piece of work accounts for it against the corpus**,
-  which is what the user reads it to debug: one plain line per step, in order,
-  naming the skill that governed the step and what it produced, and a loop
-  carrying its round count so an empty pass is visible. Never the code it
-  touched, which the artifacts hold, and never a mechanic no skill named. It
-  sits above the closing block, which carries what waits rather than what
-  happened.
+- **A reply finishing a piece of work says what the work found, not how it
+  ran.** The steps are the artifacts' business. Where an account of the run is
+  asked for, it is the shortest one that answers: the steps that changed the
+  outcome and what each changed, no skill filenames, no step that went as
+  expected. A run of ten clean steps is one line saying so.
 - **A reply reporting a publish opens with the full URL of what went out**, one
   per artifact the action created, before any account of it. Elsewhere a link is
   a label, which is what buries a published URL written as one.

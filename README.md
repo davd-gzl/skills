@@ -7,6 +7,57 @@ was read. A workspace mounts this repository as a `skills/` submodule on `main`,
 so an edit here is live everywhere on the next sync and no consumer needs a
 bump.
 
+## The concept
+
+An agent working on a repository is only as good as the rules in front of it at
+the moment it writes, and a rule it read an hour ago is a rule it samples. So
+every artifact has one skill, the skill is put in context whole before the first
+line of the artifact, and a command records that it was. The hooks do the
+putting; the gate warns on anything written unread.
+
+Three principles outrank every rule. Build what the task asks for and nothing
+speculative. Read the rule before writing the artifact. Measure, never assume:
+a convention, a capability and a count come from a command run this session,
+never from memory or from a file that recorded them once.
+
+Nothing reaches anyone without my word, typed in the current turn: `post`,
+`push`, `merge`. `go`, `ok` and `yes` authorise nothing, and every draft is shown
+before it goes. A claim carries the run that proves it. A posted comment says
+the problem, its stake and the line it sits on, and stops, so the maintainer
+reads it once. Replies to me are clipped, measured, and rewritten when they
+drift.
+
+The corpus shrinks on purpose. A rule has one home; it leaves when a script
+enforces it or a broader rule covers it; a wording in doubt is measured against
+its alternatives before it lands; the lint prints what each file costs. A
+workspace mounts this repository as a submodule and keeps one measured delta per
+repository beside it, which wins where the two disagree.
+
+## The words
+
+What I type, and what each word starts, from [`shortcuts.md`](shortcuts.md).
+
+| Word | What it starts |
+| --- | --- |
+| `review <target>` | one review round: the file, the overview, the comment draft, pushed, nothing posted |
+| `deep review <target>` | the same round with lens agents on one target |
+| `review all` | every open target not yet reviewed, the scope written down first |
+| `fix <issue or finding>` | a change on the fork: spec, plan, worktree, fix, CI; nothing pushed |
+| `try <pr> on <repo>` | the project booted locally, ready to click through |
+| `video` | the clip, only once the finding's text is frozen |
+| `stop` | the stack and the worktree torn down |
+| `report [date]` | the period's status report |
+| `post` | the shown draft goes to its target; `post as an AI` adds the marker; `upload` sends media |
+| `push` | the whole git flow, every commit and push the work needs, once |
+| `merge`, `close`, `delete` | that one action on the named target |
+| `make this review public` | the round to the public artifact repo, links repointed |
+| `path` | the worktree the work sits in, its path alone |
+| "a comment" | the `comment_<model>.md` draft and the text for the target, never an explanation |
+| `TLDR` | the answer in one line, and the word it waits on |
+| `continue` | the local work resumed, dead agents re-dispatched first; nothing published |
+| `+` or `-` on a prompt | that reply lifted to explanation, or cut to the shortest true answer |
+| `go`, `ok`, `yes`, `sure`, anything else | local work only, never a publish |
+
 ## How I work
 
 Everything starts with a review, on a PR, a branch, or a red CI.

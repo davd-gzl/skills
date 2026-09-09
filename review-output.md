@@ -72,7 +72,7 @@ Overview: [overview](../overview.md) <— only when the review directory has one
 <Only when the target carries unresolved reviewer threads. One line each: reviewer, gist, state, overlap with own findings, link.>
 
 ## Open questions
-<Optional. Thoughts the reviewer should see but not posted: deferred-scope follow-ups, extensions, design musings. One terse line each, ending with why it wasn't posted.>
+<Optional. Thoughts the reviewer should see but not posted: deferred-scope follow-ups, extensions, design musings. Never a suspected defect, which is run and banded per *Calibration* in `skills/review.md`. One terse line each, ending with why it wasn't posted.>
 ```
 
 The effort tier is `xhigh` unless the session says otherwise, and is never asked for. It is on this line because `scripts/post-review.sh` builds the AI marker from it and refuses a post without it.

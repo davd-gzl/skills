@@ -86,7 +86,7 @@ git diff $(git merge-base <remote>/<base-branch> <new-sha>) <new-sha> | git patc
 - **New head is a merge of the base branch**: never base-only. Run `git show <new-sha> --cc`; any hunk it prints is conflict-resolution content, reviewed like any diff. Base commits may add tests the branch now fails: run the affected suite on the new head.
 - **`<old-sha>` unreachable**: skip the gate, run a full round against the merge-base, note the fallback.
 
-Open every full re-review round with a round-note paragraph between the metadata block and the Overview: `Round <n>.`, how the head moved, what changed, which prior findings were resolved or carried.
+Open every full re-review round with a round-note paragraph between the metadata block and the Overview: `Round <n>.`, how the head moved, what changed, which prior findings and Open questions were resolved or carried.
 
 ### Reproduce the failure
 
@@ -116,10 +116,31 @@ surface that person reads has to carry it. The same pass covers a lookup into a
 fixed list, `list.index(value)` and friends, which raises on a value the list
 lost and takes every read of that record down with it.
 
+**Check every claim the diff writes about itself before clearing the code it
+decorates.** A godoc, a comment, a test header, the description and a decision
+record name symbols, counts and tests: grep each symbol, count each number, run
+each test the prose says catches something. A claim that fails anchors a finding
+on the code or the comment, per *Calibration*.
+
+**Make every test the diff adds go red before crediting it.** Revert the fix,
+swap the configuration the test claims to pin, and plant a sentinel panic in a
+body a comment says runs. A test still green after that pins nothing: it is a
+Warning on the test, and the claim it decorated stays unverified.
+
+**Sweep again, by shape, any class the diff removes one member of.** Grep the
+package for the return type, the signature or the pattern the removed member
+had, never its name: the sibling that was missed carries a different name and
+the same shape, and it is in scope per *Calibration*.
+
+**Feed a path the diff makes reachable for the first time its extremes.** When a
+setter, a decoder or a write path starts working, send the type's maximum, zero,
+empty and a foreign unit through it and follow each to the reader that consumes
+it; what the validators leave unnamed is what arrives.
+
 **Verification discipline.** Every finding passes all of these before it enters the review:
 
 - Verify against the actual file, never from memory or a summary.
-- **A finding carried from an earlier round is re-verified before it ships**, to the same standard as a new one. It arrived with a conclusion and no run attached, and the round that wrote it may have stopped one call short of the code that settles it. Follow the path to its end: the handler that queues the work, the store that debounces it, the default the framework already applies.
+- **A finding or Open question carried from an earlier round is re-verified before it ships**, to the same standard as a new one. It arrived with a conclusion and no run attached, and the round that wrote it may have stopped one call short of the code that settles it. Follow the path to its end: the handler that queues the work, the store that debounces it, the default the framework already applies.
 - **Browser behaviour needs a browser, and headless is not one.** Anything the browser itself does rather than the page, exiting fullscreen on Escape, a shortcut, a permission prompt, is absent from a headless run and a null result there proves nothing. Run it headful on a virtual display, `xvfb-run -a`, before writing that it cannot be measured.
 - Back every behavioral claim with an actual run, at every severity. Never assert stdlib or runtime behavior from memory.
 - **Enumerate the case space before writing the finding.** Two sets that must agree give four cells: both, first only, second only, neither. The neither cell is usually the live one.
@@ -212,10 +233,11 @@ filling each are in `skills/review-output.md`.
 - **A finding about an ADR is a Nit, whatever it concerns.** An ADR records a decision and ships no behaviour, so an omission in one costs a paragraph and never a defect: the permanence it fails to state, the alternative it skips, the filename it keeps. Where the omission matters because the code depends on it, the finding is on the code and the ADR is the evidence.
 - A cosmetic nit no enabled linter enforces carries the config link and ships `SKIP`, per `skills/review-comment.md`. Check the linter config before flagging a style convention.
 - A finding about a code comment's own wording ships `SKIP`, whatever band it lands in: it changes no behaviour, so it does not earn an inline slot by default. Keep the measurement that shows the comment wrong in the review file.
-- A pre-existing defect is in scope in exactly two cases: the diff sweeps that defect's class and missed it, or the change makes the code permanent. Name the sweep or the freeze, and say it predates the diff. Check both by reading the diff, never from recall: a diff that promotes something to a security boundary, or adds a test asserting the behaviour, is the first case and the verdict moves with it.
+- A pre-existing defect is in scope in three cases: the diff sweeps that defect's class and missed it, the change makes the code permanent, or the change makes the defect reachable for the first time. Name the sweep, the freeze or the new path, and say it predates the diff. Read the diff, never recall: promoting something to a security boundary, or adding a test asserting the behaviour, is the first case, and the verdict moves with it.
 - Map the full call graph before claiming anything dead, redundant, or unused.
 - Code that cannot run is a finding, never a reason to drop one: an impossible guard, an unreachable branch, a default the type forbids.
 - Clearing something needs the same evidence as flagging it. To clear "X is safe because guard G covers it": find G's construction site, list its callers, and confirm X is one. Never infer that a guard reaches a member from a grouping made by the diff, its docs, or its author. A cleared item whose mechanism was not traced is unverified; say so.
+- A suspected defect leaves the review only through a run showing it guarded, with the proving line quoted. Without that run it is a Warning, never an Open question.
 - When the finding is a missed member of a class, measure the whole class in one harness and publish the table.
 - Never flag contribution-policy compliance as a code finding; mention it in the narrative only when it is why CI is red.
 - Never critique the project's own governing document, meaning its wording, the symbols it names or the claims it makes, and never reference it to editorialize. Where the code is wrong the finding is about the code, and where a code or test comment repeats a claim the document has outrun, the finding anchors on that comment.

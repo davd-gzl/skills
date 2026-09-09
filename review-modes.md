@@ -1,6 +1,6 @@
 ---
 name: review-modes
-description: Use when a review covers more than one target, or when the user asks for a deep, parallel, or red-team pass, or when the reviewer authored the target. Extends skills/review.md; everything not named here follows that file.
+description: Use when a review covers more than one target, when the user asks for a deep, parallel, red-team or pipeline pass, or when the reviewer authored the target. Extends skills/review.md; everything not named here follows that file.
 ---
 
 # Review modes
@@ -48,6 +48,16 @@ Trigger: the user asks for a **parallel**, **red-team / blue-team**, or **deeper
 4. **Critic pass, exactly one round, parallel.** 2-3 critics at once over the synthesized draft plus the diff and checkout, each with a distinct lens: verdict-check, missing-blocking, severity-calibration. Each returns ONLY findings that flip the verdict, raise a severity band, or add a missing Critical or Warning; otherwise exactly `NO_MATERIAL_FINDINGS`. Never send an open-ended "what's wrong" prompt. After: dedupe, re-read each cited `file:line`, drop what does not hold, revise. Never loop critics.
 5. **Claim-verification gate, parallel.** Before drafting comment.md, one agent extracts every falsifiable claim, behavioral, structural or numeric, and runs a check designed to prove each false. It returns only claims that fail or cannot be verified; re-read those against the code, drop or fix each. Facts only; severity and verdict belong to the critic pass.
 6. **Output.** Normal flow. Metadata line: `Model: <model> (<intensity>, deep)`; ask when the intensity is unknown. Deep mode over an already-reviewed commit opens a new `<n+1>-<same-sha>` directory whose round note names the mode and which prior verdict it confirms or overturns.
+
+### Pipeline mode (find, verify per candidate, write)
+
+Trigger: `pipeline review <target>`, or a harness reminder that ultracode is on. The round runs as the workspace's `scripts/workflows/review-pipeline.js`, passed by `scriptPath`, and the verify stage is the claim gate: no second gate runs over the draft, and the text pass of `skills/review-comment.md` still closes it.
+
+1. **The parent prepares everything the script names**, per *Fetch & understand*: the head and merge-base worktrees, the toolchain line every shell opens with, the round directory, the skill paths the agents read, the catalog when the project has one, and whether the round is blind or the repository private. Then it runs the workflow with those as `args`.
+2. Finders run one angle each and only read: the line pass, removed and rewritten behaviour with the sweep by shape, the claims the diff writes about itself, the tests the diff adds with the mutation that must redden each, reachability and extremes, the refactor pass, the catalog walk. Each returns candidates with the check that would prove it false, half-believed ones included.
+3. **One verifier per candidate, from scratch, in a scratch worktree it creates and removes itself**, `git -C <head worktree> worktree add --detach <scratch>/verify-<n> <sha>`. That overrides the parallel-dispatch rule that a subagent never creates a worktree: parallel mutations in one tree would corrupt each other. It runs the named check, on the merge base too when the claim is causal, and returns CONFIRMED, PLAUSIBLE or REFUTED with the artifact under `tests/`.
+4. The writer assembles the round from what survived, per *Output*; a PLAUSIBLE finding is a question. The text pass follows. The parent runs the *Final check*, lint and the prose pass, then commits.
+5. Metadata line: `Model: <model>, effort <tier> (pipeline)`. Cost is the longest single verification, not their sum; a candidate the finders missed is not found, so a round returning few candidates says so in the round note.
 
 ### Own PR (the reviewer authored it)
 

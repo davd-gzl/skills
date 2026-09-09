@@ -98,5 +98,9 @@ as the skill defines it; ask when the reading changes what gets built.
   any turn that resumes the work.
 - Dispatching an agent names `skills/shortcuts.md` in the prompt, beside the
   skill it delegates to.
+- Dispatching agents ends the reply with one forecast line: what went out and
+  how many, the minutes and tokens the last measured round of that shape took,
+  when to expect them back, and that `stop` kills them. Their return gets the
+  same line with what was spent.
 - Correcting published text means editing it to say the right thing and nothing
   else: no "an earlier version claimed", no strikethrough.

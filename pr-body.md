@@ -102,6 +102,7 @@ A screenshot for any user-visible surface; a short video or GIF for any interact
 - Before and after, side by side, same viewport, same data. Crop to the surface.
 - It sits in the problem, so a reader sees the defect before reading the account of it, and what follows explains what they already looked at.
 - Retake it whenever the surface moves, in the turn the code changes, unasked. A body carrying a shot of an earlier commit shows a page that no longer exists, and the reader has no way to tell.
+- **A retake gets a new filename, never the path the body already points at.** GitHub proxies an embedded image through a cache of its own, which keeps serving the bytes it fetched first, so replacing the file leaves the stale picture in the body with nothing to show it is stale.
 - Host it and embed it per the picture rule in `skills/writing-style.md`, so the body goes up whole and nothing is dragged by hand, keeping a copy under `projects/<repo>/changes/<slug>/media/`. Drag into the box only where the target cannot reach the artifact repository the workspace `AGENTS.md` names, and never fabricate a `user-images` URL.
 - None for backend-only, tooling, or lint changes.
 

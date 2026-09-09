@@ -106,8 +106,10 @@ gh repo fork <owner>/<repo> --remote-only --remote-name fork
    repo forks. A duplicate found after the diff is a diff thrown away.
 2. **Understand.** `gh issue view <n> -R <repo>`, then read the code it names
    and run the repro it carries. Before editing, `git grep` the callers of the
-   function the issue names: one guard where they all route through covers the
-   siblings.
+   function the issue names, or every page stating the fact a docs change
+   corrects: one guard where the callers all route through covers the siblings,
+   and a term corrected only on the pages that argued for it survives on the
+   page a reader reaches from search.
 3. **Plan**, per *Spec and plan* above.
 4. **Worktree**, never the checkout, which is a submodule whose gitlink moves
    the moment a branch lands in it:

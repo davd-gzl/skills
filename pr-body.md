@@ -54,7 +54,7 @@ The reader has the diff: give only the defect, the consequence, and the context 
 - State what is there, never how it got there: neither the problem's history, why the mechanism was built, when it landed, which change left it behind, nor the branch's, what an earlier round carried or what this one drops. Both histories go in `plan.md`, and no line points at the decision record the change ships.
 - Name a rider commit in one line and never offer to split it. The maintainer asks when they want that.
 
-Hyperlink everything per `skills/writing-style.md`, to the blob at the branch under review or upstream documentation.
+Hyperlink everything per `skills/writing-style.md`, to the blob at the reviewed sha or upstream documentation.
 
 State what the change does not achieve, up front: "This does not turn the check green. It clears one condition of three." Say what was deliberately not fixed, and why, whenever a reader would wonder.
 

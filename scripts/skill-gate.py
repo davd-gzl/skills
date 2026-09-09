@@ -8,7 +8,8 @@ hooks put it there, and `./scripts/skill <name>` prints and records any other.
 A write, commit or push that comes first gets the missing skill put in context
 with a warning. Nothing here blocks: a rough draft lands, a later pass fixes it.
 
-  ./scripts/skill-gate.py read <name>       print skills/<name>.md, projects/<name>/AGENTS.md or <name>.md, record it
+  ./scripts/skill-gate.py read <name>       print skills/<name>.md, projects/<name>/AGENTS.md or <name>.md, record it;
+                                            a shape under a skill reads as pr-body/docs
   ./scripts/skill-gate.py check <path>...   name each missing read on stderr; `git` stands for a commit or push,
                                             which needs skills/git.md and workspace.md
   ./scripts/skill-gate.py pre-commit        check the paths staged in the repo at cwd, plus `git`
@@ -67,6 +68,7 @@ MAP = [
     (r'^projects/[^/]+/changes/[^/]+/(plan|spec|README)\.md$', ['change', 'writing-style']),
     (r'^(projects/[^/]+/)?(AGENTS|CLAUDE)\.md$', ['authoring']),
     (r'^skills/(?!README\.md$)[^/]+\.md$', ['authoring']),
+    (r'^skills/pr-body/[^/]+\.md$', ['authoring']),
 ]
 
 GIT_HISTORY = {'commit', 'push', 'merge', 'rebase', 'cherry-pick', 'am', 'revert', 'pull'}
@@ -117,8 +119,11 @@ def session_key():
 
 
 def resolve(name):
-    for path in (root() / 'skills' / f'{name}.md', root() / 'projects' / name / 'AGENTS.md',
-                 root() / f'{name}.md'):
+    """A skill, a project delta or a root file by name; a slashed name is a shape under a skill only."""
+    paths = [root() / 'skills' / f'{name}.md']
+    if '/' not in name:
+        paths += [root() / 'projects' / name / 'AGENTS.md', root() / f'{name}.md']
+    for path in paths:
         if path.is_file():
             return path
     return None
@@ -396,8 +401,8 @@ def report(messages):
 
 
 def cmd_read(name, stdout):
-    if '/' in name or name.startswith('.'):
-        print(f'{name} is a path; give the skill or project name', file=sys.stderr)
+    if name.endswith('.md') or name.startswith(('.', '/')) or '..' in name or name.count('/') > 1:
+        print(f'{name} is a path; give the skill or project name, pr-body/docs for a shape', file=sys.stderr)
         return 1
     path = resolve(name)
     if path is None:
@@ -466,7 +471,7 @@ PROMPT_SKILLS = [
     (r'\bissue', ['issue']),
     (r'\breport\b|\bweekly\b', ['report']),
     (r'\btry\b|\brun\b|\bboot\b|\blaunch\b|\bscreenshot\b|\bvideo\b|\bgif\b', ['try']),
-    (r'\bskill|\brules?\b|AGENTS\.md|writing.style|\bcaveman\b', ['authoring']),
+    (r'\bskill|\brules?\b|AGENTS\.md|writing.style|\bcaveman\b|\bcvm\b', ['authoring']),
 ]
 
 

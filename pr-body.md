@@ -7,16 +7,18 @@ description: Write the title and body of a pull request. Use whenever a change i
 
 Write for a reader with no context who must decide whether to merge. Prose follows `skills/writing-style.md`; the rules below are the PR-body deltas.
 
-Pick one of four shapes, by what the pull request carries. Read the matching model PR before drafting. Never mix them.
+Pick one of four shapes, by what the pull request carries, and read that shape's file whole through `./scripts/skill pr-body/<shape>` before drafting: it holds the headers in order, what goes under each, the length, how it opens and closes, and a worked example. Never mix them.
 
-- **A docs change.** No headers, no section per correction, no word count to hit. The reader reads the pages themselves, so the body never restates what they now say: name what was wrong, name what it costs, and stop. One spanning a dozen files still takes this shape.
-- **One concern**, models: [gno#5999](https://github.com/gnolang/gno/pull/5999), [#5996](https://github.com/gnolang/gno/pull/5996). Four short paragraphs, about 200 words, under `## Problem` and `## Fix`: a target, not a minimum. Every bug fix takes this shape, never the decisions one below, which is for a feature.
-- **Several independent changes**, model: [gno#6006](https://github.com/gnolang/gno/pull/6006). One `### <symbol>: <one-line diagnosis>` section per change, separated by `---`, each readable alone. Framing paragraphs first, then a one-line bridge counting what follows. About 150 words per section.
-- **One change carrying several decisions**, model: [meet#1619](https://github.com/suitenumerique/meet/pull/1619). `## Problem` in two or three short paragraphs, then `## Design` with one `###` per decision a reviewer could have made differently: what the reader sees, the interface, who it answers, what it costs, what is left out. The headings carry the skim, so this shape runs longer and the budget below does not bind it. It closes on `## What to review closely` where the diff is too large to read whole, one single-line bullet per part a reviewer should open: the part, why it matters and what it leads to, anchored on the line it sends them to. It opens on the design page where one exists, linked on its own line above the first `###`. A `###` carrying one sentence is not a decision: fold it into its neighbour.
+| The pull request carries | Shape |
+| --- | --- |
+| Documentation pages, however many | `skills/pr-body/docs.md` |
+| One concern, which is every bug fix, whatever the number of decisions behind it | `skills/pr-body/one-concern.md` |
+| Several independent changes; parallel content long enough to want a table means this shape | `skills/pr-body/several-changes.md` |
+| One change with a surface someone sees, a front-end feature or a change to what a page renders, where the decisions are what the reader gets rather than what the code does | `skills/pr-body/surface.md` |
 
 ## File
 
-Put `pr-body.md` in the change directory, `projects/<repo>/changes/<slug>/`. It opens with a header block: `Target:` holding the opened PR URL, or else the `compare/...?expand=1` URL, `Head:` and `Base:` with shas, and `Status:` when there is something to say. Then `## Title`, `## Body`, and `## Visual evidence` only when there is something to attach. Only Title and Body get pasted into GitHub; `./scripts/post-fix.sh` opens the PR from this file.
+Put `pr-body.md` in the change directory, `projects/<repo>/changes/<slug>/`. It opens with a header block: `Target:` holding the opened PR URL, or else the `compare/...?expand=1` URL, `Head:` and `Base:` with shas, and `Status:` when there is something to say. Then `## Title` and `## Body`, and nothing after them: `./scripts/post-fix.sh` opens the PR from this file and pastes every line following the `## Body` heading into it, so a section added below goes out with the body. Media provenance and the inline comments posted beside the body belong in `plan.md`. A body already on GitHub is read back before it is rewritten, per *Posting* in `skills/review-comment.md`: an edit made in the interface is invisible here.
 
 Write nothing about how the file was written: no shape label, no model PR, no round count; that record belongs in `plan.md`. Every line is something the user pastes or acts on; delete the rest.
 
@@ -26,8 +28,8 @@ Write prose, broken small.
 
 - Paragraphs of two to four sentences, one idea each. Five or more: split.
 - One-line paragraph for each turn in the argument; a skimmer reads only these.
-- No process headers such as Purpose or Testing. Each shape above names the headers it takes; nothing else gets one.
-- No tables, no bullet lists, no bold, no emoji. Parallel content long enough to want a table means the multi-change shape.
+- No process headers such as Purpose or Testing. The shape's file names the headers it takes; nothing else gets one.
+- No tables, no bullet lists, no bold, no emoji.
 - A diagram wherever a shape is clearer drawn than written; see *Diagrams*.
 - A body using role words the reader may not share, an operator against a room owner for one, closes on a collapsed `<details>` block titled Glossary under the last paragraph: one entry per word, a blank line between them so each renders on its own, and the body stays a straight read for whoever already has the words.
 - No code block unless real observed output or a diagram, trimmed to the signal-bearing lines.
@@ -85,10 +87,11 @@ commit 8cbcad76 on main
 
 Do not ship the first draft. Re-read against the checks below, revise, repeat until a full pass changes nothing. Record the rounds in `plan.md`.
 
-1. Would someone with no context understand the first sentence? If it needs a symbol they have not met, rewrite in observable terms.
-2. Cut every sentence that does not change the merge decision: diff restating, process narration, "this PR" openers.
-3. Skim it in ten seconds, first lines and diagrams only. If that does not give the merge decision, lift the argument's turns into one-line paragraphs.
-4. Check against the diff one last time. A body describing a change not in the diff is worse than none.
+1. Read it as the maintainer who wrote the code it describes, before the user ever sees it. Open the file behind every sentence about what the code does today. A claim of absence is the one that breaks: where the thing exists in a weaker form, name the form and what it fails to do, never call it missing.
+2. Would someone with no context understand the first sentence? If it needs a symbol they have not met, rewrite in observable terms.
+3. Cut every sentence that does not change the merge decision: diff restating, process narration, "this PR" openers.
+4. Skim it in ten seconds, first lines and diagrams only. If that does not give the merge decision, lift the argument's turns into one-line paragraphs.
+5. Check against the diff one last time. A body describing a change not in the diff is worse than none.
 
 Past the shape's budget: cut, never restructure. Overflow detail belongs in the review file and the plan. The count is never the target: the body is done when a cold read lands on the first pass.
 
@@ -97,7 +100,9 @@ Past the shape's budget: cut, never restructure. Overflow detail belongs in the 
 A screenshot for any user-visible surface; a short video or GIF for any interaction or motion.
 
 - Before and after, side by side, same viewport, same data. Crop to the surface.
-- Attach by dragging into the PR body on GitHub. Keep the files under `projects/<repo>/changes/<slug>/media/`; mark each attachment point with the `media/` path. Never fabricate a `user-images` URL.
+- It sits in the problem, so a reader sees the defect before reading the account of it, and what follows explains what they already looked at.
+- Retake it whenever the surface moves, in the turn the code changes, unasked. A body carrying a shot of an earlier commit shows a page that no longer exists, and the reader has no way to tell.
+- Host it and embed it per the picture rule in `skills/writing-style.md`, so the body goes up whole and nothing is dragged by hand, keeping a copy under `projects/<repo>/changes/<slug>/media/`. Drag into the box only where the target cannot reach the artifact repository the workspace `AGENTS.md` names, and never fabricate a `user-images` URL.
 - None for backend-only, tooling, or lint changes.
 
 Capture per *Video* in `skills/try.md`, which owns the recording rules. When no capture can be made, say the screenshot is missing and why, never what it would have shown.

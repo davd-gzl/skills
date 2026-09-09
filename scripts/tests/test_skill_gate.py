@@ -73,9 +73,19 @@ class RequiredReads(GateCase):
         self.assertEqual(gate.required_reads('skills/review.md'), {'authoring'})
         self.assertEqual(gate.required_reads('projects/meet/AGENTS.md'), {'authoring', 'meet'})
 
+    def test_a_shape_under_a_skill_reads_by_its_slashed_name(self):
+        (self.root / 'skills' / 'pr-body').mkdir()
+        (self.root / 'skills' / 'pr-body' / 'docs.md').write_text('# docs\n')
+        out = io.StringIO()
+        self.assertEqual(gate.cmd_read('pr-body/docs', out), 0)
+        self.assertEqual(out.getvalue(), '# docs\n')
+        self.assertTrue(gate.is_read('pr-body/docs'))
+        self.assertEqual(gate.cmd_read('skills/pr-body/docs.md', io.StringIO()), 1)
+
     def test_a_skill_named_like_an_artifact_is_still_a_rule_file(self):
         self.assertEqual(gate.required_reads('skills/issue.md'), {'authoring'})
         self.assertEqual(gate.required_reads('skills/pr-body.md'), {'authoring'})
+        self.assertEqual(gate.required_reads('skills/pr-body/docs.md'), {'authoring'})
         self.assertEqual(gate.required_reads('skills/archive/overview.md'), set())
 
     def test_project_without_delta_needs_no_delta_read(self):

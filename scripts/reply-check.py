@@ -18,7 +18,8 @@ trusting it, and hands the numbers back for a rewrite.
 Measured over the prose alone. Fenced blocks, inline code, blockquotes, table
 rows, link targets and lines between two `---` rules are dropped, since a draft
 quoted in a reply stays as written. Under MIN_WORDS nothing is measured, and a
-prompt opening or closing on `+` exempts its reply.
+prompt opening or closing on `+` exempts its reply. A reply carrying a closing
+block, the artifact lines, carries the `Did:` account above it.
 """
 
 import json
@@ -34,6 +35,8 @@ ART = re.compile(r"\b(a|an|the)\b", re.I)
 HEDGE = re.compile(r"\b(might|maybe|perhaps|probably|likely|i think|i believe|it seems|could be|possibly)\b", re.I)
 PLEAS = re.compile(r"\b(sure|certainly|of course|happy to|glad to|great question|absolutely|no problem)\b", re.I)
 WORD = re.compile(r"[A-Za-z][A-Za-z'’-]*")
+CLOSING = re.compile(r'^\s*[📋▶]')
+DID = re.compile(r'^\s*\**Did:')
 
 REGISTER = ('Rewrite in cvm, the Short form of skills/writing-style.md: no articles, no filler, '
             'no pleasantries, no hedging, fragments that keep their verb, one idea per line, stop '
@@ -75,6 +78,9 @@ def measure(text):
         'pleasantries': [h.group(0) for h in PLEAS.finditer(p)],
     }
     reasons = []
+    lines = text.splitlines()
+    if any(CLOSING.match(l) for l in lines) and not any(DID.match(l) for l in lines):
+        reasons.append('a closing block with no Did: account above it')
     if n >= MIN_WORDS:
         if m['articles'] > ARTICLES:
             reasons.append(f"{m['articles']} articles per 100 words, cap {ARTICLES:g}")

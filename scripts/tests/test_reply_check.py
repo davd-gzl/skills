@@ -59,6 +59,12 @@ class Measure(unittest.TestCase):
         m = rc.measure(CLIPPED + ' I think keep them, since they cost three lines and carry skim.')
         self.assertTrue(any(r.startswith('hedge') for r in m['reasons']))
 
+    def test_a_closing_block_needs_the_did_account(self):
+        tail = '\n\n📋 [file](https://x)\n\nTL;DR: done.'
+        self.assertIn('a closing block with no Did: account above it', rc.measure(CLIPPED + tail)['reasons'])
+        self.assertEqual(rc.measure(CLIPPED + '\n\nDid:\n1. Lint, clean.' + tail)['reasons'], [])
+        self.assertEqual(rc.measure(CLIPPED)['reasons'], [])
+
     def test_a_short_reply_is_not_measured(self):
         self.assertEqual(rc.measure('The fix is in the tree, the tests are green.')['reasons'], [])
 

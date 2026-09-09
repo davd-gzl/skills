@@ -55,6 +55,12 @@ as the skill defines it; ask when the reading changes what gets built.
 - Text the user will paste elsewhere goes in a fenced block instead, which is
   what carries a copy button: a message for a group, a snippet, anything asked
   for as copyable.
+- The closing block carries one bare verb, `post` never `post the issue`, and
+  says beside it what saying it does: `open` and what opens, where. The sentence
+  around it names every destination it covers: the publish, the commits and pins
+  behind it, the workspace backup. Where a publish and something already
+  authorised or automatic are both pending, do the latter and offer the publish
+  alone.
 - The closing block is the authorising word, then the artifacts: one line for
   the pending action naming its verb, then one line per artifact the reply wrote
   or quoted, a draft pasted into the reply included, in the order *Layout* in

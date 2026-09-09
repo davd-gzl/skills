@@ -20,7 +20,7 @@ Run in order for a single target; multi-target runs wrap this via *Parallel disp
 4. *Review the diff*, or the failing surface.
 5. **Run the refactor pass over every added block**, per *Review the diff*. Write the shorter form, run the target's own tests on it, and ship it as a `suggestion` with both line counts. A round reporting no simplification names the blocks it rewrote and rejected.
 6. *Write tests* for test-shaped findings.
-7. Write `overview.md` per *Overview*, then the review file per *Output*.
+7. Answer the completeness questions, one line each in Verified: which angle returned nothing and why, which claim stayed unrun and what would run it, which deleted or changed test was not re-added, which coverage cap was hit. Then write `overview.md` per *Overview*, then the review file per *Output*.
 8. Draft `comment_<model>.md` per `skills/review-comment.md`, then run its *Final check*. Draft whether or not anything will be posted. Skip only for a PR the reviewer authored; see *Own PR* in `skills/review-modes.md`.
 9. Run the `skills/writing-style.md` Pass over every line of the review file and `comment_<model>.md`, starting with `./scripts/prose-check.py <file>`. Never skip it. Re-run it after any later edit to that prose, including an edit made in answer to a question about it. State which passes ran when handing over.
 10. One commit and one push covering everything. This push is pre-authorized; see *Rules*.
@@ -103,6 +103,8 @@ Open every full re-review round with a round-note paragraph between the metadata
 Read every line. Look for correctness defects: logic errors, missing nil checks, unchecked type assertions, off-by-one. Untested paths. Breaking changes without migration. Style inconsistencies. Reuse and simplification: duplicated helpers, foldable code, unclear naming, missing doc comments, undocumented invariants, filed as Suggestions or Nits, never blockers. Docs impact.
 
 **Refactor pass, over every added block.** Ask whether fewer lines carry the same behaviour: a value computed twice, a guard the caller already applied, memoization that stabilises nothing, an abstraction with one call site. Where they do, post the replacement as a `Refactor:` suggestion the author applies in one click, never prose describing the change, and record both line counts in the review file.
+
+**Ask whether each fix sits at the right depth.** A special case added to shared code for one caller, a new root or flag where the cause could be removed, a guard at the call site while the callee stays unsafe for its next caller: each is a Suggestion naming the deeper form and what the shallow one costs to maintain.
 
 **Inline a local read once that exists only to fit the line width**, and let the
 formatter wrap the expression instead. A name is a claim that something is worth

@@ -71,18 +71,14 @@ as the skill defines it; ask when the reading changes what gets built.
 - Under the closing block, the `TL;DR:` line every reply ends on, per *Short
   form* in `skills/writing-style.md`.
 - **A reply finishing a piece of work ends on the account of everything it
-  did**, above the closing block, in this shape and no other:
-
-  ```
-  Did:
-  1. <what was done>, <what it produced or changed>.
-  2. <a loop>, <its round count>, <what the last round caught>.
-  Left: <what stayed undone>, needs <the decision>.
-  ```
-
-  One numbered line per step, in order, every step included, a clean one in
-  three words. What was tried and dropped stays in `plan.md`. `Left:` goes when
-  nothing is left. The register check names a closing block without it.
+  did**, above the closing block, as plain lines, never in a code fence or a
+  quote: `Did:` alone on a line, then one numbered line per step in order, what
+  was done and what it produced, a loop with its round count, a clean step in
+  three words, then `Left:` naming what stayed undone and the decision it
+  needs, dropped when nothing is left. The prose above never retells a listed
+  step: it carries the decisions to make and the word to give. What was tried
+  and dropped stays in `plan.md`. The register check names a closing block
+  without the account, and an account inside a fence.
 - **A reply reporting a publish opens with the full URL of what went out**, one
   per artifact the action created, before any account of it. Elsewhere a link is
   a label, which is what buries a published URL written as one.

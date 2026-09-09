@@ -102,11 +102,13 @@ drift back to prose as a session runs. **Two marks move it and nothing else:
 default to the shortest true answer.** Either moves that reply alone and the
 default returns on the next; a question wanting a fact is not a request to
 explain. All rules above hold. **The harness measures every reply**,
-`skills/scripts/reply-check.py`: articles per hundred words, words per
-sentence, hedges and pleasantries, code and quoted drafts excluded. **It never
+`skills/scripts/reply-check.py`: prose words, articles per hundred, words per
+sentence, hedges and pleasantries, with code, quoted drafts and the account
+excluded. **It never
 blocks, and no reply is drafted into a file to measure it first. Both print the
 reply twice in the chat, a rejected one beside its rewrite.** Drift is caught
-afterwards instead, `--scan` over the transcripts. A `+` reply is exempt. A
+at the next prompt instead: the last reply's numbers go into the context, and
+`--scan` reads a whole session. A `+` reply is exempt. A
 comment posted anywhere takes *Posted comments*, which keeps full sentences.
 
 - One idea, in the fewest lines that settle it. No recap of what was already said. Stop when it lands.

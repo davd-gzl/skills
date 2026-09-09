@@ -65,6 +65,18 @@ class Measure(unittest.TestCase):
         self.assertEqual(rc.measure(CLIPPED + '\n\nDid:\n1. Lint, clean.' + tail)['reasons'], [])
         self.assertEqual(rc.measure(CLIPPED)['reasons'], [])
 
+    def test_a_fenced_account_is_named(self):
+        m = rc.measure(CLIPPED + '\n\n```\nDid:\n1. Lint, clean.\n```\n\n📋 [file](https://x)')
+        self.assertIn('the Did: account sits in a code fence, write it as plain lines', m['reasons'])
+        self.assertNotIn('a closing block with no Did: account above it', m['reasons'])
+
+    def test_a_long_reply_is_named_and_the_account_does_not_count(self):
+        long = ' '.join([CLIPPED] * 5)
+        self.assertTrue(any(r.startswith(f'{rc.measure(long)["words"]} prose words') for r in rc.measure(long)['reasons']))
+        account = 'Did:\n' + '\n'.join(f'{i}. Step {i}, ' + ' '.join(['done'] * 40) + '.' for i in range(1, 6))
+        m = rc.measure(CLIPPED + '\n\n' + account + '\n\n📋 [file](https://x)')
+        self.assertEqual(m['reasons'], [])
+
     def test_a_short_reply_is_not_measured(self):
         self.assertEqual(rc.measure('The fix is in the tree, the tests are green.')['reasons'], [])
 
@@ -130,6 +142,18 @@ class Hook(Transcript):
     def test_a_clipped_reply_passes(self):
         self.write(entry('user', 'why'), entry('assistant', [{'type': 'text', 'text': CLIPPED}]))
         self.assertEqual(self.run_hook({'transcript_path': self.path})[0], 0)
+
+    def test_last_steps_over_the_prompt_just_typed(self):
+        self.write(entry('user', 'why'), entry('assistant', [{'type': 'text', 'text': DRIFTED}]),
+                   entry('user', 'next question'))
+        out = io.StringIO()
+        self.assertEqual(rc.main(['--last', self.path], stdout=out), 0)
+        self.assertIn('articles per 100', out.getvalue())
+        self.write(entry('user', 'why'), entry('assistant', [{'type': 'text', 'text': CLIPPED}]),
+                   entry('user', 'next question'))
+        out = io.StringIO()
+        rc.main(['--last', self.path], stdout=out)
+        self.assertEqual(out.getvalue(), '')
 
     def test_a_missing_transcript_never_blocks(self):
         self.assertEqual(self.run_hook({'transcript_path': '/nonexistent/t.jsonl'})[0], 0)

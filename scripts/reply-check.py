@@ -11,6 +11,8 @@ trusting it, and hands the numbers back for a rewrite.
                                                     final reply, its numbers on stderr and exit 2 when it has
                                                     drifted, once per turn
   ./skills/scripts/reply-check.py <file>            the numbers for a text file; exit 1 when it drifts
+  ./skills/scripts/reply-check.py --last <jsonl>    the last reply's numbers when it drifted, one line, for the
+                                                    prompt hook to put in the next turn's context; else nothing
   ./skills/scripts/reply-check.py --scan <jsonl>... one row per transcript: final replies measured, drifted,
                                                     and the median articles per hundred words;
                                                     --since <date> keeps replies from that day on
@@ -19,7 +21,9 @@ Measured over the prose alone. Fenced blocks, inline code, blockquotes, table
 rows, link targets and lines between two `---` rules are dropped, since a draft
 quoted in a reply stays as written. Under MIN_WORDS nothing is measured, and a
 prompt opening or closing on `+` exempts its reply. A reply carrying a closing
-block, the artifact lines, carries the `Did:` account above it.
+block, the artifact lines, carries the `Did:` account above it, as plain lines:
+an account inside a code fence is named. The account, quotes, tables and code
+do not count toward WORDS.
 """
 
 import json
@@ -30,6 +34,7 @@ import sys
 ARTICLES = 5.0      # per hundred words; the measured register runs under one
 SENTENCE = 12.0     # words per sentence
 MIN_WORDS = 30
+WORDS = 200         # prose words in one reply; past this the reader skims
 
 ART = re.compile(r"\b(a|an|the)\b", re.I)
 HEDGE = re.compile(r"\b(might|maybe|perhaps|probably|likely|i think|i believe|it seems|could be|possibly)\b", re.I)
@@ -48,7 +53,7 @@ REGISTER = ('Rewrite in cvm, the Short form of skills/writing-style.md: no fille
 
 def prose(text):
     """The lines a reader takes as the reply's own voice."""
-    out, fence, rule = [], False, False
+    out, fence, rule, account = [], False, False, False
     for line in text.splitlines():
         s = line.strip()
         if s.startswith('```'):
@@ -57,7 +62,11 @@ def prose(text):
         if s == '---':
             rule = not rule
             continue
-        if fence or rule or s.startswith('>') or s.startswith('|'):
+        if DID.match(line):
+            account = True
+        if account and not s:
+            account = False
+        if fence or rule or account or s.startswith('>') or s.startswith('|'):
             continue
         line = re.sub(r'`[^`]*`', ' ', line)
         line = re.sub(r'\]\([^)]*\)', ']', line)
@@ -83,7 +92,11 @@ def measure(text):
     lines = text.splitlines()
     if any(CLOSING.match(l) for l in lines) and not any(DID.match(l) for l in lines):
         reasons.append('a closing block with no Did: account above it')
+    if re.search(r'```[^\n]*\n\s*\**Did:', text):
+        reasons.append('the Did: account sits in a code fence, write it as plain lines')
     if n >= MIN_WORDS:
+        if n > WORDS:
+            reasons.append(f'{n} prose words, cap {WORDS}')
         if m['articles'] > ARTICLES:
             reasons.append(f"{m['articles']} articles per 100 words, cap {ARTICLES:g}")
         if m['per_sentence'] > SENTENCE:
@@ -161,9 +174,10 @@ def replies(path):
     return out
 
 
-def final_reply(path):
+def final_reply(path, after_prompt=False):
     """The last reply and the prompt it answers, read from the tail of the transcript: the assistant
-    text below the last user entry, tool result or prompt, then the prompt above it."""
+    text below the last user entry, tool result or prompt, then the prompt above it. At prompt time
+    the prompt just typed may already sit at the tail; after_prompt steps over it."""
     text, prompt, collecting = [], '', True
     for e in reversed(list(entries(path, tail=1 << 19))):
         t = e.get('type')
@@ -172,6 +186,9 @@ def final_reply(path):
                 return '', ''      # the turn ended on a tool call, nothing to measure
             text[:0] = [b.get('text') or '' for b in blocks(e) if b.get('type') == 'text']
         elif t == 'user':
+            if after_prompt and not text and is_prompt(e):
+                after_prompt = False
+                continue
             collecting = False
             if is_prompt(e):
                 prompt = prompt_text(e)
@@ -205,6 +222,20 @@ def cmd_hook(stdin, stderr):
         return 0
     print(report(m) + '; ' + '; '.join(m['reasons']) + '.\n' + REGISTER, file=stderr)
     return 2
+
+
+def cmd_last(path, stdout):
+    """One line on the last reply when it drifted, for the next turn's context; nothing when it held."""
+    try:
+        text, prompt = final_reply(path, after_prompt=True)
+    except OSError:
+        return 0
+    if not text or exempt(prompt):
+        return 0
+    m = measure(text)
+    if m['reasons']:
+        print(report(m) + '; ' + '; '.join(m['reasons']) + '.', file=stdout)
+    return 0
 
 
 def cmd_file(path, stdout):
@@ -253,6 +284,8 @@ def main(argv, stdin=None, stdout=None, stderr=None):
                 i = paths.index('--since')
                 since, paths = paths[i + 1], paths[:i] + paths[i + 2:]
             return cmd_scan(paths, since, stdout)
+        if argv[0] == '--last' and len(argv) == 2:
+            return cmd_last(argv[1], stdout)
         if len(argv) == 1:
             return cmd_file(argv[0], stdout)
     except Exception as e:  # a hook that cannot decide says so and never blocks

@@ -574,6 +574,20 @@ class Prompt(HookCase):
             self.assertIn(piece, context)
         self.assertNotIn('# meet', context)
 
+    def test_a_drifted_last_reply_reaches_the_next_prompt(self):
+        transcript = self.root / 't.jsonl'
+        drifted = ('The forged heading and the rule die, and the forged line does not, since the renderer '
+                   'preserves the inline links by design, so a description can still print a line that reads '
+                   'exactly like the one the page built, and the cost is real while the fix is not.')
+        lines = [json.dumps({'type': 'user', 'message': {'content': 'why'}}),
+                 json.dumps({'type': 'assistant', 'message': {'content': [{'type': 'text', 'text': drifted}]}}),
+                 json.dumps({'type': 'user', 'message': {'content': 'push'}})]
+        transcript.write_text('\n'.join(lines) + '\n')
+        rc, context = self.run_hook('prompt', json.dumps({'prompt': 'push', 'transcript_path': str(transcript)}))
+        self.assertEqual(rc, 0)
+        self.assertIn('articles per 100', context)
+        self.assertIn('Short form', context)
+
     def test_a_malformed_payload_is_quiet(self):
         rc, context = self.run_hook('prompt', 'not json')
         self.assertEqual((rc, context), (0, ''))

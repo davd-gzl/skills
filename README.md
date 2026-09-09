@@ -123,14 +123,14 @@ sentence counted with code excluded, and a blind judge ranking every answer on
 single-pass readability; [`results.md`](tests/chat-register/results.md) is the
 run.
 
-[`scripts/reply-check.py`](scripts/reply-check.py) is what keeps it: run as the
-harness's stop hook, it reads the turn's final reply off the transcript, drops
-fenced code, inline code, blockquotes, table rows, link targets and anything
-between two `---` rules, since a quoted draft stays as written, and measures
-what is left. Over 5 articles per hundred words, over 12 words per sentence,
-any hedge or pleasantry, or a closing block with no `Did:` account above it,
-and the numbers come back with the register for one rewrite; a reply under 30
-words of prose, or one answering a `+` prompt, is not measured.
+[`scripts/reply-check.py`](scripts/reply-check.py) is what keeps it: it reads
+the turn's final reply off the transcript, drops fenced code, inline code,
+blockquotes, table rows, link targets, anything between two `---` rules and the
+`Did:` account, and measures what is left. Over 200 prose words, 5 articles per
+hundred, 12 words per sentence, any hedge or pleasantry, an account missing
+above a closing block or sitting in a code fence, and the numbers go into the
+next prompt's context; nothing blocks, no reply is printed twice. A reply under
+30 words of prose, or one answering a `+` prompt, is not measured.
 
 ```bash
 ./skills/scripts/reply-check.py <file>                          # the numbers for a text file

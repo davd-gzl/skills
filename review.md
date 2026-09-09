@@ -82,7 +82,7 @@ git diff $(git merge-base <remote>/<base-branch> <new-sha>) <new-sha> | git patc
 ```
 
 - **Equal**: base-only move. Do NOT re-author: copy the latest round's `.md` files into `<n+1>-<new-sha>/`, rewrite shas, remap anchors, reading the checkout to fix any that no longer map, add a one-line round note saying the head advanced with content unchanged, anchors re-cut, verdict unchanged, then commit. Skip the rest of the workflow.
-- **Differ**: full re-review round, focused on what changed since `<old-sha>`.
+- **Differ**: full re-review round, focused on what changed since `<old-sha>`. A file the head adds gets first-round depth, whatever round it lands in.
 - **New head is a merge of the base branch**: never base-only. Run `git show <new-sha> --cc`; any hunk it prints is conflict-resolution content, reviewed like any diff. Base commits may add tests the branch now fails: run the affected suite on the new head.
 - **`<old-sha>` unreachable**: skip the gate, run a full round against the merge-base, note the fallback.
 
@@ -237,6 +237,7 @@ filling each are in `skills/review-output.md`.
 - A cosmetic nit no enabled linter enforces carries the config link and ships `SKIP`, per `skills/review-comment.md`. Check the linter config before flagging a style convention.
 - A finding about a code comment's own wording ships `SKIP`, whatever band it lands in: it changes no behaviour, so it does not earn an inline slot by default. Keep the measurement that shows the comment wrong in the review file.
 - A pre-existing defect is in scope in three cases: the diff sweeps that defect's class and missed it, the change makes the code permanent, or the change makes the defect reachable for the first time. Name the sweep, the freeze or the new path, and say it predates the diff. Read the diff, never recall: promoting something to a security boundary, or adding a test asserting the behaviour, is the first case, and the verdict moves with it.
+- A pre-existing defect found while reviewing, in scope or not, goes the same turn to an issue draft per `skills/issue.md`, or to the project's audit tracking where its delta names one, under the disclosure invariant when the code is deployed. A paragraph in the review file is where such a finding dies.
 - Map the full call graph before claiming anything dead, redundant, or unused.
 - Code that cannot run is a finding, never a reason to drop one: an impossible guard, an unreachable branch, a default the type forbids. **Ask for its removal, and name every site the removal touches**, the symbol it declares included. A rename, a reworded message or a tidied comment keeps the code and ships as polish on protection that is not there, so a wording finding inside proven-dead code is that same finding, one band down.
 - Clearing something needs the same evidence as flagging it. To clear "X is safe because guard G covers it": find G's construction site, list its callers, and confirm X is one. Never infer that a guard reaches a member from a grouping made by the diff, its docs, or its author. A cleared item whose mechanism was not traced is unverified; say so.

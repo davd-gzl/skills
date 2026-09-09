@@ -28,8 +28,8 @@ Run in order for a single target; multi-target runs wrap this via *Parallel disp
 
 **A one-file diff under 20 changed lines takes the short path**: steps 1, 3, 4,
 5 and 8 to 10, with the review file's own Overview standing in for `overview.md`
-and one QA agent rather than three. A finding there that needs a second
-measurement puts the target back on the full workflow.
+and the claim gate alone rather than both QA agents. A finding there that needs
+a second measurement puts the target back on the full workflow.
 
 ## Subjects
 

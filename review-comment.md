@@ -156,9 +156,9 @@ Verify each line before handing over:
 11. Open every link and read the lines it lands on: each must contain the number, symbol, or behavior claimed, and every external link must resolve at the pinned ref.
 12. Re-run every claim against the tree before the draft is shown, including the ones carried from an earlier revision. Print the code beside the sentence.
 
-Then three QA agents, over every edit to comment.md and not only over a regeneration, a one-line fix included. A fix moves a fact off the line that supported it, and the branch it cites keeps moving under the review:
+Then two QA agents, over every edit to comment.md and not only over a regeneration, a one-line fix included. A fix moves a fact off the line that supported it, and the branch it cites keeps moving under the review:
 
-- Concision recheck: one agent, given the comment.md path, the checkout path, and the *Visible-text style* rules. Only question: can any line be shorter or clearer without dropping fact, stake, or fix? Apply the rewrites that hold against the cited lines.
-- Citation audit: one agent, given both file paths and the checkout. It resolves every link and then reads the lines each one lands on, returning the anchors whose lines do not carry the claim and the links that do not resolve. It skips the `Full review:` self-link, which 404s until pushed. Fix each returned finding.
-- Claim gate: the agent in *Deep mode* step 5 of `skills/review-modes.md`, over the edited file alone, re-running every repro block and every line number in it.
+- **Run the claim gate first and apply its findings before any rewording**: the agent in *Deep mode* step 5 of `skills/review-modes.md`, over the edited file alone, re-running every repro block and every line number in it. It kills whole findings, and a wording pass run before it polishes sentences that leave the draft.
+- **Run the text pass last, over the final wording**: one agent, given both file paths, the checkout and the *Visible-text style* rules. It answers two questions in one read, whether any line can be shorter or clearer without dropping fact, stake or fix, and whether every link lands on lines carrying its claim, the `Full review:` self-link excepted, which 404s until pushed. Apply the rewrites that hold and fix every anchor it returns.
+- One pair per target, the pairs dispatched together. The gate builds and runs the project's suites while the text pass only reads, so one agent covering several targets serialises the expensive half.
 

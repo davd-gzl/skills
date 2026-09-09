@@ -156,7 +156,7 @@ Verify each line before handing over:
 11. Open every link and read the lines it lands on: each must contain the number, symbol, or behavior claimed, and every external link must resolve at the pinned ref.
 12. Re-run every claim against the tree before the draft is shown, including the ones carried from an earlier revision. Print the code beside the sentence.
 
-Then two QA agents, over every edit to comment.md and not only over a regeneration, a one-line fix included. A fix moves a fact off the line that supported it, and the branch it cites keeps moving under the review:
+Then two QA agents, once, over the finished draft. An edit after that gets the parent's own pass over the edited section, its cited lines re-read, and a run only where the edit adds or changes a claim: each agent pass reads the draft, the review file, the rules and every cited line, so a pass per edit costs the round again.
 
 - **Run the claim gate first and apply its findings before any rewording**: the agent in *Deep mode* step 5 of `skills/review-modes.md`, over the edited file alone, re-running every repro block and every line number in it. It kills whole findings, and a wording pass run before it polishes sentences that leave the draft.
 - **Run the text pass last**: one agent with both paths, the checkout and the *Visible-text style* rules. It returns a table of every link first, resolved or not and claim on the landed lines or not, the `Full review:` self-link excepted; a link missing from the table means the pass skipped it. Then any line shorter or clearer without dropping fact, stake or fix. Fix every flagged anchor, apply the rewrites that hold.

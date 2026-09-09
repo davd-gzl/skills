@@ -24,7 +24,7 @@ Run in order for a single target; multi-target runs wrap this via *Parallel disp
 8. Draft `comment_<model>.md` per `skills/review-comment.md`, then run its *Final check*. Draft whether or not anything will be posted. Skip only for a PR the reviewer authored; see *Own PR* in `skills/review-modes.md`.
 9. Run the `skills/writing-style.md` Pass over every line of the review file and `comment_<model>.md`, starting with `./scripts/prose-check.py <file>`. Never skip it. Re-run it after any later edit to that prose, including an edit made in answer to a question about it. State which passes ran when handing over.
 10. One commit and one push covering everything. This push is pre-authorized; see *Rules*.
-11. Hand over. Link the `comment_<model>.md` draft, not only the review file. Add a "Decisions needed" list, one line each: a borderline verdict, Open questions worth promoting. Omit when empty. Never list an APPROVE as needing confirmation. Post only on the literal word `post`. Acting on the findings is `skills/change.md`; they stay here.
+11. Hand over. Name the cost first, agents, minutes and tokens per stage from the task notifications. Link the `comment_<model>.md` draft, not only the review file. Add a "Decisions needed" list, one line each: a borderline verdict, Open questions worth promoting. Omit when empty. Never list an APPROVE as needing confirmation. Post only on the literal word `post`. Acting on the findings is `skills/change.md`; they stay here.
 
 **A one-file diff under 20 changed lines takes the short path**: steps 1, 3, 4,
 5 and 8 to 10, with the review file's own Overview standing in for `overview.md`

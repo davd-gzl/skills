@@ -19,6 +19,7 @@ Use when `$ARGUMENTS` contains more than one target.
 > Run the review workflow at `skills/review.md` on `<target>`, URL `<url>`. Read `skills/writing-style.md` before drafting any prose; every line of the review file and `comment_<model>.md` conforms to it. The checkout already exists at `<path>` with the target checked out: never create a worktree or switch branches. Follow every other step in that file. Do not commit, push, or post; the parent does that at the end. Report back the review file path and a one-paragraph summary of the verdict and headline findings.
 
 3. Agents run concurrently, never sequenced.
+   Corrections to a dispatched agent go in one message, sent once every QA result is in: a resumed agent replays its whole transcript, so each message costs the round again. Prose edits are the parent's own; an agent is resumed only for a run.
 4. The parent runs the *Final check* in `skills/review-comment.md` and both QA agents over every returned draft, before the commit. A subagent's own pass never stands in for them.
 5. After all return, the parent makes a single commit and push covering all reviews, its subject naming every target.
 6. Reconcile before handing over. When agents on coupled targets disagree, re-derive the answer from the source, name the constraint both sides must satisfy, and write the same conclusion into every affected review file. Never ship contradicting drafts, and never settle it by taking one agent's summary.

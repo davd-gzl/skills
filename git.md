@@ -120,6 +120,11 @@ A submodule sits on a detached HEAD, and every failure here follows from that.
   `git submodule add -b <branch> <fork-url> <path>` records the branch, which
   `git submodule update --remote` follows. Every presented fix pays a second
   clone; the worktree stays scratch.
+- **Write the submodule push and the parent's gitlink bump as one script of
+  `git -C <path>` commands, never a `cd` chain.** A `cd` inside a compound
+  command leaves every later line running from the wrong tree, so the parent
+  bump fails after the submodule push already landed and the turn ends half
+  pushed. Neither half waits for a word the other did not need.
 - **Restore a checkout to its default branch after working in it**, or the
   parent's gitlink moves and the tree is dirty.
 

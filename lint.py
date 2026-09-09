@@ -255,11 +255,11 @@ def main(argv):
                                for h in re.findall(r'^#+\s+(.+)$', headings, re.M)}
 
     found = 0
-    health_rows, corpus = [], defaultdict(list)
+    health_rows, seen_sentences = [], defaultdict(list)
     for path in paths:
         findings, health, seen = check_file(path, corpus, heading_index)
         for key, nums in seen.items():
-            corpus[key].append((path, nums[0]))
+            seen_sentences[key].append((path, nums[0]))
         for level, line, code, message in sorted(findings, key=lambda f: (f[1], f[2])):
             mark = 'warn '
             found += 1
@@ -267,7 +267,7 @@ def main(argv):
         if health:
             health_rows.append((path, health))
 
-    dupes = {k: v for k, v in corpus.items() if len({p for p, _ in v}) > 1}
+    dupes = {k: v for k, v in seen_sentences.items() if len({p for p, _ in v}) > 1}
     for key, places in sorted(dupes.items(), key=lambda kv: -len(kv[1]))[:10]:
         where = ', '.join(f'{p}:{n}' for p, n in places)
         print(f'warn  [dupe] one rule in {len(places)} files: {where}\n      "{key[:90]}"')

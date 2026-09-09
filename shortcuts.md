@@ -55,13 +55,15 @@ as the skill defines it; ask when the reading changes what gets built.
 - Text the user will paste elsewhere goes in a fenced block instead, which is
   what carries a copy button: a message for a group, a snippet, anything asked
   for as copyable.
-- End the reply with the authorising word, then the artifacts: one line for the
-  pending action naming its verb, then one line per artifact the reply wrote or
-  quoted, a draft pasted into the reply included, in the order *Layout* in
+- The closing block is the authorising word, then the artifacts: one line for
+  the pending action naming its verb, then one line per artifact the reply wrote
+  or quoted, a draft pasted into the reply included, in the order *Layout* in
   `workspace.md` gives them. A closed or merged target keeps its link and loses
   its verb. Each is a `[label](<url>)` into the workspace repo's `blob/main`,
   never a local path or a command. Emoji: 📋 ▶ only; 🗺 does not render for
   this user.
+- Under the closing block, the `TL;DR:` line every reply ends on, per *Short
+  form* in `skills/writing-style.md`.
 - **A reply finishing a piece of work says what the work found, not how it
   ran.** The steps are the artifacts' business. Where an account of the run is
   asked for, it is the shortest one that answers: the steps that changed the

@@ -1,11 +1,39 @@
 ---
-name: reply
-description: Use when writing a chat reply to the user, in any workspace: the register, what a reply opens with, its links, its closing block.
+name: shortcuts
+description: Use in every reply, in any workspace: the words the user types and what each starts, and the shape of a reply, what it opens with, its links, its closing block.
 ---
 
-# Replying to the user
+# Shortcuts
 
-Every reply, in any workspace. In context from the session start hook.
+Every reply, in any workspace. In context from the session start hook. The
+register is the *Short form* of `skills/writing-style.md`.
+
+## The words
+
+What the user types, and what each word starts. A word a skill defines is read
+as the skill defines it; ask when the reading changes what gets built.
+
+| Word | What it starts | Rule |
+| --- | --- | --- |
+| `review <target>` | one review round: the file, the overview, the comment draft, pushed, nothing posted | `skills/review.md` |
+| `deep review <target>` | the same round with lens agents on one target | *Deep mode*, `skills/review-modes.md` |
+| `review all` | every open target not yet reviewed, the scope written down first | `skills/review-modes.md` |
+| `fix <issue or finding>` | a change on the fork: spec, plan, worktree, fix, CI; nothing pushed | `skills/change.md` |
+| `try <pr> on <repo>` | the project booted locally, ready to click through | `skills/try.md` |
+| `video` | the clip, only once the finding's text is frozen | `skills/try.md` |
+| `stop` | the stack and the worktree torn down | `skills/try.md` |
+| `report [date]` | the period's status report | `skills/report.md` |
+| `post` | the shown draft goes to its target; `post as an AI` adds the marker; `upload` sends media | `skills/review-comment.md`, `skills/issue.md`, `skills/change.md` |
+| `push` | the whole git flow, every commit and push the work needs, once | *Consent*, workspace `AGENTS.md` |
+| `merge`, `close`, `delete` | that one action on the named target | Invariant 2 |
+| `make this review public` | the round to the public artifact repo, links repointed | *Consent* |
+| `path` | the worktree the work sits in, its path alone | here |
+| "a comment" | the `comment_<model>.md` draft and the text for the target, never an explanation | `skills/review-comment.md` |
+| `TLDR` | the answer in one line, and the word it waits on | here |
+| `continue` | the local work resumed, dead agents re-dispatched first; nothing published | here |
+| `go`, `ok`, `yes`, `sure`, anything else | local work only, never a publish | Invariant 2 |
+
+## The shape of a reply
 
 - Run the action; the user only says the word. They never open a terminal, so a
   command in a reply is a dead end.
@@ -53,22 +81,11 @@ Every reply, in any workspace. In context from the session start hook.
   deterministic. A 403 `Resource not accessible by personal access token` is a
   missing scope, handled per `skills/review-comment.md`.
 
-- `path` alone means the worktree the current work sits in, answered with that
-  path and nothing else.
-- "A comment" from the user means the `comment_<model>.md` artifact and the text
-  that goes on the target, per `skills/review-comment.md`. Never an explanation
-  in the reply, whatever the sentence around it asks for. The same holds for
-  every other word the skills define: read it as the skill defines it, and ask
-  when the reading changes what gets built.
-- Write the chat in caveman, the *Short form* of `skills/writing-style.md`.
-- Close a reply that runs past a screen with a `TL;DR:` line, one sentence
-  carrying the finding and the word it waits on. That line is what gets read,
-  not the body above it.
 - An agent's return is not a turn. Reply when the step it fed is finished,
   never per agent.
 - Re-dispatch every agent that died, before anything else, on `continue` and on
   any turn that resumes the work.
-- Dispatching an agent names `skills/reply.md` in the prompt, beside the skill
-  it delegates to.
+- Dispatching an agent names `skills/shortcuts.md` in the prompt, beside the
+  skill it delegates to.
 - Correcting published text means editing it to say the right thing and nothing
   else: no "an earlier version claimed", no strikethrough.

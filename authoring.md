@@ -21,7 +21,7 @@ never blocks: a rough rule lands, and a later pass fixes it.
 | What waits for a word, and which repo a push may reach | The workspace `AGENTS.md` |
 | One task, whatever the repository: reviewing, drafting a body, filing an issue | The matching `skills/<task>.md` |
 | Visible prose of any kind | `skills/writing-style.md`, which every other skill defers to |
-| How a reply to the user reads: the register, its links, its closing block | `skills/reply.md` |
+| What the user's words start, and the shape of a reply | `skills/shortcuts.md` |
 | One repository: its merge style, its CI, its glossary, its boot recipe | `projects/<repo>/AGENTS.md` |
 | What this machine can do | No file. It is a command, see *Capabilities* |
 | A rule a harness offers to keep in its own memory store | No file it owns. The corpus holds every rule, so it goes to the row above it |
@@ -167,8 +167,17 @@ A skill that means to override the layer above says so in the rule itself,
 naming what it overrides and where. An override nobody wrote down is a
 contradiction wearing a hat.
 
-A wording whose effect is in doubt is measured rather than argued, per
-`skills/authoring-measurement.md`.
+## Measuring a rule
+
+A wording whose effect is in doubt is measured, and the whole run is designed
+before the first call: isolation flags first, `--tools "" --strict-mcp-config
+--disable-slash-commands --setting-sources ""`, since a plugin hook or a skill
+injection contaminates every answer and `--bare` drops OAuth; every variant in
+that one run at effort `medium`; one blind judge pass, labels hidden and order
+shuffled, on single-pass readability and substance kept. A round per variant
+multiplies the calls by the rounds and waits for each round's slowest call.
+`skills/tests/chat-register/` is the harness that measured *Short form* in
+`skills/writing-style.md`.
 
 ## Editing this corpus
 

@@ -82,8 +82,8 @@ git -C skills config core.hooksPath scripts/git-hooks
 python3 -m unittest discover -s skills/scripts/tests
 ```
 
-[`reply.md`](reply.md) is how a reply to me reads: the register, the links, the
-closing block. The session start hook puts it in context.
+[`shortcuts.md`](shortcuts.md) is the words I type and what each starts, and the
+shape of a reply. The session start hook puts it in context.
 
 ## Keeping this corpus honest
 

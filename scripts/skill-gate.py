@@ -17,7 +17,7 @@ with a warning. Nothing here blocks: a rough draft lands, a later pass fixes it.
   ./scripts/skill-gate.py hook-claude       Claude Code PreToolUse adapter, hook JSON on stdin: the missing
                                             skills whole in the context, recorded, and the write goes ahead
   ./scripts/skill-gate.py session-start     Claude Code SessionStart adapter, hook JSON on stdin: runs
-                                            scripts/sync.sh on a new session, puts writing-style, reply, git and
+                                            scripts/sync.sh on a new session, puts writing-style, shortcuts, git and
                                             workspace whole in the context and records them; after a
                                             compaction or a resume, everything this session had read
   ./scripts/skill-gate.py prompt            Claude Code UserPromptSubmit adapter: the skills the prompt's
@@ -456,7 +456,7 @@ def cmd_pre_push(stdin, cwd):
     return report(check(['git', *sorted(relative(top / p) or str(top / p) for p in paths)]))
 
 
-ALWAYS = ['writing-style', 'reply', 'git', 'workspace']
+ALWAYS = ['writing-style', 'shortcuts', 'git', 'workspace']
 
 # Prompt words to the skills they call for. Over-matching is the design: a read
 # costs context once per session, a missed rule costs the user a turn.

@@ -20,7 +20,7 @@ spec = importlib.util.spec_from_file_location('skill_gate', SCRIPT)
 gate = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(gate)
 
-SKILLS = ['review', 'review-output', 'review-comment', 'writing-style', 'reply', 'issue',
+SKILLS = ['review', 'review-output', 'review-comment', 'writing-style', 'shortcuts', 'issue',
           'pr-body', 'change', 'authoring', 'git']
 
 
@@ -508,9 +508,9 @@ class SessionStart(HookCase):
         rc, context = self.run_hook('session-start', json.dumps({'source': 'startup'}))
         self.assertEqual(rc, 0)
         self.assertIn('Sync ran: synced here', context)
-        for piece in ('## Short form\n\nClipped, every reply.', '- rule', '# reply', '# git', '# workspace'):
+        for piece in ('## Short form\n\nClipped, every reply.', '- rule', '# shortcuts', '# git', '# workspace'):
             self.assertIn(piece, context)
-        for name in ('writing-style', 'reply', 'git', 'workspace'):
+        for name in ('writing-style', 'shortcuts', 'git', 'workspace'):
             self.assertTrue(gate.is_read(name), name)
 
     def test_compact_reinjects_everything_read_without_a_sync(self):

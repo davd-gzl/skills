@@ -116,6 +116,8 @@ anywhere takes *Posted comments*, which keeps full sentences.
 - Imperative, never a request.
 - Open with `And` or `But` when adding to a previous point.
 - A question is one line and ends there.
+- A reply that runs past a screen closes with a `TL;DR:` line: one sentence,
+  the finding and the word it waits on. That line is what gets read.
 
 Sample of the register: "Gitlink moved, push refused. Rebase onto `origin/main`, retry."
 

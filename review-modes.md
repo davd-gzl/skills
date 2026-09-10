@@ -1,34 +1,33 @@
 ---
 name: review-modes
-description: Use when a review covers more than one target, when the user asks for a deep, parallel, red-team, pipeline or comment-only pass, or when the reviewer authored the target. Extends skills/review.md; everything not named here follows that file.
+description: Use when a review covers more than one target, or when the reviewer authored the target. Extends skills/review.md; everything not named here follows that file.
 ---
 
 # Review modes
 
-Each mode changes part of the workflow in `skills/review.md` and nothing else:
-the output format, `comment_<model>.md`, the verification discipline and the push
-rules are unchanged, *Comment mode* alone dropping two output files. Read that
-file first.
+Each case changes part of the workflow in `skills/review.md` and nothing else:
+the output, the verification and the push rules are unchanged. Read that file
+first.
 
 ### Parallel dispatch (multi-target)
 
 Use when `$ARGUMENTS` contains more than one target.
 
-1. The parent prepares each checkout first, per *Fetch & understand* in `skills/review.md`. Subagents never create worktrees or check out branches.
-2. Dispatch one agent per target, all at once, each with this prompt:
+1. The parent prepares each target first, per *Fetch & understand* in `skills/review.md`: its worktrees, its round directory, its `args`.
+2. Launch one workflow per target, all at once, each with its own `args`. Where the harness has no workflow runner, one agent per target instead, running the stages serially with this prompt:
 
-> Run the review workflow at `skills/review.md` on `<target>`, URL `<url>`. Read `skills/writing-style.md` before drafting any prose; every line of the review file and `comment_<model>.md` conforms to it. The checkout already exists at `<path>` with the target checked out: never create a worktree or switch branches. Follow every other step in that file. Do not commit, push, or post; the parent does that at the end. Report back the review file path and a one-paragraph summary of the verdict and headline findings.
+> Run the review workflow at `skills/review.md` on `<target>`, URL `<url>`, stages serial. Read `skills/writing-style.md` before drafting any prose; every line of `overview.md` and `comment_<model>.md` conforms to it. The worktrees already exist at `<paths>`: never create one at the shared path or switch branches. Do not commit, push, or post; the parent does that at the end. Report back the draft path and a one-paragraph summary of the verdict and headline findings.
 
-3. Agents run concurrently, never sequenced.
+3. Runs proceed concurrently, never sequenced.
    Corrections to a dispatched agent go in one message, sent once every QA result is in: a resumed agent replays its whole transcript, so each message costs the round again. Prose edits are the parent's own; an agent is resumed only for a run.
-4. The parent runs the *Final check* in `skills/review-comment.md` and both QA agents over every returned draft, before the commit. A subagent's own pass never stands in for them.
+4. The parent runs the *Final check* in `skills/review-comment.md` over every returned draft, before the commit. A subagent's own pass never stands in for it.
 5. After all return, the parent makes a single commit and push covering all reviews, its subject naming every target.
-6. Reconcile before handing over. When agents on coupled targets disagree, re-derive the answer from the source, name the constraint both sides must satisfy, and write the same conclusion into every affected review file. Never ship contradicting drafts, and never settle it by taking one agent's summary.
+6. Reconcile before handing over. When agents on coupled targets disagree, re-derive the answer from the source, name the constraint both sides must satisfy, and write the same conclusion into every affected draft. Never ship contradicting drafts, and never settle it by taking one agent's summary.
 
 A batch target set, "review all": every open non-draft target absent from the review directory, minus bot-authored, WIP-titled, reviewer-authored, and already-reviewed ones. Check the forge itself per target, not only the review directory, and drop on any hit. Confirm the final list with the user before reviewing more than one target, naming what was dropped and why.
 
 - A listing that returns exactly its `--limit` was clipped, not exhausted. Re-run higher before treating the set as complete.
-- A security fix in the set leaves the batch and runs alone in deep mode: a batch spends one budget per target, and a fix needs the claim gate.
+- A security fix in the set leaves the batch and runs alone, first: a batch spends one budget per target, and a fix earns its own.
 - **Read every target's state again while the batch runs, and stop the round on one that merged.** The set is a snapshot and a batch outlives it: a target merges, a head advances, and the agent keeps measuring a tree nobody will read. Re-check before each handover at least, kill the rounds whose target closed, and re-point the ones whose head moved at the new sha and a new round directory. What a stopped round already wrote is kept as a record with a `Status:` line saying the target merged, never offered as a draft. A finding that survives on the default branch is then an issue, not a review.
 - Sync the workspace before reading the review directory, and state the synced head when confirming the set. When it cannot be synced, derive the set read-only from the remote tree, `git ls-tree -r --name-only <remote>/<branch> -- <reviews-path>`, never from the working tree.
 - Write the scope down before dispatch, in a status file beside the reviews: the confirmed set as a table, one row per target with its head sha and review directory, the dropped targets grouped by reason, and the steps to resume. Update it as results come back and commit it with the batch.
@@ -36,55 +35,11 @@ A batch target set, "review all": every open non-draft target absent from the re
 - An external contributor's target leaves the set. It is reviewed only when the user names it.
 - When the run also covers already-reviewed targets whose head advanced, keep only the heads whose content changed: compare patch-ids per *Re-review rounds* in `skills/review.md`, drop every base-only move, and drop every target the reviewer already approved on the forge.
 
-### Deep mode (multi-angle, single target)
-
-Trigger: the user asks for a **parallel**, **red-team / blue-team**, or **deeper** review of one target, or "review and loop until perfect", or the target fixes a security advisory. Deep mode runs many lenses on one target; everything else follows the normal flow: output format, comment.md, push rules.
-
-1. **Set up.** Run *Fetch & understand* and *Reproduce the failure* in `skills/review.md` once; hand the same paths to every agent.
-2. **Dispatch lens agents**, concurrent. One red-team lens on a target scoring short under the *Workflow* score in `skills/review.md`; otherwise three, and more for large targets: perf, docs, API surface, ops impact. Each prompt is self-contained: checkout path, target, diff path, prior-review paths, one narrow lens. Each agent returns findings in this skill's severity model with `file:line` citations.
-   - **Red team**: bugs, broken invariants, security holes, edge cases, missing validation, downstream footguns.
-   - **Blue team**: missing tests, undocumented invariants, hardening gaps, misuse-inviting ergonomics, migration and rollback risk.
-   - **Correctness**: does the code match the description and linked issue? Scope drift, silent behavior changes, contract mismatches.
-   - When the workspace carries a catalog of the project's recurring bug classes, name it in every lens prompt and have each lens walk the classes its angle covers. At synthesis, confirm every class was covered by at least one lens and walk the uncovered ones against the diff before finalizing.
-3. **Synthesize.** Dedupe, re-rank by the severity ladder, verify each finding per *Verification discipline* in `skills/review.md`. Never keep a finding on an agent's summary alone.
-4. **Critic pass, exactly one round, parallel, skipped on a target scoring short.** 2-3 critics at once over the synthesized draft plus the diff and checkout, each with a distinct lens: verdict-check, missing-blocking, severity-calibration. Each returns ONLY findings that flip the verdict, raise a severity band, or add a missing Critical or Warning; otherwise exactly `NO_MATERIAL_FINDINGS`. Never send an open-ended "what's wrong" prompt. After: dedupe, re-read each cited `file:line`, drop what does not hold, revise. Never loop critics.
-5. **Claim-verification gate, parallel.** Dispatched the moment the review file is written and run while comment.md is drafted, one agent numbers every falsifiable claim in every artifact the round has written, behavioral, structural or numeric, states the check that proves each false, runs it, and returns one row per number carrying the observed output. A number missing from the table, or a row reading "as expected" in place of output, was not checked; re-read each failed or unchecked row against the code, drop or fix it. Facts only; severity and verdict belong to the critic pass.
-6. **Output.** Normal flow. Metadata line: `Model: <model> (<intensity>, deep)`; ask when the intensity is unknown. Deep mode over an already-reviewed commit opens a new `<n+1>-<same-sha>` directory whose round note names the mode and which prior verdict it confirms or overturns.
-
-### Pipeline mode (find, verify per candidate, write)
-
-Trigger: `pipeline review <target>`, or a harness reminder that ultracode is on. The round runs as the workspace's `scripts/workflows/review-pipeline.js`, passed by `scriptPath`, and the verify stage is the claim gate: no second gate runs, and the text pass of `skills/review-comment.md` still closes it.
-
-1. **The parent prepares everything the script names**, per *Fetch & understand*: the head and merge-base worktrees, the toolchain line every shell opens with, the round directory, the skill paths the agents read, the catalog when the project has one, whether the round is blind or the repository private, and each stage's model and effort read from the workspace's `scripts/workflows/review-pipeline.json`, passed as `stages`. Then it runs the workflow with those as `args`.
-2. Finders run one angle each and only read: the line pass, removed and rewritten behaviour with the sweep by shape, the claims the diff writes about itself, the tests the diff adds with the mutation that must redden each, reachability and extremes, the refactor pass, the catalog walk. Each returns candidates with the check that would prove it false, half-believed ones included.
-3. **One verifier per candidate, from scratch, in a scratch worktree it creates and removes itself**, `git -C <head worktree> worktree add --detach <scratch>/verify-<n> <sha>`. That overrides the parallel-dispatch rule that a subagent never creates a worktree: parallel mutations in one tree would corrupt each other. It runs the named check, on the merge base too when the claim is causal, and returns CONFIRMED, PLAUSIBLE or REFUTED with the artifact under `tests/`.
-4. A completeness critic then reads the candidates and their verdicts and returns what is missing, an under-scoped angle, an unrun claim, a dropped test, a silent cap; its candidates verify the same way. The writer assembles the round from what survived, per *Output*; a PLAUSIBLE finding is a question. The text pass follows. The parent runs the *Final check*, lint and the prose pass, then commits.
-5. Metadata line: `Model: <model>, effort <tier> (pipeline)`. Cost is the longest single verification, not their sum; a candidate the finders missed is not found, so a round returning few candidates says so in the round note.
-
-### Comment mode (the draft alone)
-
-Trigger: `comment review <target>`. The round writes `comment_<model>.md`,
-`claims.md` and `tests/` and nothing else: no `overview.md`, no review file.
-
-1. Steps 1 to 6 of *Workflow* in `skills/review.md` run unchanged, the sweep
-   score included.
-2. Step 7 writes no file. The completeness answers, each cleared suspicion with
-   its proving line and a Suggestion's two runs go to `claims.md` as rows, the
-   run output beside each; an Open question is a `SKIP` section on the line it
-   concerns.
-3. The draft carries `Model: <model>, effort <tier> (comment)` under `Event:`,
-   per the format in `skills/review-comment.md`: `post-review.sh --as-ai` builds
-   the marker from it, having no review file to fall back to, and the draft's
-   `Event:` is the verdict it carries.
-4. No `Full review:` line, and *Final check* 1 in `skills/review-comment.md` is
-   skipped. The claim gate the score calls for runs over the draft and `tests/`
-   in place of the review file, and the text pass closes as always.
-
 ### Own PR (the reviewer authored it)
 
 Check with `gh pr view <number> --json author`. Findings land as commits on the branch, never as a review to post.
 
-- No `comment_<model>.md`, no `pr-body.md`, post nothing. The review file is still written.
+- No `comment_<model>.md`, no `pr-body.md`, post nothing. `claims.md` and `overview.md` are still written.
 - Apply every mechanical fix in the checkout the review uses: comments, docs, tests, naming, dead code. Then *Fix* step 7 in `skills/change.md`, the local CI run, until green.
 - Never apply without asking: observable behavior changes, fixes to defects predating the branch, anything a maintainer would treat as a design decision. Present each as a named decision.
 - One commit per finding class, conventional subject. Push to the PR's head repository, never upstream.

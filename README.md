@@ -18,7 +18,7 @@ Nothing reaches anyone without my word, typed in the current turn: `post`,
 `push`, `merge`. `go`, `ok` and `yes` authorise nothing, and every draft is shown
 before it goes. A claim carries the run that proves it. A posted comment says
 the problem, its stake and the line it sits on, and stops, so a maintainer who
-did not ask for it reads it once; the depth lives in the review file. Replies
+did not ask for it reads it once; the depth lives in `claims.md`. Replies
 to me are clipped, measured, rewritten when they drift, and end on an account
 of everything the turn did.
 
@@ -76,9 +76,9 @@ Everything starts with a review, on a PR, a branch, or a red CI.
    counts.
 6. **Write the tests.** A finding whose fix is a test ships the test itself,
    paste-ready, not a description of one.
-7. **Overview and review file.** `overview.md` for the reader who knows nothing
-   about the subject, then the record: verdict, findings graded Critical to
-   Suggestion, repros, every claim linked to the reviewed line.
+7. **Overview and claims.** `overview.md` for the reader who knows nothing
+   about the subject, then `claims.md`, the record: the verdict, one row per
+   candidate verified with its run output, every claim linked to the reviewed line.
 8. **Comment draft.** One anchored comment per finding, its final check, three
    QA agents over every edit, pruned by hand before anything ships.
 9. **Style pass.** The closing Pass of [`writing-style.md`](writing-style.md),
@@ -91,8 +91,7 @@ Everything starts with a review, on a PR, a branch, or a red CI.
 | File | Fires when | Produces |
 | --- | --- | --- |
 | [`review.md`](review.md) | a pull request, a branch or a repository-level failure is reviewed | the review round |
-| [`review-modes.md`](review-modes.md) | a run covers many targets, goes deep with several lenses on one, or the reviewer authored the target | the deltas of that mode |
-| [`review-output.md`](review-output.md) | the review file is written | its metadata block and every section in order |
+| [`review-modes.md`](review-modes.md) | a run covers many targets, or the reviewer authored the target | the deltas of that case |
 | [`review-comment.md`](review-comment.md) | `comment_<model>.md` is drafted, regenerated or posted | the Body, the inline-comment shape, the final check, the posting gate |
 | [`issue.md`](issue.md) | a fix needs an upstream issue nobody has filed | `issue.md`, the problem and never the remedy |
 | [`change.md`](change.md) | an issue or a finding goes to a pull request | `spec.md` and `plan.md` with their numbered open calls, the worktree, the fix, the local CI run, the pull request on my fork |

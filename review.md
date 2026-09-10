@@ -1,6 +1,6 @@
 ---
 name: review
-description: Adversarial review of a pull request, a branch, or a repository-level failure in any project. Writes a severity-grouped review file, then the GitHub draft per skills/review-comment.md. Modes for multi-target and deep passes are in skills/review-modes.md.
+description: Adversarial review of a pull request, a branch, or a repository-level failure in any project. One workflow, finders, one verifier per candidate, a critic, a writer, a text pass, producing overview.md, the GitHub draft per skills/review-comment.md and claims.md. Multi-target dispatch and a reviewer-authored target are in skills/review-modes.md.
 argument-hint: <repo>#<pr-number> | <url> | <repo> <subject>
 ---
 
@@ -8,39 +8,28 @@ argument-hint: <repo>#<pr-number> | <url> | <repo> <subject>
 
 **Input:** `$ARGUMENTS`: a PR number or URL, a repo name plus a subject, or several of these. Process each target independently.
 
-Write all visible prose per `skills/writing-style.md`; its scannability rule covers every artifact here. In every artifact, verdict first, then narrative, then findings; the review file alone opens with its Overview, then the verdict. Make every reference clickable, every file readable without the chat, and bold the one number or word that carries the decision.
+Write all visible prose per `skills/writing-style.md`; its scannability rule covers every artifact here. In every artifact, verdict first, then narrative, then findings. Make every reference clickable, every file readable without the chat, and bold the one number or word that carries the decision.
 
 ## Workflow
 
-Run in order for a single target; multi-target runs wrap this via *Parallel dispatch* in `skills/review-modes.md`. Run from the workspace root.
+One shape for every target, whatever its size: the parent prepares, a workflow
+finds, verifies, criticises and writes, the parent checks and ships. Run from
+the workspace root; multi-target runs wrap this via *Parallel dispatch* in
+`skills/review-modes.md`.
 
-1. *Fetch & understand*: sync the checkout, gather target data, read prior reviews.
+1. *Fetch & understand*: sync the checkout; the head and merge-base worktrees; the toolchain line every shell opens with; the round directory; the catalog; prior rounds; and each stage's model and effort from the workspace's `scripts/workflows/review-pipeline.json`.
 2. Run the *Re-review rounds* gate when a prior round exists.
-3. *Reproduce the failure*, or run the tests for a PR.
-4. *Review the diff*, or the failing surface.
-5. **Run the refactor pass over every added block**, per *Review the diff*. Write the shorter form, run the target's own tests on it, and ship it as a `suggestion` with both line counts. A round reporting no simplification names the blocks it rewrote and rejected.
-6. *Write tests* for test-shaped findings.
-7. Answer the completeness questions, one line each in Verified: which angle returned nothing and why, which claim stayed unrun and what would run it, which deleted or changed test was not re-added, which coverage cap was hit. Then write `overview.md` per *Overview*, then the review file per *Output*, and dispatch the claim gate over it the moment it is written.
-8. Draft `comment_<model>.md` per `skills/review-comment.md` while the gate runs, then run its *Final check*. Draft whether or not anything will be posted. Skip only for a PR the reviewer authored; see *Own PR* in `skills/review-modes.md`.
-9. Run the `skills/writing-style.md` Pass over every line of the review file and `comment_<model>.md`, starting with `./scripts/prose-check.py <file>`. Never skip it. Re-run it after any later edit to that prose, including an edit made in answer to a question about it. State which passes ran when handing over.
-10. One commit and one push covering everything. This push is pre-authorized; see *Rules*.
-11. Hand over. Name the cost first, agents, minutes and tokens per stage from the task notifications. Link the `comment_<model>.md` draft, not only the review file. Add a "Decisions needed" list, one line each: a borderline verdict, Open questions worth promoting. Omit when empty. Never list an APPROVE as needing confirmation. Post only on the literal word `post`. Acting on the findings is `skills/change.md`; they stay here.
-
-**The sweep scores the target, and the score picks the path**, unless the
-project's `CONTEXT.md` names a pace, per *Fetch & understand*. Four counts,
-each from a command the round already ran: consumers of the changed symbols
-outside their package, from the whole-tree sweep; files whose behaviour
-changed, tests and fixtures excluded; exported entry points whose behaviour
-moved; and Warnings surviving the parent's own re-run under
-*Final check* 12 in `skills/review-comment.md`. No outside consumer, one
-behaviour file at most, one entry point at most and no Warning: the short
-path, steps 1, 3, 4, 5 and 7 to 11, with `overview.md` skipped, the review
-file's own Overview standing in for it, and no agent, `claims.md` holding the
-parent's own rows. Anything more: the full path, `overview.md` written, one
-claim gate over the surviving rows. Lenses and critics come only with `deep
-review`, and a deep round on a target scoring short runs one red-team lens and
-the gate. A finding that needs a second measurement puts the target back on the
-full path.
+3. *Reproduce the failure*: the check runs at the head, and each suite once per tree state.
+4. Run the workflow, the workspace's `scripts/workflows/review-pipeline.js` by `scriptPath`, with those as `args`. Each stage is an agent reading only the rule sections its artifact needs:
+   - **Finders**, one angle each, read only: line by line; removed and rewritten behaviour with the sweep by shape; the claims the diff writes about itself; the tests the diff adds with the mutation that must redden each; reachability and extremes; the refactor pass with the depth question; the catalog walk. Each returns candidates with the check that would prove it false, half-believed ones included, capped per the config and merged per line.
+   - **One verifier per line**, from scratch, in a scratch worktree it creates and removes itself, `git -C <head worktree> worktree add --detach <scratch>/verify-<n> <sha>`, so parallel mutations never share a tree. It runs the check, on the merge base too when the claim is causal, and returns CONFIRMED, PLAUSIBLE or REFUTED with its artifact under `tests/`. A grep-shaped check and a refactor's test run take the cheaper tiers the config names.
+   - **One critic**, after every verdict: what is missing, an angle that came back thin, a shape nobody ran, a claim left PLAUSIBLE that another harness could confirm, a changed test not re-added, a cap hit silently. Its candidates verify the same way.
+   - **The writer**: `overview.md` per *Overview* when the directory has none, `comment_<model>.md` per `skills/review-comment.md` with every finding as a section, posted or `SKIP`, and `claims.md` per *Output*. A PLAUSIBLE finding is a question.
+   - **The text pass**, last, per the QA rule in `skills/review-comment.md`.
+   The verify stage is the claim gate; no second gate runs. A harness with no workflow runner runs the same stages serially in one agent, same prompts, and the round note says so.
+5. Run the *Final check* of `skills/review-comment.md`, then the `skills/writing-style.md` Pass over `overview.md` and the draft, `./scripts/prose-check.py <file>` first. Re-run it after any later edit to that prose, including an edit made in answer to a question about it. State which passes ran when handing over.
+6. One commit and one push covering everything. This push is pre-authorized; see *Rules*.
+7. Hand over. Name the cost first, agents, minutes and tokens per stage from the task notifications. Link the draft and the overview. Add a "Decisions needed" list, one line each: a borderline verdict, a PLAUSIBLE worth a decision. Omit when empty. Never list an APPROVE as needing confirmation. Post only on the literal word `post`. Acting on the findings is `skills/change.md`; they stay here.
 
 ## Subjects
 
@@ -53,10 +42,9 @@ Both live in `projects/<repo>/reviews/<slug>/`.
 
 ## Modes
 
-Five modes change part of this workflow: multi-target parallel dispatch, deep
-multi-angle, the find-then-verify pipeline, the draft alone, and a target the
-reviewer authored. Each is in
-`skills/review-modes.md`, read when its trigger fires.
+Two cases change part of this workflow: multi-target parallel dispatch, and a
+target the reviewer authored. Both are in `skills/review-modes.md`, read when
+the trigger fires.
 
 ## For each target
 
@@ -102,7 +90,7 @@ git diff $(git merge-base <remote>/<base-branch> <new-sha>) <new-sha> | git patc
 - **New head is a merge of the base branch**: never base-only. Run `git show <new-sha> --cc`; any hunk it prints is conflict-resolution content, reviewed like any diff. Base commits may add tests the branch now fails: run the affected suite on the new head.
 - **`<old-sha>` unreachable**: skip the gate, run a full round against the merge-base, note the fallback.
 
-Open every full re-review round with a round-note paragraph between the metadata block and the Overview: `Round <n>.`, how the head moved, what changed, which prior findings and Open questions were resolved or carried.
+Open every full re-review round with a `Round:` line in the draft's header: `Round <n>.`, how the head moved, what changed, which prior findings and `SKIP` sections were resolved or carried.
 
 ### Reproduce the failure
 
@@ -114,13 +102,13 @@ Open every full re-review round with a round-note paragraph between the metadata
 - Before attributing any failure to the diff, run the same check on the merge-base. A failure that also occurs there is pre-existing.
 - **Run the project's own tool from the branch's source, never an installed binary.** An installed binary exercises the code it was built from, not the branch's, so a change to the tool tests itself out of the run.
 - A repository-level failure gets the same discipline: reproduce each condition on the default branch and identify the introducing commit where history allows.
-- When a target changes runtime behavior of a server or tool, boot it and exercise it live; record what was verified live in the Verified section.
+- When a target changes runtime behavior of a server or tool, boot it and exercise it live; record what was verified live as rows in `claims.md`.
 
 ### Review the diff
 
 Read every line. Look for correctness defects: logic errors, missing nil checks, unchecked type assertions, off-by-one. Untested paths. Breaking changes without migration. Style inconsistencies. Reuse and simplification: duplicated helpers, foldable code, unclear naming, missing doc comments, undocumented invariants, filed as Suggestions or Nits, never blockers. Docs impact.
 
-**Refactor pass, over every added block.** Ask whether fewer lines carry the same behaviour: a value computed twice, a guard the caller already applied, memoization that stabilises nothing, an abstraction with one call site. Where they do, post the replacement as a `Refactor:` suggestion the author applies in one click, never prose describing the change, and record both line counts in the review file.
+**Refactor pass, over every added block.** Ask whether fewer lines carry the same behaviour: a value computed twice, a guard the caller already applied, memoization that stabilises nothing, an abstraction with one call site. Where they do, post the replacement as a `Refactor:` suggestion the author applies in one click, never prose describing the change, and record both line counts in `claims.md`.
 
 **Ask whether each fix sits at the right depth.** A special case added to shared code for one caller, a new root or flag where the cause could be removed, a guard at the call site while the callee stays unsafe for its next caller: each is a Suggestion naming the deeper form and what the shallow one costs to maintain.
 
@@ -189,11 +177,11 @@ When a finding's fix is a test the author should add, ship the test: write it un
 
 Pair the defect with the baseline it breaks in one assertion, and ship both expectations side by side, the current one active and the fixed one commented, each labelled. The pair shows in one screen what the code does and what it should do, and the commented line is what the author uncomments once the fix lands.
 
-Start each test file with a comment block carrying exact repro commands runnable from a plain clone: no workspace paths, no `$HOME`. Pin `git checkout <hash>` in test-file headers only; review and comment.md repro blocks never pin. The header stands alone, shaped per *Repro rules*. Name code paths by their actual symbol. One-line in-test comments per non-obvious step.
+Start each test file with a comment block carrying exact repro commands runnable from a plain clone: no workspace paths, no `$HOME`. Pin `git checkout <hash>` in test-file headers only; a draft's repro blocks never pin. The header stands alone, shaped per *Repro rules*. Name code paths by their actual symbol. One-line in-test comments per non-obvious step.
 
 ## Overview (`overview.md`)
 
-Write one for every target on the full path, before the review file, the score in *Workflow* deciding. The verdict and the findings are written for a reader who already knows the subject; the overview is the only artifact that assumes nothing, and the reader who most needs it is the one deciding whether to open the diff at all. A judgement call about complexity was the rule before this one, and it answered "skip" for subjects a reader could not follow; the sweep's counts answer instead.
+Write one for every target, the writer's first artifact. The findings are written for a reader who already knows the subject; the overview is the only artifact that assumes nothing, and it is what the user opens first, the draft second. A judgement call about complexity was the rule before this one, and it answered "skip" for subjects a reader could not follow.
 
 - Write it as `overview.md`, never `overview.html`: GitHub serves an `.html` blob as source, so the reader downloads the file to read it.
 - **Every code block, diagram and table says whether it is the before or the after.** A reader who cannot tell which side they are looking at reads the defect as the fix. Put it in the prose introducing the block or in the block's own caption, never leave it to be inferred from the surrounding argument.
@@ -202,25 +190,25 @@ Write one for every target on the full path, before the review file, the score i
 - Use anything GitHub renders: a `mermaid` diagram, a `$$` formula, a decision table, before and after values, a `> [!NOTE]`, a `<details>` fold, a committed image, a Concepts section. No emoji, and nothing needing a script or a click, which the blob page strips.
 - Where a page would have used a simulator, compute the interesting inputs and put the results in a table. The reader gets the answer without moving a slider, and every number is checkable from the file.
 - Run the mirrored logic before publishing its numbers, against the project's own tests where they exist and against the mirrored source where they do not, and say which of the two it was.
-- Update it only when new commits change the subject's own files. A base-only head bump, a new finding, a verdict change and a new round never touch it. Link it from the review file's metadata block.
+- Update it only when new commits change the subject's own files. A base-only head bump, a new finding, a verdict change and a new round never touch it. Link it from the draft's `Overview:` line.
 
 ## Links & citations
 
-Shared by the review file and comment.md.
+Shared by the draft, `claims.md` and `overview.md`.
 
-- A private reviewed repo does not strip links from `comment_<model>.md`; the no-blob-link rule covers artifacts living outside the reviewed repo. Strip links from the review file when a delta file says so, never from the comment.
+- A private reviewed repo does not strip links from `comment_<model>.md`; the no-blob-link rule covers artifacts living outside the reviewed repo. Strip links from `claims.md` and `overview.md` when a delta file says so, never from the draft.
 - Every `file:line` reference is a link to a blob at the reviewed sha: `` [`file:line`](https://github.com/<head-owner>/<repo>/blob/<sha>/<path>#L<line>) ``, ranges `#L<a>-L<b>`. Take the owner from `gh pr view <n> --json headRepositoryOwner`: a fork's commits live in the fork, so the upstream form can 404 on a cross-fork pull request. This covers every reference, including files and tests cited by name. Never a bare backticked `file:line`.
 - Pin the reviewed sha, never the branch: the link shows the code the finding was written against whatever the branch does next, and a new round cuts its anchors at its own sha.
 - A blob link into a rendered file such as `.md` needs `?plain=1` before the `#L` anchor.
 - A link must prove the exact clause it anchors. Read the cited lines and confirm the number, symbol, or behavior appears in the range. One claim per anchor: two numbers, two links. For a pinned tag, fetch the file at that tag.
 - Attribute a behavior to what guarantees it: a toolchain detail cites the toolchain, never a spec that does not require it. When the spec guarantees less than observed, say so.
-- A bare sha autolinks only in the repository holding that commit. Prose in `comment_<model>.md` writes the reviewed repo's shas bare, for the hovercard; the review file keeps its own shas as they are, since the reviewed repo's sha resolves to nothing in the workspace repo.
+- A bare sha autolinks only in the repository holding that commit. Prose in `comment_<model>.md` writes the reviewed repo's shas bare, for the hovercard; `claims.md` keeps its own shas as they are, since the reviewed repo's sha resolves to nothing in the workspace repo.
 
 ## Repro rules
 
-Shared by `**Repro:**` blocks in the review file and comment.md. A repro is the runnable sequence demonstrating a claimed behavior.
+Shared by the repro blocks of the draft and `claims.md`. A repro is the runnable sequence demonstrating a claimed behavior.
 
-Settle where the repro goes before writing one. A finding on a surface the reader reaches in a browser ships no harness in the comment, whatever the rules below say: the author opens the page instead of cloning, installing a test runner and writing a config by heredoc. Post the clip, or the steps in the sentence, and keep the harness in the review file, the claim that is a number included, which goes in the sentence with what it was counted over.
+Settle where the repro goes before writing one. A finding on a surface the reader reaches in a browser ships no harness in the comment, whatever the rules below say: the author opens the page instead of cloning, installing a test runner and writing a config by heredoc. Post the clip, or the steps in the sentence, and keep the harness in `claims.md`, the claim that is a number included, which goes in the sentence with what it was counted over.
 
 - Every empirical claim ships a copy-pasteable repro: fenced `bash`, self-contained, one clear pass/fail signal, restoring modified files at the end. Pin env vars only when depended on.
 - **No repro for a merge conflict.** State what the resolution costs and stop; the conflict itself is not the finding.
@@ -238,8 +226,12 @@ Settle where the repro goes before writing one. A finding on a surface the reade
 
 ## Output
 
-The review file's metadata block, every section in order, and the rules for
-filling each are in `skills/review-output.md`.
+A round directory, `projects/<repo>/reviews/<slug>/<n>-<short-commit-hash>/`,
+holds three things, and the overview sits beside it at the slug root:
+
+- `comment_<model>.md`, the draft, per `skills/review-comment.md`: every finding as a section, posted or `SKIP`, with its repro; its header carries the model and effort, the reviewed sha, the overview link and the round note.
+- `claims.md`, the record. A `Verdict:` line first, APPROVE, REQUEST CHANGES, NEEDS DISCUSSION or CLOSE with one terse sentence naming the open concerns. Then one row per candidate the verifiers ran: state, band, `file:line`, the check, the observed output, the artifact under `tests/`. A refuted candidate keeps its row with the proving line, so a later round reads what was cleared and why. Then the text pass's link table, and the completeness answers.
+- `tests/`, every artifact a verifier ran, per *Write tests*.
 
 ### Calibration
 
@@ -254,9 +246,9 @@ filling each are in `skills/review-output.md`.
 - **Score the vector from what the attack requires, and never move a base metric once a band has been named.** Editing `UI`, `PR` or `AV` in the turn someone asks for a different severity is scoring backwards, whatever reason the edit carries. Deployment context has its own metrics: raise `IR`, `CR` or `AR`, publish the environmental score beside the base one, and the higher band is computed rather than asserted.
 - **A finding about an ADR's own text is a Nit, whatever it concerns.** An ADR records a decision and ships no behaviour, so an omission in one costs a paragraph and never a defect: the permanence it fails to state, the alternative it skips, the filename it keeps. Its claims about the code are run like a comment's, per *Review the diff*, and one that fails is a finding on the code with the ADR as the evidence.
 - A cosmetic nit no enabled linter enforces carries the config link and ships `SKIP`, per `skills/review-comment.md`. Check the linter config before flagging a style convention.
-- A finding about a code comment's own wording ships `SKIP`, whatever band it lands in: it changes no behaviour, so it does not earn an inline slot by default. Keep the measurement that shows the comment wrong in the review file.
+- A finding about a code comment's own wording ships `SKIP`, whatever band it lands in: it changes no behaviour, so it does not earn an inline slot by default. Keep the measurement that shows the comment wrong in `claims.md`.
 - A pre-existing defect is in scope in three cases: the diff sweeps that defect's class and missed it, the change makes the code permanent, or the change makes the defect reachable for the first time. Name the sweep, the freeze or the new path, and say it predates the diff. Read the diff, never recall: promoting something to a security boundary, or adding a test asserting the behaviour, is the first case, and the verdict moves with it.
-- A pre-existing defect found while reviewing, in scope or not, goes the same turn to an issue draft per `skills/issue.md`, or to the project's audit tracking where its delta names one, under the disclosure invariant when the code is deployed. A paragraph in the review file is where such a finding dies.
+- A pre-existing defect found while reviewing, in scope or not, goes the same turn to an issue draft per `skills/issue.md`, or to the project's audit tracking where its delta names one, under the disclosure invariant when the code is deployed. A row in `claims.md` is where such a finding dies.
 - Map the full call graph before claiming anything dead, redundant, or unused.
 - Code that cannot run is a finding, never a reason to drop one: an impossible guard, an unreachable branch, a default the type forbids. **Ask for its removal, and name every site the removal touches**, the symbol it declares included. A rename, a reworded message or a tidied comment keeps the code and ships as polish on protection that is not there, so a wording finding inside proven-dead code is that same finding, one band down.
 - Clearing something needs the same evidence as flagging it. To clear "X is safe because guard G covers it": find G's construction site, list its callers, and confirm X is one. Never infer that a guard reaches a member from a grouping made by the diff, its docs, or its author. A cleared item whose mechanism was not traced is unverified; say so.
@@ -264,24 +256,23 @@ filling each are in `skills/review-output.md`.
 - When the finding is a missed member of a class, measure the whole class in one harness and publish the table.
 - Never flag contribution-policy compliance as a code finding; mention it in the narrative only when it is why CI is red.
 - Never critique the project's own governing document, meaning its wording, the symbols it names or the claims it makes, and never reference it to editorialize. Where the code is wrong the finding is about the code, and where a code or test comment repeats a claim the document has outrun, the finding anchors on that comment.
-- Post a deferred-scope or extension question only when there is a concrete risk or a decision the author must make now; otherwise Open questions.
+- Post a deferred-scope or extension question only when there is a concrete risk or a decision the author must make now; otherwise a `SKIP` section in the draft closing with the question.
 
 ### Rules
 
-- One file per review: `projects/<repo>/reviews/<slug>/<n>-<short-commit-hash>/review_<model>_<reviewer>.md`. `<slug>`: for a PR, `<number>-<3-4 words from the title>`, lowercase, hyphenated; otherwise a name for the subject. `<n>`: the round number, from the existing directories. `<model>`: lowercase, hyphenated. `<reviewer>`: `gh api user --jq '.login'`. Hash = reviewed head. Same commit and mode share a directory; a deep round over a reviewed commit gets `<n+1>-<same-sha>`.
+- One directory per round, per *Output*. `<slug>`: for a PR, `<number>-<3-4 words from the title>`, lowercase, hyphenated; otherwise a name for the subject. `<n>`: the round number, from the existing directories. `<model>` in the draft's name: lowercase, hyphenated. Hash = reviewed head. A second round over a reviewed commit gets `<n+1>-<same-sha>`.
 - On the first review for a repo, create `projects/<repo>/reviews/README.md` with the repo's GitHub link and one line.
-- Every finding: a standalone one-line TL;DR with priority tag, plus `<details>`. The TL;DR plus the details' final "Fix:" sentence is the canonical finding text; comment.md copies it verbatim, so write it to work as a PR inline comment as-is.
-- Minimal bold. The file must render in GitHub-flavored markdown: blank line after `<summary>`, continuation indented 2 spaces under list items, `<details>` nested at most one level.
+- Minimal bold. Every file renders in GitHub-flavored markdown: blank line after `<summary>`, continuation indented 2 spaces under list items, `<details>` nested at most one level.
 - Delete empty sections' headings. Never write "None". Never fabricate findings.
 - Priority order: correctness > security > determinism > state safety > tests > docs > style.
 - A diff spanning several packages or directories is summarized by area first, then its critical paths in depth.
-- Draft `comment_<model>.md` before committing; one final push covers both, to this repo only. The push is pre-authorized for this skill and overrides any global ask-before-push rule.
-- Fold late findings into both files, verify each with a real run, commit and push in the same turn without asking. Posting still waits for `post`.
+- One final push covers the round, to this repo only. The push is pre-authorized for this skill and overrides any global ask-before-push rule.
+- Fold a late finding into the draft and `claims.md`, verify it with a real run, commit and push in the same turn without asking. Posting still waits for `post`.
 - Never push to a reviewed repo's canonical remote; a fix branch goes to the fork.
 - Reviews may be published. A finding exploitable against already-merged or deployed code is not: it takes the disclosure gate in the workspace `AGENTS.md` Invariants before anything is written. A finding on an open PR's own diff is fine at any severity.
 
 ## GitHub review draft (`comment_<model>.md`)
 
-Step 8 of the workflow. The draft, its body rules, the shape of each inline
+The writer's artifact, step 4 of the workflow. The draft, its body rules, the shape of each inline
 comment, the final check and the posting gate are in `skills/review-comment.md`.
 Draft it whether or not anything will be posted.

@@ -54,7 +54,7 @@ half the reader sampled. Split it.
 **State it, then stop.** The reason belongs in the rule only where the reader
 would otherwise apply it wrongly. What does not belong: the session that
 produced it, the sha it was found on, the date, what was tried first. That
-record is the artifact's, a `plan.md`, a review file, a commit message, and the
+record is the artifact's, a `plan.md`, a `claims.md`, a commit message, and the
 lint rejects a date or a bare sha in a rule line.
 
 **Cut the draft before committing it.** A rule arrives carrying the round that

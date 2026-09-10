@@ -9,7 +9,7 @@ A write, commit or push that comes first gets the missing skill put in context
 with a warning. Nothing here blocks: a rough draft lands, a later pass fixes it.
 
   ./scripts/skill-gate.py read <name>       print skills/<name>.md, projects/<name>/AGENTS.md or <name>.md, record it;
-                                            a shape under a skill reads as pr-body/docs
+                                            a shape under a skill reads as pr-body/docs, a project's context as meet/context
   ./scripts/skill-gate.py check <path>...   name each missing read on stderr; `git` stands for a commit or push,
                                             which needs skills/git.md and workspace.md
   ./scripts/skill-gate.py pre-commit        check the paths staged in the repo at cwd, plus `git`
@@ -45,6 +45,7 @@ import json
 import os
 import posixpath
 import re
+import shutil
 import shlex
 import subprocess
 import sys
@@ -70,6 +71,7 @@ MAP = [
     (r'^projects/[^/]+/.*/pr-body\.md$', ['pr-body', 'writing-style']),
     (r'^projects/[^/]+/changes/[^/]+/(plan|spec|README)\.md$', ['change', 'writing-style']),
     (r'^(projects/[^/]+/)?(AGENTS|CLAUDE)\.md$', ['authoring']),
+    (r'^projects/[^/]+/(CONTEXT|context-log)\.md$', ['authoring']),
     (r'^skills/(?!README\.md$)[^/]+\.md$', ['authoring']),
     (r'^skills/pr-body/[^/]+\.md$', ['authoring']),
 ]
@@ -122,10 +124,12 @@ def session_key():
 
 
 def resolve(name):
-    """A skill, a project delta or a root file by name; a slashed name is a shape under a skill only."""
+    """A skill, a project delta or a root file by name; a slashed name is a shape under a skill, or a project's context as <repo>/context."""
     paths = [root() / 'skills' / f'{name}.md']
     if '/' not in name:
         paths += [root() / 'projects' / name / 'AGENTS.md', root() / f'{name}.md']
+    elif name.endswith('/context'):
+        paths.append(root() / 'projects' / name[:-len('/context')] / 'CONTEXT.md')
     for path in paths:
         if path.is_file():
             return path
@@ -166,9 +170,7 @@ def record_read(name):
     cutoff = time.time() - KEEP_DAYS * 86400
     for d in (root() / COPIES).iterdir():
         if d.is_dir() and d.stat().st_mtime < cutoff:
-            for f in d.iterdir():
-                f.unlink()
-            d.rmdir()
+            shutil.rmtree(d, ignore_errors=True)
     return True
 
 
@@ -221,6 +223,8 @@ def required_reads(path, base=None):
         m = re.match(r'projects/([^/]+)/', rel)
         if m and (root() / 'projects' / m.group(1) / 'AGENTS.md').is_file():
             names.add(m.group(1))
+        if m and (root() / 'projects' / m.group(1) / 'CONTEXT.md').is_file():
+            names.add(f'{m.group(1)}/context')
     return names
 
 
@@ -537,6 +541,8 @@ def prompt_reads(prompt):
         hit = hit or (repos.get(name) and re.search(re.escape(repos[name]) + r'(?![\w-])', prompt, re.I))
         if hit and name not in names:
             names.append(name)
+        if hit and (d / 'CONTEXT.md').is_file() and f'{name}/context' not in names:
+            names.append(f'{name}/context')
     return names
 
 
@@ -555,6 +561,9 @@ def name_of(path, base=None):
         m = re.match(r'projects/([^/]+)/AGENTS\.md$', rel)
         if m:
             return m.group(1)
+        m = re.match(r'projects/([^/]+)/CONTEXT\.md$', rel)
+        if m:
+            return f'{m.group(1)}/context'
         m = re.match(r'([^/]+)\.md$', rel)
         if m and m.group(1) not in ('AGENTS', 'CLAUDE'):
             return m.group(1)

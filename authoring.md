@@ -130,6 +130,29 @@ A delta file for a skill sits beside these, short, opening by naming the core
 file it overrides. Work under `projects/<repo>/` reads the delta plus the core,
 and the delta wins where they disagree.
 
+## A project's context
+
+`projects/<repo>/CONTEXT.md` holds what the user knows about one repository and
+no command measures: where the project stands, what it is for, how each person
+on it works, and the pace a review takes from that. It is loose on purpose, a
+line per fact in the reader's words, so it fits every project and every person
+rather than one. Create it on the first task in a project, unasked, from what
+the user has said, and write to it in the turn a fact arrives: the user states
+it, or a round observes it, an author asking twice for the same thing for one.
+A fact with a command behind it goes to `AGENTS.md` beside it instead.
+
+- **Where the project stands**: the phase, a launch weeks away or a quiet
+  stretch, and what it is trying to become, in two or three lines.
+- **The people**: one line per login, how they work and what they want from a
+  review, a test in every finding, no nits, the decision in the first line.
+- **The review pace**: what the phase sets, in the terms *Fetch & understand*
+  in `skills/review.md` reads: how many rounds, how fast, on which path.
+
+The file is private, per Invariant 5 in the workspace `AGENTS.md`. Every change
+to it gets a dated entry at the top of `context-log.md` beside it, one or two
+lines, what changed and where it came from, so the next session sees what the
+project looked like before.
+
 ## What a new rule displaces
 
 Adding is the easy half. The corpus grows on its own and shrinks only on

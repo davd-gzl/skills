@@ -100,6 +100,13 @@ class RequiredReads(GateCase):
     def test_checkout_code_needs_only_the_delta(self):
         self.assertEqual(gate.required_reads('projects/meet/checkout/src/app.py'), {'meet'})
 
+    def test_a_project_context_rides_with_the_delta_and_is_a_rule_file(self):
+        (self.root / 'projects' / 'meet' / 'CONTEXT.md').write_text('# meet context\n')
+        self.assertEqual(gate.required_reads('projects/meet/checkout/src/app.py'), {'meet', 'meet/context'})
+        self.assertEqual(gate.required_reads('projects/meet/CONTEXT.md'), {'authoring', 'meet', 'meet/context'})
+        self.assertEqual(gate.required_reads('projects/meet/context-log.md'), {'authoring', 'meet', 'meet/context'})
+        self.assertEqual(gate.required_reads('projects/bare/reviews/x/1-a/issue.md'), {'issue', 'writing-style'})
+
     def test_a_symlink_at_a_mapped_path_is_still_mapped(self):
         link = self.root / 'projects/meet/changes/x/plan.md'
         link.parent.mkdir(parents=True)
@@ -156,6 +163,15 @@ class ReadRecord(GateCase):
             gate.main(['read', 'meet'])
         self.assertEqual(out.getvalue(), '# meet\n')
         self.assertNotIn('meet', gate.missing_reads(self.PATH))
+
+    def test_read_resolves_a_project_context_by_its_slashed_name(self):
+        (self.root / 'projects' / 'meet' / 'CONTEXT.md').write_text('# meet context\n')
+        out = io.StringIO()
+        with redirect_stdout(out):
+            rc = gate.main(['read', 'meet/context'])
+        self.assertEqual((rc, out.getvalue()), (0, '# meet context\n'))
+        self.assertTrue(gate.is_read('meet/context'))
+        self.assertFalse(gate.is_read('bare/context'))
 
     def test_a_name_with_a_slash_is_refused(self):
         err = io.StringIO()
@@ -444,6 +460,12 @@ class HookRead(GateCase):
             self.read({'tool_name': 'Read', 'tool_input': {'file_path': str(path)}})
             self.assertTrue(gate.is_read(name), name)
 
+    def test_a_project_context_records_under_its_slashed_name(self):
+        (self.root / 'projects' / 'meet' / 'CONTEXT.md').write_text('# meet context\n')
+        self.read({'tool_name': 'Read', 'tool_input': {'file_path': str(self.root / 'projects/meet/CONTEXT.md')}})
+        self.assertTrue(gate.is_read('meet/context'))
+        self.assertFalse(gate.is_read('meet'))
+
     def test_a_relative_path_resolves_against_cwd(self):
         self.read({'tool_name': 'Read', 'tool_input': {'file_path': 'skills/git.md'}, 'cwd': str(self.root)})
         self.assertTrue(gate.is_read('git'))
@@ -620,6 +642,17 @@ class Prompt(HookCase):
         self.assertNotIn('skills/change.md', context)
         self.assertNotIn('# review', context)
         self.assertFalse(gate.is_read('meet'))
+
+    def test_a_repo_with_a_context_file_names_it_beside_the_delta(self):
+        (self.root / 'projects' / 'meet' / 'CONTEXT.md').write_text('# meet context\n')
+        rc, context = self.run_hook('prompt', json.dumps({'prompt': 'review meet 1675'}))
+        self.assertEqual(rc, 0)
+        for piece in ('projects/meet/AGENTS.md', 'projects/meet/CONTEXT.md'):
+            self.assertIn(piece, context)
+        self.assertNotIn('projects/gno/CONTEXT.md', context)
+        gate.record_read('meet/context')
+        rc, context = self.run_hook('prompt', json.dumps({'prompt': 'review meet 1675'}))
+        self.assertNotIn('CONTEXT.md', context)
 
     def test_a_second_prompt_names_nothing_already_read(self):
         for name in ('review', 'review-output', 'review-comment', 'meet'):

@@ -26,7 +26,8 @@ Run in order for a single target; multi-target runs wrap this via *Parallel disp
 10. One commit and one push covering everything. This push is pre-authorized; see *Rules*.
 11. Hand over. Name the cost first, agents, minutes and tokens per stage from the task notifications. Link the `comment_<model>.md` draft, not only the review file. Add a "Decisions needed" list, one line each: a borderline verdict, Open questions worth promoting. Omit when empty. Never list an APPROVE as needing confirmation. Post only on the literal word `post`. Acting on the findings is `skills/change.md`; they stay here.
 
-**The sweep scores the target, and the score picks the path.** Four counts,
+**The sweep scores the target, and the score picks the path**, unless the
+project's `CONTEXT.md` names a pace, per *Fetch & understand*. Four counts,
 each from a command the round already ran: consumers of the changed symbols
 outside their package, from the whole-tree sweep; files whose behaviour
 changed, tests and fixtures excluded; exported entry points whose behaviour
@@ -70,6 +71,8 @@ reviewer authored. Each is in
 - **A finding the description already names is one sentence at most, and often none.** The author wrote it down on purpose, so restating it back at them spends the review's attention on the one thing they cannot learn from it. What is left worth saying is the consequence they may not have pictured, and a clip says that better than a paragraph.
 - Read the description, linked issues, all comments via `gh api repos/<repo>/issues/<number>/comments`, and all review comments via `gh api repos/<repo>/pulls/<number>/comments`. Note unresolved threads. Paginate every list call with `gh api --paginate`: truncation at 30 items is silent.
 - Read past reviews in `projects/<repo>/reviews/` first; focus on what changed since the last reviewed commit.
+- Read `projects/<repo>/CONTEXT.md` before the target and take the round's pace from it, which outranks the sweep score: a launch weeks away means the short path and more targets, a quiet stretch the full path and the lenses. An author's stated wants shape the draft, and a finding class they asked not to receive ships `SKIP`.
+- A target nobody has reviewed on the forge yet is unsafe until a round has read it: it gets the static danger pass whatever its author's association.
 - Read every changed file in full, and map callers, dependents, and siblings.
 
 Treat CI as a first-class source. `gh run list` shows only GitHub Actions; external checks from apps are check runs. Read the authoritative list for the exact commit:

@@ -16,15 +16,17 @@ with a warning. Nothing here blocks: a rough draft lands, a later pass fixes it.
   ./scripts/skill-gate.py pre-push          check every path the pushed commits touch, plus `git`; git's
                                             pre-push lines on stdin
   ./scripts/skill-gate.py hook-claude       Claude Code PreToolUse adapter, hook JSON on stdin: the missing
-                                            skills whole in the context, recorded, and the write goes ahead
+                                            skills named by path, to Read whole first; the write goes ahead
+  ./scripts/skill-gate.py hook-read         Claude Code PreToolUse adapter on the Read tool: a whole read of a
+                                            skill, a shape, a delta or a root file is recorded; a partial one is not
   ./scripts/skill-gate.py session-start     Claude Code SessionStart adapter, hook JSON on stdin: runs
-                                            scripts/sync.sh on a new session, puts writing-style, shortcuts, git and
-                                            workspace whole in the context and records them; after a
-                                            compaction or a resume, everything this session had read
+                                            scripts/sync.sh on a new session and records the CLAUDE.md
+                                            imports, shortcuts and short-form, as read; after a compaction
+                                            or a resume, forgets the session's reads and names them by path
   ./scripts/skill-gate.py prompt            Claude Code UserPromptSubmit adapter: the skills the prompt's
-                                            words and the repositories it names call for, whole, in the
-                                            context before the first reply, recorded, once per session;
-                                            and the last reply's numbers when reply-check.py says it drifted
+                                            words and the repositories it names call for, named by path
+                                            until read; and the last reply's numbers when reply-check.py
+                                            says it drifted
 
 Another harness wires its before-write hook to `check` with the path, or to
 `hook-claude` when its payload carries tool_name and tool_input the same way,
@@ -419,6 +421,9 @@ def cmd_read(name, stdout):
     if is_read(name):
         stdout.write(f'{name}: unchanged since this session read it, {path}\n')
         return 0
+    if path.stat().st_size > BASH_BOUND:
+        stdout.write(f'{name}: {path.stat().st_size} bytes, over the Bash result bound; Read {path} whole with the Read tool, which records the read.\n')
+        return 0
     copy = copy_path(name)
     if copy.is_file():
         old, new = copy.read_text().splitlines(keepends=True), path.read_text().splitlines(keepends=True)
@@ -462,13 +467,20 @@ def cmd_pre_push(stdin, cwd):
     return report(check(['git', *sorted(relative(top / p) or str(top / p) for p in paths)]))
 
 
-ALWAYS = ['writing-style', 'shortcuts', 'git', 'workspace']
+# In context through CLAUDE.md in every session, so recorded as read when it opens.
+IMPORTED = ['shortcuts', 'short-form']
+# A Bash result of 29.4 KB or more reaches the model as a stub naming a file, and a
+# hook's context does so from 10 KB, measured over every transcript of this
+# workspace. Only the Read tool carries a whole file, so this script names paths
+# and the Read hook records the read.
+BASH_BOUND = 28000
 
 # Prompt words to the skills they call for. Over-matching is the design: a read
 # costs context once per session, a missed rule costs the user a turn.
 PROMPT_SKILLS = [
     (r'\breview|\blgtm\b|/pull/\d+', ['review', 'review-output', 'review-comment']),
-    (r'\bfix(es|ed|ing)?\b|\bimplement|\bsimplif|\bchange\b|\bfeature\b|/issues/\d+', ['change', 'pr-body', 'issue']),
+    # (?<!-) on fixes alone: a repository name ending in -fixes is not a request to fix.
+    (r'\bfix(ed|ing)?\b|(?<!-)\bfixes\b|\bimplement|\bsimplif|\bchange\b|\bfeature\b|/issues/\d+', ['change', 'pr-body', 'issue']),
     (r'\bissue', ['issue']),
     (r'\breport\b|\bweekly\b', ['report']),
     (r'\btry\b|\brun\b|\bboot\b|\blaunch\b|\bscreenshot\b|\bvideo\b|\bgif\b', ['try']),
@@ -534,47 +546,72 @@ def session_reads():
     return [k[len(prefix):] for k in load() if k.startswith(prefix)]
 
 
-def inject(names, header, event, stdout, extra=()):
-    """Put each named file whole in the context and record it; extra lines go above the header."""
+def name_of(path, base=None):
+    """The skill, shape, delta or root-file name a path resolves to, else None."""
+    for rel in relatives(path, base):
+        m = re.match(r'skills/([^/]+(?:/[^/]+)?)\.md$', rel)
+        if m:
+            return m.group(1)
+        m = re.match(r'projects/([^/]+)/AGENTS\.md$', rel)
+        if m:
+            return m.group(1)
+        m = re.match(r'([^/]+)\.md$', rel)
+        if m and m.group(1) not in ('AGENTS', 'CLAUDE'):
+            return m.group(1)
+    return None
+
+
+def point(names, header, event, stdout, extra=()):
+    """Name each file to read whole with the Read tool. Nothing is recorded here: the Read hook records."""
     parts = list(extra)
-    shown = []
+    lines = []
     for name in names:
         path = resolve(name)
         if path is None:
             continue
-        parts.append(f'## {name}, {path.relative_to(root()).as_posix()}\n\n' + path.read_text().strip())
-        record_read(name)
-        shown.append(name)
-    if shown:
-        parts.insert(len(extra), header)
+        lines.append(f'- {name}: Read `{path.relative_to(root()).as_posix()}` whole, with the Read tool.')
+    if lines:
+        parts.append(header + '\n' + '\n'.join(lines))
     if parts:
         json.dump({'hookSpecificOutput': {'hookEventName': event,
                                           'additionalContext': '\n\n'.join(parts)}}, stdout)
-    return shown
+    return [name for name in names if resolve(name) is not None]
+
+
+def forget_session():
+    """Drop every read this session recorded; a compaction took them out of context."""
+    prefix = f'{session_key()}:'
+    save({k: v for k, v in load().items() if not k.startswith(prefix)})
+
+
+INTRO = ('Principles, Invariants, the words and the register are in context through CLAUDE.md. '
+         'Any other rule is read whole with the Read tool before its first command, and that read is '
+         'what the gate records; ./scripts/skill <name> names its path.')
 
 
 def cmd_session_start(stdin, stdout):
-    """Sync on startup and clear; the always-read four every time, plus everything already read after a compaction or resume."""
+    """Sync on startup and clear, and record the CLAUDE.md imports as read; after a compaction or a resume, forget the session's reads and name them for re-reading."""
     source = _payload(stdin).get('source', 'startup')
     extra = []
+    names = []
     if source in ('startup', 'clear'):
         try:
             r = subprocess.run([str(root() / 'scripts' / 'sync.sh')], capture_output=True, text=True, timeout=90)
             extra.append(('Sync ran: ' if r.returncode == 0 else 'Sync failed: ') + (r.stdout + r.stderr).strip())
         except (OSError, subprocess.TimeoutExpired) as e:
             extra.append(f'Sync failed: {e}')
-    names = list(ALWAYS)
-    if source not in ('startup', 'clear'):
-        names += [n for n in session_reads() if n not in names]
-    header = ('Rules in context and recorded as read for this session. The chat register is the '
-              '*Short form* section of writing-style, in force from the first reply. Any other skill '
-              'is read whole through ./scripts/skill <name> before its artifact; in doubt, read it.')
-    inject(names, header, 'SessionStart', stdout, extra)
+    else:
+        names = [n for n in session_reads() if n not in IMPORTED]
+        forget_session()
+    for name in IMPORTED:
+        record_read(name)
+    extra.append(INTRO)
+    point(names, 'Read again, since the compaction dropped them from context:', 'SessionStart', stdout, extra)
     return 0
 
 
 def cmd_prompt(stdin, stdout):
-    """What this prompt's words and repositories call for, minus what the session already holds."""
+    """What this prompt's words and repositories call for, minus what the session already read."""
     payload = _payload(stdin)
     prompt = str(payload.get('prompt', ''))
     names = [n for n in prompt_reads(prompt) if not is_read(n)]
@@ -587,17 +624,17 @@ def cmd_prompt(stdin, stdout):
                                capture_output=True, text=True, timeout=10)
             if r.stdout.strip():
                 extra.append('The last reply drifted from the register: ' + r.stdout.strip()
-                             + ' This one stays inside the caps, per Short form in skills/writing-style.md: '
+                             + ' This one stays inside the caps, per Short form in skills/short-form.md: '
                              'lead with the answer, one part per thing asked, the account as plain lines, TL;DR last.')
         except (OSError, subprocess.TimeoutExpired):
             pass
-    inject(names, 'Rules this prompt calls for, in context and recorded as read for this session.',
-           'UserPromptSubmit', stdout, extra)
+    point(names, 'Rules this prompt calls for, unread this session. Read each whole with the Read tool '
+                 'before the first command; the read is recorded then.', 'UserPromptSubmit', stdout, extra)
     return 0
 
 
 def cmd_hook_claude(stdin, stdout):
-    """The skills a write still lacks go into the context whole, and the write proceeds."""
+    """The skills a write still lacks are named by path, and the write proceeds."""
     payload = json.load(stdin)
     tool = payload.get('tool_name', '')
     inp = payload.get('tool_input', {}) or {}
@@ -612,8 +649,22 @@ def cmd_hook_claude(stdin, stdout):
     for p in paths:
         wanted = [n for n in COMMIT_READS if not is_read(n)] if p == 'git' else missing_reads(p, base)
         names += [n for n in wanted if n not in names]
-    inject(names, 'Rules this write calls for, in context now and recorded for this session; the write goes ahead.',
-           'PreToolUse', stdout)
+    point(names, 'Rules this write calls for, unread this session. Read each whole with the Read tool '
+                 'and then write; the write goes ahead.', 'PreToolUse', stdout)
+    return 0
+
+
+def cmd_hook_read(stdin):
+    """A Read tool call on a skill, a shape, a delta or a root file records the read; a partial read records nothing."""
+    payload = _payload(stdin)
+    if payload.get('tool_name') != 'Read':
+        return 0
+    inp = payload.get('tool_input', {}) or {}
+    if inp.get('offset') or inp.get('limit') or not inp.get('file_path'):
+        return 0
+    name = name_of(inp['file_path'], payload.get('cwd'))
+    if name and resolve(name) is not None:
+        record_read(name)
     return 0
 
 
@@ -633,6 +684,8 @@ def main(argv, stdin=None, stdout=None, cwd=None):
             return cmd_pre_push(stdin or sys.stdin, cwd or os.getcwd())
         if op == 'hook-claude':
             return cmd_hook_claude(stdin or sys.stdin, stdout or sys.stdout)
+        if op == 'hook-read':
+            return cmd_hook_read(stdin or sys.stdin)
         if op == 'session-start':
             return cmd_session_start(stdin or sys.stdin, stdout or sys.stdout)
         if op == 'prompt':

@@ -66,13 +66,12 @@ Lowercase after the scope, no trailing period. Name the outcome, not the edit: "
 
 Draw one whenever the reader would assemble a shape in their head from sentences: which of N checks fails, a trust boundary, a before and after, an ordering change.
 
-ASCII in a fenced block by default; Mermaid only past six nodes or crossing edges.
+ASCII in a fenced block by default; Mermaid only where edges cross.
 
 - Label nodes with real symbols and numbers, never placeholders.
 - Mark the thing the PR changes with an arrow and three words.
-- One diagram per idea; two small beat one big.
+- One diagram per idea; two small beat one big, and a diagram carrying a second idea splits.
 - Delete the sentences the diagram makes redundant.
-- Under about twelve lines; over that, split or cut nodes.
 
 ```
 commit 8cbcad76 on main

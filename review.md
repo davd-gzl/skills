@@ -20,16 +20,26 @@ Run in order for a single target; multi-target runs wrap this via *Parallel disp
 4. *Review the diff*, or the failing surface.
 5. **Run the refactor pass over every added block**, per *Review the diff*. Write the shorter form, run the target's own tests on it, and ship it as a `suggestion` with both line counts. A round reporting no simplification names the blocks it rewrote and rejected.
 6. *Write tests* for test-shaped findings.
-7. Answer the completeness questions, one line each in Verified: which angle returned nothing and why, which claim stayed unrun and what would run it, which deleted or changed test was not re-added, which coverage cap was hit. Then write `overview.md` per *Overview*, then the review file per *Output*.
-8. Draft `comment_<model>.md` per `skills/review-comment.md`, then run its *Final check*. Draft whether or not anything will be posted. Skip only for a PR the reviewer authored; see *Own PR* in `skills/review-modes.md`.
+7. Answer the completeness questions, one line each in Verified: which angle returned nothing and why, which claim stayed unrun and what would run it, which deleted or changed test was not re-added, which coverage cap was hit. Then write `overview.md` per *Overview*, then the review file per *Output*, and dispatch the claim gate over it the moment it is written.
+8. Draft `comment_<model>.md` per `skills/review-comment.md` while the gate runs, then run its *Final check*. Draft whether or not anything will be posted. Skip only for a PR the reviewer authored; see *Own PR* in `skills/review-modes.md`.
 9. Run the `skills/writing-style.md` Pass over every line of the review file and `comment_<model>.md`, starting with `./scripts/prose-check.py <file>`. Never skip it. Re-run it after any later edit to that prose, including an edit made in answer to a question about it. State which passes ran when handing over.
 10. One commit and one push covering everything. This push is pre-authorized; see *Rules*.
 11. Hand over. Name the cost first, agents, minutes and tokens per stage from the task notifications. Link the `comment_<model>.md` draft, not only the review file. Add a "Decisions needed" list, one line each: a borderline verdict, Open questions worth promoting. Omit when empty. Never list an APPROVE as needing confirmation. Post only on the literal word `post`. Acting on the findings is `skills/change.md`; they stay here.
 
-**A one-file diff under 20 changed lines takes the short path**: steps 1, 3, 4,
-5 and 8 to 10, with the review file's own Overview standing in for `overview.md`
-and the claim gate alone rather than both QA agents. A finding there that needs
-a second measurement puts the target back on the full workflow.
+**The sweep scores the target, and the score picks the path.** Four counts,
+each from a command the round already ran: consumers of the changed symbols
+outside their package, from the whole-tree sweep; files whose behaviour
+changed, tests and fixtures excluded; exported entry points whose behaviour
+moved; and Warnings surviving the parent's own re-run under
+*Final check* 12 in `skills/review-comment.md`. No outside consumer, one
+behaviour file at most, one entry point at most and no Warning: the short
+path, steps 1, 3, 4, 5 and 7 to 11, with `overview.md` skipped, the review
+file's own Overview standing in for it, and no agent, `claims.md` holding the
+parent's own rows. Anything more: the full path, `overview.md` written, one
+claim gate over the surviving rows. Lenses and critics come only with `deep
+review`, and a deep round on a target scoring short runs one red-team lens and
+the gate. A finding that needs a second measurement puts the target back on the
+full path.
 
 ## Subjects
 
@@ -93,6 +103,8 @@ Open every full re-review round with a round-note paragraph between the metadata
 - `gh pr checks <number> -R <repo>` first, plus the check-runs API. Note every failure.
 - Run the project's own test and lint commands, taken from its CI workflow file, never guessed. Match the invocation exactly, pinned versions included.
 - Record pass or fail per affected package or job.
+- **Run each suite and each linter once per tree state, into a file under `<scratch>`, and read that file for every later count, grep or exit code of the same state.** Re-running that state costs the run again and shows nothing new. *Repro rules* still paste that run's output, which the file holds.
+- **Where the harness cannot select one fixture, run a probe in a copy of the package pruned to that fixture, never in the worktree**, with the copy recipe in the project's delta.
 - Before attributing any failure to the diff, run the same check on the merge-base. A failure that also occurs there is pre-existing.
 - **Run the project's own tool from the branch's source, never an installed binary.** An installed binary exercises the code it was built from, not the branch's, so a change to the tool tests itself out of the run.
 - A repository-level failure gets the same discipline: reproduce each condition on the default branch and identify the introducing commit where history allows.
@@ -158,6 +170,7 @@ it; what the validators leave unnamed is what arrives.
 - Vary the conditions before naming them. A finding that holds under one shape and not another states which, having tried both.
 - When a second condition, tried once, changes no verdict, stop varying it: run the remaining cases under the first alone, and give the artifact one line naming what the try ruled out, never the doubled table.
 - Run greps and lint in the reviewed checkout at the reviewed commit.
+- **Sweep for callers or consumers over the whole tree, never the diff's own directory.** The consumer a change breaks sits where the diff was not looking, an integration fixture beside a package's own tests for one.
 - Confirm a symbol exists with the project's own linter or compiler, sanity-checked first with a bogus symbol.
 
 **Static-analysis findings** are leads, not findings. Before one enters the review: read the flagged lines and state the concrete failure in the project's own terms, never a rule ID plus stock message. Separate real defects from unadopted policies; only the defect may be a Warning or above. Say what the fix costs; a behavior-change fix is a maintainer decision, say so. Never report a count as a finding: group by rule, name one representative, give the full list once.
@@ -174,7 +187,7 @@ Start each test file with a comment block carrying exact repro commands runnable
 
 ## Overview (`overview.md`)
 
-Write one for every target, before the review file. The verdict and the findings are written for a reader who already knows the subject; the overview is the only artifact that assumes nothing, and the reader who most needs it is the one deciding whether to open the diff at all. A judgement call about whether the subject is complex enough was the rule this replaces, and it answered "skip" for subjects a reader could not follow.
+Write one for every target on the full path, before the review file, the score in *Workflow* deciding. The verdict and the findings are written for a reader who already knows the subject; the overview is the only artifact that assumes nothing, and the reader who most needs it is the one deciding whether to open the diff at all. A judgement call about complexity was the rule before this one, and it answered "skip" for subjects a reader could not follow; the sweep's counts answer instead.
 
 - Write it as `overview.md`, never `overview.html`: GitHub serves an `.html` blob as source, so the reader downloads the file to read it.
 - **Every code block, diagram and table says whether it is the before or the after.** A reader who cannot tell which side they are looking at reads the defect as the fix. Put it in the prose introducing the block or in the block's own caption, never leave it to be inferred from the surrounding argument.
@@ -255,7 +268,7 @@ filling each are in `skills/review-output.md`.
 - Minimal bold. The file must render in GitHub-flavored markdown: blank line after `<summary>`, continuation indented 2 spaces under list items, `<details>` nested at most one level.
 - Delete empty sections' headings. Never write "None". Never fabricate findings.
 - Priority order: correctness > security > determinism > state safety > tests > docs > style.
-- Over 20 files: summarize by area first, then deep-dive the critical paths.
+- A diff spanning several packages or directories is summarized by area first, then its critical paths in depth.
 - Draft `comment_<model>.md` before committing; one final push covers both, to this repo only. The push is pre-authorized for this skill and overrides any global ask-before-push rule.
 - Fold late findings into both files, verify each with a real run, commit and push in the same turn without asking. Posting still waits for `post`.
 - Never push to a reviewed repo's canonical remote; a fix branch goes to the fork.
@@ -263,6 +276,6 @@ filling each are in `skills/review-output.md`.
 
 ## GitHub review draft (`comment_<model>.md`)
 
-Step 7 of the workflow. The draft, its body rules, the shape of each inline
+Step 8 of the workflow. The draft, its body rules, the shape of each inline
 comment, the final check and the posting gate are in `skills/review-comment.md`.
 Draft it whether or not anything will be posted.

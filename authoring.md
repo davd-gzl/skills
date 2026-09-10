@@ -76,6 +76,13 @@ a duration or a version frozen into a rule is right on the day it is taken and
 wrong afterwards, while the reader trusts it because it is specific. Keep the
 conclusion it supports and name the command that prints it fresh.
 
+**Key a rule on the property a count stands for, never on the count as a
+limit.** A ceiling on lines, files, agents or minutes admits a change on one
+reading of the count and refuses it on another, and says nothing about what
+the change reaches. Name the property, a consumer outside the package, a
+surviving Warning, and the command that prints it. The three counts of
+`skills/writing-style.md` measure a sentence, not the work, and stay.
+
 **Bold is a rank, not a voice.** It marks the rules whose violation cannot be
 undone. When most bullets in a file are bold, the file has stopped ranking and
 the reader is back to sampling. The health table prints the share.
@@ -177,7 +184,7 @@ that one run at effort `medium`; one blind judge pass, labels hidden and order
 shuffled, on single-pass readability and substance kept. A round per variant
 multiplies the calls by the rounds and waits for each round's slowest call.
 `skills/tests/chat-register/` is the harness that measured *Short form* in
-`skills/writing-style.md`.
+`skills/short-form.md`.
 
 ## Editing this corpus
 

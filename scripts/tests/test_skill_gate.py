@@ -20,7 +20,7 @@ spec = importlib.util.spec_from_file_location('skill_gate', SCRIPT)
 gate = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(gate)
 
-SKILLS = ['review', 'review-output', 'review-comment', 'writing-style', 'shortcuts', 'issue',
+SKILLS = ['review', 'review-output', 'review-comment', 'writing-style', 'shortcuts', 'short-form', 'issue',
           'pr-body', 'change', 'authoring', 'git']
 
 
@@ -210,6 +210,15 @@ class ReadRecord(GateCase):
             gate.main(['read', 'git'])
         self.assertEqual(out.getvalue(), '# git\n\nchanged\n')
 
+    def test_a_file_over_the_bash_bound_is_named_not_printed(self):
+        (self.root / 'skills' / 'review.md').write_text('# review\n' + 'x' * (gate.BASH_BOUND + 1))
+        out = io.StringIO()
+        rc = gate.main(['read', 'review'], stdout=out)
+        self.assertEqual(rc, 0)
+        self.assertIn('Read', out.getvalue())
+        self.assertNotIn('xxxx', out.getvalue())
+        self.assertFalse(gate.is_read('review'))
+
     def test_unknown_name_is_an_error(self):
         err = io.StringIO()
         with redirect_stderr(err):
@@ -384,14 +393,15 @@ class ClaudeHook(GateCase):
         text = out.getvalue()
         return rc, json.loads(text)['hookSpecificOutput']['additionalContext'] if text else ''
 
-    def test_write_of_an_unread_artifact_injects_its_skills(self):
+    def test_write_of_an_unread_artifact_names_its_skills_by_path(self):
         rc, context = self.run_hook({'tool_name': 'Write', 'tool_input': {
             'file_path': str(self.root / 'projects/meet/changes/x/spec.md')}})
         self.assertEqual(rc, 0)
-        for piece in ('# change', '# writing-style', '# meet', 'the write goes ahead'):
+        for piece in ('skills/change.md', 'skills/writing-style.md', 'projects/meet/AGENTS.md', 'the write goes ahead'):
             self.assertIn(piece, context)
+        self.assertNotIn('# change', context)
         for name in ('change', 'writing-style', 'meet'):
-            self.assertTrue(gate.is_read(name), name)
+            self.assertFalse(gate.is_read(name), name)
 
     def test_edit_after_the_reads_passes(self):
         for name in ('meet', 'change', 'writing-style'):
@@ -404,11 +414,50 @@ class ClaudeHook(GateCase):
         rc, context = self.run_hook({'tool_name': 'Bash', 'tool_input': {
             'command': 'cat > projects/meet/reviews/x/1-a/issue.md <<EOF\nx\nEOF'}})
         self.assertEqual(rc, 0)
-        self.assertIn('# issue', context)
+        self.assertIn('skills/issue.md', context)
 
     def test_other_tools_pass(self):
         rc, _ = self.run_hook({'tool_name': 'Read', 'tool_input': {'file_path': 'x'}})
         self.assertEqual(rc, 0)
+
+
+class HookRead(GateCase):
+    def read(self, payload):
+        return gate.main(['hook-read'], stdin=io.StringIO(json.dumps(payload)))
+
+    def test_a_whole_read_of_a_skill_records_it(self):
+        rc = self.read({'tool_name': 'Read', 'tool_input': {'file_path': str(self.root / 'skills/review.md')}})
+        self.assertEqual(rc, 0)
+        self.assertTrue(gate.is_read('review'))
+
+    def test_a_partial_read_records_nothing(self):
+        self.read({'tool_name': 'Read', 'tool_input': {'file_path': str(self.root / 'skills/review.md'), 'offset': 10}})
+        self.read({'tool_name': 'Read', 'tool_input': {'file_path': str(self.root / 'skills/review.md'), 'limit': 5}})
+        self.assertFalse(gate.is_read('review'))
+
+    def test_a_delta_a_shape_and_a_root_file_record(self):
+        (self.root / 'skills' / 'pr-body').mkdir()
+        (self.root / 'skills' / 'pr-body' / 'docs.md').write_text('# docs\n')
+        for path, name in ((self.root / 'projects/meet/AGENTS.md', 'meet'),
+                           (self.root / 'skills/pr-body/docs.md', 'pr-body/docs'),
+                           (self.root / 'workspace.md', 'workspace')):
+            self.read({'tool_name': 'Read', 'tool_input': {'file_path': str(path)}})
+            self.assertTrue(gate.is_read(name), name)
+
+    def test_a_relative_path_resolves_against_cwd(self):
+        self.read({'tool_name': 'Read', 'tool_input': {'file_path': 'skills/git.md'}, 'cwd': str(self.root)})
+        self.assertTrue(gate.is_read('git'))
+
+    def test_other_paths_and_tools_record_nothing(self):
+        self.read({'tool_name': 'Read', 'tool_input': {'file_path': str(self.root / 'projects/meet/checkout/README.md')}})
+        self.read({'tool_name': 'Write', 'tool_input': {'file_path': str(self.root / 'skills/review.md')}})
+        self.assertEqual(gate.session_reads(), [])
+
+    def test_a_malformed_payload_is_quiet(self):
+        err = io.StringIO()
+        with redirect_stderr(err):
+            rc = gate.main(['hook-read'], stdin=io.StringIO('not json'))
+        self.assertEqual((rc, err.getvalue()), (0, ''))
 
 
 class PreCommit(GateCase):
@@ -488,11 +537,10 @@ class PrePush(GateCase):
 
 
 class HookCase(GateCase):
-    REGISTER = '# Writing style\n\n## The rules\n\n- rule\n\n## Short form\n\nClipped, every reply.\n\n## Posted comments\n\nFull sentences.\n'
-
     def setUp(self):
         super().setUp()
-        (self.root / 'skills' / 'writing-style.md').write_text(self.REGISTER)
+        (self.root / 'skills' / 'writing-style.md').write_text('# Writing style\n\n## The rules\n\n- rule\n')
+        (self.root / 'skills' / 'short-form.md').write_text('# Short form\n\nClipped, every reply.\n')
         (self.root / 'scripts').mkdir()
         self.sync = self.root / 'scripts' / 'sync.sh'
         self.sync.write_text('#!/bin/sh\necho synced here\n')
@@ -514,65 +562,95 @@ class HookCase(GateCase):
 
 
 class SessionStart(HookCase):
-    def test_startup_syncs_and_injects_the_four_whole(self):
+    def test_startup_syncs_and_records_the_imports(self):
         rc, context = self.run_hook('session-start', json.dumps({'source': 'startup'}))
         self.assertEqual(rc, 0)
         self.assertIn('Sync ran: synced here', context)
-        for piece in ('## Short form\n\nClipped, every reply.', '- rule', '# shortcuts', '# git', '# workspace'):
-            self.assertIn(piece, context)
-        for name in ('writing-style', 'shortcuts', 'git', 'workspace'):
+        self.assertIn('Read tool', context)
+        for piece in ('- rule', 'Clipped', 'skills/writing-style.md'):
+            self.assertNotIn(piece, context)
+        for name in ('shortcuts', 'short-form'):
             self.assertTrue(gate.is_read(name), name)
+        for name in ('writing-style', 'git', 'workspace'):
+            self.assertFalse(gate.is_read(name), name)
 
-    def test_compact_reinjects_everything_read_without_a_sync(self):
+    def test_compact_forgets_the_reads_and_names_them_for_rereading(self):
         gate.record_read('review')
+        gate.record_read('shortcuts')
         rc, context = self.run_hook('session-start', json.dumps({'source': 'compact'}))
         self.assertEqual(rc, 0)
         self.assertNotIn('Sync', context)
-        for piece in ('## Short form', '# git', '# review'):
-            self.assertIn(piece, context)
+        self.assertIn('skills/review.md', context)
+        self.assertNotIn('skills/shortcuts.md', context)
+        self.assertFalse(gate.is_read('review'))
+        self.assertTrue(gate.is_read('shortcuts'))
 
-    def test_a_failing_sync_still_injects(self):
+    def test_a_failing_sync_still_reports(self):
         self.sync.write_text('#!/bin/sh\necho no network >&2\nexit 1\n')
         rc, context = self.run_hook('session-start', json.dumps({'source': 'startup'}))
         self.assertEqual(rc, 0)
         self.assertIn('Sync failed: no network', context)
-        self.assertIn('## Short form', context)
+        self.assertTrue(gate.is_read('short-form'))
 
-    def test_a_malformed_payload_still_injects(self):
+    def test_a_malformed_payload_still_records_the_imports(self):
         rc, context = self.run_hook('session-start', 'not json')
         self.assertEqual(rc, 0)
-        self.assertIn('## Short form', context)
+        self.assertIn('Read tool', context)
+        self.assertTrue(gate.is_read('shortcuts'))
 
     def test_the_payload_session_id_keys_the_record(self):
         os.environ.pop('CLAUDE_CODE_SESSION_ID')
         self.run_hook('session-start', json.dumps({'source': 'startup', 'session_id': 'from-payload'}))
-        self.assertIn('from-payload:git', gate.load())
+        self.assertIn('from-payload:shortcuts', gate.load())
+
+    def test_the_context_stays_under_the_hook_bound(self):
+        for name in SKILLS:
+            gate.record_read(name)
+        rc, context = self.run_hook('session-start', json.dumps({'source': 'compact'}))
+        self.assertLess(len(context), 10000)
 
 
 class Prompt(HookCase):
-    def test_a_review_prompt_loads_the_review_skills_and_the_repo_delta(self):
+    def test_a_review_prompt_names_the_review_skills_and_the_repo_delta(self):
         rc, context = self.run_hook('prompt', json.dumps(
             {'prompt': 'deep review https://github.com/suitenumerique/meet/pull/1675'}))
         self.assertEqual(rc, 0)
-        for piece in ('# review\n', '# review-output', '# review-comment', '# meet'):
+        for piece in ('skills/review.md', 'skills/review-output.md', 'skills/review-comment.md', 'projects/meet/AGENTS.md'):
             self.assertIn(piece, context)
-        self.assertNotIn('# change', context)
-        self.assertTrue(gate.is_read('meet'))
+        self.assertNotIn('skills/change.md', context)
+        self.assertNotIn('# review', context)
+        self.assertFalse(gate.is_read('meet'))
 
-    def test_a_second_prompt_adds_nothing_already_read(self):
-        self.run_hook('prompt', json.dumps({'prompt': 'review meet 1675'}))
+    def test_a_second_prompt_names_nothing_already_read(self):
+        for name in ('review', 'review-output', 'review-comment', 'meet'):
+            gate.record_read(name)
         rc, context = self.run_hook('prompt', json.dumps({'prompt': 'review meet 1675 again'}))
         self.assertEqual((rc, context), (0, ''))
 
-    def test_a_word_with_no_skill_injects_nothing(self):
+    def test_an_unread_skill_is_named_on_every_prompt_until_read(self):
+        self.run_hook('prompt', json.dumps({'prompt': 'review meet 1675'}))
+        rc, context = self.run_hook('prompt', json.dumps({'prompt': 'review meet 1675 again'}))
+        self.assertIn('skills/review.md', context)
+
+    def test_a_word_with_no_skill_names_nothing(self):
         rc, context = self.run_hook('prompt', json.dumps({'prompt': 'push'}))
         self.assertEqual((rc, context), (0, ''))
 
-    def test_a_family_word_loads_every_project_sharing_it(self):
+    def test_a_family_word_names_every_project_sharing_it(self):
         rc, context = self.run_hook('prompt', json.dumps({'prompt': 'fix gnolang/gno-fixes 64'}))
-        for piece in ('# change', '# pr-body', '# issue', '# gno delta', '# gno-agent-workspace delta'):
+        for piece in ('skills/change.md', 'skills/pr-body.md', 'skills/issue.md', 'projects/gno/AGENTS.md', 'projects/gno-agent-workspace/AGENTS.md'):
             self.assertIn(piece, context)
-        self.assertNotIn('# meet', context)
+        self.assertNotIn('projects/meet', context)
+
+    def test_a_repo_name_carrying_fixes_names_no_change_skill(self):
+        rc, context = self.run_hook('prompt', json.dumps({'prompt': 'review acme/acme-fixes 12'}))
+        self.assertIn('skills/review.md', context)
+        for piece in ('skills/change.md', 'skills/pr-body.md', 'skills/issue.md'):
+            self.assertNotIn(piece, context)
+
+    def test_a_hyphenated_fix_still_names_the_change_skill(self):
+        rc, context = self.run_hook('prompt', json.dumps({'prompt': 'a hot-fix for the crash'}))
+        self.assertIn('skills/change.md', context)
 
     def test_a_drifted_last_reply_reaches_the_next_prompt(self):
         transcript = self.root / 't.jsonl'
@@ -586,7 +664,11 @@ class Prompt(HookCase):
         rc, context = self.run_hook('prompt', json.dumps({'prompt': 'push', 'transcript_path': str(transcript)}))
         self.assertEqual(rc, 0)
         self.assertIn('articles per 100', context)
-        self.assertIn('Short form', context)
+        self.assertIn('short-form.md', context)
+
+    def test_the_context_stays_under_the_hook_bound(self):
+        rc, context = self.run_hook('prompt', json.dumps({'prompt': 'review fix issue report try skill gno meet'}))
+        self.assertLess(len(context), 10000)
 
     def test_a_malformed_payload_is_quiet(self):
         rc, context = self.run_hook('prompt', 'not json')

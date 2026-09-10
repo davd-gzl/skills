@@ -6,7 +6,7 @@ description: Use in every reply, in any workspace: the words the user types and 
 # Shortcuts
 
 Every reply, in any workspace. In context from the session start hook. The
-register is the *Short form* of `skills/writing-style.md`.
+register is *Short form*, `skills/short-form.md`.
 
 ## The words
 

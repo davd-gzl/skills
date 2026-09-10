@@ -112,7 +112,7 @@ Everything starts with a review, on a PR, a branch, or a red CI.
 
 ## The chat register
 
-cvm is the register every chat reply takes, defined in the Short form section
+cvm is the register every chat reply takes, defined in `skills/short-form.md`, the Short form
 of [`writing-style.md`](writing-style.md). The rules live there and are not
 restated here.
 

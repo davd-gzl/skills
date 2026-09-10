@@ -90,5 +90,5 @@ The effort tier is `xhigh` unless the session says otherwise, and is never asked
 - Cite `file:line` for every claim, linked per *Links & citations* in `skills/review.md`. A finding living outside the tree, a service setting or a dashboard, names the place precisely; never borrow a nearby file as a stand-in anchor.
 - No bare `#<number>` in any text GitHub renders inside the workspace repo: the review H1, a commit subject. It autolinks to the workspace repo. Link it, `[#<number>](<pr-url>)`, or drop the `#`.
 - No GitHub checkboxes unless the author must tick items.
-- Over 10 files: end the Summary with a dependency-first reading order.
+- A diff whose files import one another ends the Summary with a dependency-first reading order.
 

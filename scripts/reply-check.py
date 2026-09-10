@@ -3,7 +3,7 @@
 
 NOT AUDITED — AI-generated tooling. Review before executing in any privileged context.
 
-A reply to the user takes the Short form of skills/writing-style.md, and a long
+A reply to the user takes the Short form of skills/short-form.md, and a long
 session drifts back to prose without noticing. This measures the reply instead of
 trusting it, and hands the numbers back for a rewrite.
 
@@ -43,7 +43,7 @@ WORD = re.compile(r"[A-Za-z][A-Za-z'’-]*")
 CLOSING = re.compile(r'^\s*[📋▶]')
 DID = re.compile(r'^\s*\**Did:')
 
-REGISTER = ('Rewrite in cvm, the Short form of skills/writing-style.md: no filler, no pleasantries, '
+REGISTER = ('Rewrite in cvm, the Short form of skills/short-form.md: no filler, no pleasantries, '
             'no hedging, lead with the answer, one idea per paragraph, stop when it lands. Drop an '
             'article only where the sentence still reads in one pass; stacked article-free fragments '
             'are the failure this register prevents, never its target. Sample: "Gitlink moved, push '

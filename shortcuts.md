@@ -85,9 +85,9 @@ as the skill defines it; ask when the reading changes what gets built.
   a label, which is what buries a published URL written as one.
 - The target is a link in the first reply that touches it: the pull request, the
   issue, the commit.
-- Link a file only once its push has landed: a `blob/main` URL for a commit
-  still on this machine 404s. Name it in plain text until the reply that
-  reports the sha.
+- Every reply ends on the links, pushed or not: the target, then each
+  artifact as its `blob/main` URL. A file whose push has not landed keeps its
+  link and says so beside it, since that URL 404s until the sha is reported.
 - Retry a permission refusal from the harness once: a classifier is not
   deterministic. A 403 `Resource not accessible by personal access token` is a
   missing scope, handled per `skills/review-comment.md`.

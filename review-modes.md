@@ -1,13 +1,14 @@
 ---
 name: review-modes
-description: Use when a review covers more than one target, when the user asks for a deep, parallel, red-team or pipeline pass, or when the reviewer authored the target. Extends skills/review.md; everything not named here follows that file.
+description: Use when a review covers more than one target, when the user asks for a deep, parallel, red-team, pipeline or comment-only pass, or when the reviewer authored the target. Extends skills/review.md; everything not named here follows that file.
 ---
 
 # Review modes
 
 Each mode changes part of the workflow in `skills/review.md` and nothing else:
 the output format, `comment_<model>.md`, the verification discipline and the push
-rules are unchanged. Read that file first.
+rules are unchanged, *Comment mode* alone dropping two output files. Read that
+file first.
 
 ### Parallel dispatch (multi-target)
 
@@ -59,6 +60,25 @@ Trigger: `pipeline review <target>`, or a harness reminder that ultracode is on.
 3. **One verifier per candidate, from scratch, in a scratch worktree it creates and removes itself**, `git -C <head worktree> worktree add --detach <scratch>/verify-<n> <sha>`. That overrides the parallel-dispatch rule that a subagent never creates a worktree: parallel mutations in one tree would corrupt each other. It runs the named check, on the merge base too when the claim is causal, and returns CONFIRMED, PLAUSIBLE or REFUTED with the artifact under `tests/`.
 4. A completeness critic then reads the candidates and their verdicts and returns what is missing, an under-scoped angle, an unrun claim, a dropped test, a silent cap; its candidates verify the same way. The writer assembles the round from what survived, per *Output*; a PLAUSIBLE finding is a question. The text pass follows. The parent runs the *Final check*, lint and the prose pass, then commits.
 5. Metadata line: `Model: <model>, effort <tier> (pipeline)`. Cost is the longest single verification, not their sum; a candidate the finders missed is not found, so a round returning few candidates says so in the round note.
+
+### Comment mode (the draft alone)
+
+Trigger: `comment review <target>`. The round writes `comment_<model>.md`,
+`claims.md` and `tests/` and nothing else: no `overview.md`, no review file.
+
+1. Steps 1 to 6 of *Workflow* in `skills/review.md` run unchanged, the sweep
+   score included.
+2. Step 7 writes no file. The completeness answers, each cleared suspicion with
+   its proving line and a Suggestion's two runs go to `claims.md` as rows, the
+   run output beside each; an Open question is a `SKIP` section on the line it
+   concerns.
+3. The draft carries `Model: <model>, effort <tier> (comment)` under `Event:`,
+   per the format in `skills/review-comment.md`: `post-review.sh --as-ai` builds
+   the marker from it, having no review file to fall back to, and the draft's
+   `Event:` is the verdict it carries.
+4. No `Full review:` line, and *Final check* 1 in `skills/review-comment.md` is
+   skipped. The claim gate the score calls for runs over the draft and `tests/`
+   in place of the review file, and the text pass closes as always.
 
 ### Own PR (the reviewer authored it)
 

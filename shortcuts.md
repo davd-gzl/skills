@@ -18,6 +18,7 @@ as the skill defines it; ask when the reading changes what gets built.
 | `review <target>` | one review round: the file, the overview, the comment draft, pushed, nothing posted | `skills/review.md` |
 | `deep review <target>` | the same round with lens agents on one target | *Deep mode*, `skills/review-modes.md` |
 | `pipeline review <target>` | the same round as finders, one verifier per candidate, a writer, a text pass | *Pipeline mode*, `skills/review-modes.md` |
+| `comment review <target>` | the same round writing `comment_<model>.md`, `claims.md` and `tests/` alone, no overview and no review file | *Comment mode*, `skills/review-modes.md` |
 | `review all` | every open target not yet reviewed, the scope written down first | `skills/review-modes.md` |
 | `fix <issue or finding>` | a change on the fork: spec, plan, worktree, fix, CI; nothing pushed | `skills/change.md` |
 | `try <pr> on <repo>` | the project booted locally, ready to click through | `skills/try.md` |

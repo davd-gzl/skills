@@ -52,8 +52,9 @@ Both live in `projects/<repo>/reviews/<slug>/`.
 
 ## Modes
 
-Four modes change part of this workflow: multi-target parallel dispatch, deep
-multi-angle, the find-then-verify pipeline, and a target the reviewer authored. Each is in
+Five modes change part of this workflow: multi-target parallel dispatch, deep
+multi-angle, the find-then-verify pipeline, the draft alone, and a target the
+reviewer authored. Each is in
 `skills/review-modes.md`, read when its trigger fires.
 
 ## For each target

@@ -37,6 +37,8 @@ What I type, and what each word starts, from [`shortcuts.md`](shortcuts.md).
 | --- | --- |
 | `review <target>` | one review round: the overview, the comment draft, the claim table and its tests, pushed, nothing posted |
 | `review all` | every open target not yet reviewed, the scope written down first |
+| `plan` | what the next review round will run and cost, the stage table and the projection |
+| `config <stage> <key> <value>` | that knob of the review workflow changed, the plan reprinted, the estimate given |
 | `fix <issue or finding>` | a change on the fork: spec, plan, worktree, fix, CI; nothing pushed |
 | `try <pr> on <repo>` | the project booted locally, ready to click through |
 | `video` | the clip, only once the finding's text is frozen |

@@ -226,3 +226,7 @@ multiplies the calls by the rounds and waits for each round's slowest call.
 ## A change to the run's shape
 
 A rule that moves a stage, a tier, a cap, a batch, a read order or an agent count is handed over with its estimate: tokens and minutes per round against the last measured round, and the direction of the finding rate, each a number and each marked estimate until the outcome table measures it. A change with no estimate is a change nobody can judge.
+
+## Upgrading from the TODO
+
+`upgrade skills` runs on the strongest model available and takes the workspace's `TODO.md` line by line, newest first. Each line becomes one of three things: a rule, per *Where it goes* and *The shape*, with what it displaces named; a script, where a command can enforce it; or a struck line with one clause saying why, when the check it names fails or a rule already covers it. One commit per line, its message the line's substance, its estimate per *A change to the run's shape* where it moves a run. The line is struck in the same commit as its work, and the session ends on the list of what landed and what was struck; nothing is pushed.

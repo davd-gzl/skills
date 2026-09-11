@@ -10,3 +10,6 @@ so a past register can be recovered or compared.
 - `security-advisory-2026-09-04.md`: the advisory skill, archived unused after
   the disclosure gate moved into the workspace Invariants. Restore it on the
   first finding that works against deployed code.
+- `review-shapes-2026-09-12.md`: the three shapes the review has run as, the
+  lens shape, the maximum pipeline and the presets, each with its agents and
+  what one target measured.

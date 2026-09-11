@@ -222,3 +222,7 @@ multiplies the calls by the rounds and waits for each round's slowest call.
   file in the same turn, before the work that exposed it continues.
 - Run `./skills/lint.py` over every file the edit touched, plus the workspace
   root `AGENTS.md`, and fix what it reports rather than narrowing what it reads.
+
+## A change to the run's shape
+
+A rule that moves a stage, a tier, a cap, a batch, a read order or an agent count is handed over with its estimate: tokens and minutes per round against the last measured round, and the direction of the finding rate, each a number and each marked estimate until the outcome table measures it. A change with no estimate is a change nobody can judge.

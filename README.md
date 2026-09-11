@@ -147,19 +147,28 @@ What the round carries in:
 
 What leaves: nothing without `post`. The commit and push of the record are pre-authorised; a public destination gets the whole diff read as an adversary first.
 
-## What the shape rests on
+## Why each piece
 
-The review's shape, finders that only read, one verifier per hard claim running
-the check, small claims batched in fours, routing by difficulty, one vote,
-follows results measured in 2025 and 2026; the field moves fast enough that
-older ones are not cited.
+Every decision in the architecture, the reason it was made, and the evidence
+behind it. Sources are from 2025 and 2026, since the field moves fast enough
+that older ones are not cited. A row marked *reason* rests on this corpus's
+own argument and waits for the outcome table to measure it.
 
-- **A verifier runs the check; reading is not verifying.** A tool-running agent identified 95 % of the false positives in static-analysis warnings against 36 % for prompt-only, per [Sifting the Noise 2026](https://arxiv.org/abs/2601.22952); 80 agents agreed on a nonexistent OpenSSL bug and one test killed it, and refuters given the claim alone on a fresh context killed 79 % of candidates, per [Refute-or-Promote 2026](https://arxiv.org/abs/2604.19049).
-- **A hard claim gets its own agent; small ones share one, four at most.** A scoring judge lost 45 % of its human agreement at two items per prompt, per [BatchGEMBA 2025](https://arxiv.org/abs/2503.02756); an auditor held to batches of seven and fabricated at eight, per [When Auditors Fabricate 2026](https://arxiv.org/abs/2609.09696); plain question answering on reasoning models held to fifteen, per [Srivastava et al. 2026](https://arxiv.org/abs/2511.04108), so the batch carries only claims one command settles. Order inside a batch is shuffled, since one planted item flips the others' answers in 88 % of batches of twenty, per [Batch Attack 2025](https://arxiv.org/html/2503.15551), and weaker judges lose consistency as the list grows, per [Shi et al. 2025](https://aclanthology.org/2025.ijcnlp-long.18.pdf).
-- **Routing by difficulty, on a structural key.** A difficulty model over items and configurations reaches 90 % of the strongest configuration's accuracy at 1 to 10 % of its cost, per [RADAR, ICLR 2026](https://people.umass.edu/~andrewlan/papers/26iclr-radar.pdf); a confidence threshold miscalibrates on the hard items that most need escalation, per [Conformal Cascade 2026](https://arxiv.org/html/2607.25018), so the key here is the band and the check's shape, and a weak small verdict escalates.
-- **One vote.** Nine same-family judges carry 2.2 independent votes, and the best single judge beat the panel, per [Nine Judges, Two Effective Votes 2026](https://arxiv.org/html/2605.29800); a cross-family refuter given the claim alone caught 16 % of same-family misses, per Refute-or-Promote above.
-- **What the newest designs add and this one lacks.** The best-measured 2026 shape, Refute-or-Promote, gives each hard claim a refuter from another model family, on a fresh context, holding the claim and nothing of the finder's reasoning, then one executed test as the arbiter. This workflow has the fresh context, the claim-only prompt and the executed test; every model it can run is one family, so the cross-family refuter waits for a second provider in the harness.
-- **Unmeasured: batched tool-running verifiers on code findings.** The batch of four is extrapolated from judging tasks, and the next rounds measure it.
+| Decision | Why | Evidence |
+| --- | --- | --- |
+| Finders only read; verifiers run the check | Reading is not verifying: a tool-running agent identified 95 % of false positives in static-analysis warnings against 36 % for prompt-only; 80 agents agreed on a nonexistent OpenSSL bug and one test killed it | [Sifting the Noise 2026](https://arxiv.org/abs/2601.22952), [Refute-or-Promote 2026](https://arxiv.org/abs/2604.19049) |
+| One verifier per hard claim, fresh context, the claim alone | Refuters holding the claim and none of the finder's reasoning killed 79 % of candidates; fresh-context review beats same-session review | [Refute-or-Promote 2026](https://arxiv.org/abs/2604.19049) |
+| Small claims share an agent, four per file, order shuffled | A scoring judge lost 45 % of human agreement at two items; an auditor held to seven and fabricated at eight; plain answer extraction held to fifteen, so only one-command claims batch; one planted item flips the others' answers in 88 % of batches of twenty | [BatchGEMBA 2025](https://arxiv.org/abs/2503.02756), [When Auditors Fabricate 2026](https://arxiv.org/abs/2609.09696), [Srivastava et al. 2026](https://arxiv.org/abs/2511.04108), [Batch Attack 2025](https://arxiv.org/html/2503.15551), [Shi et al. 2025](https://aclanthology.org/2025.ijcnlp-long.18.pdf) |
+| Routing by band and check shape, weak small verdicts escalated | A difficulty model reaches 90 % of the strongest configuration at 1 to 10 % of its cost; a confidence threshold miscalibrates on the hard items that most need escalation, so the key is structural | [RADAR, ICLR 2026](https://people.umass.edu/~andrewlan/papers/26iclr-radar.pdf), [Conformal Cascade 2026](https://arxiv.org/html/2607.25018) |
+| One vote per claim | Nine same-family judges carry 2.2 independent votes and the best single judge beat the panel; a cross-family refuter caught 16 % of same-family misses, and every model here is one family | [Nine Judges, Two Effective Votes 2026](https://arxiv.org/html/2605.29800), [Refute-or-Promote 2026](https://arxiv.org/abs/2604.19049) |
+| Finders at `high`, hard verifiers at `xhigh` | Finders read and name; a miss there is caught by the critic, a miss at the verifier is final. Reasoning tokens fell 76 % with no accuracy loss on extraction-shaped work | [Srivastava et al. 2026](https://arxiv.org/abs/2511.04108); *reason* for the split |
+| Code before the description; the claims angle alone reads the description first | "Bug-free" framing on vulnerable code cut detection by 16.2 to 93.5 points across six models; "vulnerable" framing on clean code raised false positives by 0.8 to 13.6 | [Mitropoulos et al. 2026](https://arxiv.org/abs/2603.18740) |
+| Five finders read a copy of head with comment lines blanked | The same framing sits inside the code, in a godoc calling something bounded or safe; the claims angle keeps the comments as its subject, the refactor angle as its lines | [Mitropoulos et al. 2026](https://arxiv.org/abs/2603.18740); *reason* for the extension |
+| A critic after the verdicts | A cap hit silently, an angle under-scoped and a changed test not re-added are misses no verifier sees; the critic reads only | *reason* |
+| The catalog walked and extended each round | A finder walking no catalog walks nothing; a confirmed class the catalog lacked is the class it misses next time | *reason* |
+| The re-review gate by patch-id | Nobody re-reviews code that did not change; a merge commit's conflict hunks are diff | *reason* |
+| Outcome table per posted round | Every number above comes from someone else's task; what authors fixed, resolved or left open per angle, band and tier is what tunes the next batch size, cap and tier | [When Auditors Fabricate 2026](https://arxiv.org/abs/2609.09696) on mechanical verification of every reported finding; *reason* |
+| What the newest design adds and this one lacks | A refuter from another model family on each hard claim; every model this harness runs is one family, so it waits for a second provider | [Refute-or-Promote 2026](https://arxiv.org/abs/2604.19049) |
 
 ## The files
 

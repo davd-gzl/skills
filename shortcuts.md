@@ -16,6 +16,7 @@ as the skill defines it; ask when the reading changes what gets built.
 | Word | What it starts | Rule |
 | --- | --- | --- |
 | `review <target>` | one review round: the overview, the comment draft, the claim table and its tests, pushed, nothing posted | `skills/review.md` |
+| `quick review <target>`, `deep review <target>` | the same round on the `quick` or `deep` budget preset, cheaper models and caps, or more finders with the security angles run twice, the shape unchanged | `./scripts/review-plan.py --compare` |
 | `review all` | every open target not yet reviewed, the scope written down first | `skills/review-modes.md` |
 | `plan` | what the next review round will run and cost, the stage table and the projection | `./scripts/review-plan.py` |
 | `config <stage> <key> <value>` | that knob of the review workflow changed, the plan reprinted, the estimate given | `./scripts/review-plan.py --set`, *A change to the run's shape* in `skills/authoring.md` |

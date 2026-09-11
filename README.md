@@ -36,6 +36,7 @@ What I type, and what each word starts, from [`shortcuts.md`](shortcuts.md).
 | Word | What it starts |
 | --- | --- |
 | `review <target>` | one review round: the overview, the comment draft, the claim table and its tests, pushed, nothing posted |
+| `quick review <target>`, `deep review <target>` | the same round on a budget preset, cheaper models and caps, or more finders with the security angles run twice, the shape unchanged |
 | `review all` | every open target not yet reviewed, the scope written down first |
 | `plan` | what the next review round will run and cost, the stage table and the projection |
 | `config <stage> <key> <value>` | that knob of the review workflow changed, the plan reprinted, the estimate given |

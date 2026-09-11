@@ -103,5 +103,11 @@ as the skill defines it; ask when the reading changes what gets built.
   how many, the minutes and tokens the last measured round of that shape took,
   when to expect them back, and that `stop` kills them. Their return gets the
   same line with what was spent.
+- **Any work past ten minutes reports every ten minutes**, agents, a workflow,
+  a suite, a build, a batch of targets: one line, what is done of what, minutes
+  elapsed, minutes left against the forecast. A background timer, `sleep 600`
+  then the count, wakes the reply and is restarted until the work ends; the
+  user never asks. A workflow's count is
+  `./scripts/review-progress.sh <workflow-dir> <plan-minutes>`.
 - Correcting published text means editing it to say the right thing and nothing
   else: no "an earlier version claimed", no strikethrough.

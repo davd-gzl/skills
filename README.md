@@ -36,7 +36,7 @@ What I type, and what each word starts, from [`shortcuts.md`](shortcuts.md).
 | Word | What it starts |
 | --- | --- |
 | `review <target>` | one review round: the overview, the comment draft, the claim table and its tests, pushed, nothing posted |
-| `quick review <target>`, `deep review <target>` | the same round on a budget preset, cheaper models and caps, or more finders with the security angles run twice, the shape unchanged |
+| `quick review <target>`, `deep review <target>` | the same round on a budget preset, lower caps and effort, or more finders with the security angles run twice, the shape unchanged |
 | `review all` | every open target not yet reviewed, the scope written down first |
 | `plan` | what the next review round will run and cost, the stage table and the projection |
 | `upgrade skills` | every line of the workspace's `TODO.md` taken to its rule or script, one commit each with its estimate, the line struck as it lands; nothing pushed |

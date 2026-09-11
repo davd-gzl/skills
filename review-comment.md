@@ -89,6 +89,7 @@ Governed by the *Posted comments* section of `skills/writing-style.md`: state th
 - Essentials only: the problem and why it matters. No stacked clauses, no symbol-chain walkthroughs, no scenario-painting.
 - Do not re-prove the claim in visible text; mechanism and secondary evidence go in the repro block or `claims.md`.
 - Lead with the specific gap. Never open by explaining the author's own code or restating what the change claims.
+- **Every term in a finding is one a maintainer who has not seen the code can expand**, and a cut that leaves one they cannot has deleted the claim rather than shortened it. Name the expression, the guard or the call, never its position: `the line below` and `this comparison` have no referent under a range anchor, and a word coined to compress, a link that `names no package` for one pointing at a path no package occupies, reads as jargon the reader looks up and does not find.
 - A latent-risk finding states the current safety in one clause and stops.
 - Lowercase a source's emphasis caps in prose; caps survive only in code spans.
 - Never post a question. State the position as the reviewer's own, in one line. This covers design and layering calls.
@@ -125,6 +126,7 @@ each. A bare sha outside a link renders as plain text on another repository.
   gh api --paginate repos/<repo>/pulls/<n>/reviews --jq '.[]|select(.user.login=="<login>")|.state'
   ```
 - Update comment.md whenever the review changes; it never lags.
+- **A second pass over a head whose review is already posted writes its own draft**, `comment_<model>-take2.md` beside the first, and the posted file goes back byte-for-byte to what went out. GitHub refuses new inline comments on a submitted review, so folding new findings into the posted draft leaves a file that can neither post nor be re-posted.
 - A draft embedding media hosted elsewhere is stale until that host is pushed: push it, then read the raw URL back per the picture rule in `skills/writing-style.md`.
 - Port carried findings verbatim; change only shas, repro URLs, and stale anchors. No round-relative phrasing.
 - A SKIPped finding stays SKIPped when ported, with a one-line note, until the user un-SKIPs it. Before regenerating, read the existing file and preserve every surviving `SKIP` marker.

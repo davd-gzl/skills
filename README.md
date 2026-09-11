@@ -35,8 +35,7 @@ What I type, and what each word starts, from [`shortcuts.md`](shortcuts.md).
 
 | Word | What it starts |
 | --- | --- |
-| `review <target>` | one review round: the file, the overview, the comment draft, pushed, nothing posted |
-| `deep review <target>` | the same round with lens agents on one target |
+| `review <target>` | one review round: the overview, the comment draft, the claim table and its tests, pushed, nothing posted |
 | `review all` | every open target not yet reviewed, the scope written down first |
 | `fix <issue or finding>` | a change on the fork: spec, plan, worktree, fix, CI; nothing pushed |
 | `try <pr> on <repo>` | the project booted locally, ready to click through |
@@ -68,23 +67,99 @@ Everything starts with a review, on a PR, a branch, or a red CI.
    old round forward; nobody re-reviews unchanged code.
 3. **Reproduce.** Run the project's own CI commands locally. Every failure is
    re-run on the merge base before the diff gets the blame.
-4. **Review the diff.** The hunt itself, under one discipline: a behavior claim
-   ships with the run that proves it, and a repro that also fires on the merge
-   base is not a finding.
-5. **Refactor pass.** Every added block is rewritten shorter, run against the
-   project's own tests, and shipped as a one-click suggestion with both line
-   counts.
-6. **Write the tests.** A finding whose fix is a test ships the test itself,
-   paste-ready, not a description of one.
-7. **Overview and claims.** `overview.md` for the reader who knows nothing
-   about the subject, then `claims.md`, the record: the verdict, one row per
-   candidate verified with its run output, every claim linked to the reviewed line.
-8. **Comment draft.** One anchored comment per finding, its final check, three
-   QA agents over every edit, pruned by hand before anything ships.
+4. **Find.** Seven finders, one angle each, read only: line by line;
+   removed and rewritten behaviour, swept by shape; the claims the diff writes
+   about itself; the tests it adds, with the mutation that must redden each;
+   reachability and extremes; the refactor pass, every added block rewritten
+   shorter and run; the invariant catalog walked. Each returns candidates with
+   the check that would prove it false, half-believed ones included.
+5. **Verify.** A hard claim gets one agent on a fresh context in its own
+   worktree, the check run at the head and, when the claim is causal, at the
+   merge base; small claims share an agent, four to a file. A verdict quotes
+   its run, and a finding whose fix is a test ships the test, paste-ready.
+6. **Criticise.** One critic reads every verdict and asks what is missing; its
+   candidates verify the same way.
+7. **Write.** `overview.md` for the reader who knows nothing about the subject,
+   `comment_<model>.md` with one anchored section per finding, posted or
+   `SKIP`, and `claims.md`, the record: the verdict, one row per candidate with
+   its run output, every claim linked to the reviewed line.
+8. **Text pass.** One agent over the draft and the overview: a table of every
+   link, resolved or not, then every line that reads shorter without losing
+   fact, stake or fix.
 9. **Style pass.** The closing Pass of [`writing-style.md`](writing-style.md),
    run against the file and not from memory. Never skipped.
 10. **Commit and push.** The record lands in my workspace, nothing else moves.
 11. **Hand over.** I read the draft and decide.
+
+## The architecture
+
+One workflow per target, whatever its size: the workspace's
+`scripts/workflows/review-pipeline.js`, its stages scaled by
+`review-pipeline.json`. The parent prepares and ships; agents find, verify,
+criticise and write, each reading only the rule sections its artifact needs,
+none reading another's reasoning.
+
+```mermaid
+flowchart TD
+  P[parent: sync, worktrees at head and merge base,<br/>check runs, suites once per tree, catalog, prior rounds] --> F
+  F[7 finders, one angle each, read only, cap 6] --> M[merge per file:line]
+  M -->|Warning, mutation, causal| B[one verifier per claim<br/>fresh context, own worktree, xhigh]
+  M -->|grep-shaped, refactor, Nit, Suggestion| S[small verifiers<br/>4 per file, shuffled, medium]
+  S -->|no run, or PLAUSIBLE| B
+  B --> C[critic, read only: what is missing]
+  S --> C
+  C -->|new candidates| B
+  C --> W[writer: overview.md, comment draft, claims.md, tests/]
+  W --> T[text pass: link table, rewrites]
+  T --> Q[parent: final check, style pass, one commit, one push]
+  Q -->|post| G[the GitHub review]
+```
+
+| Stage | Reads | Returns | Tier |
+| --- | --- | --- | --- |
+| finder, seven | the diff, its angle's rule sections, the catalog | candidates: `file:line`, failure scenario, the check, the band | high, cap 6 per finder |
+| verifier | one claim, the claim alone | CONFIRMED, PLAUSIBLE or REFUTED, the run quoted, the artifact under `tests/` | xhigh, one vote |
+| small verifier | up to four claims on one file, order shuffled | one verdict each; a weak one escalates | medium |
+| critic | every verdict | candidates for what nobody ran | xhigh |
+| writer | verified findings, prior rounds | `overview.md`, `comment_<model>.md`, `claims.md` | high |
+| text pass | the draft, the overview | the link table, the rewrites applied | xhigh |
+
+The round on disk:
+
+```text
+projects/<repo>/reviews/<slug>/
+  overview.md            the subject for a reader who knows nothing, no review state
+  <n>-<sha>/
+    comment_<model>.md   Event, Model, Commit, Overview, Open the code, Round; the Body;
+                         one section per finding, posted or SKIP, its repro collapsed
+    claims.md            Verdict; one row per candidate: state, band, file:line, the check,
+                         the output, the artifact; the link table; the completeness answers
+    tests/               every artifact a verifier ran
+```
+
+What the round carries in:
+
+- **The invariant catalog**, `projects/<repo>/skills/invariant-catalog.md`: one class per entry with the check that settles it, proposed before a project's first round and extended in the round by every confirmed finding of a class it lacked, so the next round's finders walk it.
+- **The context file**, `projects/<repo>/CONTEXT.md`, private: sets the round's pace and shape, and no posted line quotes it or names it.
+- **The re-review gate**: patch-ids at the old and new head; equal means the base moved and the round copies forward, different means a full round over what changed, a merge commit means its conflict hunks are diff.
+- **Parallel dispatch**: one workflow per target, launched together; a security fix leaves the batch and runs alone first.
+- **A target I authored**: no draft, no posting; `claims.md` and `overview.md` still written.
+
+What leaves: nothing without `post`. The commit and push of the record are pre-authorised; a public destination gets the whole diff read as an adversary first.
+
+## What the shape rests on
+
+The review's shape, finders that only read, one verifier per hard claim running
+the check, small claims batched in fours, routing by difficulty, one vote,
+follows results measured in 2025 and 2026; the field moves fast enough that
+older ones are not cited.
+
+- **A verifier runs the check; reading is not verifying.** A tool-running agent identified 95 % of the false positives in static-analysis warnings against 36 % for prompt-only, per [Sifting the Noise 2026](https://arxiv.org/abs/2601.22952); 80 agents agreed on a nonexistent OpenSSL bug and one test killed it, and refuters given the claim alone on a fresh context killed 79 % of candidates, per [Refute-or-Promote 2026](https://arxiv.org/abs/2604.19049).
+- **A hard claim gets its own agent; small ones share one, four at most.** A scoring judge lost 45 % of its human agreement at two items per prompt, per [BatchGEMBA 2025](https://arxiv.org/abs/2503.02756); an auditor held to batches of seven and fabricated at eight, per [When Auditors Fabricate 2026](https://arxiv.org/abs/2609.09696); plain question answering on reasoning models held to fifteen, per [Srivastava et al. 2026](https://arxiv.org/abs/2511.04108), so the batch carries only claims one command settles. Order inside a batch is shuffled, since one planted item flips the others' answers in 88 % of batches of twenty, per [Batch Attack 2025](https://arxiv.org/html/2503.15551), and weaker judges lose consistency as the list grows, per [Shi et al. 2025](https://aclanthology.org/2025.ijcnlp-long.18.pdf).
+- **Routing by difficulty, on a structural key.** A difficulty model over items and configurations reaches 90 % of the strongest configuration's accuracy at 1 to 10 % of its cost, per [RADAR, ICLR 2026](https://people.umass.edu/~andrewlan/papers/26iclr-radar.pdf); a confidence threshold miscalibrates on the hard items that most need escalation, per [Conformal Cascade 2026](https://arxiv.org/html/2607.25018), so the key here is the band and the check's shape, and a weak small verdict escalates.
+- **One vote.** Nine same-family judges carry 2.2 independent votes, and the best single judge beat the panel, per [Nine Judges, Two Effective Votes 2026](https://arxiv.org/html/2605.29800); a cross-family refuter given the claim alone caught 16 % of same-family misses, per Refute-or-Promote above.
+- **What the newest designs add and this one lacks.** The best-measured 2026 shape, Refute-or-Promote, gives each hard claim a refuter from another model family, on a fresh context, holding the claim and nothing of the finder's reasoning, then one executed test as the arbiter. This workflow has the fresh context, the claim-only prompt and the executed test; every model it can run is one family, so the cross-family refuter waits for a second provider in the harness.
+- **Unmeasured: batched tool-running verifiers on code findings.** The batch of four is extrapolated from judging tasks, and the next rounds measure it.
 
 ## The files
 

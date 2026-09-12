@@ -75,10 +75,11 @@ as the skill defines it; ask when the reading changes what gets built.
   form* in `skills/writing-style.md`.
 - **A reply finishing a piece of work ends on the account of everything it
   did**, above the closing block, as plain lines, never in a code fence or a
-  quote: `Did:` alone on a line, then one numbered line per step in order, what
-  was done and what it produced, a loop with its round count, a clean step in
-  three words, then `Left:` naming what stayed undone and the decision it
-  needs, dropped when nothing is left. The prose above never retells a listed
+  quote: `Did:` alone on a line, then one numbered line per step in order, a
+  clause and never a sentence: the step, what it produced, and what it put in
+  context, lines read or ~k tokens, so the heavy step shows; a loop with its
+  round count, a clean step in three words. Then `Left:` naming what stayed
+  undone and the decision it needs, dropped when nothing is left. The prose above never retells a listed
   step: it carries the decisions to make and the word to give. What was tried
   and dropped stays in `plan.md`. The register check names a closing block
   without the account, and an account inside a fence.

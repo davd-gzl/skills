@@ -90,6 +90,11 @@ the reader is back to sampling. The health table prints the share.
 **Write the reader's words**, per `skills/writing-style.md`. Every rule here is
 read by someone who has not seen the incident behind it.
 
+**A rule that names a new home for visible prose names the writing-style section
+it defers to.** Its reader stops at the new rule and takes it as the whole spec
+for that place, so what `skills/writing-style.md` already requires there, the
+link on every named thing for one, is lost unless the rule points at it.
+
 ## Capabilities
 
 What the machine can do is measured, never written down: `./scripts/env-check.sh`,

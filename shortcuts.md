@@ -16,7 +16,7 @@ as the skill defines it; ask when the reading changes what gets built.
 | Word | What it starts | Rule |
 | --- | --- | --- |
 | `review <target>` | one review round: the overview, the comment draft, the claim table and its tests, pushed, nothing posted | `skills/review.md` |
-| `quick review <target>`, `deep review <target>` | the same round on the `quick` or `deep` budget preset, lower caps and effort, or more finders with the security angles run twice, the shape unchanged | `./scripts/review-plan.py --compare` |
+| `quick review <target>`, `deep review <target>` | the same round on a preset: `quick` bounds the wall clock, a tool-call budget per verifier, small batches, no critic, no text pass, caps and effort unchanged; `deep` adds finders, the security angles run twice | `./scripts/review-plan.py --compare` |
 | `review all` | every open target not yet reviewed, the scope written down first | `skills/review-modes.md` |
 | `plan` | what the next review round will run and cost, the stage table and the projection | `./scripts/review-plan.py` |
 | `upgrade skills` | every line of the workspace's `TODO.md` taken to its rule or script, one commit each with its estimate, the line struck as it lands; nothing pushed | *Upgrading from the TODO*, `skills/authoring.md` |

@@ -36,7 +36,7 @@ What I type, and what each word starts, from [`shortcuts.md`](shortcuts.md).
 | Word | What it starts |
 | --- | --- |
 | `review <target>` | one review round: the overview, the comment draft, the claim table and its tests, pushed, nothing posted |
-| `quick review <target>`, `deep review <target>` | the same round on a budget preset, lower caps and effort, or more finders with the security angles run twice, the shape unchanged |
+| `quick review <target>`, `deep review <target>` | the same round on a preset: `quick` bounds the wall clock, a tool-call budget per verifier, no critic, no text pass, caps and effort unchanged; `deep` adds finders, the security angles run twice |
 | `review all` | every open target not yet reviewed, the scope written down first |
 | `plan` | what the next review round will run and cost, the stage table and the projection |
 | `upgrade skills` | every line of the workspace's `TODO.md` taken to its rule or script, one commit each with its estimate, the line struck as it lands; nothing pushed |
@@ -173,6 +173,7 @@ own argument and waits for the outcome table to measure it.
 | A critic beside the first verify wave | A cap hit silently, an angle under-scoped and a changed test not re-added are misses no verifier sees, and none needs a verdict to spot; run after the verdicts, the critic waited 40 minutes on the slowest verifier once | *measured* |
 | Angles gated on the diff's material | An angle with nothing to walk costs a full read and returns nothing: no test file, no tests angle | *reason* |
 | A tool-call budget per verifier | One verifier ran 42 minutes and held four stages behind it; a budget ends it PLAUSIBLE with the check named, which the next round runs | *measured* |
+| `quick` bounds the wall clock, never the tokens | A round's minutes are its serial chain, finders, the slowest verifier, the writer, the text pass, and a lower cap or effort leaves that chain as long; quick caps the verifier's tool calls, batches two, and drops the critic and the text pass | *reason* |
 | The catalog walked and extended each round | A finder walking no catalog walks nothing; a confirmed class the catalog lacked is the class it misses next time | *reason* |
 | The re-review gate by patch-id | Nobody re-reviews code that did not change; a merge commit's conflict hunks are diff | *reason* |
 | Outcome table per posted round | Every number above comes from someone else's task; what authors fixed, resolved or left open per angle, band and tier is what tunes the next batch size, cap and tier | [When Auditors Fabricate 2026](https://arxiv.org/abs/2609.09696) on mechanical verification of every reported finding; *reason* |

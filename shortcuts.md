@@ -58,6 +58,10 @@ as the skill defines it; ask when the reading changes what gets built.
 - Text the user will paste elsewhere goes in a fenced block instead, which is
   what carries a copy button: a message for a group, a snippet, anything asked
   for as copyable.
+- A reply covering more than one topic rules them off with `---`, one before each
+  topic after the first, and one above the account. Two labelled parts of one
+  topic take none. A quoted draft keeps its own pair, which marks it as text
+  rather than prose.
 - The closing block carries one bare verb, `post` never `post the issue`, and
   says beside it what saying it does: what opens, in which repository, against
   which base, and whether it opens as a draft or ready. The sentence around it

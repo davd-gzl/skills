@@ -87,6 +87,9 @@ as the skill defines it; ask when the reading changes what gets built.
   step: it carries the decisions to make and the word to give. What was tried
   and dropped stays in `plan.md`. The register check names a closing block
   without the account, and an account inside a fence.
+- A commit, a push or a sha is not a step in the account: name what changed, and
+  leave the shas to the prose and the closing block, where the user looks for
+  them.
 - **A reply reporting a publish opens with the full URL of what went out**, one
   per artifact the action created, before any account of it. Elsewhere a link is
   a label, which is what buries a published URL written as one.

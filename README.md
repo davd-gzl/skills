@@ -106,12 +106,11 @@ none reading another's reasoning.
 ```mermaid
 flowchart TD
   P[parent: sync, worktrees at head and merge base,<br/>check runs, suites once per tree, catalog, prior rounds] --> F
-  F[7 finders, one angle each, read only, cap 6] --> M[merge per file:line]
+  F[finders, one per angle the diff has material for, read only] --> M[merge per file:line]
   M -->|Warning, mutation, causal| B[one verifier per claim<br/>fresh context, own worktree, xhigh]
   M -->|grep-shaped, refactor, Nit, Suggestion| S[small verifiers<br/>4 per file, shuffled, medium]
   S -->|no run, or PLAUSIBLE| B
-  B --> C[critic, read only: what is missing]
-  S --> C
+  M --> C[critic, read only, beside the verifiers: what is missing]
   C -->|new candidates| B
   C --> W[writer: overview.md, comment draft, claims.md, tests/]
   W --> T[text pass: link table, rewrites]
@@ -121,11 +120,11 @@ flowchart TD
 
 | Stage | Reads | Returns | Tier |
 | --- | --- | --- | --- |
-| finder, seven | the diff, its angle's rule sections, the catalog | candidates: `file:line`, failure scenario, the check, the band | high, cap 6 per finder |
-| verifier | one claim, the claim alone | CONFIRMED, PLAUSIBLE or REFUTED, the run quoted, the artifact under `tests/` | xhigh, one vote |
+| finder, one per angle with material, seven at most | the diff, its angle's rule sections, the catalog | candidates: `file:line`, failure scenario, the check, the band | high, cap 6 per finder |
+| verifier | one claim, the claim alone, a tool-call budget | CONFIRMED, PLAUSIBLE or REFUTED, the run quoted, the artifact under `tests/` | xhigh, one vote |
 | small verifier | up to four claims on one file, order shuffled | one verdict each; a weak one escalates | medium |
-| critic | every verdict | candidates for what nobody ran | xhigh |
-| writer | verified findings, prior rounds | `overview.md`, `comment_<model>.md`, `claims.md` | high |
+| critic | every candidate, beside the first verify wave | candidates for what nobody ran | xhigh |
+| writer | verified findings, prior rounds, the candidate rows already tabled | `overview.md`, `comment_<model>.md`, `claims.md` | high |
 | text pass | the draft, the overview | the link table, the rewrites applied | xhigh |
 
 The round on disk:
@@ -168,7 +167,9 @@ own argument and waits for the outcome table to measure it.
 | Finders at `high`, hard verifiers at `xhigh` | Finders read and name; a miss there is caught by the critic, a miss at the verifier is final. Reasoning tokens fell 76 % with no accuracy loss on extraction-shaped work | [Srivastava et al. 2026](https://arxiv.org/abs/2511.04108); *reason* for the split |
 | Code before the description; the claims angle alone reads the description first | "Bug-free" framing on vulnerable code cut detection by 16.2 to 93.5 points across six models; "vulnerable" framing on clean code raised false positives by 0.8 to 13.6 | [Mitropoulos et al. 2026](https://arxiv.org/abs/2603.18740) |
 | Five finders read a copy of head with comment lines blanked | The same framing sits inside the code, in a godoc calling something bounded or safe; the claims angle keeps the comments as its subject, the refactor angle as its lines | [Mitropoulos et al. 2026](https://arxiv.org/abs/2603.18740); *reason* for the extension |
-| A critic after the verdicts | A cap hit silently, an angle under-scoped and a changed test not re-added are misses no verifier sees; the critic reads only | *reason* |
+| A critic beside the first verify wave | A cap hit silently, an angle under-scoped and a changed test not re-added are misses no verifier sees, and none needs a verdict to spot; run after the verdicts, the critic waited 40 minutes on the slowest verifier once | *measured* |
+| Angles gated on the diff's material | An angle with nothing to walk costs a full read and returns nothing: no test file, no tests angle | *reason* |
+| A tool-call budget per verifier | One verifier ran 42 minutes and held four stages behind it; a budget ends it PLAUSIBLE with the check named, which the next round runs | *measured* |
 | The catalog walked and extended each round | A finder walking no catalog walks nothing; a confirmed class the catalog lacked is the class it misses next time | *reason* |
 | The re-review gate by patch-id | Nobody re-reviews code that did not change; a merge commit's conflict hunks are diff | *reason* |
 | Outcome table per posted round | Every number above comes from someone else's task; what authors fixed, resolved or left open per angle, band and tier is what tunes the next batch size, cap and tier | [When Auditors Fabricate 2026](https://arxiv.org/abs/2609.09696) on mechanical verification of every reported finding; *reason* |

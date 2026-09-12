@@ -71,18 +71,21 @@ Everything starts with a review, on a PR, a branch, or a red CI.
    old round forward; nobody re-reviews unchanged code.
 3. **Reproduce.** Run the project's own CI commands locally. Every failure is
    re-run on the merge base before the diff gets the blame.
-4. **Find.** Seven finders, one angle each, read only: line by line;
-   removed and rewritten behaviour, swept by shape; the claims the diff writes
-   about itself; the tests it adds, with the mutation that must redden each;
-   reachability and extremes; the refactor pass, every added block rewritten
-   shorter and run; the invariant catalog walked. Each returns candidates with
-   the check that would prove it false, half-believed ones included.
+4. **Find.** One finder per angle the diff has material for, seven at most,
+   read only: line by line; removed and rewritten behaviour, swept by shape;
+   the claims the diff writes about itself; the tests it adds, with the
+   mutation that must redden each; reachability and extremes; the refactor
+   pass, every added block rewritten shorter and run; the invariant catalog
+   walked. An angle with nothing to walk is skipped, the plan saying which.
+   Each returns candidates with the check that would prove it false,
+   half-believed ones included.
 5. **Verify.** A hard claim gets one agent on a fresh context in its own
-   worktree, the check run at the head and, when the claim is causal, at the
-   merge base; small claims share an agent, four to a file. A verdict quotes
-   its run, and a finding whose fix is a test ships the test, paste-ready.
-6. **Criticise.** One critic reads every verdict and asks what is missing; its
-   candidates verify the same way.
+   worktree, under a tool-call budget, the check run at the head and, when
+   the claim is causal, at the merge base; small claims share an agent, four
+   to a file. A verdict quotes its run, and a finding whose fix is a test
+   ships the test, paste-ready.
+6. **Criticise.** One critic reads every candidate beside the verifiers and
+   asks what is missing; its candidates verify in the same wave.
 7. **Write.** `overview.md` for the reader who knows nothing about the subject,
    `comment_<model>.md` with one anchored section per finding, posted or
    `SKIP`, and `claims.md`, the record: the verdict, one row per candidate with

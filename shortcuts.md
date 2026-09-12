@@ -90,10 +90,9 @@ as the skill defines it; ask when the reading changes what gets built.
 - A commit, a push or a sha is not a step in the account: name what changed, and
   leave the shas to the prose and the closing block, where the user looks for
   them.
-- **A list of what landed says what each item changes, one plain sentence per
-  item, the file after it or not at all.** A line opening on a path and a colon
-  and running on in clipped clauses reads as a diff, and the reader asks for it
-  again in words.
+- **A list of lines landed or asked is one line per item: the file in
+  backticks, a colon, then the fewest words that say what changes**, and for an
+  asked line the question last. Nothing else on the line.
 - **A reply reporting a publish opens with one line per commit that went out**,
   before any account of it: a link whose text is `<repo>/<short sha>`, never the
   bare URL, then about five words saying what the commit holds.

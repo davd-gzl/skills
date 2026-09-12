@@ -19,7 +19,7 @@ as the skill defines it; ask when the reading changes what gets built.
 | `quick review <target>`, `deep review <target>` | the same round on a preset: `quick` bounds the wall clock, a tool-call budget per verifier, small batches, no critic, no text pass, caps and effort unchanged; `deep` adds finders, the security angles run twice | `./scripts/review-plan.py --compare` |
 | `review all` | every open target not yet reviewed, the scope written down first | `skills/review-modes.md` |
 | `plan` | what the next review round will run and cost, the stage table and the projection | `./scripts/review-plan.py` |
-| `upgrade skills` | every line of the workspace's `TODO.md` read as its critic, then taken to its rule or script, one commit each with its estimate, the line struck as it lands; a line that fails the read is asked, never struck; nothing pushed | *Upgrading from the TODO*, `skills/authoring.md` |
+| `upgrade skills` | every skill or script line of the workspace's `TODO.md` read as its critic, a project's finding skipped, then taken to its rule or script, one commit each with its estimate, the line struck as it lands; a line that fails the read is asked, never struck; nothing pushed | *Upgrading from the TODO*, `skills/authoring.md` |
 | `config <stage> <key> <value>` | that knob of the review workflow changed, the plan reprinted, the estimate given | `./scripts/review-plan.py --set`, *A change to the run's shape* in `skills/authoring.md` |
 | `fix <issue or finding>` | a change on the fork: spec, plan, worktree, fix, CI; nothing pushed | `skills/change.md` |
 | `try <pr> on <repo>` | the project booted locally, ready to click through | `skills/try.md` |

@@ -39,7 +39,7 @@ What I type, and what each word starts, from [`shortcuts.md`](shortcuts.md).
 | `quick review <target>`, `deep review <target>` | the same round on a preset: `quick` bounds the wall clock, a tool-call budget per verifier, no critic, no text pass, caps and effort unchanged; `deep` adds finders, the security angles run twice |
 | `review all` | every open target not yet reviewed, the scope written down first |
 | `plan` | what the next review round will run and cost, the stage table and the projection |
-| `upgrade skills` | every line of the workspace's `TODO.md` taken to its rule or script, one commit each with its estimate, the line struck as it lands; nothing pushed |
+| `upgrade skills` | every line of the workspace's `TODO.md` read as its critic, then taken to its rule or script, one commit each with its estimate, the line struck as it lands; a line that fails the read is asked, never struck; nothing pushed |
 | `config <stage> <key> <value>` | that knob of the review workflow changed, the plan reprinted, the estimate given |
 | `fix <issue or finding>` | a change on the fork: spec, plan, worktree, fix, CI; nothing pushed |
 | `try <pr> on <repo>` | the project booted locally, ready to click through |

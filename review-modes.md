@@ -35,6 +35,32 @@ A batch target set, "review all": every open non-draft target absent from the re
 - An external contributor's target leaves the set. It is reviewed only when the user names it.
 - When the run also covers already-reviewed targets whose head advanced, keep only the heads whose content changed: compare patch-ids per *Re-review rounds* in `skills/review.md`, drop every base-only move, and drop every target the reviewer already approved on the forge.
 
+### Blind round
+
+Use when the round measures the reviewer against findings already known: an
+earlier round's, another reviewer's, or fixes already merged. Nothing the round
+reads may carry them, so the agents get a repository holding the two commits and
+nothing else, real shas kept, so every worktree command and every blob link
+still resolves.
+
+1. Build it from the synced checkout, full shas, then hang every worktree the
+   round uses off it, the verifiers' included; `git log` there stops at the two
+   commits.
+   ```bash
+   git init -q <scratch>/blind-<target>
+   git -C <scratch>/blind-<target> fetch -q --depth=1 <checkout> <full head sha>
+   git -C <scratch>/blind-<target> fetch -q --depth=1 <checkout> <full merge-base sha>
+   git -C <scratch>/blind-<target> worktree add --detach <scratch>/blind-<target>-head <head sha>
+   git -C <scratch>/blind-<target> worktree add --detach <scratch>/blind-<target>-base <merge-base sha>
+   ```
+2. No PR dump under `.worktrees/` for the round, and no prior-round read by the
+   parent: the workflow gets `args.blind: true`, whose sentence forbids the
+   threads, the round directories, the dump and history.
+3. The round note and the draft's `Round:` line say `Blind round`.
+
+Cost against an ordinary round: two shallow fetches, about a minute, tokens
+unchanged; an estimate until a blind round measures it.
+
 ### Own PR (the reviewer authored it)
 
 Check with `gh pr view <number> --json author`. Findings land as commits on the branch, never as a review to post.

@@ -64,8 +64,8 @@ PASS_THROUGH = {'bash', 'sh', 'zsh', 'fish', 'dash', 'git', 'env', 'sudo', 'xarg
 # Written path, as a regex over the root-relative path, to the reads it needs.
 # Artifacts live under projects/<repo>/; a skill file of the same name is a rule file.
 MAP = [
-    (r'^projects/[^/]+/reviews/.*/review_[^/]*\.md$', ['review', 'review-output', 'writing-style']),
-    (r'^projects/[^/]+/.*/overview\.md$', ['review', 'review-output', 'writing-style']),
+    (r'^projects/[^/]+/reviews/.*/review_[^/]*\.md$', ['review', 'writing-style']),
+    (r'^projects/[^/]+/.*/overview\.md$', ['review', 'writing-style']),
     (r'^projects/[^/]+/reviews/.*/comment_[^/]*\.md$', ['review-comment', 'writing-style']),
     (r'^projects/[^/]+/.*/issue\.md$', ['issue', 'writing-style']),
     (r'^projects/[^/]+/.*/pr-body\.md$', ['pr-body', 'writing-style']),
@@ -482,7 +482,7 @@ BASH_BOUND = 28000
 # Prompt words to the skills they call for. Over-matching is the design: a read
 # costs context once per session, a missed rule costs the user a turn.
 PROMPT_SKILLS = [
-    (r'\breview|\blgtm\b|/pull/\d+', ['review', 'review-output', 'review-comment']),
+    (r'\breview|\blgtm\b|/pull/\d+', ['review', 'review-comment']),
     # (?<!-) on fixes alone: a repository name ending in -fixes is not a request to fix.
     (r'\bfix(ed|ing)?\b|(?<!-)\bfixes\b|\bimplement|\bsimplif|\bchange\b|\bfeature\b|/issues/\d+', ['change', 'pr-body', 'issue']),
     (r'\bissue', ['issue']),

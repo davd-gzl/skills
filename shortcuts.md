@@ -90,9 +90,9 @@ as the skill defines it; ask when the reading changes what gets built.
 - A commit, a push or a sha is not a step in the account: name what changed, and
   leave the shas to the prose and the closing block, where the user looks for
   them.
-- **A reply reporting a publish opens with the full URL of what went out**, one
-  per artifact the action created, before any account of it. Elsewhere a link is
-  a label, which is what buries a published URL written as one.
+- **A reply reporting a publish opens with one line per commit that went out**,
+  before any account of it: a link whose text is `<repo>/<short sha>`, never the
+  bare URL, then about five words saying what the commit holds.
 - The target is a link in the first reply that touches it: the pull request, the
   issue, the commit.
 - Every reply ends on the links, pushed or not: the target, then each

@@ -92,7 +92,8 @@ as the skill defines it; ask when the reading changes what gets built.
   them.
 - **A list of lines landed or asked is one line per item: the file in
   backticks, a colon, then the fewest words that say what changes**, and for an
-  asked line the question last. Nothing else on the line.
+  asked line the question last. Nothing else on the line. The shape the user
+  kept: `` `skills/lint.py`: copied rules by opening clause. Build? ``
 - **A reply reporting a publish opens with one line per commit that went out**,
   before any account of it: a link whose text is `<repo>/<short sha>`, never the
   bare URL, then about five words saying what the commit holds.

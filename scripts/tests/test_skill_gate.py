@@ -20,7 +20,7 @@ spec = importlib.util.spec_from_file_location('skill_gate', SCRIPT)
 gate = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(gate)
 
-SKILLS = ['review', 'review-output', 'review-comment', 'writing-style', 'shortcuts', 'short-form', 'issue',
+SKILLS = ['review', 'review-comment', 'writing-style', 'shortcuts', 'short-form', 'issue',
           'pr-body', 'change', 'authoring', 'git']
 
 
@@ -47,11 +47,11 @@ class GateCase(unittest.TestCase):
 class RequiredReads(GateCase):
     def test_review_file_needs_review_output_style_and_delta(self):
         got = gate.required_reads('projects/meet/reviews/1498-x/3-abc/review_claude_reviewer.md')
-        self.assertEqual(got, {'review', 'review-output', 'writing-style', 'meet'})
+        self.assertEqual(got, {'review', 'writing-style', 'meet'})
 
     def test_overview_is_a_review_artifact(self):
         got = gate.required_reads('projects/meet/reviews/1498-x/overview.md')
-        self.assertEqual(got, {'review', 'review-output', 'writing-style', 'meet'})
+        self.assertEqual(got, {'review', 'writing-style', 'meet'})
 
     def test_comment_draft(self):
         got = gate.required_reads('projects/meet/reviews/1498-x/3-abc/comment_claude.md')
@@ -637,7 +637,7 @@ class Prompt(HookCase):
         rc, context = self.run_hook('prompt', json.dumps(
             {'prompt': 'deep review https://github.com/suitenumerique/meet/pull/1675'}))
         self.assertEqual(rc, 0)
-        for piece in ('skills/review.md', 'skills/review-output.md', 'skills/review-comment.md', 'projects/meet/AGENTS.md'):
+        for piece in ('skills/review.md', 'skills/review-comment.md', 'projects/meet/AGENTS.md'):
             self.assertIn(piece, context)
         self.assertNotIn('skills/change.md', context)
         self.assertNotIn('# review', context)
@@ -655,7 +655,7 @@ class Prompt(HookCase):
         self.assertNotIn('CONTEXT.md', context)
 
     def test_a_second_prompt_names_nothing_already_read(self):
-        for name in ('review', 'review-output', 'review-comment', 'meet'):
+        for name in ('review', 'review-comment', 'meet'):
             gate.record_read(name)
         rc, context = self.run_hook('prompt', json.dumps({'prompt': 'review meet 1675 again'}))
         self.assertEqual((rc, context), (0, ''))

@@ -22,7 +22,8 @@ rows, link targets and lines between two `---` rules are dropped, since a draft
 quoted in a reply stays as written. Under MIN_WORDS nothing is measured, and a
 prompt opening or closing on `+` exempts its reply. A reply carrying a closing
 block, the artifact lines, carries the `Did:` account above it, as plain lines:
-an account inside a code fence is named. The account, quotes, tables and code
+an account inside a code fence is named, as is one with no `---` rule above it.
+The account, quotes, tables and code
 do not count toward WORDS.
 """
 
@@ -94,6 +95,13 @@ def measure(text):
         reasons.append('a closing block with no Did: account above it')
     if re.search(r'```[^\n]*\n\s*\**Did:', text):
         reasons.append('the Did: account sits in a code fence, write it as plain lines')
+    did_i = next((i for i, l in enumerate(lines) if DID.match(l)), None)
+    if did_i is not None:
+        j = did_i - 1
+        while j >= 0 and not lines[j].strip():
+            j -= 1
+        if j < 0 or lines[j].strip() != '---':
+            reasons.append('the Did: account with no --- rule above it')
     if n >= MIN_WORDS:
         if n > WORDS:
             reasons.append(f'{n} prose words, cap {WORDS}')

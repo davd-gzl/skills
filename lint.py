@@ -233,6 +233,10 @@ def check_file(path, corpus=None, heading_index=None):
             key = normalize(sentence)
             if len(key.split()) >= 8:
                 seen[key].append(n)
+            # A paraphrase keeps the trigger and reworks the tail, so the opening clause is keyed too.
+            opening = normalize(re.split(r'[,;:]', sentence, 1)[0])
+            if len(opening.split()) >= 6 and opening != key:
+                seen['open: ' + opening].append(n)
     return findings, health, seen
 
 
@@ -268,9 +272,17 @@ def main(argv):
             health_rows.append((path, health))
 
     dupes = {k: v for k, v in seen_sentences.items() if len({p for p, _ in v}) > 1}
-    for key, places in sorted(dupes.items(), key=lambda kv: -len(kv[1]))[:10]:
+    full = [k for k in dupes if not k.startswith('open: ')]
+    shown = 0
+    for key, places in sorted(dupes.items(), key=lambda kv: -len(kv[1])):
+        if key.startswith('open: ') and any(f.startswith(key[6:]) for f in full):
+            continue  # the whole sentence already reports it
+        if shown == 10:
+            break
+        shown += 1
         where = ', '.join(f'{p}:{n}' for p, n in places)
-        print(f'warn  [dupe] one rule in {len(places)} files: {where}\n      "{key[:90]}"')
+        code = 'dupe-open' if key.startswith('open: ') else 'dupe'
+        print(f'warn  [{code}] one rule in {len(places)} files: {where}\n      "{key[:90]}"')
 
     if not quiet and health_rows:
         print(f'\n{"file":<34}{"words":>7}{"rules":>7}{"w/rule":>8}{"neg":>6}{"bold%":>7}')

@@ -162,3 +162,18 @@ class Hook(Transcript):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class Unlinked(unittest.TestCase):
+    def test_named_path_with_no_link_is_a_reason(self):
+        m = rc.measure("Rule sits in `skills/review.md`, step 4. Done.")
+        self.assertEqual(m['unlinked'], ['skills/review.md'])
+        self.assertTrue(any(r.startswith('named with no link') for r in m['reasons']))
+
+    def test_linked_path_passes(self):
+        m = rc.measure("Rule sits in `skills/review.md`.\n\n[review.md](https://github.com/davd-gzl/skills/blob/main/review.md)")
+        self.assertEqual(m['unlinked'], [])
+
+    def test_urls_and_fences_are_not_paths(self):
+        m = rc.measure("See https://github.com/x/y/blob/main/a.md and\n```\ncat skills/x.md\n```\n")
+        self.assertEqual(m['unlinked'], [])

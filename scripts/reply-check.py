@@ -76,6 +76,18 @@ def prose(text):
     return '\n'.join(out)
 
 
+# A repository path named in the reply: a known prefix, or a slashed path ending in an extension.
+PATHS = re.compile(r'(?<![\w/])(?:(?:projects|skills|scripts|tests)/[\w./-]*\w|[\w-]+/[\w./-]*\.\w+)')
+
+
+def unlinked(text):
+    """Paths the reply names with no markdown link carrying them: the links rule, measured."""
+    bare = re.sub(r'```.*?```', ' ', text, flags=re.S)
+    bare = re.sub(r'\]\([^)]*\)|https?://\S+', ' ', bare)
+    named = sorted(set(PATHS.findall(bare)))
+    return [q for q in named if not re.search(r'\]\([^)]*' + re.escape(q.rsplit('/', 1)[-1]) + r'[^)]*\)', text)]
+
+
 def measure(text):
     """The numbers, and the reasons it drifts, empty when it does not."""
     p = prose(text)
@@ -113,6 +125,9 @@ def measure(text):
             reasons.append('hedge: ' + ', '.join(f'"{h}"' for h in m['hedges'][:3]))
         if m['pleasantries']:
             reasons.append('pleasantry: ' + ', '.join(f'"{h}"' for h in m['pleasantries'][:3]))
+    m['unlinked'] = unlinked(text)
+    if m['unlinked']:
+        reasons.append('named with no link: ' + ', '.join(m['unlinked'][:3]))
     m['reasons'] = reasons
     return m
 

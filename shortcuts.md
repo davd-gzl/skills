@@ -98,6 +98,9 @@ as the skill defines it; ask when the reading changes what gets built.
 - Every reply ends on the links, pushed or not: the target, then each
   artifact as its `blob/main` URL. A file whose push has not landed keeps its
   link and says so beside it, since that URL 404s until the sha is reported.
+  **Group them one table column per target**, or per category where the work had
+  no target, the links running inline inside each cell. A bullet or a row per
+  file turns four artifacts into a screen the reader scrolls past.
 - Retry a permission refusal from the harness once: a classifier is not
   deterministic. A 403 `Resource not accessible by personal access token` is a
   missing scope, handled per `skills/review-comment.md`.

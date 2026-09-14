@@ -123,7 +123,7 @@ flowchart TD
 
 | Stage | Reads | Returns | Tier |
 | --- | --- | --- | --- |
-| finder, one per angle with material, seven at most | the diff, its angle's rule sections, the catalog | candidates: `file:line`, failure scenario, the check, the band | high, cap 6 per finder |
+| finder, one per angle with material, seven at most | the diff, its angle's rule sections, the catalog | candidates: `file:line`, failure scenario, the check, the band | high, cap 6 per finder, one more per 75 added lines up to 12 |
 | verifier | one claim, the claim alone, a tool-call budget | CONFIRMED, PLAUSIBLE or REFUTED, the run quoted, the artifact under `tests/` | xhigh, one vote |
 | small verifier | up to four claims on one file, order shuffled | one verdict each; a weak one escalates | medium, on sonnet |
 | critic | every candidate, beside the first verify wave | candidates for what nobody ran | xhigh |

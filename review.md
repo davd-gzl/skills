@@ -98,7 +98,7 @@ Open every full re-review round with a `Round:` line in the draft's header: `Rou
 - `gh pr checks <number> -R <repo>` first, plus the check-runs API. Note every failure.
 - Run the project's own test and lint commands, taken from its CI workflow file, never guessed. Match the invocation exactly, pinned versions included.
 - Record pass or fail per affected package or job.
-- **Run each suite and each linter once per tree state, into a file under `<scratch>`, and read that file for every later count, grep or exit code of the same state.** Re-running that state costs the run again and shows nothing new. *Repro rules* still paste that run's output, which the file holds.
+- **Run each suite and each linter once per tree state, into a file under `<scratch>`, and read only a grep of that file: the exit code, the failing names, the counts.** A suite piped into the context carries the toolchain's every build warning, re-read on every later call. Re-running that state costs the run again and shows nothing new. *Repro rules* still paste that run's output, trimmed, which the file holds.
 - **Where the harness cannot select one fixture, run a probe in a copy of the package pruned to that fixture, never in the worktree**, with the copy recipe in the project's delta.
 - Before attributing any failure to the diff, run the same check on the merge-base. A failure that also occurs there is pre-existing.
 - **Run the project's own tool from the branch's source, never an installed binary.** An installed binary exercises the code it was built from, not the branch's, so a change to the tool tests itself out of the run.

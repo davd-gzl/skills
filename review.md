@@ -62,7 +62,7 @@ the trigger fires.
 - Read past reviews in `projects/<repo>/reviews/` first; focus on what changed since the last reviewed commit.
 - Read `projects/<repo>/CONTEXT.md` before the target and take the round's pace from it, which outranks the plan's projection: a launch weeks away means a lower finder cap and more targets, a quiet stretch the full cap and a second round. An author's stated wants shape the draft, and a finding class they asked not to receive ships `SKIP`.
 - A target nobody has reviewed on the forge yet is unsafe until a round has read it: it gets the static danger pass whatever its author's association.
-- Read every changed file in full, and map callers, dependents, and siblings.
+- Read every changed file in full, and map callers, dependents, and siblings. A guard the diff rewrites, a nil check, a panic, an early return, is mapped at the merge base before its replacement is read: what the rewrite changes is what each of those callers now gets, and a reader who opens the new code first finds the base's reachability last.
 - **A project with no invariant catalog gets one proposed before its first round starts**, built from the repository's own bug history, its past reviews and the classes its domain is known for, one class per entry with the check that settles it; the round waits for the user's word on the draft, since a finder walking no catalog walks nothing.
 - A CONFIRMED finding whose class the catalog lacks adds that class to the catalog in the same round, with the check that found it, so the next round's finders walk it.
 

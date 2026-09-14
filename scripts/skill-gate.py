@@ -531,13 +531,20 @@ def prompt_reads(prompt):
         if re.search(pattern, prompt, re.I):
             names.extend(n for n in reads if n not in names)
     repos = submodule_repos()
+    # An owner names nobody's project: gnolang/tx-indexer opens tx-indexer and not the gno family, so
+    # the owner half of every URL, and of every slug under an owner .gitmodules names, leaves the text
+    # the family match reads. The slug match below still reads the whole prompt.
+    owners = sorted({r.split('/')[0] for r in repos.values() if '/' in r}, key=len, reverse=True)
+    words = re.sub(r'github\.com/[\w.-]+/', '', prompt, flags=re.I)
+    if owners:
+        words = re.sub(r'(?<![\w./-])(?:' + '|'.join(map(re.escape, owners)) + r')/', '', words, flags=re.I)
     projects = root() / 'projects'
     for d in sorted(projects.iterdir()) if projects.is_dir() else []:
         if not (d / 'AGENTS.md').is_file():
             continue
         name = d.name
         family = name.split('-')[0]  # the word before the first dash opens every project sharing it, and any word it starts
-        hit = re.search(r'(?<![\w-])' + re.escape(family), prompt, re.I)
+        hit = re.search(r'(?<![\w-])' + re.escape(family), words, re.I)
         hit = hit or (repos.get(name) and re.search(re.escape(repos[name]) + r'(?![\w-])', prompt, re.I))
         if hit and name not in names:
             names.append(name)

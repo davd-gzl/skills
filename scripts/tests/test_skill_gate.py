@@ -675,6 +675,20 @@ class Prompt(HookCase):
             self.assertIn(piece, context)
         self.assertNotIn('projects/meet', context)
 
+    def test_an_owner_in_a_slug_or_a_url_names_no_project(self):
+        (self.root / 'projects' / 'tx-indexer').mkdir(parents=True)
+        (self.root / 'projects' / 'tx-indexer' / 'AGENTS.md').write_text('# tx-indexer\n')
+        (self.root / '.gitmodules').write_text(
+            '[submodule "projects/tx-indexer/checkout"]\n\tpath = projects/tx-indexer/checkout\n'
+            '\turl = https://github.com/gnolang/tx-indexer.git\n')
+        for prompt in ('review https://github.com/gnolang/tx-indexer/pull/241', 'review gnolang/tx-indexer#241'):
+            rc, context = self.run_hook('prompt', json.dumps({'prompt': prompt}))
+            self.assertIn('projects/tx-indexer/AGENTS.md', context, prompt)
+            self.assertNotIn('projects/gno/AGENTS.md', context, prompt)
+        rc, context = self.run_hook('prompt', json.dumps({'prompt': 'review gnolang/gno#123'}))
+        self.assertIn('projects/gno/AGENTS.md', context)
+        self.assertNotIn('projects/tx-indexer/AGENTS.md', context)
+
     def test_a_repo_name_carrying_fixes_names_no_change_skill(self):
         rc, context = self.run_hook('prompt', json.dumps({'prompt': 'review acme/acme-fixes 12'}))
         self.assertIn('skills/review.md', context)

@@ -142,10 +142,12 @@ of.** Grep the package for the return type, the signature, the sentence or the
 pattern that member had, never its name: the sibling that was missed carries a different name and
 the same shape, and it is in scope per *Calibration*.
 
-**Feed a path the diff makes reachable for the first time its extremes.** When a
-setter, a decoder or a write path starts working, send the type's maximum, zero,
-empty and a foreign unit through it and follow each to the reader that consumes
-it; what the validators leave unnamed is what arrives.
+**Feed a path the diff makes reachable for the first time its extremes, and its
+own read-back.** When a setter, a decoder or a write path starts working, send
+the type's maximum, zero, empty and a foreign unit through it and follow each to
+the reader that consumes it; what the validators leave unnamed is what arrives.
+Then read the record out and write it back whole: a field that reads as one
+value and stores another is rewritten by the next full save.
 
 **Verification discipline.** Every finding passes all of these before it enters the review:
 

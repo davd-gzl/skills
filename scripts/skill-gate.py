@@ -480,9 +480,11 @@ IMPORTED = ['shortcuts', 'short-form']
 BASH_BOUND = 28000
 
 # Prompt words to the skills they call for. Over-matching is the design: a read
-# costs context once per session, a missed rule costs the user a turn.
+# costs context once per session, a missed rule costs the user a turn. A review word
+# names review.md alone: the drafting rules are the writer stage's, per its step 4,
+# and the write hook names them when the draft is written.
 PROMPT_SKILLS = [
-    (r'\breview|\blgtm\b|/pull/\d+', ['review', 'review-comment']),
+    (r'\breview|\blgtm\b|/pull/\d+', ['review']),
     # (?<!-) on fixes alone: a repository name ending in -fixes is not a request to fix.
     (r'\bfix(ed|ing)?\b|(?<!-)\bfixes\b|\bimplement|\bsimplif|\bchange\b|\bfeature\b|/issues/\d+', ['change', 'pr-body', 'issue']),
     (r'\bissue', ['issue']),

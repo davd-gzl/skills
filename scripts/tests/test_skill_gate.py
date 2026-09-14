@@ -637,9 +637,11 @@ class Prompt(HookCase):
         rc, context = self.run_hook('prompt', json.dumps(
             {'prompt': 'deep review https://github.com/suitenumerique/meet/pull/1675'}))
         self.assertEqual(rc, 0)
-        for piece in ('skills/review.md', 'skills/review-comment.md', 'projects/meet/AGENTS.md'):
+        for piece in ('skills/review.md', 'projects/meet/AGENTS.md'):
             self.assertIn(piece, context)
-        self.assertNotIn('skills/change.md', context)
+        # the drafting rules are the writer stage's, per review.md step 4; the write hook names them
+        for piece in ('skills/review-comment.md', 'skills/change.md'):
+            self.assertNotIn(piece, context)
         self.assertNotIn('# review', context)
         self.assertFalse(gate.is_read('meet'))
 

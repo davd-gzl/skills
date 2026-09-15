@@ -55,6 +55,8 @@ Written before any fix code, split by audience per
   requirements, the acceptance criteria, what is out of scope. No technology is
   named in it. Write one where no review has settled the behaviour.
 - `plan.md` is how: root cause, approach, the files, how it is tested, the
+  paths walked behind every absolute the diff or its body states about the
+  code, a never, a cannot, an always, enumerated before the first push, the
   commit split, the threat model and the module inventory where the change is
   large enough to need them, and an Iterations section naming every round and
   what caught it, failures included. Write one where the fix has a second

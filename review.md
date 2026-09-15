@@ -17,7 +17,7 @@ finds, verifies, criticises and writes, the parent checks and ships. Run from
 the workspace root; multi-target runs wrap this via *Parallel dispatch* in
 `skills/review-modes.md`.
 
-1. *Fetch & understand*: sync the checkout; the head and merge-base worktrees; a copy of head with comment lines blanked, `./scripts/blank-comments.py <head worktree> <scratch>/head-nocomments`, line numbers kept; the toolchain line every shell opens with; the round directory; the catalog; prior rounds; and each stage's model, effort, rule sections and tool budget from the workspace's `scripts/workflows/review-pipeline.json`.
+1. *Fetch & understand*: sync the checkout; the head and merge-base worktrees; a copy of head with comment lines blanked, `./scripts/blank-comments.py <head worktree> <scratch>/head-nocomments`, line numbers kept; the toolchain line every shell opens with; the round directory; the catalog; prior rounds; and each stage's model, effort, rule sections and tool budget from the workspace's `scripts/workflows/review-pipeline.json`. Dispatch the overview agent the moment the head worktree exists, one agent per *Overview*, so `overview.md` is committed, pushed and linked in the reply that launches the run and the user reads the subject while the round runs; the workflow then gets `overview_exists`.
 2. Run the *Re-review rounds* gate when a prior round exists.
 3. *Reproduce the failure*: the check runs at the head, each suite once per tree state, and the project's tool built once from the head worktree onto the toolchain line, named in `args.prebuilt`, so no verifier builds it.
 4. Print the plan first, `./scripts/review-plan.py --rules-out <scratch>/rules`, with `--preset` when the word was `quick review` or `deep review` and `--extra <stage>=<path>#<Heading>` for each section of the project delta a stage needs, and paste its table and projection in the reply that launches the run, so what is about to run and cost is on screen before it does. Then call the Workflow tool, the workspace's `scripts/workflows/review-pipeline.js` as `scriptPath`, those as `args`, the preset as `args.preset`, the rules directory as `args.rules_dir`: the `review` word is the opt-in the harness's gate asks for, per *Consent* in the workspace `AGENTS.md`, and this sentence is the skill instruction it accepts; a preset moves knobs, the Warning cap never among them, and `quick` runs the finders the config names and drops the critic and the text pass, so its round ends on the writer and step 5 is its only pass over the text. Every stage carries a tool-call budget from the same file and returns what it has when it runs out: a call re-reads everything the agent opened on and has read since, so a stage's cache cost is its calls times its context, and the budget is what caps it, `./scripts/review-retro.py` printing both per stage. Each stage is an agent reading only the rule sections its artifact needs, the set per stage held beside the stage's model in `scripts/workflows/review-pipeline.json`, printed by the plan and written out by it as one file per stage, since an agent told `path#Heading` reads the file whole, never chosen by the parent, since a list chosen per round left the suite rule of *Reproduce the failure* out of every verifier's once:
@@ -46,6 +46,13 @@ Both live in `projects/<repo>/reviews/<slug>/`.
 Two cases change part of this workflow: multi-target parallel dispatch, and a
 target the reviewer authored. Both are in `skills/review-modes.md`, read when
 the trigger fires.
+
+A third is the user's briefing, `plan review <target>`: steps 1 to 3 run, then
+the parent asks what it could not read, three to five questions in one reply,
+the target's purpose, the invariants it must keep, where the user expects the
+risk and what they know of the area. Each answer naming a place or a property
+becomes a topic, `args.topics`, one finder each with that topic as its angle,
+and the run launches on `go`.
 
 ## For each target
 
@@ -184,7 +191,7 @@ Start each test file with a comment block carrying exact repro commands runnable
 
 ## Overview (`overview.md`)
 
-Write one for every target, the writer's first artifact. The findings are written for a reader who already knows the subject; the overview is the only artifact that assumes nothing, and it is what the user opens first, the draft second. A judgement call about complexity was the rule before this one, and it answered "skip" for subjects a reader could not follow.
+Write one for every target, first: its own agent, dispatched at step 1 while the parent prepares the round, so it is on disk and linked before a finder starts. The findings are written for a reader who already knows the subject; the overview is the only artifact that assumes nothing, and it is what the user opens first, the draft second. A judgement call about complexity was the rule before this one, and it answered "skip" for subjects a reader could not follow.
 
 - Write it as `overview.md`, never `overview.html`: GitHub serves an `.html` blob as source, so the reader downloads the file to read it.
 - **Every code block, diagram and table says whether it is the before or the after.** A reader who cannot tell which side they are looking at reads the defect as the fix. Put it in the prose introducing the block or in the block's own caption, never leave it to be inferred from the surrounding argument.

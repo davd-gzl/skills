@@ -136,6 +136,12 @@ A submodule sits on a detached HEAD, and every failure here follows from that.
   revision while the loop around it keeps going and reports clean for every
   commit. Write `git show "${c}:review.md"`.
   `./scripts/env-check.sh shell` names the shell in play.
+- **`gh pr edit` reports a scope failure as success.** It resolves reviewers and
+  assignees over GraphQL before it patches, so a token without `read:org`
+  prints `Your token has not been granted the required scopes`, sends no edit,
+  exits 0, and the old body stays. Patch over REST,
+  `gh api -X PATCH repos/<owner>/<repo>/pulls/<n> -F body=@<file>`, and read
+  the body back after every edit.
 - **Stage under `set -e` with care.** A `git add` naming a path already staged
   as deleted exits nonzero and stages nothing beside it, so the commit carries
   the deletion alone. A tree that looks current is a snapshot of its last sync,

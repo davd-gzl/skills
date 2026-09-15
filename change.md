@@ -150,7 +150,10 @@ gh repo fork <owner>/<repo> --remote-only --remote-name fork
    suggestion, and never park one as an open question to keep the report tidy.
    What survives unapplied needs a decision only the user can make, and each is
    named as a decision rather than a leftover. Record what each round caught in
-   the plan where there is one, never silently amend it away.
+   the plan where there is one, never silently amend it away. A measurement
+   that moves a claim is swept over the whole artifact by the claim's own
+   words, every restatement included: the loop reads the diff, and a line it
+   never touched sits outside it.
    `comment_<model>.md` stays the postable artifact, per
    `skills/review-comment.md`.
 9. **Report** the changed files and what each change does.

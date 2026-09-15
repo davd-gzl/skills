@@ -136,9 +136,9 @@ The round on disk:
 projects/<repo>/reviews/<slug>/
   overview.md            the subject for a reader who knows nothing, no review state
   <n>-<sha>/
-    comment_<model>.md   Event, Model, Commit, Overview, Open the code, Round; the Body;
+    comment_<model>.md   Event, Verdict, Model, Commit, Overview, Open the code, Round; the Body;
                          one section per finding, posted or SKIP, its repro collapsed
-    claims.md            Verdict; one row per candidate: state, band, file:line, the check,
+    claims.md            one row per candidate: state, band, file:line, the check,
                          the output, the artifact; the link table; the completeness answers
     tests/               every artifact a verifier ran
 ```

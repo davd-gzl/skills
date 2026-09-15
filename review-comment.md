@@ -22,6 +22,7 @@ Format:
 ```markdown
 # Review: [#<number>](https://github.com/<repo>/pull/<number>)
 Event: APPROVE | REQUEST_CHANGES | COMMENT
+Verdict: APPROVE | REQUEST CHANGES | NEEDS DISCUSSION | CLOSE, then one sentence naming the open concerns
 Model: <model>, <preset> review <— quick, standard or deep, the preset the round ran under>
 Commit: <short-sha> (latest, or stale — +N commits since)
 Overview: [overview](../overview.md)
@@ -52,7 +53,7 @@ Round: <n>. <the round note, re-review rounds only>
 - Post every finding the author should act on, and open with the one that changes what they do next. An action is a fix, a decision or an answer, and severity never gates it: a Nit asking for a concrete modification gets its own section. Never drop a real finding to make the review shorter; shorten the finding instead.
 - **Every finding gets a section here, and the ones that will not go out get `SKIP`.** A finding kept in `claims.md` alone is one the user cannot send without rewriting it. Draft it as `## SKIP <path>:<line>` with the same text a posted section would carry, closing with one line saying why it is skipped, and let un-SKIPping be the whole decision. This covers what needs no action from the author, a check CI already reports, a cosmetic nit no enabled linter enforces, and a finding about a code comment's own wording.
 - A measured defect on a line the diff touches is posted, whatever argument the measurement suggests against it. It never fires, it predates the branch, the branch only makes it worse: each of those is the finding. Reasoning from a defect to its own exemption is the failure, and Open questions hold what the reviewer could not decide, never what they decided not to send.
-- Name the event beside the draft, never after it. The `Verdict:` line of `claims.md` is the reviewer's judgement and does not move. What gets posted, APPROVE, COMMENT or REQUEST_CHANGES, is the user's call: show it with the text and let one word settle both.
+- Name the event beside the draft, never after it. The header's `Verdict:` line is the reviewer's judgement and does not move. What gets posted, APPROVE, COMMENT or REQUEST_CHANGES, is the user's call: show it with the text and let one word settle both.
 - **The draft's `Event:` is what goes out.** Never soften it on the way to the forge: an `APPROVE` posted as a `COMMENT` because a past turn asked for one reads as the reviewer withholding approval. The event changes when they name the new one in the turn, and a stale default is raised as a question rather than resolved quietly. The one override is `post as an AI`, per *Posting*: the marker goes out as `COMMENT`, whatever the draft says.
 - Never mention an anchored finding in the Body, in any form: no bullets, no recap, no pointer to it, no count.
 - Do not re-describe the change, list what passed, narrate the review process, or restate thread state.
@@ -64,7 +65,7 @@ Round: <n>. <the round note, re-review rounds only>
 
 ### General rules
 
-- `Event:` defaults from the verdict: APPROVE → APPROVE, REQUEST CHANGES → REQUEST_CHANGES, NEEDS DISCUSSION and CLOSE → COMMENT. It is a default, not a lock: the user may post a lighter event than the verdict, and then `claims.md` keeps the verdict while the draft's `Event:` records what went out. The `Event:` line carries it; the Body never restates it.
+- `Event:` defaults from the verdict: APPROVE → APPROVE, REQUEST CHANGES → REQUEST_CHANGES, NEEDS DISCUSSION and CLOSE → COMMENT. It is a default, not a lock: the user may post a lighter event than the verdict, and then the `Verdict:` line keeps the judgement while `Event:` records what went out. The `Event:` line carries it; the Body never restates it.
 - Never review your own pull request. No verdict, no findings, no `self-review.md`: an author grading their own diff is read as talking to themselves. What the author posts instead is one inline comment per part a reviewer should open, saying why that line matters, on the line itself and never as a section of the body. What the diff read back turns up goes in the change's `plan.md`. If the user asks for one anyway, `Event: COMMENT`: GitHub rejects APPROVE and REQUEST_CHANGES on one's own pull request.
 - Two defects where fixing one leaves the other are two sections, never one clause. The test is the author's next edit: if applying the first still ships the second, the second has its own anchor.
 - Order findings by what the reader needs first: the one that makes the others legible leads, whatever its band, then Critical, Warning, Missing test, Nit, Suggestion; file order within a band.
@@ -148,7 +149,7 @@ each. A bare sha outside a link renders as plain text on another repository.
 
 Verify each line before handing over:
 
-1. The header carries `Model:`, `Commit:` and `Overview:`, and the overview link resolves.
+1. The header carries `Verdict:`, `Model:`, `Commit:` and `Overview:`, and the overview link resolves.
 2. The Body names at most three checks, each runtime-only, none CI-visible, none recapping anchored findings.
 3. No repro block has a passing run as its only output.
 4. Every non-Warning inline comment opens with its band; Warnings open with the TL;DR. Every comment asks for a fix, a decision, or an answer, and carries no fix sentence its problem statement already implies.

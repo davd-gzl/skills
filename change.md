@@ -159,8 +159,9 @@ gh repo fork <owner>/<repo> --remote-only --remote-name fork
    pass, `/simplify`, over the whole final diff: reuse, fewer lines for the
    same behaviour, a value computed once. Apply what holds, re-run the checks,
    and read the diff once more; a pass that changes anything reopens step 8,
-   and the empty one is recorded in the plan's Iterations. It runs unasked and
-   gates the handover.
+   and the empty one is recorded in the plan's Iterations. It runs unasked, and
+   its trigger is every fix handed back rather than a change's end alone: a turn
+   reporting a behaviour change done runs this pass before reporting it.
 10. **Report** the changed files and what each change does.
 11. **Keep the worktree.** It carries review feedback, rebases and follow-up
     work until the pull request merges.

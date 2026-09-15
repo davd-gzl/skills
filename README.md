@@ -236,10 +236,11 @@ next prompt's context; nothing blocks, no reply is printed twice. A reply under
 through [`scripts/skill`](scripts/skill), `./scripts/skill review` for a skill,
 `./scripts/skill pr-body/docs` for a shape, `./scripts/skill meet` for a
 project's delta. It puts the skills a write still lacks into the context with a
-warning and lets the write through, and puts the rules in the context itself:
-the four every session needs as it opens, `writing-style`, `shortcuts`, `git`
-and the workspace layout, the task's and the repository's on the prompt that
-names them, everything again after a compaction. A read holds while the file's
+warning and lets the write through, and names the rules by path for the Read
+tool: the two `CLAUDE.md` imports as the session opens, `shortcuts` and
+`short-form`, recorded as read; the task's and the repository's on the prompt
+that names them; everything the session had read, again after a compaction. A
+read holds while the file's
 hash matches and the session is the same; a stale read prints only the diff
 since it was made.
 

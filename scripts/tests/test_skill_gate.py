@@ -310,6 +310,13 @@ class BashTargets(unittest.TestCase):
         cmd = "python3 - <<'EOF'\nimport pathlib\npathlib.Path('projects/meet/changes/x/plan.md').write_text('x')\nEOF"
         self.assertEqual(gate.bash_targets(cmd), {'projects/meet/changes/x/plan.md'})
 
+    def test_a_fixture_string_in_an_inline_script_is_not_a_write(self):
+        cmd = ("python3 - <<'EOF'\nprefixes = ['- `skills/review.md` rule', 'projects/meet/changes/x/plan.md']\n"
+               "assert 'projects/meet/AGENTS.md' not in prefixes\np = 'TODO.md'\nopen(p, 'w').write('x')\nEOF")
+        self.assertEqual(gate.bash_targets(cmd), set())
+        cmd = "python3 - <<'EOF'\nnames = ['projects/meet/AGENTS.md']\nopen('projects/meet/changes/x/plan.md', 'w').write('x')\nEOF"
+        self.assertEqual(gate.bash_targets(cmd), {'projects/meet/changes/x/plan.md'})
+
     def test_git_writers_and_prefixed_git(self):
         self.assertEqual(gate.bash_targets('git mv a.md projects/a/changes/s/spec.md'), {'projects/a/changes/s/spec.md'})
         self.assertEqual(gate.bash_targets('git -C skills commit -m x'), {'git'})

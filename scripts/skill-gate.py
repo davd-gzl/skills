@@ -91,6 +91,8 @@ INPUT = re.compile(r'(?<![<>])<(?![<])\s*("[^"]*"|\'[^\']*\'|\S+)')
 QUOTED = re.compile(r'(?<=[\'"])([^\'"\n]+)(?=[\'"])')
 SED_INPLACE = re.compile(r'^-[A-Za-z]*i')
 PERL_INPLACE = re.compile(r'^-[a-zA-Z]*?i(\.\w*)?$')
+# A call that writes a file, on the same line as the quoted path: a fixture string, a prefix or an assertion names nothing.
+WRITE_CALL = re.compile(r'\bopen\(|\.write_(?:text|bytes)\(|\.write\(|writeFileSync\(|\bcopy(?:file)?\(|\bmove\(|\.rename\(|\.touch\(')
 
 
 def root():
@@ -365,9 +367,12 @@ def bash_targets(command, base=''):
             if cmd in SCRIPT_RUNNERS and not inplace:
                 inline = body or (len(tokens) > 1 and tokens[1] in INLINE_FLAGS)
                 if inline:
-                    for q in QUOTED.findall(segment + '\n' + body):
-                        if '/' in q or q.endswith('.md'):
-                            add(q)
+                    for text_line in (segment + '\n' + body).split('\n'):
+                        if not WRITE_CALL.search(text_line):
+                            continue
+                        for q in QUOTED.findall(text_line):
+                            if '/' in q or q.endswith('.md'):
+                                add(q)
                 continue
             if cmd not in WRITERS:
                 continue

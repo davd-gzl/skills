@@ -708,6 +708,22 @@ class Prompt(HookCase):
         rc, context = self.run_hook('prompt', json.dumps({'prompt': 'a hot-fix for the crash'}))
         self.assertIn('skills/change.md', context)
 
+    def test_a_shortcut_word_past_the_head_names_nothing(self):
+        for prompt in ('the finder cap sits where the last round left it, so fix nothing', 'a note on the writer: it reads every candidate, so simplify later',
+                       'yes change both lines to samourai.coop', 'TLDR what did you change'):
+            rc, context = self.run_hook('prompt', json.dumps({'prompt': prompt}))
+            self.assertEqual((rc, context), (0, ''), prompt)
+
+    def test_a_shortcut_word_in_the_head_fires_after_an_opener(self):
+        rc, context = self.run_hook('prompt', json.dumps({'prompt': 'Ok fix the conflict again, and we merge this time'}))
+        self.assertIn('skills/change.md', context)
+
+    def test_a_question_names_only_a_url_target(self):
+        rc, context = self.run_hook('prompt', json.dumps({'prompt': 'our todo will fix the cache read problem?'}))
+        self.assertEqual((rc, context), (0, ''))
+        rc, context = self.run_hook('prompt', json.dumps({'prompt': 'did you fix https://github.com/acme/acme/issues/76?'}))
+        self.assertIn('skills/change.md', context)
+
     def test_a_drifted_last_reply_reaches_the_next_prompt(self):
         transcript = self.root / 't.jsonl'
         drifted = ('The forged heading and the rule die, and the forged line does not, since the renderer '

@@ -484,18 +484,28 @@ IMPORTED = ['shortcuts', 'short-form']
 # and the Read hook records the read.
 BASH_BOUND = 28000
 
-# Prompt words to the skills they call for. Over-matching is the design: a read
-# costs context once per session, a missed rule costs the user a turn. A review word
-# names review.md alone: the drafting rules are the writer stage's, per its step 4,
-# and the write hook names them when the draft is written.
+# Prompt words to the skills they call for, read where the shortcut puts them: a word
+# fires inside the prompt's first PROMPT_HEAD words, the shortcut's own shape, and a URL
+# form fires anywhere. A prompt ending in a question mark carries no shortcut word: it
+# wants an answer, and the write hook names the rules when an artifact gets written.
+# Measured over every typed prompt on this machine, the words sat mid-sentence in most of
+# the prompts they matched, "what did you change?" for one, and each false trigger cost
+# the reads the shortcut needs, about 30k of context. A review word names review.md
+# alone: the drafting rules are the writer stage's, per its step 4, and the write hook
+# names them when the draft is written.
+PROMPT_HEAD = 6
 PROMPT_SKILLS = [
-    (r'\breview|\blgtm\b|/pull/\d+', ['review']),
+    (r'\breview|\blgtm\b', ['review']),
     # (?<!-) on fixes alone: a repository name ending in -fixes is not a request to fix.
-    (r'\bfix(ed|ing)?\b|(?<!-)\bfixes\b|\bimplement|\bsimplif|\bchange\b|\bfeature\b|/issues/\d+', ['change', 'pr-body', 'issue']),
+    (r'\bfix(ed|ing)?\b|(?<!-)\bfixes\b|\bimplement|\bsimplif|\bfeature\b', ['change', 'pr-body', 'issue']),
     (r'\bissue', ['issue']),
     (r'\breport\b|\bweekly\b', ['report']),
     (r'\btry\b|\brun\b|\bboot\b|\blaunch\b|\bscreenshot\b|\bvideo\b|\bgif\b', ['try']),
     (r'\bskill|\brules?\b|AGENTS\.md|writing.style|\bcaveman\b|\bcvm\b', ['authoring']),
+]
+PROMPT_URLS = [
+    (r'/pull/\d+', ['review']),
+    (r'/issues/\d+', ['change', 'pr-body', 'issue']),
 ]
 
 
@@ -531,10 +541,19 @@ def submodule_repos():
     return out
 
 
+def prompt_head(prompt):
+    """The prompt's first PROMPT_HEAD words, where a shortcut word sits."""
+    return ' '.join(re.sub(r'^\W+', '', prompt).split()[:PROMPT_HEAD])
+
+
 def prompt_reads(prompt):
     """The skills and project deltas a prompt calls for, in the order they matched."""
     names = []
+    head = '' if prompt.rstrip().endswith('?') else prompt_head(prompt)
     for pattern, reads in PROMPT_SKILLS:
+        if re.search(pattern, head, re.I):
+            names.extend(n for n in reads if n not in names)
+    for pattern, reads in PROMPT_URLS:
         if re.search(pattern, prompt, re.I):
             names.extend(n for n in reads if n not in names)
     repos = submodule_repos()

@@ -15,11 +15,12 @@ public destination, and for a private one a machine handle tied to no account,
 so the commit counts toward nobody's graph. The handles and the repos each
 covers are in the workspace's `workspace.md`, and the gate asks for that file
 before every commit. Author and committer are always the same, and both are
-set on every history-writing command, because the environment on this machine
-carries all four of `GIT_AUTHOR_NAME`, `GIT_AUTHOR_EMAIL`, `GIT_COMMITTER_NAME`
-and `GIT_COMMITTER_EMAIL` wrong, and the environment beats `git config` and
-`git -c`. `rebase` and `cherry-pick` take the committer from the environment
-exactly as `commit` does.
+set on every history-writing command, in the four variables `GIT_AUTHOR_NAME`,
+`GIT_AUTHOR_EMAIL`, `GIT_COMMITTER_NAME` and `GIT_COMMITTER_EMAIL`: git config
+on this machine carries another identity, `git config --global user.email`
+prints it, and a variable set beats config and `git -c`. `rebase` and
+`cherry-pick` take the committer from the same place `commit` does, so a rebase
+run bare commits under the config identity.
 
 ```bash
 GIT_COMMITTER_NAME=<name> GIT_COMMITTER_EMAIL=<email> \

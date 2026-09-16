@@ -76,6 +76,8 @@ impl Ordered {
 pub fn classify(path: &str) -> &'static str {
     // Anything under projects/ is one repository's measurement log, whatever it is named.
     if path.starts_with("projects/") || path.contains("/projects/") { "project" }
+    // knowledge/ is a measurement log like a delta: a date there says when the fact was read, not when a rule fires.
+    else if path.starts_with("knowledge/") || path.contains("/knowledge/") { "log" }
     else if path.contains("/skills/") || path.starts_with("skills/") { "skill" }
     else { "default" }
 }
@@ -170,7 +172,7 @@ fn check_refs(path: &str, text: &str, corpus: &HashMap<String, String>, headings
         // repository's page; the workspace's scripts/ is tried first, that one second.
         if target.contains('<') || Path::new(target).exists() || (path.starts_with("skills/") && Path::new("skills").join(target).exists()) { continue }
         // A delta's paths are read from inside its own checkout, so a miss here is a lead rather than a defect.
-        out.push(Finding { level: if classify(path) == "project" { "warn" } else { "error" }, line: line_of(&bare, m.get(0).unwrap().start()), code: "xref", message: format!("points at {target}, which does not exist") });
+        out.push(Finding { level: if matches!(classify(path), "project" | "log") { "warn" } else { "error" }, line: line_of(&bare, m.get(0).unwrap().start()), code: "xref", message: format!("points at {target}, which does not exist") });
     }
     let bytes = bare.as_bytes();
     for m in SECTION_REF.captures_iter(&bare) {
@@ -210,7 +212,7 @@ pub fn check_file(path: &str, corpus: &HashMap<String, String>, headings: &HashM
     let negations: usize = lines.iter().map(|(_, _, c)| NEGATION.find_iter(c).count()).sum();
     // A project delta is a measurement log: a date says when to re-check and a sha which tree was read.
     // In the core both are the staleness this file catches, so they downgrade to warnings there and nowhere else.
-    let log = classify(path) == "project";
+    let log = matches!(classify(path), "project" | "log");
     for (i, (n, raw, clean)) in lines.iter().enumerate() {
         let heading = clean.trim_start().starts_with('#');
         let nxt = lines.get(i + 1).map(|l| l.2.as_str()).unwrap_or("");
@@ -390,6 +392,8 @@ mod tests {
     }
 
     #[test] fn classify_by_path() {
+        assert_eq!(classify("skills/knowledge/cost.md"), "log");
+        assert_eq!(classify("knowledge/cost.md"), "log");
         assert_eq!(classify("projects/meet/AGENTS.md"), "project");
         assert_eq!(classify("/x/projects/meet/running.md"), "project");
         assert_eq!(classify("skills/review.md"), "skill");
@@ -471,7 +475,8 @@ mod tests {
         let d = tmp("dated-level");
         let (core, _, _) = lint_of(&d, "AGENTS.md", "measured on 2026-01-02\n");
         let (delta, _, _) = lint_of(&d, "projects/p/AGENTS.md", "measured on 2026-01-02\n");
-        assert_eq!((core[0].level, delta[0].level), ("error", "warn"));
+        let (know, _, _) = lint_of(&d, "skills/knowledge/k.md", "measured on 2026-01-02\n");
+        assert_eq!((core[0].level, delta[0].level, know[0].level), ("error", "warn", "warn"));
     }
     #[test] fn emdash_prose_against_structure() {
         let d = tmp("emdash");

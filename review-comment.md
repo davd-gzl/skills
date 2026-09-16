@@ -17,6 +17,13 @@ A target with no PR, a branch or a repository-level failure, gets a GitHub issue
 
 Auto-SKIP duplicates: when another reviewer already raised a finding, prefix its header with `SKIP` while drafting, attribute the reviewer in `claims.md`, and make `Already raised: <comment-url>` the section's first body line. When a section bundles an already-raised finding with a novel one, split it so the novel part posts. Where the raised finding is one case of a broader one being posted, name that case in the broader sentence and link it to the original instead of splitting.
 
+Sections, and the moment each is read: *Body rules* and *General rules*,
+the writer; *Building each inline comment* and *Visible-text style*, the writer
+and the text pass; *Answering a finding on your own pull request*, a reply on
+the user's own change; *Repros*, the writer; *Rounds & regeneration*, a second
+round or an edit of a posted draft; *Posting*, the word `post`; *Final check*,
+the parent before the handover.
+
 Format:
 
 ```markdown
@@ -159,9 +166,9 @@ Verify each line before handing over:
 8. Every finding names the set it holds for, and the band follows the size of that set. One example value standing in for the set understates both: "a French browser" where every non-English browser fails is a Critical wearing a Warning's clothes.
 9. Every `## <path>:<line>` header carries its `[gh]` link at the reviewed sha.
 10. Every embedded image resolves at its raw URL and its bytes match the file on disk.
-11. Open every link and read the lines it lands on: each must contain the number, symbol, or behavior claimed, and every external link must resolve at the pinned ref.
+11. Open every link and read the lines it lands on: each must contain the number, symbol, or behavior claimed. `./scripts/round links` proves that every link resolves at the pinned ref and that its range fits the file; the claim on the lines is read.
 12. Re-run every claim against the tree before the draft is shown, including the ones carried from an earlier revision. Print the code beside the sentence.
 
 Then the text pass, once, over the finished draft: the verify stage of the workflow in `skills/review.md` was the claim gate, so no second gate runs here. An edit after the text pass gets the parent's own pass over the edited section, its cited lines re-read, and a run only where the edit adds or changes a claim, that run's row going to `claims.md`.
 
-- **The text pass**: one agent with the draft, `overview.md`, the checkout and the *Visible-text style* rules. It returns a table of every link first, resolved or not and claim on the landed lines or not; a link missing from the table means the pass skipped it, and the table is written to `links.md` in the round directory, never into `claims.md`, which a reader opens for the findings: on one round of 298 links that table was 341 of `claims.md`'s 487 lines. Then any line shorter or clearer without dropping fact, stake or fix. Fix every flagged anchor, apply the rewrites that hold.
+- **The text pass**: one agent with the draft, `overview.md`, the checkout and the *Visible-text style* rules. It runs `./scripts/round links <round dir> --repo <head worktree>` first, which writes `links.md` in the round directory, one row per link with whether the file resolves at the pinned sha and the range fits it, and adds to each row whether the landed lines carry the claim beside the link; none of it goes into `claims.md`, which a reader opens for the findings: on one round of 298 links that table was 341 of `claims.md`'s 487 lines. Then any line shorter or clearer without dropping fact, stake or fix. Fix every anchor the table flags, apply the rewrites that hold.

@@ -500,9 +500,13 @@ PROMPT_SKILLS = [
     (r'\bfix(ed|ing)?\b|(?<!-)\bfixes\b|\bimplement|\bsimplif|\bfeature\b', ['change', 'pr-body', 'issue']),
     (r'\bissue', ['issue']),
     (r'\breport\b|\bweekly\b', ['report']),
-    # try, run, boot and launch are ordinary verbs. Each asks for a target after it, the shortcut's own shape,
-    # so "try to make that perfect" names no skill while "try 6187 on gno" does.
-    (r'\b(try|run|boot|launch)\b\s+(?!to\b|it\b|again\b|that\b|this\b|them\b)\S|\bscreenshot\b|\bvideo\b|\bgif\b', ['try']),
+    # try, run, boot and launch are ordinary verbs. Each names try.md only in the shortcut's own shape: try takes a
+    # number, a URL, an owner/repo or a name followed by "on <name>"; run and launch the same minus the bare number,
+    # which is a count in prose; boot takes any name. Through the head window over one machine's typed prompts, 37
+    # carried one of the verbs; the bare verbs named try.md on all 37, an exclusion list on 20, this shape on the 2 meant.
+    (r'\b(?i:try)\b(?:\s+(?i:the|a|an|pr|this|that|it))?\s+(?!(?:review|agent|workflow|round)s?\b)(?:#?\d{2,}\b|https?://\S+|[\w.-]+/[\w.-]+\b|[\w.-]+\s+(?i:on)\s+[\w.-]+\b)'
+     r'|\b(?i:run|launch)\b(?:\s+(?i:the|a|an|pr|this|that|it))?\s+(?!(?:review|agent|workflow|round)s?\b)(?:https?://\S+|[\w.-]+/[\w.-]+\b|[\w.-]+\s+(?i:on)\s+[\w.-]+\b)'
+     r'|\b(?i:boot)\b\s+(?!it\b|up\b|the\b)[\w.-]+|\bscreenshot\b|\bvideo\b|\bgif\b', ['try']),
     (r'\bskill|\brules?\b|AGENTS\.md|writing.style|\bcaveman\b|\bcvm\b', ['authoring']),
 ]
 PROMPT_URLS = [

@@ -724,6 +724,19 @@ class Prompt(HookCase):
         rc, context = self.run_hook('prompt', json.dumps({'prompt': 'did you fix https://github.com/acme/acme/issues/76?'}))
         self.assertIn('skills/change.md', context)
 
+    def test_try_names_its_skill_only_in_the_shortcut_shape(self):
+        (self.root / 'skills' / 'try.md').write_text('# try\n')
+        for prompt in ('try 4242 on gno', 'go in the workspace. Try 1498', 'try 1408 meet', 'boot meet',
+                       'try https://github.com/acme/acme/pull/9', 'try the fix on meet', 'run the app on 1498', 'launch acme/acme#12'):
+            rc, context = self.run_hook('prompt', json.dumps({'prompt': prompt}))
+            self.assertIn('skills/try.md', context, prompt)
+        for prompt in ('anything else? Try to deep to make that perfect', 'run the tests', 'launch the round', 'the run took 40 minutes',
+                       'run it', 'try again', 'Ok I run both', 'and launch workflow', 'run a review on 4242',
+                       'comments run 16 to 33 words', 'the idea to run workflows for people from outside', 'boot it',
+                       'Write me a prompt so I can launch an agent on that subject'):
+            rc, context = self.run_hook('prompt', json.dumps({'prompt': prompt}))
+            self.assertNotIn('skills/try.md', context, prompt)
+
     def test_a_drifted_last_reply_reaches_the_next_prompt(self):
         transcript = self.root / 't.jsonl'
         drifted = ('The forged heading and the rule die, and the forged line does not, since the renderer '

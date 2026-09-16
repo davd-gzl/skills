@@ -1,0 +1,19 @@
+[package]
+name = "skills-tools"
+version = "0.1.0"
+edition = "2021"
+description = "The deterministic tools of the skills corpus: round, a review round's fixed steps; rules, the corpus lint."
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "round"
+path = "src/bin/round.rs"
+
+[[bin]]
+name = "rules"
+path = "src/bin/rules.rs"
+
+[dependencies]
+regex = "1"

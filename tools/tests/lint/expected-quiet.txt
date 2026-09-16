@@ -1,0 +1,25 @@
+warn  AGENTS.md:3 [dated] a rule carries no date; the incident belongs in the artifact
+warn  AGENTS.md:4 [frozen] tells the reader to stop measuring; state the command instead
+warn  AGENTS.md:6 [xref] *Nowhere at all* has no heading in AGENTS.md
+warn  AGENTS.md:8 [sha] a rule pins no commit; cite the behaviour, not the incident
+warn  AGENTS.md:9 [env-claim] environment capability asserted without the command that reads it
+warn  AGENTS.md:10 [paren] parenthetical; rework into the sentence
+warn  AGENTS.md:13 [emdash] em-dash in prose
+warn  AGENTS.md:14 [xref] points at skills/none.md, which does not exist
+warn  AGENTS.md:15 [xref] *Missing Section* has no heading in skills/a.md
+warn  AGENTS.md:19 [dangling] sentence ends on a provenance word and the next line opens on punctuation; a clause was cut and not repaired
+warn  AGENTS.md:21 [dated] a rule carries no date; the incident belongs in the artifact
+warn  CLAUDE.md:1 [layout] 72 words in a CLAUDE.md; the rules belong in AGENTS.md beside it, which this file imports
+warn  dense.md:0 [density] 83 words per rule against a 75 ceiling; cut the clause naming the session, not the rule
+warn  skills/a.md:21 [dated] a rule carries no date; the incident belongs in the artifact
+warn  projects/p/AGENTS.md:3 [dated] a rule carries no date; the incident belongs in the artifact
+warn  projects/p/AGENTS.md:4 [sha] a rule pins no commit; cite the behaviour, not the incident
+warn  projects/p/AGENTS.md:5 [xref] points at scripts/setup-dev.sh, which does not exist
+warn  projects/p/AGENTS.md:6 [env-claim] environment capability asserted without the command that reads it
+warn  missing.md:0 [unreadable] [Errno 2] No such file or directory: 'missing.md'
+warn  [dupe] one rule in 2 files: AGENTS.md:25, skills/a.md:23
+      "this exact sentence appears in two files of the fixture corpus so the dupe check fires"
+warn  [dupe-open] one rule in 2 files: AGENTS.md:26, skills/a.md:24
+      "open: this opening clause appears in two files"
+
+19 warning(s), nothing blocks

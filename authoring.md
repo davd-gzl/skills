@@ -10,7 +10,7 @@ by a model with a finite budget for it. A file that holds every rule ever
 written enforces none of them reliably: the reader samples. So a rule earns its
 place against the rules already there, and adding one is a trade.
 
-Run `./skills/lint.py <files>` before committing any edit here. It warns and
+Run `./scripts/rules lint <files>` before committing any edit here. It warns and
 never blocks: a rough rule lands, and a later pass fixes it.
 
 ## Where it goes
@@ -94,6 +94,27 @@ read by someone who has not seen the incident behind it.
 it defers to.** Its reader stops at the new rule and takes it as the whole spec
 for that place, so what `skills/writing-style.md` already requires there, the
 link on every named thing for one, is lost unless the rule points at it.
+
+## A skill file
+
+The reader is a model that samples what it reads, so the file is shaped for
+one pass.
+
+- Frontmatter first, `name` and `description`, the description naming what
+  the file produces and every situation that reaches it. The harness picks a
+  file from that line alone and leans toward not picking, so a situation the
+  description leaves out never reaches the file; the body never restates when
+  to use it.
+- The example before the rule, wherever a worked line, a command or a shape
+  lands it in one read. `skills/pr-body/one-concern.md` opens on the shape
+  and closes on the body it came from; a rule whose only form is a sentence is
+  read as a sentence and sampled.
+- A table of contents at the head of a file a reader opens for one section,
+  `skills/review.md` for one, whose stage sections sit under thousands of words
+  the stage does not read: one line per section naming the moment it is read.
+- A word the user types is defined in `skills/shortcuts.md` and nowhere
+  else. Another file names the word and points at that table; a second table
+  drifts from the first, which the lint reports as a copy.
 
 ## Capabilities
 
@@ -181,7 +202,7 @@ booting beside reviewing, is its own file, read when that moment comes and
 named in the index. A rule leaves only for the reasons above, never for the
 count, since a cut for length cannot tell the fact from the filler.
 
-`skills/lint.py` prints every file's word count and its median words per rule,
+`./scripts/rules lint` prints every file's word count and its median words per rule,
 and neither is a cap. Past 75 words a rule is carrying the session that found it
 rather than the fact: cut that clause, never the measurement.
 
@@ -218,6 +239,16 @@ multiplies the calls by the rounds and waits for each round's slowest call.
 
 - `skills/` is the canonical repository, `davd-gzl/skills`, mounted as a
   submodule in every workspace. Edit here, never in a copy.
+- **`skills/` is public and generic: no secret, no private name and no local
+  path in any file or commit message here.** A token, a key, a hostname, a
+  private repository, a person, a round number or an absolute path is disclosed
+  the moment it is pushed, and a force-push does not take it back. Every fact
+  that names one consumer lives in that consumer's tree, `workspace.md`,
+  `workspace.json` or `projects/<repo>/AGENTS.md`, and a skill reaches it by
+  naming that file, never the value. `skills/scripts/scrub.sh` runs from the
+  pre-push hook here over every line a push adds, the shapes a credential takes
+  and the names the consumer's `workspace.json` lists, and refuses the push on a
+  hit; `skills/scripts/scrub.sh --tree` reads the whole tree the same way.
 - Read the whole file before changing a rule in it. A range read against the two
   sections a task seems to need is how a section gets missed, and the draft
   comes out well-formed against the rules that were read.
@@ -225,7 +256,7 @@ multiplies the calls by the rounds and waits for each round's slowest call.
   Another session moves the pin mid-turn.
 - A rule that proved unclear, missing or wrong during use is corrected in its
   file in the same turn, before the work that exposed it continues.
-- Run `./skills/lint.py` over every file the edit touched, plus the workspace
+- Run `./scripts/rules lint` over every file the edit touched, plus the workspace
   root `AGENTS.md`, and fix what it reports rather than narrowing what it reads.
 
 ## A change to the run's shape

@@ -72,20 +72,16 @@ destination before it is a missing permission.
 3. Creation refused: give the `compare/...?expand=1` URL.
 4. The canonical remote refuses: push to the fork, open across forks.
 
-`gno-agent-workspace` is an agent repo, so reviews, skills, reports and indexes
-ride one push to `main` on `samouraiworld`, which is `origin`. The session token
-holds `admin` there, so a 403 means a different token, not a protected branch. A
-refused push puts the turn's whole output on one branch and one pull request
-there, and later work cherry-picks onto it. The fork
-`davd-gzl/gno-agent-workspace` is abandoned.
-
 A commit stays on top of a pushed branch, whatever the repo's measured
 granularity: squashing an already-pushed branch costs a second force push, and
 the maintainer squashes at merge.
 
-A skill edit lands in `davd-gzl/skills`. Every consumer tracks `branch = main`,
-so nobody needs a bump to read it, and a commit whose whole diff is a gitlink is
-not made.
+A skill edit lands in `davd-gzl/skills`. Every consumer tracks `branch = main`
+and its sync takes the tip at session start, so nobody needs a bump to read it.
+The pin moves once per `upgrade skills` pass, in one commit of its own at the
+close, `skills at <sha>: <what it carries>`, after the skills push landed, so a
+clone resolves to the rules the pass wrote about; between passes `git status`
+reading `M skills` is the expected state.
 
 ## The parent races other sessions
 
@@ -114,8 +110,8 @@ A submodule sits on a detached HEAD, and every failure here follows from that.
 - **Push the submodule, then the parent.** `git -C <path> push` sends its commits
   to its own remote and the parent tracks only a gitlink;
   `git push --recurse-submodules=on-demand` does both. A clone breaks when a
-  gitlink's commit is not on the url `.gitmodules` names. Most submodules here
-  point at a fork, `gno-agent-workspace` at `samouraiworld`.
+  gitlink's commit is not on the url `.gitmodules` names, and `workspace.md`
+  says which submodules point at a fork.
 - **Version a fix branch as a submodule, never a worktree.** A worktree's `.git`
   is a file into the main object store, so git cannot track it.
   `git submodule add -b <branch> <fork-url> <path>` records the branch, which

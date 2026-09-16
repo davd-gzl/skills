@@ -3,4 +3,8 @@
 #
 # Warn on a push carrying a mapped artifact whose governing skill was not read
 # this session, nothing blocks, whatever made the commit: merge, rebase, cherry-pick, --no-verify.
-exec "$(dirname "$(readlink -f "$0")")/../skill-gate.py" pre-push
+# The scrub first: a secret or a private name pushed to this public repository cannot be taken back.
+dir=$(dirname "$(readlink -f "$0")")
+input=$(cat)
+printf '%s\n' "$input" | "$dir/../scrub.sh" --push || exit 1
+printf '%s\n' "$input" | "$dir/../skill-gate.py" pre-push

@@ -37,11 +37,11 @@ Write prose, broken small.
 
 Order the paragraphs, in every shape:
 
-0. Where an issue is being closed, `Fixes #1076` alone on the first line, above everything: GitHub closes the issue on merge from it, and a triaging maintainer sees the ask before the symptom. Name the issue there and nowhere else in the body.
+0. Where an issue is being closed, `Fixes #1076` alone on its own line above every heading, under the severity line where the shape carries one: GitHub closes the issue on merge from it, and a triaging maintainer sees the ask before the symptom. Name the issue there and nowhere else in the body.
 1. The symptom, first sentence, in the reader's terms: what breaks, under what condition. Then the mechanism, named by symbol. Never open with what the change does.
 2. The fix, in a clause, stated as a property of the new code, not a narration of the edit.
 3. Anything riding along, each item with its own why.
-4. What was verified, in the framing paragraphs, never at the end: the one runtime check the jobs cannot show, stated as a claim; the proof belongs in `plan.md`. Never "all tests pass" and never a trailing verification section, since the check list above the body carries every job's status. A redness seen only locally is confirmed on CI before it reaches the body, and an explanation the checks withhold is a comment on the pull request.
+4. What was verified, in the framing paragraphs, never at the end: the one runtime check the jobs cannot show, stated as a claim; the proof belongs in `plan.md`. Never "all tests pass" and never a trailing verification section, since the check list above the body carries every job's status; the one closing section `skills/pr-body/several-changes.md` keeps names a method several sections share, one row per section. A redness seen only locally is confirmed on CI before it reaches the body, and an explanation the checks withhold is a comment on the pull request.
 
 The reader has the diff: give only the defect, the consequence, and the context the code cannot supply.
 

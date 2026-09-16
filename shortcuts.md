@@ -16,7 +16,7 @@ as the skill defines it; ask when the reading changes what gets built.
 | Word | What it starts | Rule |
 | --- | --- | --- |
 | `review <target>` | one review round: the overview, the comment draft, the claim table and its tests, pushed, nothing posted | `skills/review.md` |
-| `quick review <target>`, `deep review <target>` | the same round on a preset, the word being how well the user knows the codebase: `quick` where they know it, `deep` where it is complex or unknown. `quick` is fast: the finders the config names, fewer Nits, the Warning cap whole so no Warning is missed, no critic, no text pass; `review` is comprehensive, every angle; `deep` is complete, the security angles twice, every Nit under the full verifier batch and budget | `./scripts/review-plan.py --compare` |
+| `quick review <target>`, `lean review <target>`, `deep review <target>` | the same round on a preset, the word being how well the user knows the codebase: `quick` where they know it, `lean` where they know it and the round has to stay cheap, `deep` where it is complex or unknown. `lean` keeps every angle and the critic at low caps, budgets the verifiers and puts the text pass on the cheaper tier over `round links`; `quick` is fast: the finders the config names, fewer Nits, the Warning cap whole so no Warning is missed, no critic, no text pass; `review` is comprehensive, every angle; `deep` is complete, every angle twice, every Nit under the full verifier batch and budget | `./scripts/review-plan.py --compare` |
 | `plan review <target>` | the round's steps 1 to 3, then three to five questions about the target in one reply, each answer a topic and one finder, the run launching on `go` | *Modes*, `skills/review.md` |
 | `review all` | every open target not yet reviewed, the scope written down first | `skills/review-modes.md` |
 | `plan` | what the next review round will run and cost, the stage table and the projection | `./scripts/review-plan.py` |
@@ -38,6 +38,25 @@ as the skill defines it; ask when the reading changes what gets built.
 | `go`, `ok`, `yes`, `sure`, anything else | local work only, never a publish | Invariant 2 |
 
 ## The shape of a reply
+
+The close of a reply that finished a piece of work, before the rules that
+produce it:
+
+```text
+Did:
+1. Round 2 launched, 7 finders, ~12k in context
+2. Draft and claims.md written, links checked, 40 lines rewritten
+Left: the Nit at line 88, which needs your call on the band
+
+📋 `post`: the draft goes to acme/app#42 as REQUEST_CHANGES; its commit and the workspace backup are already up.
+
+| Target | Round |
+| --- | --- |
+| [#42](https://github.com/acme/app/pull/42) | [comment](https://github.com/acme/workspace/blob/main/projects/app/reviews/42-cache/1-0123456/comment_<model>.md) |
+
+TL;DR: seven findings, one Warning; waits on `post`.
+```
+
 
 - Run the action; the user only says the word. They never open a terminal, so a
   command in a reply is a dead end.
@@ -94,7 +113,7 @@ as the skill defines it; ask when the reading changes what gets built.
 - **A list of lines landed or asked is one line per item: the file in
   backticks, a colon, then the fewest words that say what changes**, and for an
   asked line the question last. Nothing else on the line. The shape the user
-  kept: `` `skills/lint.py`: copied rules by opening clause. Build? ``
+  kept: `` `skills/tools/src/lint.rs`: copied rules by opening clause. Build? ``
 - **A reply reporting a publish opens with one line per commit that went out**,
   before any account of it: a link whose text is `<repo>/<short sha>`, never the
   bare URL, then about five words saying what the commit holds.

@@ -21,6 +21,10 @@ at the next prompt instead: the last reply's numbers go into the context, and
 `--scan` reads a whole session. A `+` reply is exempt. A
 comment posted anywhere takes *Posted comments* in `skills/writing-style.md`, which keeps full sentences.
 
+Samples of the register. A status line: "Gitlink moved, push refused. Rebase onto
+`origin/main`, retry." An answer: "Yes. Both paths reach the same handler, so the
+callback sees the same room either way."
+
 - One idea, in the fewest lines that settle it. No recap of what was already said. Stop when it lands.
 - No filler, no pleasantries, no hedging, "I think" included; short synonyms, technical terms exact, code and quoted errors verbatim.
 - **Drop an article only where the sentence still reads in one pass.** Stacked article-free fragments cost the reader a second pass, which is the failure this register exists to prevent.
@@ -39,7 +43,3 @@ comment posted anywhere takes *Posted comments* in `skills/writing-style.md`, wh
 - A question is one line and ends there.
 - Every reply closes with a `TL;DR:` line: one sentence, the finding and the
   word it waits on. That line is what gets read.
-
-Samples of the register. A status line: "Gitlink moved, push refused. Rebase onto
-`origin/main`, retry." An answer: "Yes. Both paths reach the same crossing, so the
-callback sees `r/gov/dao` either way."

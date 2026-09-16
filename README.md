@@ -2,6 +2,18 @@
 
 My skills: the instruction sets my agents load before working on my projects.
 
+## Three reviews
+
+| Word | For | Cost, projected today |
+| --- | --- | --- |
+| `quick review <target>` | a change I already trust, a second pair of eyes | 14 agents, 312k output, 40 minutes |
+| `review <target>` | any change, the normal round | 42 agents, 1.1M output, 75 minutes |
+| `deep review <target>` | code that is complex or unknown, and worth a run behind every claim | 193 agents, 4.6M output, 75 minutes plus the queue |
+
+The word is how well I know the code, and the cost climbs with it; the plan a
+round prints before it launches gives the figures for that diff. What each word
+starts is its row in [`shortcuts.md`](shortcuts.md).
+
 ## The concept
 
 Rules matter at the moment an agent writes, and a rule it read an hour ago is
@@ -183,6 +195,7 @@ own argument and waits for the outcome table to measure it.
 | [`authoring.md`](authoring.md) | a rule is added, edited or removed | where it lives, the shape it takes, what it displaces |
 | [`archive/`](archive/) | nothing loads it | snapshots of a skill before a change that altered its voice, and the advisory shape for a disclosure |
 | [`TODO.md`](TODO.md) | skill work I own but have not started | one line per item, newest last |
+| [`knowledge/`](knowledge/) | a design question about the workflow comes up | one measured fact per file: what holds, the numbers, the source, what it changes |
 | [`scripts/scrub.sh`](scripts/scrub.sh) | a push of this repository, from `scripts/git-hooks/pre-push` | a refusal when a pushed line or a commit message carries a secret shape or a name the consumer's `workspace.json` lists |
 | [`tools/`](tools/) | one Rust crate, two binaries: `round links` and `round prior` for a review round's fixed steps, `rules lint` for this corpus | `links.md` with every link resolved at its sha and its range checked; the earlier rounds' checks re-anchored to the head; the lint below; built by the consumer's sync onto `~/bin` and reached through its `scripts/round` and `scripts/rules` shims, tested by `cargo test --manifest-path tools/Cargo.toml`, a golden fixture under `tools/tests/lint` holding the lint's whole output |
 
@@ -255,5 +268,5 @@ health table per file with its word count, words per rule, negation density and
 the share of bullets in bold.
 
 ```bash
-rules lint AGENTS.md skills/*.md skills/pr-body/*.md projects/*/AGENTS.md
+rules lint AGENTS.md skills/*.md skills/pr-body/*.md skills/knowledge/*.md projects/*/AGENTS.md
 ```

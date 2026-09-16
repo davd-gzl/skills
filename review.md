@@ -89,6 +89,7 @@ A finder returns candidates as data, never prose. One, filled:
 - Read the code before the description, since a description calling something safe lowers what a reader finds. Five angles read the copy of head with comment lines blanked and the blanked twin of the diff; the claims angle reads the description and the comments first, its subject; the refactor angle reads head.
 - Run the read-shaped half of your own `verify_by` before returning a candidate, the grep, the count, the file read; the mutation, the suite and the merge-base comparison belong to the verifier.
 - Work the bands in order: the checks of every Critical, Warning and Missing test candidate before any Nit's or Suggestion's, so a budget that runs out leaves a Nit unchecked and never a Warning. Mark each candidate `checked` or not; one you did not reach goes back with its check named, never dropped.
+- Work the files in the risk table's order, hot first, then warm, then cold: a budget that runs out leaves a cold file unread and never a hot one, and every file is read once whatever its tier.
 - Drop only what the read settles beyond doubt, and return every dropped one under `dropped` with the command and the line that settled it: a claim killed with no row is one nobody can reopen. Unsure is not settled; it goes forward.
 - Return at most `cap_high` candidates banded Critical, Warning or Missing test and at most `cap` banded Nit or Suggestion, each list ordered by how likely a verifier confirms it, since everything past a cap is dropped unread; a Nit never takes a Warning's slot.
 - Band on what a user loses when the line runs, never on the size of the fix: a read surface that aborts on ordinary input, a write that cannot be undone and a value another party can move are Warnings whatever their patch size; Nit is polish a maintainer would not block on.
@@ -175,6 +176,7 @@ notifications, never from memory:
 
 - what failed: an agent that died, a cap hit, an escalation, an angle whose candidates were mostly refuted, minutes over the plan;
 - what worked: an angle whose candidates held, a batch that verified clean;
+- the hit rate per tier: confirmed rows over rows per tier, from the Tier column, beside the files per tier in the risk table; a tier whose rate is not above the next one's is a weight to revisit in `round risk`;
 - one upgrade to the workflow with its estimate per *A change to the run's shape* in `skills/authoring.md`, written the same turn as a line of the workspace's `TODO.md`, where `upgrade skills` picks it up.
 
 The handover repeats the retro in three lines.
@@ -232,6 +234,7 @@ What the parent prepares, each one line, each a value the runner takes:
 - the head and merge-base worktrees, per the worktree rules below;
 - a copy of head with comment lines blanked, `./scripts/blank-comments.py <head worktree> <scratch>/head-nocomments`, line numbers kept;
 - the diff with its enclosing functions and its comment-blanked twin, `./scripts/review-plan.py --diff-out <scratch>/diff.md`, as `args.diff_file` and `args.diff_file_blank`, so no stage spends a call deriving what the parent holds;
+- the changed files ranked, `./scripts/round risk <head worktree> <base> <head> --prior <slug dir> --out <scratch>/risk.md --json <scratch>/risk.json`: the table pasted in the launch reply and passed as `args.risk_file`, the JSON's `hot`, `warm` and `cold` lists as `args.risk`, so the finders read the hot files first and every `claims.md` row carries its tier;
 - what earlier rounds ran on each line, `./scripts/round prior <slug dir> --repo <head worktree> --sha <head sha> --json <scratch>/prior.json`, as `args.prior_checks`: the Check cell alone and never the verdict, which would anchor the one stage paid to decide for itself;
 - the toolchain line every shell opens with;
 - the free space on the scratch filesystem, `df -Pm <scratch> | awk 'NR==2{print $4}'`, as `args.free_mb`, since a per-candidate worktree runs to 150MB and the runner holds 16 agents at once;
@@ -425,13 +428,13 @@ projects/<repo>/reviews/<slug>/
 A row of `claims.md`, and the round note above it in the draft:
 
 ```markdown
-| 7 | REFUTED | Warning | pkg/store/cache.go:88 | go test ./pkg/store -run TestTTL, 0 TTL case | evicts after 5m, PASS; cache.go:31 clamps ttl <= 0 | |
+| 7 | REFUTED | Warning | pkg/store/cache.go:88 | go test ./pkg/store -run TestTTL, 0 TTL case | evicts after 5m, PASS; cache.go:31 clamps ttl <= 0 | | hot |
 
 Round: 1. 7 finders, one critic, 58 candidates, 23 of them Nits on the finder's own read and the rest run from scratch by an agent that was not its finder.
 ```
 
 - `comment_<model>.md`, the draft, per `skills/review-comment.md`: every finding as a section, posted or `SKIP`, with its repro. Its header carries the verdict, the model and effort, the reviewed sha, the overview link and the round note, and `./scripts/post-review.sh` sends nothing above the first section, so the round's judgement and its shape live in the one file the user opens.
-- `claims.md`, the record: one row per candidate the verifiers ran, and one at state `UNVERIFIED` per Nit that shipped on the finder's read: state, band, `file:line`, the check, the observed output, the artifact under `tests/`. A refuted candidate keeps its row with the proving line, so a later round reads what was cleared and why. Then the completeness answers.
+- `claims.md`, the record: one row per candidate the verifiers ran, and one at state `UNVERIFIED` per Nit that shipped on the finder's read: state, band, `file:line`, the check, the observed output, the artifact under `tests/`, and the tier the risk table gave its file. A refuted candidate keeps its row with the proving line, so a later round reads what was cleared and why. Then the completeness answers.
 - `tests/`, every artifact a verifier ran, per *Write tests for test-shaped findings*.
 - `links.md`, the text pass's row per link, which is the pass's own coverage proof and not a finding.
 

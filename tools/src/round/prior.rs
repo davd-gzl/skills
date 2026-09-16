@@ -91,6 +91,7 @@ impl LineMap {
 /// A candidate row of `claims.md`: its `file:line` anchor and its Check cell.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Row {
+    pub state: String,
     pub anchor: String,
     pub check: String,
 }
@@ -105,6 +106,7 @@ static CANDIDATE_ROW: LazyLock<Regex> = LazyLock::new(|| {
 pub fn parse_row(line: &str) -> Option<Row> {
     let caps = CANDIDATE_ROW.captures(line)?;
     Some(Row {
+        state: caps[2].to_string(),
         anchor: caps[3].trim().to_string(),
         check: caps[4].trim().to_string(),
     })
@@ -372,19 +374,20 @@ mod tests {
 
     #[test]
     fn parse_row_both_shapes() {
-        let row = |anchor: &str, check: &str| {
+        let row = |state: &str, anchor: &str, check: &str| {
             Some(Row {
+                state: state.into(),
                 anchor: anchor.into(),
                 check: check.into(),
             })
         };
         assert_eq!(
             parse_row("| 3 | CONFIRMED | Warning | a/b.go:12 | grep x | out | art |"),
-            row("a/b.go:12", "grep x")
+            row("CONFIRMED", "a/b.go:12", "grep x")
         );
         assert_eq!(
             parse_row("| REFUTED | Nit | a.go:1 | ls | out | |"),
-            row("a.go:1", "ls")
+            row("REFUTED", "a.go:1", "ls")
         );
         assert_eq!(
             parse_row("| # | State | Band | file:line | Check | Observed | Artifact |"),

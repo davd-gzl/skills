@@ -4,6 +4,7 @@
 //! of a round, `prior` carries the earlier rounds' checks to the head.
 mod links;
 mod prior;
+mod risk;
 
 use std::collections::HashMap;
 use std::path::Path;
@@ -11,6 +12,7 @@ use std::process::Command;
 
 pub use links::{find_links, judge, links, Blob, Link, Verdict};
 pub use prior::{checks_to_json, json_string, parse_row, prior, Hunk, LineMap, PriorCheck, Row};
+pub use risk::{rank, risk, FileRisk, Kind, Tier};
 
 pub const USAGE: &str = "round <subcommand> ...
 
@@ -25,12 +27,19 @@ pub const USAGE: &str = "round <subcommand> ...
       keyed file:line at the head: a row's line is mapped from its round's sha to the
       head through git diff, and a row whose line the head removed is dropped. A row
       with no file:line anchor is counted and left out. The State and Observed cells
-      never leave the file. JSON to --json, else to stdout.";
+      never leave the file. JSON to --json, else to stdout.
+
+  risk <repo> <base> <head> [--prior <slug dir>] [--keywords <file>] [--out <file>] [--json <file>]
+      Every changed file ranked hot, warm or cold from what git and the diff carry: a
+      guard removed, a catalog keyword added, no test touched, fix commits in its
+      history, its size, a finding an earlier round confirmed in it. Docs, tests and
+      generated files are cold. The table to --out, else to stdout; JSON to --json.";
 
 pub fn dispatch(args: &[String]) -> i32 {
     match args.first().map(String::as_str) {
         Some("links") if args.len() >= 2 => links(&args[1..]),
         Some("prior") if args.len() >= 2 => prior(&args[1..]),
+        Some("risk") if args.len() >= 4 => risk(&args[1..]),
         _ => {
             eprintln!("{USAGE}");
             2

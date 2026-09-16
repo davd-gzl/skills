@@ -27,10 +27,27 @@ the workspace root; multi-target runs wrap this via *Parallel dispatch* in
    - **The writer**: `overview.md` per *Overview* when the directory has none, `comment_<model>.md` per `skills/review-comment.md`, its header opening on the `Verdict:` line, every finding a section, posted or `SKIP`, and `claims.md` per *Output*, its candidate rows written by the workflow from the verdicts, the writer adding the completeness answers. A PLAUSIBLE finding is a question.
    - **The text pass**, last, per the QA rule in `skills/review-comment.md`.
    The two drafting rules, `skills/review-comment.md` and `skills/writing-style.md`, are read when the writer stage opens, by the agent or the parent running it, never at the prompt: no stage before the writer drafts prose, and a rule read at the prompt sits in the parent's context through every finder and verifier call. The verify stage is the claim gate; no second gate runs. Without the runner, a harness that may dispatch agents dispatches the same stages as agents from the parent, same prompts, each returning its result as data, the candidates or the verdict with its run quoted, never a transcript, so the parent's context holds the results and none of the tool output; one that may run neither runs them serially in the parent. The round note names which of the three ran, what ruled out the others, and the parent's context at handover, read from the transcript's last `usage` line.
-5. Run the *Final check* of `skills/review-comment.md`, then the `skills/writing-style.md` Pass over `overview.md` and the draft, `./scripts/prose-check.py <file>` first. Re-run it after any later edit to that prose, including an edit made in answer to a question about it. State which passes ran when handing over.
+5. Run the *Final check* of `skills/review-comment.md`, then the `skills/writing-style.md` Pass over `overview.md` and the draft, `./scripts/prose-check.py <file>` first. Re-run it after any later edit to that prose, including an edit made in answer to a question about it. State which passes ran when handing over. Where the target fixes a reported vulnerability, *The critical pass* runs here, before the retro.
 6. One commit and one push covering everything. This push is pre-authorized; see *Rules*.
 7. Retro, before the handover: run `./scripts/review-retro.py <workflow-dir>` and write `## Retro` at the end of `claims.md`, three parts from that table and the run's notifications, never from memory: what failed, an agent that died, a cap hit, an escalation, an angle whose candidates were mostly refuted, minutes over the plan; what worked, an angle whose candidates held, a batch that verified clean; one upgrade to the workflow with its estimate per *A change to the run's shape* in `skills/authoring.md`, written the same turn as a line of the workspace's `TODO.md`, where `upgrade skills` picks it up. The handover repeats the retro in three lines.
 8. Hand over. Name the cost first, agents, minutes and tokens per stage from the task notifications. The draft and the overview go in the closing links every reply ends on, per *The shape of a reply* in `skills/shortcuts.md`, never mid-reply. Add a "Decisions needed" list, one line each: a borderline verdict, a PLAUSIBLE worth a decision. Omit when empty. Never list an APPROVE as needing confirmation. Post only on the literal word `post`. Acting on the findings is `skills/change.md`; they stay here.
+
+## The critical pass
+
+**A round whose target fixes a reported vulnerability closes on one pass per
+bound the fix claims to hold.** The fix's own description names them; each
+becomes an entry of `args.topics`, one finder each, under the `critical` preset
+of `scripts/workflows/review-pipeline.json`: no general angle, no critic, no
+text pass, and the writer appends its verdicts to the round's `claims.md` under
+`## Critical pass <n>` rather than writing a round. Pass the round's own
+`prior_checks`, so no check runs twice, and print the cost first with
+`./scripts/review-plan.py --preset critical --topics <n>`.
+
+- **Run another pass while the last one returned a candidate the verifiers
+  banded above Nit.** Stop at two whatever the second returns, and name in the
+  round note which bound is left standing on one pass.
+- A bound the round already broke is a finding, never a topic: a pass is what
+  attacks the bounds that survived.
 
 ## Subjects
 

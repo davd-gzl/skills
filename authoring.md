@@ -232,8 +232,8 @@ injection contaminates every answer and `--bare` drops OAuth; every variant in
 that one run at effort `medium`; one blind judge pass, labels hidden and order
 shuffled, on single-pass readability and substance kept. A round per variant
 multiplies the calls by the rounds and waits for each round's slowest call.
-`skills/tests/chat-register/` is the harness that measured *Short form* in
-`skills/short-form.md`.
+`skills/archive/chat-register/` is the harness that measured *Short form* in
+`skills/short-form.md`, kept as the record of that run.
 
 ## Editing this corpus
 

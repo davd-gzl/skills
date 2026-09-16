@@ -193,7 +193,7 @@ own argument and waits for the outcome table to measure it.
 | [`writing-style.md`](writing-style.md) | any visible prose, in any project | the rules every other skill defers to, the closing Pass, the chat register, the posted-comment shape |
 | [`shortcuts.md`](shortcuts.md) | every reply, in any workspace | the words, the shape of a reply, the account of what a turn did, the closing block |
 | [`authoring.md`](authoring.md) | a rule is added, edited or removed | where it lives, the shape it takes, what it displaces |
-| [`archive/`](archive/) | nothing loads it | snapshots of a skill before a change that altered its voice, and the advisory shape for a disclosure |
+| [`archive/`](archive/) | nothing loads it | snapshots of a skill before a change that altered its voice, the advisory shape for a disclosure, and the harness that chose the Short form wording |
 | [`TODO.md`](TODO.md) | skill work I own but have not started | one line per item, newest last |
 | [`knowledge/`](knowledge/) | a design question about the workflow comes up | one measured fact per file: what holds, the numbers, the source, what it changes |
 | [`scripts/scrub.sh`](scripts/scrub.sh) | a push of this repository, from `scripts/git-hooks/pre-push` | a refusal when a pushed line or a commit message carries a secret shape or a name the consumer's `workspace.json` lists |
@@ -205,12 +205,10 @@ cvm is the register every chat reply takes, defined in `skills/short-form.md`, t
 of [`writing-style.md`](writing-style.md). The rules live there and are not
 restated here.
 
-[`tests/chat-register/`](tests/chat-register/) is the harness that chose the
-wording: candidate wordings against no rule and against the caveman plugin on
-that plugin's own benchmark prompts, articles, filler, hedges and words per
-sentence counted with code excluded, and a blind judge ranking every answer on
-single-pass readability; [`results.md`](tests/chat-register/results.md) is the
-run.
+[`archive/chat-register/`](archive/chat-register/) is the harness that chose the
+wording, archived with [`results.md`](archive/chat-register/results.md), its run:
+candidate wordings against no rule and against the caveman plugin on that
+plugin's own benchmark prompts, with a blind judge ranking every answer.
 
 [`scripts/reply-check.py`](scripts/reply-check.py) is what keeps it: it reads
 the turn's final reply off the transcript, drops fenced code, inline code,

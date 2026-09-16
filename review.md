@@ -139,6 +139,8 @@ count each number, run each test the prose says catches something, and run each
 shape the prose calls bounded or harmless. A claim that fails anchors a finding
 on the code or the comment, per *Calibration*.
 
+**Save the tree before the first mutation, `git diff > <scratch>/fixes.patch`, and restore with `git checkout -- <dir> && git apply <scratch>/fixes.patch`.** A mutation loop against an uncommitted fix cannot tell a revert of the mutation from a revert of the fix, so a bare `git checkout -- <dir>` takes the whole branch and the tests written beside it, and the loop keeps running over a tree that no longer holds the work.
+
 **Make every test the diff adds go red before crediting it.** Revert the fix,
 swap the configuration the test claims to pin, and plant a sentinel panic in a
 body a comment says runs. A test still green after that pins nothing: it is a

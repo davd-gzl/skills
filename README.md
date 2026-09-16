@@ -31,31 +31,7 @@ the next sync with no bump, and keeps one measured delta per repository in
 
 ## The words
 
-What I type, and what each word starts, from [`shortcuts.md`](shortcuts.md).
-
-| Word | What it starts |
-| --- | --- |
-| `review <target>` | one review round: the overview, the comment draft, the claim table and its tests, pushed, nothing posted |
-| `quick review <target>`, `deep review <target>` | the same round on a preset: `quick` bounds the wall clock, a tool-call budget per verifier, no critic, no text pass, caps and effort unchanged; `deep` adds finders, the security angles run twice |
-| `review all` | every open target not yet reviewed, the scope written down first |
-| `plan` | what the next review round will run and cost, the stage table and the projection |
-| `upgrade skills` | every skill or script line of the workspace's `TODO.md` read as its critic, a project's line moved into its project's tree, then taken to its rule or script, one commit each with its estimate, the line struck as it lands; a line that fails the read is asked, never struck; every line that stays gets a verdict with its reason; nothing pushed |
-| `config <stage> <key> <value>` | that knob of the review workflow changed, the plan reprinted, the estimate given |
-| `fix <issue or finding>` | a change on the fork: spec, plan, worktree, fix, CI, simplify last; nothing pushed |
-| `try <pr> on <repo>` | the project booted locally, ready to click through |
-| `video` | the clip, only once the finding's text is frozen |
-| `stop` | the stack and the worktree torn down |
-| `report [date]` | the period's status report |
-| `post` | the shown draft goes to its target; `post as an AI` adds the marker; `upload` sends media |
-| `push` | the whole git flow, every commit and push the work needs, once |
-| `merge`, `close`, `delete` | that one action on the named target |
-| `make this review public` | the round to the public artifact repo, links repointed |
-| `path` | the worktree the work sits in, its path alone |
-| "a comment" | the `comment_<model>.md` draft and the text for the target, never an explanation |
-| `TLDR` | the answer in one line, and the word it waits on |
-| `continue` | the local work resumed, dead agents re-dispatched first; nothing published |
-| `+` or `-` on a prompt | that reply lifted to explanation, or cut to the shortest true answer |
-| `go`, `ok`, `yes`, `sure`, anything else | local work only, never a publish |
+What I type and what each word starts is the table in [`shortcuts.md`](shortcuts.md), the one place a word is defined; `push`, `post` and `merge` are the ones that reach anyone.
 
 ## How I work
 
@@ -71,18 +47,20 @@ Everything starts with a review, on a PR, a branch, or a red CI.
    old round forward; nobody re-reviews unchanged code.
 3. **Reproduce.** Run the project's own CI commands locally. Every failure is
    re-run on the merge base before the diff gets the blame.
-4. **Find.** One finder per angle the diff has material for, seven at most,
-   read only: line by line; removed and rewritten behaviour, swept by shape;
+4. **Find.** One finder per angle the diff has material for, every angle
+   twice under `deep`, read only: line by line; removed and rewritten behaviour, swept by shape;
    the claims the diff writes about itself; the tests it adds, with the
    mutation that must redden each; reachability and extremes; the refactor
    pass, every added block rewritten shorter and run; the invariant catalog
    walked. An angle with nothing to walk is skipped, the plan saying which.
    Each returns candidates with the check that would prove it false,
-   half-believed ones included.
+   half-believed ones included, the read-shaped half of the check run by the
+   finder itself, high bands first.
 5. **Verify.** A hard claim gets one agent on a fresh context in its own
    worktree, under a tool-call budget, the check run at the head and, when
    the claim is causal, at the merge base; small claims share an agent, four
-   to a file. A verdict quotes its run, and a finding whose fix is a test
+   to a file; a Nit outside `deep` gets no agent and ships on the finder's
+   read, marked unverified. A verdict quotes its run, and a finding whose fix is a test
    ships the test, paste-ready.
 6. **Criticise.** One critic reads every candidate beside the verifiers and
    asks what is missing; its candidates verify in the same wave.
@@ -90,9 +68,10 @@ Everything starts with a review, on a PR, a branch, or a red CI.
    `comment_<model>.md` with one anchored section per finding, posted or
    `SKIP`, and `claims.md`, the record: the verdict, one row per candidate with
    its run output, every claim linked to the reviewed line.
-8. **Text pass.** One agent over the draft and the overview: a table of every
-   link, resolved or not, then every line that reads shorter without losing
-   fact, stake or fix.
+8. **Text pass.** `round links` resolves every link of the draft and the
+   overview at its sha and checks its range into `links.md`; one agent adds
+   whether the landed lines carry each claim, then rewrites every line that
+   reads shorter without losing fact, stake or fix.
 9. **Style pass.** The closing Pass of [`writing-style.md`](writing-style.md),
    run against the file and not from memory. Never skipped.
 10. **Commit and push.** The record lands in my workspace, nothing else moves.
@@ -109,26 +88,26 @@ none reading another's reasoning.
 ```mermaid
 flowchart TD
   P[parent: sync, worktrees at head and merge base,<br/>check runs, suites once per tree, catalog, prior rounds] --> F
-  F[finders, one per angle the diff has material for, read only] --> M[merge per file:line]
+  F[finders, one per angle the diff has material for,<br/>twice under deep, read only] --> M[merge per file:line]
   M -->|Warning, mutation, causal| B[one verifier per claim<br/>fresh context, own worktree, xhigh]
   M -->|grep-shaped, refactor, Nit, Suggestion| S[small verifiers<br/>4 per file, shuffled, medium]
   S -->|no run, or PLAUSIBLE| B
   M --> C[critic, read only, beside the verifiers: what is missing]
   C -->|new candidates| B
   C --> W[writer: overview.md, comment draft, claims.md, tests/]
-  W --> T[text pass: link table, rewrites]
+  W --> T[text pass: round links, the claim column, rewrites]
   T --> Q[parent: final check, style pass, one commit, one push]
   Q -->|post| G[the GitHub review]
 ```
 
 | Stage | Reads | Returns | Tier |
 | --- | --- | --- | --- |
-| finder, one per angle with material, seven at most | the diff, its angle's rule sections, the catalog | candidates: `file:line`, failure scenario, the check, the band | high, cap 6 per finder, one more per 75 added lines up to 12 |
+| finder, one per angle with material, every angle twice under `deep` | the diff with its comments blanked for five angles, its angle's rule sections, the catalog | candidates: `file:line`, failure scenario, the check, the band, whether the finder ran the read-shaped half itself | xhigh, cap 6 per finder and 12 above Nit; `deep` 16 and 16 |
 | verifier | one claim, the claim alone, a tool-call budget | CONFIRMED, PLAUSIBLE or REFUTED, the run quoted, the artifact under `tests/` | xhigh, one vote |
-| small verifier | up to four claims on one file, order shuffled | one verdict each; a weak one escalates | medium, on sonnet |
+| small verifier | up to four claims on one file, order shuffled; a Nit outside `deep` gets none and ships `UNVERIFIED` on the finder's read | one verdict each; a weak one escalates | medium, on sonnet; `deep` puts the Nits under opus at high |
 | critic | every candidate, beside the first verify wave | candidates for what nobody ran | xhigh |
 | writer | verified findings, prior rounds, the candidate rows already tabled | `overview.md`, `comment_<model>.md`, `claims.md` | high |
-| text pass | the draft, the overview | the link table, the rewrites applied | xhigh |
+| text pass | the draft, the overview, `links.md` from `round links` | the claim column, the rewrites applied | xhigh |
 
 The round on disk:
 
@@ -139,7 +118,9 @@ projects/<repo>/reviews/<slug>/
     comment_<model>.md   Event, Verdict, Model, Commit, Overview, Open the code, Round; the Body;
                          one section per finding, posted or SKIP, its repro collapsed
     claims.md            one row per candidate: state, band, file:line, the check,
-                         the output, the artifact; the link table; the completeness answers
+                         the output, the artifact; the completeness answers
+    links.md             every link of the draft and the overview, resolved at its sha,
+                         its range checked, the claim column
     tests/               every artifact a verifier ran
 ```
 
@@ -202,6 +183,8 @@ own argument and waits for the outcome table to measure it.
 | [`authoring.md`](authoring.md) | a rule is added, edited or removed | where it lives, the shape it takes, what it displaces |
 | [`archive/`](archive/) | nothing loads it | snapshots of a skill before a change that altered its voice, and the advisory shape for a disclosure |
 | [`TODO.md`](TODO.md) | skill work I own but have not started | one line per item, newest last |
+| [`scripts/scrub.sh`](scripts/scrub.sh) | a push of this repository, from `scripts/git-hooks/pre-push` | a refusal when a pushed line or a commit message carries a secret shape or a name the consumer's `workspace.json` lists |
+| [`tools/`](tools/) | one Rust crate, two binaries: `round links` and `round prior` for a review round's fixed steps, `rules lint` for this corpus | `links.md` with every link resolved at its sha and its range checked; the earlier rounds' checks re-anchored to the head; the lint below; built by the consumer's sync onto `~/bin` and reached through its `scripts/round` and `scripts/rules` shims, tested by `cargo test --manifest-path tools/Cargo.toml`, a golden fixture under `tools/tests/lint` holding the lint's whole output |
 
 ## The chat register
 
@@ -264,7 +247,7 @@ before-write hook to `skill-gate.py check <path>` and exports its session id as
 
 ## The lint
 
-[`lint.py`](lint.py) warns and never blocks: a rule that tells the reader to
+[`rules lint`](tools/src/lint.rs) warns and never blocks: a rule that tells the reader to
 stop measuring, a date or a sha inside a rule, an em-dash or a parenthetical in
 prose, a capability asserted without the command that reads it, a pointer at a
 file or a section that does not exist, one sentence living in two files, and a
@@ -272,5 +255,5 @@ health table per file with its word count, words per rule, negation density and
 the share of bullets in bold.
 
 ```bash
-./skills/lint.py AGENTS.md skills/*.md skills/pr-body/*.md projects/*/AGENTS.md
+rules lint AGENTS.md skills/*.md skills/pr-body/*.md projects/*/AGENTS.md
 ```

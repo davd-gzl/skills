@@ -17,7 +17,10 @@ fn main() {
             let mut out = std::io::stdout().lock();
             skills_tools::lint::run(&args[1..], &mut out)
         }
-        _ => { eprintln!("{USAGE}"); 2 }
+        _ => {
+            eprintln!("{USAGE}");
+            2
+        }
     };
     exit(code)
 }

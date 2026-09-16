@@ -20,9 +20,9 @@ binary runs it.
 
 ## Tests
 
-`cargo test --manifest-path tools/Cargo.toml` runs 53 tests: unit tests beside
-the code in `src/lint.rs` and `src/round.rs`, the line map among them against a
-git repository built in a temporary directory, and one golden test in
+`cargo test --manifest-path tools/Cargo.toml` runs 58 tests: unit tests beside
+the code in each module, the line map among them against a git repository
+built in a temporary directory, and one golden test in
 `tests/lint_golden.rs`.
 
 The golden test runs the lint over `tests/lint/corpus/`, a fixture exercising
@@ -38,6 +38,7 @@ cd tools/tests/lint/corpus && ../../../target/release/rules lint $(cat ../args.t
 
 ## Shape
 
-- `src/lint.rs`: every check is a regex over the prose lines, with fences, code spans, link targets and tags blanked first, so a rule's own example never trips the check on it. The `regex` crate has no lookaround, so the sha and section-reference checks emulate it by hand, and the tests pin that.
-- `src/round.rs`: the subcommands and `LineMap`, the mapping of a line from one sha to another through the hunks of `git diff -U0`.
+- `src/lint/`, in reading order: `patterns.rs`, every regex with one line on what it catches; `text.rs`, a file cut into prose lines, rule units and sentences, with fences, code spans, link targets and tags blanked first so a rule's own example never trips a check; `checks.rs`, one function per check, each returning its finding or nothing; `file.rs`, one file through every check; `report.rs`, a run over many files, the duplicates and the health table. The `regex` crate has no lookaround, so the sha and section-reference checks read the characters around a match by hand, and the tests pin that.
+- `src/round/`: `links.rs` and `prior.rs`, one subcommand each; `LineMap` in `prior.rs` maps a line from one sha to another through the hunks of `git diff -U0`; `mod.rs` holds the usage, the dispatch and the option parsing.
+- Every struct has named fields, every function one job under a doc comment saying what it catches or returns, one statement per line, `cargo fmt` over all of it and `cargo clippy` clean.
 - `src/bin/`: two `main` functions of a few lines each. Everything else is in the library, so a test calls what the binary calls.

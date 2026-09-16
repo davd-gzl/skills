@@ -39,6 +39,7 @@ of measuring again.
 - Prefer one plain claim covering several verifications; list them separately only when the combined claim drops something load-bearing.
 - State a verification only when it is a runtime check no CI job covers: a revert-repro, cross-language parity, an end-to-end path the harness cannot assert. Map every claim to the job that already runs it and delete the ones that map; what survives carries the reason the job cannot reach it. When the only proof is the tests, name what they cover in one line and stop.
 - **Write the reader's words, not the codebase's, and never a word you invented either.** Every term the project coined is jargon to the person reading: say the mouse, not the pointer; the area it is drawn in, not the tile; the picture does not fill it, not `object-fit: contain`. A sentence needing a term the reader looks up has named the finding rather than explained it. Where no plain equivalent exists, use a contrast they already hold, paused against stopped, or define the term in the sentence that first uses it.
+- **Define a term by the condition a reader can check, never by where the value sits.** `true if cur is part of the current context` names a state the reader can test. `a realm parameter that is not in first position` names a slot in a signature and leaves the test unwritten, so the reader learns where to look and not what holds. Where a draft defines by position, argument order or declaration order, write the state that position stands for.
 - **A claim carries why it holds, not only the link that proves it.** A link is
   where a reader checks a fact, never where they learn it, so the clause that
   lands it goes in the sentence: the ceiling is 0, and 0 is the value that turns
@@ -90,7 +91,9 @@ Take the checks in order. Each is a search over the draft, not an impression of 
 7. **Counts and promises**, the three counts above and every edit named in prose rather than shipped as a ` ```suggestion ` block: `./scripts/prose-check.py` names both.
 8. **The cut.** Delete each sentence's last clause. If what remains carries the same fact, the same number and the same stake, keep the shorter one and repeat. Then read each sentence once, left to right, and rewrite any that needs a second pass to parse. Stop at the first cut that removes a fact, a number, or the reason to care: past that the line is being deleted rather than shortened, which is the worse failure. Apply to every sentence.
 
-9. **Gutted sentences.** For every sentence this revision cut a clause from, name what it still asserts. Where the claim lived in the removed words, delete the sentence and write what belongs in its place; keeping the residue leaves a slot filled by a line that states nothing.
+9. **Definitions by position.** For every term the draft defines, name the test a reader runs to tell whether it holds. A definition that answers with a slot, an argument order or a declaration order has not given one: rewrite it as the state.
+
+10. **Gutted sentences.** For every sentence this revision cut a clause from, name what it still asserts. Where the claim lived in the removed words, delete the sentence and write what belongs in its place; keeping the residue leaves a slot filled by a line that states nothing.
 
 A pass that changes nothing is the exit condition. Never report a pass not run as a pass that changed nothing.
 

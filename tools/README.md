@@ -12,6 +12,7 @@ binary runs it.
 | `round` | `links <round dir> [--repo <git dir>] [--out <file>]` | resolves every blob link of the round's `comment_*.md` and the `overview.md` beside it at the pinned sha, `git show` in `--repo` when the sha is there and `gh api` otherwise, and checks the `#L` range against the file; one row per link into `<round dir>/links.md`, and a file the forge could not serve says why rather than reading as missing | 1 when any link misses |
 | `round` | `prior <slug dir> --repo <git dir> --sha <head sha> [--json <file>]` | the Check cell of every candidate row in the slug's earlier `claims.md` files, keyed `file:line` at the head, each line mapped from its round's sha through `git diff -U0`; an anchor in backticks or with a line range is read, a row whose line the head removed is dropped, a row with no `file:line` anchor is counted in the summary and left out, and the State and Observed cells never leave the file | 2 on a bad call |
 | `round` | `risk <repo> <base> <head> [--prior <slug dir>] [--keywords <file>] [--out <file>] [--json <file>]` | every changed file ranked hot, warm or cold from what git and the diff carry: a guard removed, a catalog keyword added, no test touched, fix commits in its history, its size, a finding an earlier round confirmed in it; docs, tests and generated files are cold; the weights sit in one table in `src/round/risk.rs`, tuned by the retro's hit rate per tier | 2 on a bad call |
+| `round` | `dispatch <repo> <base> <head> [--risk <risk.json>] [--catalog 1] [--diff-dir <dir>] [--json <file>] [--out <file>]` | the changed files cut into bundles by category: code and tests by directory, small directories merged with a sibling, a bundle over the ceiling split by file, docs and config in one bundle, generated files skipped; each bundle lists the angles it has material for and the finders it earns, one per angle or one carrying every angle under the floor, so the finder count follows the diff; `--diff-dir` writes each bundle's diff with its enclosing functions and a comment-blanked twin | 2 on a bad call |
 | `rules` | `lint [--quiet] <files>` | the corpus lint, the contract in `authoring.md`: a frozen clause, a date or a sha inside a rule, an em-dash or a parenthetical in prose, a dangling clause, a capability asserted with no command, a pointer at a file or a section that does not exist, a rule stated in two files, and each file's cost; `--quiet` drops the health table | 0 always: nothing blocks |
 
 ## Build and reach
@@ -21,7 +22,7 @@ binary runs it.
 
 ## Tests
 
-`cargo test --manifest-path tools/Cargo.toml` runs 66 tests: unit tests beside
+`cargo test --manifest-path tools/Cargo.toml` runs 71 tests: unit tests beside
 the code in each module, the line map among them against a git repository
 built in a temporary directory, and one golden test in
 `tests/lint_golden.rs`.

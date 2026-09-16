@@ -132,7 +132,7 @@ static FIX_SUBJECT: LazyLock<Regex> = LazyLock::new(|| {
         .unwrap()
 });
 static TEST_PATH: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"(_test\.(go|rs)$|(^|/)test_[^/]*\.py$|\.(test|spec)\.[cm]?[jt]sx?$|(^|/)tests?/)")
+    Regex::new(r"(_test\.(go|rs|gno)$|_filetest\.gno$|(^|/)test_[^/]*\.py$|\.(test|spec)\.[cm]?[jt]sx?$|(^|/)tests?/|(^|/)testdata/)")
         .unwrap()
 });
 static TEST_LINE: LazyLock<Regex> = LazyLock::new(|| {
@@ -201,12 +201,12 @@ pub fn keywords_in(added_lines: &[&str], keywords: &[String]) -> Vec<String> {
 }
 
 /// The changed files with their added and deleted lines, from one `git diff -U0`.
-struct Hunks {
-    added: HashMap<String, Vec<String>>,
-    deleted: HashMap<String, Vec<String>>,
+pub(super) struct Hunks {
+    pub(super) added: HashMap<String, Vec<String>>,
+    pub(super) deleted: HashMap<String, Vec<String>>,
 }
 
-fn hunks(repo: &str, base: &str, head: &str) -> Result<Hunks, String> {
+pub(super) fn hunks(repo: &str, base: &str, head: &str) -> Result<Hunks, String> {
     let diff = command(
         "git",
         &["-C", repo, "diff", "-U0", "--no-color", "-M", base, head],
@@ -242,7 +242,11 @@ fn hunks(repo: &str, base: &str, head: &str) -> Result<Hunks, String> {
 
 /// One `added deleted path` row of `git diff --numstat`, a rename's braces resolved to the
 /// new path and a binary file's dashes read as zero.
-fn numstat(repo: &str, base: &str, head: &str) -> Result<Vec<(String, usize, usize)>, String> {
+pub(super) fn numstat(
+    repo: &str,
+    base: &str,
+    head: &str,
+) -> Result<Vec<(String, usize, usize)>, String> {
     let out = command("git", &["-C", repo, "diff", "--numstat", "-M", base, head])?;
     let text = String::from_utf8_lossy(&out);
     let rename = Regex::new(r"\{(.*?) => (.*?)\}").unwrap();
@@ -637,6 +641,8 @@ mod tests {
         assert_eq!(kind_of("pkg/a.go", &[]), Kind::Code);
         assert_eq!(kind_of("pkg/a_test.go", &[]), Kind::Test);
         assert_eq!(kind_of("tests/x.py", &[]), Kind::Test);
+        assert_eq!(kind_of("r/x/x_test.gno", &[]), Kind::Test);
+        assert_eq!(kind_of("pkg/integration/testdata/x.txtar", &[]), Kind::Test);
         assert_eq!(kind_of("src/x.spec.ts", &[]), Kind::Test);
         assert_eq!(kind_of("docs/guide.md", &[]), Kind::Doc);
         assert_eq!(kind_of("LICENSE", &[]), Kind::Doc);

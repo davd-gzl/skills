@@ -2,6 +2,7 @@
 //! The deterministic steps of a review round, one subcommand each. Prose in skills/review.md
 //! names the step; this binary runs it, so no agent turn does. `links` checks every blob link
 //! of a round, `prior` carries the earlier rounds' checks to the head.
+mod dispatch;
 mod links;
 mod prior;
 mod risk;
@@ -10,6 +11,7 @@ use std::collections::HashMap;
 use std::path::Path;
 use std::process::Command;
 
+pub use dispatch::{dispatch_cmd, Bundle};
 pub use links::{find_links, judge, links, Blob, Link, Verdict};
 pub use prior::{checks_to_json, json_string, parse_row, prior, Hunk, LineMap, PriorCheck, Row};
 pub use risk::{rank, risk, FileRisk, Kind, Tier};
@@ -33,13 +35,22 @@ pub const USAGE: &str = "round <subcommand> ...
       Every changed file ranked hot, warm or cold from what git and the diff carry: a
       guard removed, a catalog keyword added, no test touched, fix commits in its
       history, its size, a finding an earlier round confirmed in it. Docs, tests and
-      generated files are cold. The table to --out, else to stdout; JSON to --json.";
+      generated files are cold. The table to --out, else to stdout; JSON to --json.
+
+  dispatch <repo> <base> <head> [--risk <risk.json>] [--catalog 1] [--diff-dir <dir>] [--json <file>] [--out <file>]
+      The changed files cut into bundles by category: code and tests by directory, small
+      directories merged with a sibling, a bundle over the ceiling split by file, docs and
+      config in one bundle, generated files skipped. Each bundle lists the angles it has
+      material for and the finders it earns: one per angle, or one carrying every angle
+      under the floor. --diff-dir writes each bundle's diff with its enclosing functions
+      and a comment-blanked twin. The table to --out, else to stdout; JSON to --json.";
 
 pub fn dispatch(args: &[String]) -> i32 {
     match args.first().map(String::as_str) {
         Some("links") if args.len() >= 2 => links(&args[1..]),
         Some("prior") if args.len() >= 2 => prior(&args[1..]),
         Some("risk") if args.len() >= 4 => risk(&args[1..]),
+        Some("dispatch") if args.len() >= 4 => dispatch_cmd(&args[1..]),
         _ => {
             eprintln!("{USAGE}");
             2

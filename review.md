@@ -20,8 +20,8 @@ every reference clickable, every file readable without the chat, and the one
 number or word that carries the decision in bold.
 
 Sections, and the moment each is read: *Workflow*, the parent, every round;
-*Launch*, the parent at step 4; *Finders*, *Verifiers*, *Critic*, *Writer*
-and *Text pass*, the stage of that name; *The critical pass*, a vulnerability
+*Launch*, the parent at step 4; *Finders*, *Reflector*, *Verifiers*, *Critic*,
+*Writer* and *Text pass*, the stage of that name; *The critical pass*, a vulnerability
 fix; *Subjects*, a branch or a red CI; *Modes*, several targets, an authored
 target, `plan review`; *Fetch & understand*, the parent at step 1; *Re-review
 rounds*, a prior round exists; *Reproduce the failure*, the parent at step 3
@@ -43,9 +43,9 @@ The word sets the shape, and the word is how well the user knows the code:
 
 | Word | For | Shape |
 | --- | --- | --- |
-| `quick review` | a change already trusted, a second pair of eyes | the angles the config names at low caps, a budget per verifier, no critic, no text pass |
-| `review` | any change | every angle the diff has material for, a verifier per candidate, the critic, the text pass |
-| `deep review` | code that is complex or unknown | every angle twice, wider caps, every Nit verified, a run behind every claim |
+| `quick review` | a change already trusted, a second pair of eyes | one finder per bundle carrying every angle at low caps, the reflector, verifier batches on a short budget, no critic, no text pass |
+| `review` | any change | one finder per bundle per angle the bundle has material for, the reflector, a verifier batch per bundle for every Warning and above, Nits and Suggestions in batches, the critic, the writer, the text pass |
+| `deep review` | code that is complex or unknown | every bundle's angles twice and the hot bundles' a third time, one verifier per candidate with its run, smaller Nit batches, the ceiling |
 
 1. Prepare, per *Fetch & understand*, and dispatch the overview agent the moment the head worktree exists.
 2. Run the *Re-review rounds* gate when a prior round exists.
@@ -62,6 +62,7 @@ What the parent hands the runner, and what every stage gets from it.
 
 - Print the plan first: `./scripts/review-plan.py --rules-out <scratch>/rules`, with `--preset` for `quick review`, `lean review` or `deep review`, and `--extra <stage>=<path>#<Heading>` for each section of the project delta a stage needs. Paste its table and projection in the reply that launches the run, so what is about to run and cost is on screen before it does.
 - Then call the Workflow tool: `scripts/workflows/review-pipeline.js` as `scriptPath`, the prepared values as `args`, the preset as `args.preset`, the rules directory as `args.rules_dir`. The `review` word is the opt-in the harness's gate asks for, per *Consent* in the workspace `AGENTS.md`, and this sentence is the skill instruction it accepts.
+- `args.bundles` is what `round dispatch` wrote, and its table goes in the launch reply beside the plan's: the finder count is read off it, one per bundle per angle with material, or one carrying every angle for a bundle under the floor.
 - A preset moves knobs, the Warning cap never among them. `quick` runs the finders the config names and drops the critic and the text pass, so its round ends on the writer and step 5 is its only pass over the text.
 - Every stage carries a tool-call budget from the config and returns what it has when it runs out: a call re-reads everything the agent opened on and has read since, so a stage's cache cost is its calls times its context, `./scripts/review-retro.py` printing both per stage.
 - A round launched with a token target, `+2M` on the word, stops dispatching verifiers when the budget nears its floor; the candidates left unrun ship PLAUSIBLE with their check named, and the writer still runs.
@@ -72,8 +73,11 @@ What the parent hands the runner, and what every stage gets from it.
 
 ### Finders
 
-One agent per angle the diff has material for; every angle twice under `deep`,
-on independent contexts, merged per line like any two finders.
+One finder per bundle per angle the bundle has material for, the bundles from
+`round dispatch`; a bundle under the floor gets one finder carrying every angle it
+has, so the count follows the diff. Under `deep` every bundle's angles run twice
+and a hot bundle's a third time, on independent contexts, merged per line like any
+two finders. Every bundle is read once whatever its tier.
 
 A finder returns candidates as data, never prose. One, filled:
 
@@ -107,6 +111,22 @@ A finder returns candidates as data, never prose. One, filled:
 
 `./scripts/review-plan.py --diff <head worktree> <base> <head>` prints which angles run and writes the measurement the workflow reads.
 
+### Reflector
+
+One agent, after every finder has returned and before any verifier is paid for:
+one read over every candidate against the diff.
+
+A drop, filled:
+
+```json
+{"index": 14, "settled_by": "cache.go:31 `if ttl <= 0 { ttl = defaultTTL }`: the zero the candidate says reaches Set is rewritten two lines above the call"}
+```
+
+- Drop a candidate only when a line of the diff or the head, quoted, contradicts it outright: the guard it calls missing sits three lines up, the value it calls unbounded is clamped at the call site, the function it names was deleted.
+- Unsure keeps it. The verifiers do the killing a read cannot, and a Warning dropped on a guess is the round's worst outcome.
+- Every drop is a row of `claims.md`, the line quoted, so a later round reads what was cleared and why.
+- Then ask what is missing, the critic's question asked early: an angle that came back thin, a class of the catalog no candidate touches, a changed test not re-added; return each as a candidate with the check that settles it, never a line already listed.
+
 ### Verifiers
 
 One agent per candidate for the big ones, from scratch, with the claim alone
@@ -115,7 +135,7 @@ check:
 
 | Candidate | Who | Where |
 | --- | --- | --- |
-| a Warning, a mutation, a causal comparison | one agent, fresh context, the full tier | its own scratch worktree, `git -C <head worktree> worktree add --detach <scratch>/verify-<n> <sha>`, removed at the end |
+| a Warning, a mutation, a causal comparison | one agent per `verifier.batch` candidates of one bundle, three by default, each run from scratch at the full tier; one agent each under `deep` | one scratch worktree per agent, `git -C <head worktree> worktree add --detach <scratch>/verify-<n> <sha>`, the tree restored between claims, removed at the end |
 | a grep-shaped check, a refactor's test run, a Suggestion | one agent per `verifier_small.batch`, four by default, files kept adjacent, order shuffled, the cheaper tier | one shared worktree, the tree restored between claims |
 | a Nit | one cheap agent per `nit_batch`, twelve, its checks reads and never a mutation, the finder's own read re-run by an agent that was not its finder | the head worktree, untouched |
 | a Nit, under `deep` | smaller batches at the full tier, `nit_batch` and `nit_tools` from the preset | the head worktree |
@@ -235,6 +255,7 @@ What the parent prepares, each one line, each a value the runner takes:
 - a copy of head with comment lines blanked, `./scripts/blank-comments.py <head worktree> <scratch>/head-nocomments`, line numbers kept;
 - the diff with its enclosing functions and its comment-blanked twin, `./scripts/review-plan.py --diff-out <scratch>/diff.md`, as `args.diff_file` and `args.diff_file_blank`, so no stage spends a call deriving what the parent holds;
 - the changed files ranked, `./scripts/round risk <head worktree> <base> <head> --prior <slug dir> --out <scratch>/risk.md --json <scratch>/risk.json`: the table pasted in the launch reply and passed as `args.risk_file`, the JSON's `hot`, `warm` and `cold` lists as `args.risk`, so the finders read the hot files first and every `claims.md` row carries its tier;
+- the diff cut into bundles, `./scripts/round dispatch <head worktree> <base> <head> --risk <scratch>/risk.json --diff-dir <scratch>/bundles --json <scratch>/bundles.json --out <scratch>/bundles.md`, with `--catalog 1` where the project has one: each bundle's diff with its enclosing functions and its blanked twin, the angles it has material for and the finders it earns, as `args.bundles`;
 - what earlier rounds ran on each line, `./scripts/round prior <slug dir> --repo <head worktree> --sha <head sha> --json <scratch>/prior.json`, as `args.prior_checks`: the Check cell alone and never the verdict, which would anchor the one stage paid to decide for itself;
 - the toolchain line every shell opens with;
 - the free space on the scratch filesystem, `df -Pm <scratch> | awk 'NR==2{print $4}'`, as `args.free_mb`, since a per-candidate worktree runs to 150MB and the runner holds 16 agents at once;

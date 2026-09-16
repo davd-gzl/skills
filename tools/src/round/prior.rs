@@ -1,7 +1,7 @@
 // NOT AUDITED — AI-generated tooling. Review before executing in any privileged context.
 //! `round prior`: the Check cell of every candidate row in a slug's earlier `claims.md` files,
 //! each row's line carried from its round's sha to the head through `git diff -U0`.
-use super::{command_stdout, dir_name, options, USAGE};
+use super::{command, dir_name, options, USAGE};
 use regex::Regex;
 use std::collections::{BTreeMap, HashMap};
 use std::fs;
@@ -30,7 +30,7 @@ impl LineMap {
     /// The map from `git diff -U0` in `repo`, None when git cannot diff the two commits there.
     pub fn load(repo: &Path, old: &str, new: &str, path: &str) -> Option<LineMap> {
         let repo = repo.to_string_lossy();
-        let diff = command_stdout(
+        let diff = command(
             "git",
             &[
                 "-C",
@@ -43,7 +43,8 @@ impl LineMap {
                 "--",
                 path,
             ],
-        )?;
+        )
+        .ok()?;
         Some(LineMap::parse(&String::from_utf8_lossy(&diff)))
     }
 
@@ -109,10 +110,12 @@ pub fn parse_row(line: &str) -> Option<Row> {
     })
 }
 
-/// An anchor split into its path and line, None when it is not `file:line`.
+/// An anchor split into its path and line, None when it is not `file:line`. Backticks around it
+/// are dropped, and a range `file:a-b` keys on its first line.
 fn split_anchor(anchor: &str) -> Option<(&str, usize)> {
-    let (path, line) = anchor.rsplit_once(':')?;
-    Some((path, line.parse().ok()?))
+    let (path, line) = anchor.trim_matches('`').rsplit_once(':')?;
+    let first = line.split('-').next().unwrap_or(line);
+    Some((path, first.parse().ok()?))
 }
 
 /// One earlier check, keyed at the head by `file:line`.
@@ -171,6 +174,8 @@ struct Tally {
     kept: usize,
     moved: usize,
     dropped: usize,
+    /// Rows whose anchor is not `file:line`, an older table's claim sentence: nothing keys them.
+    unanchored: usize,
 }
 
 pub fn prior(args: &[String]) -> i32 {
@@ -215,6 +220,7 @@ pub fn prior(args: &[String]) -> i32 {
                 continue;
             }
             let Some((path, line)) = split_anchor(&row.anchor) else {
+                tally.unanchored += 1;
                 continue;
             };
             let at_head = match maps.land(&old_sha, path, line) {
@@ -240,12 +246,13 @@ pub fn prior(args: &[String]) -> i32 {
     }
     let json = checks_to_json(&checks);
     let summary = format!(
-        "{} anchors from {} prior claims.md: {} rows kept, {} re-anchored to the head, {} dropped whose line the head removed",
+        "{} anchors from {} prior claims.md: {} rows kept, {} re-anchored to the head, {} dropped whose line the head removed, {} with no file:line anchor left out",
         checks.len(),
         rounds.len(),
         tally.kept,
         tally.moved,
-        tally.dropped
+        tally.dropped,
+        tally.unanchored
     );
     match opts.get("json") {
         Some(path) => {
@@ -453,5 +460,38 @@ mod tests {
             "--repo without --sha"
         );
         assert_eq!(prior(&["/nonexistent/slug".into()]), 2);
+    }
+
+    #[test]
+    fn anchors_in_backticks_and_ranges_still_key() {
+        let slug = tmp("prior-shapes");
+        let round = slug.join("1-abcdef0");
+        fs::create_dir_all(&round).unwrap();
+        let claims =
+            "| CONFIRMED | Suggestion | `serve/x.go:452-454` | compare the three sites | out | |\n\
+                      | CONFIRMED | a claim sentence with no anchor at all | the check | out | |\n\
+                      | REFUTED | Nit | `a.go:7` | ls | out | |\n";
+        fs::write(round.join("claims.md"), claims).unwrap();
+        let out = slug.join("prior.json");
+        let code = prior(&[
+            slug.to_string_lossy().into_owned(),
+            "--json".into(),
+            out.to_string_lossy().into_owned(),
+        ]);
+        assert_eq!(code, 0);
+        let json = fs::read_to_string(&out).unwrap();
+        assert_eq!(
+            json.trim(),
+            "{\"a.go:7\": [{\"round\": \"1-abcdef0\", \"check\": \"ls\"}], \"serve/x.go:452\": [{\"round\": \"1-abcdef0\", \"check\": \"compare the three sites\"}]}"
+        );
+    }
+
+    #[test]
+    fn split_anchor_shapes() {
+        assert_eq!(split_anchor("a/b.go:12"), Some(("a/b.go", 12)));
+        assert_eq!(split_anchor("`a/b.go:12`"), Some(("a/b.go", 12)));
+        assert_eq!(split_anchor("`a/b.go:12-20`"), Some(("a/b.go", 12)));
+        assert_eq!(split_anchor("a sentence with no anchor"), None);
+        assert_eq!(split_anchor("a.go:x"), None);
     }
 }

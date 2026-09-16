@@ -9,7 +9,7 @@ use std::collections::HashMap;
 use std::path::Path;
 use std::process::Command;
 
-pub use links::{find_links, judge, links, Link, Verdict};
+pub use links::{find_links, judge, links, Blob, Link, Verdict};
 pub use prior::{checks_to_json, json_string, parse_row, prior, Hunk, LineMap, PriorCheck, Row};
 
 pub const USAGE: &str = "round <subcommand> ...
@@ -18,13 +18,14 @@ pub const USAGE: &str = "round <subcommand> ...
       Every blob link in the round's comment_*.md and the overview.md beside it: the
       file at the pinned sha, through git show in --repo when the sha is there, else
       gh api, and the #L range inside it. One row per link into <round dir>/links.md,
-      exit 1 when any link misses.
+      exit 1 when any link misses; a file the forge could not serve says why.
 
   prior <slug dir> --repo <git dir> --sha <head sha> [--json <file>]
       The Check cell of every candidate row in the slug's earlier claims.md files,
       keyed file:line at the head: a row's line is mapped from its round's sha to the
-      head through git diff, and a row whose line the head removed is dropped. The
-      State and Observed cells never leave the file. JSON to --json, else to stdout.";
+      head through git diff, and a row whose line the head removed is dropped. A row
+      with no file:line anchor is counted and left out. The State and Observed cells
+      never leave the file. JSON to --json, else to stdout.";
 
 pub fn dispatch(args: &[String]) -> i32 {
     match args.first().map(String::as_str) {
@@ -54,13 +55,17 @@ pub fn options(args: &[String]) -> Result<HashMap<String, String>, String> {
     Ok(out)
 }
 
-/// The command's stdout when it succeeds, nothing when it fails or cannot start.
-fn command_stdout(cmd: &str, args: &[&str]) -> Option<Vec<u8>> {
-    let output = Command::new(cmd).args(args).output().ok()?;
+/// The command's stdout when it succeeds; when it fails or cannot start, its stderr or the
+/// spawn error, so the caller can read why.
+fn command(cmd: &str, args: &[&str]) -> Result<Vec<u8>, String> {
+    let output = Command::new(cmd)
+        .args(args)
+        .output()
+        .map_err(|e| format!("{cmd}: {e}"))?;
     if output.status.success() {
-        Some(output.stdout)
+        Ok(output.stdout)
     } else {
-        None
+        Err(String::from_utf8_lossy(&output.stderr).trim().to_string())
     }
 }
 

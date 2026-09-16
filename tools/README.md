@@ -9,8 +9,8 @@ binary runs it.
 
 | Binary | Subcommand | Does | Exit |
 | --- | --- | --- | --- |
-| `round` | `links <round dir> [--repo <git dir>] [--out <file>]` | resolves every blob link of the round's `comment_*.md` and the `overview.md` beside it at the pinned sha, `git show` in `--repo` when the sha is there and `gh api` otherwise, and checks the `#L` range against the file; one row per link into `<round dir>/links.md` | 1 when any link misses |
-| `round` | `prior <slug dir> --repo <git dir> --sha <head sha> [--json <file>]` | the Check cell of every candidate row in the slug's earlier `claims.md` files, keyed `file:line` at the head, each line mapped from its round's sha through `git diff -U0`; a row whose line the head removed is dropped, and the State and Observed cells never leave the file | 2 on a bad call |
+| `round` | `links <round dir> [--repo <git dir>] [--out <file>]` | resolves every blob link of the round's `comment_*.md` and the `overview.md` beside it at the pinned sha, `git show` in `--repo` when the sha is there and `gh api` otherwise, and checks the `#L` range against the file; one row per link into `<round dir>/links.md`, and a file the forge could not serve says why rather than reading as missing | 1 when any link misses |
+| `round` | `prior <slug dir> --repo <git dir> --sha <head sha> [--json <file>]` | the Check cell of every candidate row in the slug's earlier `claims.md` files, keyed `file:line` at the head, each line mapped from its round's sha through `git diff -U0`; an anchor in backticks or with a line range is read, a row whose line the head removed is dropped, a row with no `file:line` anchor is counted in the summary and left out, and the State and Observed cells never leave the file | 2 on a bad call |
 | `rules` | `lint [--quiet] <files>` | the corpus lint, the contract in `authoring.md`: a frozen clause, a date or a sha inside a rule, an em-dash or a parenthetical in prose, a dangling clause, a capability asserted with no command, a pointer at a file or a section that does not exist, a rule stated in two files, and each file's cost; `--quiet` drops the health table | 0 always: nothing blocks |
 
 ## Build and reach

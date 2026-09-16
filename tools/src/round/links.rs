@@ -1,7 +1,7 @@
 // NOT AUDITED — AI-generated tooling. Review before executing in any privileged context.
 //! `round links`: every blob link of a round's draft and overview, resolved at its pinned sha,
 //! with the `#L` range checked against the file's length.
-use super::{command_stdout, count_lines, dir_name, options, USAGE};
+use super::{command, count_lines, dir_name, options, USAGE};
 use regex::Regex;
 use std::collections::HashMap;
 use std::fs;
@@ -51,6 +51,17 @@ pub fn find_links(file: &str, text: &str) -> Vec<Link> {
         .collect()
 }
 
+/// What the repository or the forge answered for a file at a sha.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Blob {
+    Lines(usize),
+    /// The commit is known and the path is not in it.
+    Missing,
+    /// Nothing answered: no repository holds the commit and the forge call failed, with its
+    /// first line, so a network failure never reads as a missing file.
+    Unreadable(String),
+}
+
 /// A row's verdict: whether the link resolves, and the lines it lands on or misses.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Verdict {
@@ -58,14 +69,22 @@ pub struct Verdict {
     pub lines: String,
 }
 
-/// Judges a link from the file's line count, None when the file is missing at the sha, and the
-/// anchor's first and last lines.
-pub fn judge(line_count: Option<usize>, first: Option<usize>, last: Option<usize>) -> Verdict {
-    let Some(n) = line_count else {
-        return Verdict {
-            resolves: false,
-            lines: "file missing at the sha".to_string(),
-        };
+/// Judges a link from what the file at the sha answered and the anchor's first and last lines.
+pub fn judge(blob: &Blob, first: Option<usize>, last: Option<usize>) -> Verdict {
+    let n = match blob {
+        Blob::Lines(n) => *n,
+        Blob::Missing => {
+            return Verdict {
+                resolves: false,
+                lines: "file missing at the sha".to_string(),
+            }
+        }
+        Blob::Unreadable(why) => {
+            return Verdict {
+                resolves: false,
+                lines: format!("could not read the file at the sha: {why}"),
+            }
+        }
     };
     let Some(a) = first else {
         return Verdict {
@@ -114,7 +133,7 @@ pub fn links(args: &[String]) -> i32 {
         found.extend(find_links(&dir_name(file), &text));
     }
     // One lookup per file and sha, however many links land in it.
-    let mut line_counts: HashMap<(String, String), Option<usize>> = HashMap::new();
+    let mut blobs: HashMap<(String, String), Blob> = HashMap::new();
     let mut rows = vec![
         "| File | Link | Resolves | Lines |".to_string(),
         "| --- | --- | --- | --- |".to_string(),
@@ -122,10 +141,10 @@ pub fn links(args: &[String]) -> i32 {
     let mut misses = 0;
     for link in &found {
         let key = (link.sha.clone(), link.path.clone());
-        let n = *line_counts
+        let blob = blobs
             .entry(key)
-            .or_insert_with(|| line_count(repo.as_deref(), link));
-        let verdict = judge(n, link.first, link.last);
+            .or_insert_with(|| blob_at(repo.as_deref(), link));
+        let verdict = judge(blob, link.first, link.last);
         if !verdict.resolves {
             misses += 1;
         }
@@ -180,25 +199,46 @@ fn round_files(round: &Path) -> std::io::Result<Vec<PathBuf>> {
     Ok(files)
 }
 
-/// Lines of the file at the sha: through git in the repo when it holds the commit, else through
-/// gh api.
-fn line_count(repo: Option<&Path>, link: &Link) -> Option<usize> {
+/// The file at the sha: through git in the repo when it holds the commit, else through gh api.
+fn blob_at(repo: Option<&Path>, link: &Link) -> Blob {
     if let Some(repo) = repo {
         let object = format!("{}:{}", link.sha, link.path);
-        if let Some(blob) = command_stdout("git", &["-C", &repo.to_string_lossy(), "show", &object])
-        {
-            return Some(count_lines(&blob));
+        match command("git", &["-C", &repo.to_string_lossy(), "show", &object]) {
+            Ok(bytes) => return Blob::Lines(count_lines(&bytes)),
+            Err(why) => {
+                if let Some(blob) = repository_failure(&why) {
+                    return blob;
+                }
+            }
         }
     }
     let endpoint = format!(
         "repos/{}/{}/contents/{}?ref={}",
         link.owner, link.repo, link.path, link.sha
     );
-    command_stdout(
+    match command(
         "gh",
         &["api", "-H", "Accept: application/vnd.github.raw", &endpoint],
-    )
-    .map(|b| count_lines(&b))
+    ) {
+        Ok(bytes) => Blob::Lines(count_lines(&bytes)),
+        Err(why) => forge_failure(&why),
+    }
+}
+
+/// What git's wording settles: a path absent from a commit the repository holds is missing;
+/// a commit the repository lacks is nothing yet, and the forge is asked.
+fn repository_failure(why: &str) -> Option<Blob> {
+    let path_absent =
+        why.contains("does not exist in") || why.contains("exists on disk, but not in");
+    path_absent.then_some(Blob::Missing)
+}
+
+/// What gh's wording settles: a 404 is a missing file, anything else did not reach the forge.
+fn forge_failure(why: &str) -> Blob {
+    if why.contains("HTTP 404") {
+        return Blob::Missing;
+    }
+    Blob::Unreadable(why.lines().next().unwrap_or("no answer").to_string())
 }
 
 #[cfg(test)]
@@ -233,24 +273,56 @@ mod tests {
 
     #[test]
     fn judge_ranges() {
-        assert!(!judge(None, Some(1), None).resolves);
+        let ten = Blob::Lines(10);
         assert_eq!(
-            judge(Some(10), None, None),
+            judge(&Blob::Missing, Some(1), None).lines,
+            "file missing at the sha"
+        );
+        assert_eq!(
+            judge(&Blob::Unreadable("gh: no answer".into()), Some(1), None).lines,
+            "could not read the file at the sha: gh: no answer"
+        );
+        assert!(!judge(&Blob::Missing, Some(1), None).resolves);
+        assert_eq!(
+            judge(&ten, None, None),
             Verdict {
                 resolves: true,
                 lines: "10 lines, no anchor".into()
             }
         );
         assert_eq!(
-            judge(Some(10), Some(3), Some(10)),
+            judge(&ten, Some(3), Some(10)),
             Verdict {
                 resolves: true,
                 lines: "L3-L10 of 10".into()
             }
         );
-        assert!(!judge(Some(10), Some(3), Some(11)).resolves);
-        assert!(!judge(Some(10), Some(0), None).resolves);
-        assert!(!judge(Some(10), Some(5), Some(4)).resolves);
+        assert!(!judge(&ten, Some(3), Some(11)).resolves);
+        assert!(!judge(&ten, Some(0), None).resolves);
+        assert!(!judge(&ten, Some(5), Some(4)).resolves);
+    }
+
+    #[test]
+    fn failures_read_from_the_tools_wording() {
+        assert_eq!(
+            repository_failure("fatal: path 'nope' does not exist in 'abc'"),
+            Some(Blob::Missing)
+        );
+        assert_eq!(
+            repository_failure("fatal: path 'x' exists on disk, but not in 'abc'"),
+            Some(Blob::Missing)
+        );
+        assert_eq!(
+            repository_failure("fatal: invalid object name 'abc'."),
+            None,
+            "a commit the repository lacks is the forge's question"
+        );
+        assert_eq!(forge_failure("gh: Not Found (HTTP 404)"), Blob::Missing);
+        assert_eq!(
+            forge_failure("error connecting to api.github.com\ncheck your internet connection"),
+            Blob::Unreadable("error connecting to api.github.com".into())
+        );
+        assert_eq!(forge_failure(""), Blob::Unreadable("no answer".into()));
     }
 
     #[test]
@@ -260,7 +332,7 @@ mod tests {
         let round = slug.join(format!("1-{head}"));
         fs::create_dir_all(&round).unwrap();
         let draft = format!(
-            "[ok](https://github.com/o/r/blob/{head}/f.go#L2-L4) and [far](https://github.com/o/r/blob/{head}/f.go#L9) and [gone](https://github.com/o/r/blob/{head}/nope.go#L1)\n"
+            "[ok](https://github.com/o/r/blob/{head}/f.go#L2-L4) and [far](https://github.com/o/r/blob/{head}/f.go#L9) and [gone](https://github.com/o/r/blob/{head}/nope.go#L1) and [elsewhere](https://github.com/o/r/blob/0123456789abcdef0123/f.go#L1)\n"
         );
         fs::write(round.join("comment_x.md"), draft).unwrap();
         fs::write(
@@ -284,13 +356,25 @@ mod tests {
         assert!(table.contains("| yes | L2-L4 of 8 |"), "{table}");
         assert!(table.contains("| no | L9-L9 outside 8 lines |"));
         assert!(table.contains("| no | file missing at the sha |"));
+        // The repository lacks that commit, so the forge is asked: a 404 for a repository
+        // that does not exist, or no answer at all offline; a miss either way, and never a
+        // silent one.
+        let elsewhere = table
+            .lines()
+            .find(|row| row.contains("0123456789abcdef0123"))
+            .unwrap_or_default();
+        assert!(
+            elsewhere.contains("| no | file missing at the sha |")
+                || elsewhere.contains("| no | could not read the file at the sha: "),
+            "{elsewhere}"
+        );
         assert!(
             table.contains("| overview.md | [f.go]")
                 && table.contains("| yes | 8 lines, no anchor |")
         );
         assert!(table
             .trim_end()
-            .ends_with("4 links over 2 files, 2 missing."));
+            .ends_with("5 links over 2 files, 3 missing."));
         fs::write(
             round.join("comment_x.md"),
             format!("[ok](https://github.com/o/r/blob/{head}/f.go#L2-L4)\n"),

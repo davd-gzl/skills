@@ -500,7 +500,9 @@ PROMPT_SKILLS = [
     (r'\bfix(ed|ing)?\b|(?<!-)\bfixes\b|\bimplement|\bsimplif|\bfeature\b', ['change', 'pr-body', 'issue']),
     (r'\bissue', ['issue']),
     (r'\breport\b|\bweekly\b', ['report']),
-    (r'\btry\b|\brun\b|\bboot\b|\blaunch\b|\bscreenshot\b|\bvideo\b|\bgif\b', ['try']),
+    # try, run, boot and launch are ordinary verbs. Each asks for a target after it, the shortcut's own shape,
+    # so "try to make that perfect" names no skill while "try 6187 on gno" does.
+    (r'\b(try|run|boot|launch)\b\s+(?!to\b|it\b|again\b|that\b|this\b|them\b)\S|\bscreenshot\b|\bvideo\b|\bgif\b', ['try']),
     (r'\bskill|\brules?\b|AGENTS\.md|writing.style|\bcaveman\b|\bcvm\b', ['authoring']),
 ]
 PROMPT_URLS = [

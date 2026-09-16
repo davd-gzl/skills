@@ -99,7 +99,7 @@ A finder returns candidates as data, never prose. One, filled:
 | --- | --- | --- |
 | lines | every hunk and its enclosing function, for the input, state, timing or caller that makes a line wrong | always |
 | removed | every deleted or rewritten line, the invariant it enforced, and the siblings the diff missed, swept by shape and never by name | the diff deletes a line |
-| claims | every claim the diff writes about itself, a godoc, a comment, a test header, the description, a decision record, each returned with the check that settles it | the diff carries a comment, a doc or a decision record |
+| claims | every claim the diff writes about itself, a godoc, a comment, a test header, the description, a decision record, each returned with the check that settles it, a doc example with its run from outside the package | the diff carries a comment, a doc or a decision record |
 | tests | every test the diff adds or changes, with the mutation that must turn it red | the diff carries a test file |
 | reach | callers and callees of every changed function, and the extremes through every path the diff makes reachable for the first time | always |
 | refactor | every added block rewritten shorter and run, and the depth of each fix | the diff adds a block of twenty lines |
@@ -117,8 +117,8 @@ check:
 | --- | --- | --- |
 | a Warning, a mutation, a causal comparison | one agent, fresh context, the full tier | its own scratch worktree, `git -C <head worktree> worktree add --detach <scratch>/verify-<n> <sha>`, removed at the end |
 | a grep-shaped check, a refactor's test run, a Suggestion | one agent per `verifier_small.batch`, four by default, files kept adjacent, order shuffled, the cheaper tier | one shared worktree, the tree restored between claims |
-| a Nit, outside `deep` | no agent: its row carries state `UNVERIFIED`, the finder's own read and an evidence line saying no independent agent saw it | |
-| a Nit, under `deep` | batches at `nit_batch` and `nit_tools`, a read and never a mutation | the head worktree |
+| a Nit | one cheap agent per `nit_batch`, twelve, its checks reads and never a mutation, the finder's own read re-run by an agent that was not its finder | the head worktree, untouched |
+| a Nit, under `deep` | smaller batches at the full tier, `nit_batch` and `nit_tools` from the preset | the head worktree |
 
 A verdict, filled:
 
@@ -157,7 +157,7 @@ file and one merge pass assembling the whole.
 - `overview.md` per *Overview*, when the slug has none.
 - `comment_<model>.md` per `skills/review-comment.md`, its header opening on the `Verdict:` line, every finding a section, posted or `SKIP`. A PLAUSIBLE finding is a question.
 - `claims.md` per *Output*: the candidate rows come from the workflow, written from the verdicts as data, so the writer composes the draft alone and adds the completeness answers.
-- The `Round:` line names the shape: how many finders, whether a critic ran, how many candidates, and that each was run from scratch by an agent that was not its finder, the Nits on the finder's read counted apart.
+- The `Round:` line names the shape: how many finders, whether a critic ran, how many candidates, and that each was run from scratch by an agent that was not its finder, the Nits in their batches counted apart.
 
 ### Text pass
 
@@ -434,7 +434,7 @@ Round: 1. 7 finders, one critic, 58 candidates, 23 of them Nits on the finder's 
 ```
 
 - `comment_<model>.md`, the draft, per `skills/review-comment.md`: every finding as a section, posted or `SKIP`, with its repro. Its header carries the verdict, the model and effort, the reviewed sha, the overview link and the round note, and `./scripts/post-review.sh` sends nothing above the first section, so the round's judgement and its shape live in the one file the user opens.
-- `claims.md`, the record: one row per candidate the verifiers ran, and one at state `UNVERIFIED` per Nit that shipped on the finder's read: state, band, `file:line`, the check, the observed output, the artifact under `tests/`, and the tier the risk table gave its file. A refuted candidate keeps its row with the proving line, so a later round reads what was cleared and why. Then the completeness answers.
+- `claims.md`, the record: one row per candidate the verifiers ran, and one at state `UNVERIFIED` per Nit the round's ceiling left unrun: state, band, `file:line`, the check, the observed output, the artifact under `tests/`, and the tier the risk table gave its file. A refuted candidate keeps its row with the proving line, so a later round reads what was cleared and why. Then the completeness answers.
 - `tests/`, every artifact a verifier ran, per *Write tests for test-shaped findings*.
 - `links.md`, the text pass's row per link, which is the pass's own coverage proof and not a finding.
 

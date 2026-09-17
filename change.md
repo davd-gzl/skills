@@ -141,9 +141,8 @@ gh repo fork <owner>/<repo> --remote-only --remote-name fork
    proved by breaking what it covers, watching it fire, and restoring it. For a
    behaviour-preserving refactor of a pure function, ship an equivalence proof
    over a large input set.
-8. **Loop over the whole diff, green, until a pass adds nothing.** Read it as a
-   reviewer who did not write it, with the *Verification discipline* and
-   severity model of `skills/review.md`. Apply each, re-run the checks, read
+8. **Loop over the whole diff, green, until a pass adds nothing.** Read it with
+   the *Verification discipline* and severity model of `skills/review.md`. Apply each, re-run the checks, read
    again. That empty pass
    runs unasked and gates the handover. Never hand a finding back as a
    suggestion, and never park one as an open question to keep the report tidy.
@@ -155,6 +154,12 @@ gh repo fork <owner>/<repo> --remote-only --remote-name fork
    never touched sits outside it.
    `comment_<model>.md` stays the postable artifact, per
    `skills/review-comment.md`.
+   **Then run one round over the branch before the change is presented**, per
+   *Own PR* in `skills/review-modes.md`, at the `quick` preset. A diff is
+   never read as its own reviewer: the author's own pass cannot run the
+   `removed`, `claims` and `catalog` angles against the choices it just
+   made. `./scripts/review-plan.py --preset quick --diff <worktree> <base>
+   <head>` prints what it costs before it runs.
 9. **Simplify, last.** Once the loop closes, run the harness simplification
    pass, `/simplify`, over the whole final diff: reuse, fewer lines for the
    same behaviour, a value computed once. Apply what holds, re-run the checks,

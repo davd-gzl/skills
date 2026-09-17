@@ -17,10 +17,20 @@ visibility: the user's own for a public destination, and for a private one a
 machine handle tied to no account, so the commit counts toward nobody's graph.
 `--show` prints the handle it would use and commits nothing.
 
+**Pin the identity in every checkout's own git config, `./scripts/identity --write`.**
+The verb above sets the four variables for its own call and reaches nothing else, so `git rebase`,
+`git cherry-pick`, `git commit --amend` and a bare `git commit` take the config identity: a push
+refused as non-fast-forward is retried with a rebase, and that rebase rewrites a correctly authored
+commit under whatever the machine holds. Local config beats global and loses to the variables, so
+the two agree wherever both apply. `./scripts/identity` alone reports drift, `--audit <n>` names
+every commit this machine's own config committed under neither handle. The machine's global
+identity is the private handle, so an unpinned tree defaults to the one that counts toward nobody's
+graph.
+
 Why it is a verb rather than a line to type. Author and committer must both be
 set, in `GIT_AUTHOR_NAME`, `GIT_AUTHOR_EMAIL`, `GIT_COMMITTER_NAME` and
-`GIT_COMMITTER_EMAIL`: git config on this machine carries another identity, and
-a variable set beats both config and `git -c`. `--amend` keeps the original
+`GIT_COMMITTER_EMAIL`: a variable set beats config, local and global,
+and `git -c` too, so the verb holds in a tree the pin has not reached. `--amend` keeps the original
 author however those four are set, so an amend meant to repair an identity
 repairs the committer alone; the verb passes `--reset-author`. `rebase` and
 `cherry-pick` take the committer where `commit` does, so a rebase run bare

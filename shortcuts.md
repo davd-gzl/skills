@@ -130,7 +130,10 @@ TL;DR: seven findings, one Warning; waits on `post`.
   uncached input at their per-MTok price, a cache read at a tenth of input, a
   cache write at twice it under this session's one-hour TTL. Name the tool each
   figure came from, since a raw transcript sum double-counts a streamed message
-  and `./scripts/review-retro.py` counts it once.
+  and `./scripts/review-retro.py` counts it once. A saving some other shape would
+  have bought is the same claim and takes the same proof: count the turns it
+  removes, then say the figure. An impression of where the money went names the
+  wrong lever, and the user spends their decision on it.
 - Retry a permission refusal from the harness once: a classifier is not
   deterministic. A 403 `Resource not accessible by personal access token` is a
   missing scope, handled per `skills/review-comment.md`.

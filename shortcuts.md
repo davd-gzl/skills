@@ -144,6 +144,8 @@ TL;DR: seven findings, one Warning; waits on `post`.
   elapsed, minutes left against the forecast. A background timer, `sleep 600`
   then the count, wakes the reply and is restarted until the work ends; the
   user never asks. A workflow's count is
-  `./scripts/review-progress.sh <workflow-dir> <plan-minutes>`.
+  `./scripts/review-progress.sh <workflow-dir> <plan-minutes> <round-dir>`, which
+  names the stage and what it has written: an agent count reads near done while a
+  resume's one live stage has produced nothing.
 - Correcting published text means editing it to say the right thing and nothing
   else: no "an earlier version claimed", no strikethrough.

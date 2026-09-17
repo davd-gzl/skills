@@ -10,29 +10,26 @@ the word is given.
 
 ## Commit identity
 
-Two handles, by the visibility of the destination repo: the user's own for a
-public destination, and for a private one a machine handle tied to no account,
-so the commit counts toward nobody's graph. The handles and the repos each
-covers are in the workspace's `workspace.md`, and the gate asks for that file
-before every commit. Author and committer are always the same, and both are
-set on every history-writing command, in the four variables `GIT_AUTHOR_NAME`,
-`GIT_AUTHOR_EMAIL`, `GIT_COMMITTER_NAME` and `GIT_COMMITTER_EMAIL`: git config
-on this machine carries another identity, `git config --global user.email`
-prints it, and a variable set beats config and `git -c`. `rebase` and
-`cherry-pick` take the committer from the same place `commit` does, so a rebase
-run bare commits under the config identity.
+Commit with the consumer's own verb, `./scripts/commit -m <message> <path>...`,
+`-C <repo>` for another tree: it measures the destination's visibility, takes
+the handle from there and sets all four identity variables. Two handles, by
+visibility: the user's own for a public destination, and for a private one a
+machine handle tied to no account, so the commit counts toward nobody's graph.
+`--show` prints the handle it would use and commits nothing.
 
-```bash
-GIT_COMMITTER_NAME=<name> GIT_COMMITTER_EMAIL=<email> \
-  git commit --author='<name> <<email>>' -m '<subject>'
-```
+Why it is a verb rather than a line to type. Author and committer must both be
+set, in `GIT_AUTHOR_NAME`, `GIT_AUTHOR_EMAIL`, `GIT_COMMITTER_NAME` and
+`GIT_COMMITTER_EMAIL`: git config on this machine carries another identity, and
+a variable set beats both config and `git -c`. `--amend` keeps the original
+author however those four are set, so an amend meant to repair an identity
+repairs the committer alone; the verb passes `--reset-author`. `rebase` and
+`cherry-pick` take the committer where `commit` does, so a rebase run bare
+commits under the config identity.
 
-Measure a destination the table does not name:
-`gh repo view <owner>/<repo> --json visibility`. A fix branch under
-`projects/<repo>/changes/<slug>/checkout/` targets a public upstream and takes
-the user's handle even though the parent tree is private; only the parent's own
-commit takes the machine handle. A machine identity in either field of a public
-commit is co-authorship in another shape. Check with
+A fix branch under `projects/<repo>/changes/<slug>/checkout/` targets a public
+upstream and takes the user's handle even though the parent tree is private;
+only the parent's own commit takes the machine handle. A machine identity in
+either field of a public commit is co-authorship in another shape. Check with
 `git log -1 --format='%an <%ae> / %cn <%ce>'` before pushing, and leave past
 commits as they are.
 

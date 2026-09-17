@@ -268,6 +268,20 @@ A step whose answer a program can compute is written as a tool under `tools/` an
 - The tool exits non-zero on what it finds and the skill says what the agent does with the exit, so a miss is never a line in prose the next stage may skip.
 - The skill names the command with its arguments and reads nothing the tool already settled; the crate's README carries the contract and the tests carry the examples.
 
+**A write gets a verb; a read stays free.** Changing a tracked artifact goes
+through a named script under `scripts/`, never through a shell line composed in
+the turn: committing, pushing, posting, editing the `TODO.md`, tagging a draft,
+sweeping a round. A shell line is written once, from memory, under no test, and
+its next reader cannot tell a deliberate choice from a typo. Reading is the
+opposite case and stays unrestricted, `grep`, `git log`, a count, a probe: the
+Principles ask for a measurement taken this session, and a verb nobody wrote yet
+is not a reason to answer from memory. Where a write has no verb, write the verb.
+
+The count of commands is never the rule. A ceiling on shell lines admits a job
+on one reading and refuses it on another, per *Key a rule on the property a
+count stands for* above; what decides is whether the command changes something
+a later session reads.
+
 ## A change to the run's shape
 
 A rule that moves a stage, a tier, a cap, a batch, a read order or an agent count is handed over with its estimate: output tokens, cache read, cache write and minutes per round against the last measured round, as `./scripts/review-plan.py` projects them, and the direction of the finding rate, each a number and each marked estimate until the outcome table measures it. An estimate in output tokens alone measures the minor term, `./scripts/review-retro.py` printing the split per stage. A change with no estimate is a change nobody can judge.

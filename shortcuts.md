@@ -135,11 +135,6 @@ TL;DR: seven findings, one Warning; waits on `post`.
   deterministic. A 403 `Resource not accessible by personal access token` is a
   missing scope, handled per `skills/review-comment.md`.
 
-- **Run a check whose log is long and whose verdict is short inside an agent,
-  and take back the verdict.** A suite, a build, a full-tree lint: the parent
-  pays for every line on the turn it arrives and on every turn after it, so the
-  log's cost compounds while its answer stays one word. The agent returns green,
-  or the failing lines and the command that printed them.
 - An agent's return is not a turn. Reply when the step it fed is finished,
   never per agent.
 - Re-dispatch every agent that died, before anything else, on `continue` and on
@@ -150,7 +145,8 @@ TL;DR: seven findings, one Warning; waits on `post`.
   how many, the minutes and tokens the last measured round of that shape took,
   when to expect them back, and that `stop` kills them. Their return gets the
   same line with what was spent.
-- **Report long work on its own stage boundaries, and set the fallback timer at
+- **Report long work on its own stage boundaries, a background command of your
+  own included, and set the fallback timer at
   a quarter of the forecast, never under twenty minutes.** A wake-up is a parent
   turn that re-reads the whole conversation, so frequent polling costs more than
   the work it reports on. The harness wakes the reply when the work ends; the

@@ -259,6 +259,14 @@ multiplies the calls by the rounds and waits for each round's slowest call.
 - Run `./scripts/rules lint` over every file the edit touched, plus the workspace
   root `AGENTS.md`, and fix what it reports rather than narrowing what it reads.
 
+## A deterministic step is a tool
+
+A step whose answer a program can compute is written as a tool under `tools/` and named by the skill, never asked of a model: resolving a link at a sha, re-anchoring a line through a diff, ranking files by what the diff did to them, cutting a diff into bundles, writing a table from verdicts, checking that a cited file and line exist, counting, sorting, deduplicating by key. A model asked for such a step does it slowly, at a price, and sometimes wrongly, and a wrong table nobody can reopen is worse than no table; the tool does it in a second, the same way every time, and its test pins the way. The rule holds even where the step is small: a check the writer runs before returning costs one call, a check the model is trusted to have done costs the reader.
+
+- When a skill's step reads as "list", "resolve", "rank", "cut", "join", "count" or "check that", ask what the input and the output are; if both are files, it is a tool.
+- The tool exits non-zero on what it finds and the skill says what the agent does with the exit, so a miss is never a line in prose the next stage may skip.
+- The skill names the command with its arguments and reads nothing the tool already settled; the crate's README carries the contract and the tests carry the examples.
+
 ## A change to the run's shape
 
 A rule that moves a stage, a tier, a cap, a batch, a read order or an agent count is handed over with its estimate: output tokens, cache read, cache write and minutes per round against the last measured round, as `./scripts/review-plan.py` projects them, and the direction of the finding rate, each a number and each marked estimate until the outcome table measures it. An estimate in output tokens alone measures the minor term, `./scripts/review-retro.py` printing the split per stage. A change with no estimate is a change nobody can judge.

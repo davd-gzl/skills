@@ -6,6 +6,6 @@ The unit an agent reviews is a bundle of files by category, with a floor and a c
 - A test file joins the code it tests, docs join the code they describe, config and build files form one bundle the danger pass reads first, generated and vendored files form none.
 - A bundle under a screen of diff merges into its neighbour by path; one past the context budget splits on package boundaries.
 
-Source: the paper's file bundling; the design settled 2026-09-17.
+Source: the file bundling of [OpenCodeReview](https://arxiv.org/html/2608.09290v1), one team's reviewer on its own benchmark; the design settled 2026-09-17.
 
 Changes: `round dispatch` prints the bundles, their files and the skipped ones before the run; agents count bundles, one to four per pull request.

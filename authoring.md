@@ -236,6 +236,10 @@ multiplies the calls by the rounds and waits for each round's slowest call.
 `skills/archive/chat-register/` is the harness that measured *Short form* in
 `skills/short-form.md`, kept as the record of that run.
 
+A published result is one measurement on its own models, benchmarks and date,
+and a knowledge line carries those conditions beside its number, so a rule
+drawn from it is measured here, per this section, before it is trusted.
+
 ## Editing this corpus
 
 - `skills/` is the canonical repository, `davd-gzl/skills`, mounted as a

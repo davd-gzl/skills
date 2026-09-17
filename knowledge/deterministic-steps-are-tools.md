@@ -7,6 +7,6 @@ A step a script can decide is written once as a tool; as prose it is re-derived 
 - A 304-line link table built by an agent; `round links` writes it in seven seconds.
 - The paper's reviewer gives its agent six output-capped tools and a 30-call loop, and credits the caps for stopping the token snowball.
 
-Source: the retro of one round and `round links` timed, 2026-09; the OpenCodeReview paper.
+Source: the retro of one round and `round links` timed, 2026-09; [OpenCodeReview](https://arxiv.org/html/2608.09290v1), the caps its authors credit and did not ablate.
 
 Changes: setup, the diff, the prior checks, the links, the sweep and the retro are `round` subcommands; every stage sees a tools manifest before a shell verb.

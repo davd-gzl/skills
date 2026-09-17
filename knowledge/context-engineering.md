@@ -1,6 +1,6 @@
 # Context engineering
 
-The guide the corpus follows for what an agent reads.
+The guide the corpus follows for what an agent reads: one vendor's guidance, no measurement published behind its lines, so each line is a claim the rounds test.
 
 - Right altitude: specific enough to guide, flexible enough to leave heuristics; neither brittle logic nor vague guidance.
 - Sections with headers: background, instructions, tool guidance, output description.

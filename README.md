@@ -223,6 +223,11 @@ cvm is the register every chat reply takes, defined in `skills/short-form.md`, t
 of [`writing-style.md`](writing-style.md). The rules live there and are not
 restated here.
 
+The thinking before a reply takes the same register cut past readability, since
+nobody but the model reads it: the *Thinking* section of `short-form.md`, the
+evidence in [`knowledge/thinking-length-follows-difficulty.md`](knowledge/thinking-length-follows-difficulty.md).
+`reply-check.py` measures the reply and not the thinking.
+
 [`archive/chat-register/`](archive/chat-register/) is the harness that chose the
 wording, archived with [`results.md`](archive/chat-register/results.md), its run:
 candidate wordings against no rule and against the caveman plugin on that

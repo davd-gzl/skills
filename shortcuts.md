@@ -139,13 +139,14 @@ TL;DR: seven findings, one Warning; waits on `post`.
   how many, the minutes and tokens the last measured round of that shape took,
   when to expect them back, and that `stop` kills them. Their return gets the
   same line with what was spent.
-- **Any work past ten minutes reports every ten minutes**, agents, a workflow,
-  a suite, a build, a batch of targets: one line, what is done of what, minutes
-  elapsed, minutes left against the forecast. A background timer, `sleep 600`
-  then the count, wakes the reply and is restarted until the work ends; the
-  user never asks. A workflow's count is
-  `./scripts/review-progress.sh <workflow-dir> <plan-minutes> <round-dir>`, which
-  names the stage and what it has written: an agent count reads near done while a
-  resume's one live stage has produced nothing.
+- **Report long work on its own stage boundaries, and set the fallback timer at
+  a quarter of the forecast, never under twenty minutes.** A wake-up is a parent
+  turn that re-reads the whole conversation, so frequent polling costs more than
+  the work it reports on. The harness wakes the reply when the work ends; the
+  timer is the fallback for work it cannot notify on.
+  Each wake says which stage and what it wrote, never a percentage:
+  `./scripts/review-progress.sh <workflow-dir> <plan-minutes> <round-dir>`, since
+  an agent count reads near done while a resume's one live stage has produced
+  nothing. The user never asks.
 - Correcting published text means editing it to say the right thing and nothing
   else: no "an earlier version claimed", no strikethrough.

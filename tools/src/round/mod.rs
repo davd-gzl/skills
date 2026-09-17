@@ -3,6 +3,7 @@
 //! names the step; this binary runs it, so no agent turn does. `links` checks every blob link
 //! of a round, `prior` carries the earlier rounds' checks to the head.
 mod assemble;
+mod check;
 mod dispatch;
 mod links;
 mod prior;
@@ -13,6 +14,7 @@ use std::path::Path;
 use std::process::Command;
 
 pub use assemble::{assemble_cmd, Row as ClaimRow};
+pub use check::{check_cmd, Hit};
 pub use dispatch::{dispatch_cmd, Bundle};
 pub use links::{find_links, judge, links, Blob, Link, Verdict};
 pub use prior::{checks_to_json, json_string, parse_row, prior, Hunk, LineMap, PriorCheck, Row};
@@ -55,7 +57,13 @@ pub const USAGE: &str = "round <subcommand> ...
       to its candidate and one per candidate no verifier reached, the rows a finder
       settled, the hit rate per tier and an empty Completeness section; findings.md one
       block per finding in posting order, SKIP in front of a PLAUSIBLE Nit. Exit 1 when a
-      row's file:line is not at the head.";
+      row's file:line is not at the head.
+
+  check <round dir> [--overview <file>] [--out <file>]
+      The mechanical half of the text pass over the round's comment_*.md and the overview.md
+      beside the directory: an em-dash outside a fence, a visible sentence ending in a
+      question mark, a finding header without its [gh] link, a phrase that points at the
+      page, a Full review: line. One row per hit into <round dir>/check.md; exit 1 on any.";
 
 pub fn dispatch(args: &[String]) -> i32 {
     match args.first().map(String::as_str) {
@@ -64,6 +72,7 @@ pub fn dispatch(args: &[String]) -> i32 {
         Some("risk") if args.len() >= 4 => risk(&args[1..]),
         Some("dispatch") if args.len() >= 4 => dispatch_cmd(&args[1..]),
         Some("assemble") if args.len() >= 2 => assemble_cmd(&args[1..]),
+        Some("check") if args.len() >= 2 => check_cmd(&args[1..]),
         _ => {
             eprintln!("{USAGE}");
             2

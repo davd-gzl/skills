@@ -135,6 +135,11 @@ TL;DR: seven findings, one Warning; waits on `post`.
   deterministic. A 403 `Resource not accessible by personal access token` is a
   missing scope, handled per `skills/review-comment.md`.
 
+- **Run a check whose log is long and whose verdict is short inside an agent,
+  and take back the verdict.** A suite, a build, a full-tree lint: the parent
+  pays for every line on the turn it arrives and on every turn after it, so the
+  log's cost compounds while its answer stays one word. The agent returns green,
+  or the failing lines and the command that printed them.
 - An agent's return is not a turn. Reply when the step it fed is finished,
   never per agent.
 - Re-dispatch every agent that died, before anything else, on `continue` and on

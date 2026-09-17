@@ -162,8 +162,15 @@ gh repo fork <owner>/<repo> --remote-only --remote-name fork
    and the empty one is recorded in the plan's Iterations. It runs unasked, and
    its trigger is every fix handed back rather than a change's end alone: a turn
    reporting a behaviour change done runs this pass before reporting it.
-10. **Report** the changed files and what each change does.
-11. **Keep the worktree.** It carries review feedback, rebases and follow-up
+10. **Run a round over the branch diff, after the simplify pass and before any
+    push.** `./scripts/review-setup.sh`, then the review runner by `scriptPath`
+    at the `quick` or `critical` preset, in Own PR mode per
+    `skills/review-modes.md`; the branch has no pull request yet, so that mode's
+    author check is the branch itself. Step 8 is the author's own eyes, and a
+    branch that ships on those alone was read by nobody else. A finding reopens
+    step 8.
+11. **Report** the changed files and what each change does.
+12. **Keep the worktree.** It carries review feedback, rebases and follow-up
     work until the pull request merges.
 
 ## Presenting the change

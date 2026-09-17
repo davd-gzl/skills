@@ -21,7 +21,16 @@ self=scripts/scrub.sh
 secrets='ghp_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|gho_[A-Za-z0-9]{20,}|AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY|sk-[A-Za-z0-9]{20,}|xox[baprs]-[A-Za-z0-9-]{10,}|Bearer [A-Za-z0-9._-]{20,}|(password|passwd|secret|token|api[_-]?key)[[:space:]]*[:=][[:space:]]*["'\''][^"'\'']{6,}'
 names=''
 file="${SCRUB_NAMES:-../workspace.json}"
-[ -f "$file" ] && names=$(jq -r '.private_names // [] | join("|")' "$file")
+# jq where the box has it, python3 otherwise: this repository is mounted on boxes carrying neither by default.
+if [ -f "$file" ]; then
+  if command -v jq >/dev/null 2>&1; then
+    names=$(jq -r '.private_names // [] | join("|")' "$file")
+  elif command -v python3 >/dev/null 2>&1; then
+    names=$(python3 -c 'import json,sys; print("|".join(json.load(open(sys.argv[1])).get("private_names",[])))' "$file")
+  else
+    echo "scrub: neither jq nor python3 reads $file, so private names go unchecked" >&2; exit 1
+  fi
+fi
 hits=$(mktemp); lines=$(mktemp); trap 'rm -f "$hits" "$lines"' EXIT
 
 check() { # every line of $lines is "file: text"; a hit is appended to $hits with its kind

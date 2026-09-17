@@ -167,8 +167,14 @@ gh repo fork <owner>/<repo> --remote-only --remote-name fork
    and the empty one is recorded in the plan's Iterations. It runs unasked, and
    its trigger is every fix handed back rather than a change's end alone: a turn
    reporting a behaviour change done runs this pass before reporting it.
-10. **Report** the changed files and what each change does.
-11. **Keep the worktree.** It carries review feedback, rebases and follow-up
+10. **Read what a push turned up before reporting the branch done.** A push
+    reaches the check runs and the bots watching the pull request: read both
+    in the turn that pushed, the check runs per *Fetch & understand* in
+    `skills/review.md` and the reviews with
+    `gh api repos/<owner>/<repo>/pulls/<n>/comments`. Where neither has
+    posted yet, say the branch is unread and name when to look.
+11. **Report** the changed files and what each change does.
+12. **Keep the worktree.** It carries review feedback, rebases and follow-up
     work until the pull request merges.
 
 ## Presenting the change

@@ -65,7 +65,8 @@ unchanged; an estimate until a blind round measures it.
 
 Check with `gh pr view <number> --json author`. Findings land as commits on the branch, never as a review to post.
 
-- No `comment_<model>.md`, no `pr-body.md`, post nothing. `claims.md` and `overview.md` are still written.
+- Draft nothing for a reader: no `comment_<model>.md`, no `claims.md`, no `pr-body.md`, no text pass, and post nothing. The round ends at `findings.md` and the fixes come off it in the same turn.
+- Write `overview.md`, which the next round on the target reads.
 - Apply every mechanical fix in the checkout the review uses: comments, docs, tests, naming, dead code. Then *Fix* step 7 in `skills/change.md`, the local CI run, until green.
 - Never apply without asking: observable behavior changes, fixes to defects predating the branch, anything a maintainer would treat as a design decision. Present each as a named decision.
 - One commit per finding class, conventional subject. Push to the PR's head repository, never upstream.

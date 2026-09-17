@@ -91,6 +91,7 @@ Do not ship the first draft. Re-read against the checks below, revise, repeat un
 3. Cut every sentence that does not change the merge decision: diff restating, process narration, "this PR" openers.
 4. Skim it in ten seconds, first lines and diagrams only. If that does not give the merge decision, lift the argument's turns into one-line paragraphs.
 5. Check against the diff one last time. A body describing a change not in the diff is worse than none.
+6. Cut every heading the chosen shape does not list, `## What to review closely` above all, whose parts go as inline comments per `skills/pr-body/surface.md`; a body revised on the forge is re-derived from the shape, never edited section by section from the copy there.
 
 Past the shape's budget: cut, never restructure. Overflow detail belongs in the review file and the plan. The count is never the target: the body is done when a cold read lands on the first pass.
 

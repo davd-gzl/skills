@@ -452,7 +452,51 @@ def cmd_pre_commit(cwd):
     top = Path(_git(cwd, 'rev-parse', '--show-toplevel').strip())
     staged = [line for line in _git(cwd, 'diff', '--cached', '--name-only', '--diff-filter=ACMR').splitlines() if line]
     paths = [relative(top / p) or str(top / p) for p in staged]
-    return report(check(['git', *paths]))
+    refused = runner_parse_errors(top, staged) + unpushed_gitlinks(top, cwd)
+    for line in refused:
+        print(f'refused: {line}', file=sys.stderr)
+    rc = report(check(['git', *paths]))
+    return 1 if refused else rc
+
+
+def runner_parse_errors(top, staged):
+    """A staged workflow script that does not parse, wrapped as the async function body the harness runs it as: a bare
+    backtick in a prompt string once shipped and every launch died before an agent ran, and `node --check` on the raw
+    file fails on the top-level return a healthy script carries. Nothing is checked when node is absent."""
+    scripts = [p for p in staged if p.startswith('scripts/workflows/') and p.endswith('.js')]
+    if not scripts or shutil.which('node') is None:
+        return []
+    out = []
+    for p in scripts:
+        src = (top / p).read_text()
+        wrapped = '(async()=>{' + re.sub(r'^export const meta', 'const meta', src, count=1, flags=re.M) + '})'
+        run = subprocess.run(['node', '-e', 'new (require("vm").Script)(require("fs").readFileSync(0, "utf8"))'],
+                             input=wrapped, capture_output=True, text=True)
+        if run.returncode != 0:
+            first = next((l for l in run.stderr.splitlines() if l.strip()), 'syntax error')
+            out.append(f'{p} does not parse as a workflow script: {first.strip()}')
+    return out
+
+
+def unpushed_gitlinks(top, cwd):
+    """A staged submodule pointer at a commit no remote branch of that submodule holds: a clone cannot resolve it and
+    every later push of this repository is refused over it, so the submodule is pushed first."""
+    out = []
+    for line in _git(cwd, 'diff', '--cached', '--raw').splitlines():
+        parts = line.split('\t')
+        if len(parts) != 2 or not parts[0].startswith(':'):
+            continue
+        meta, path = parts[0].split(), parts[1]
+        if len(meta) < 4 or meta[1] != '160000':
+            continue
+        sha = meta[3]
+        sub = top / path
+        if not (sub / '.git').exists():
+            continue
+        held = subprocess.run(['git', '-C', str(sub), 'branch', '-r', '--contains', sha], capture_output=True, text=True)
+        if held.returncode != 0 or not held.stdout.strip():
+            out.append(f'{path} points at {sha[:9]}, which no remote branch of that submodule holds: push the submodule first')
+    return out
 
 
 def cmd_pre_push(stdin, cwd):

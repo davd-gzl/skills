@@ -10,6 +10,7 @@ import io
 import json
 import os
 import pathlib
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -518,6 +519,53 @@ class PreCommit(GateCase):
         for name in ('meet', 'change', 'writing-style', 'git', 'workspace'):
             gate.record_read(name)
         self.assertEqual(gate.main(['pre-commit'], cwd=str(repo)), 0)
+
+
+class PreCommitRefusals(GateCase):
+    def _repo(self):
+        repo = self.root
+        subprocess.run(['git', 'init', '-q', str(repo)], check=True)
+        for name in ('git', 'workspace'):
+            gate.record_read(name)
+        return repo
+
+    def test_a_workflow_script_with_a_bare_backtick_is_refused(self):
+        if shutil.which('node') is None:
+            self.skipTest('node absent')
+        repo = self._repo()
+        script = repo / 'scripts/workflows/x.js'
+        script.parent.mkdir(parents=True)
+        script.write_text('export const meta = { name: "x" }\nconst p = `a ` b`\nreturn p\n')
+        subprocess.run(['git', '-C', str(repo), 'add', 'scripts/workflows/x.js'], check=True)
+        err = io.StringIO()
+        with redirect_stderr(err):
+            rc = gate.main(['pre-commit'], cwd=str(repo))
+        self.assertEqual(rc, 1)
+        self.assertIn('scripts/workflows/x.js does not parse as a workflow script', err.getvalue())
+        script.write_text('export const meta = { name: "x" }\nconst p = `a \\` b`\nreturn p\n')
+        subprocess.run(['git', '-C', str(repo), 'add', 'scripts/workflows/x.js'], check=True)
+        with redirect_stderr(io.StringIO()):
+            self.assertEqual(gate.main(['pre-commit'], cwd=str(repo)), 0, 'a top-level return parses once wrapped')
+
+    def test_a_gitlink_no_remote_holds_is_refused(self):
+        repo = self._repo()
+        sub = repo / 'sub'
+        subprocess.run(['git', 'init', '-q', str(sub)], check=True)
+        (sub / 'f').write_text('x')
+        env = {**os.environ, 'GIT_AUTHOR_NAME': 't', 'GIT_AUTHOR_EMAIL': 't@x', 'GIT_COMMITTER_NAME': 't', 'GIT_COMMITTER_EMAIL': 't@x'}
+        subprocess.run(['git', '-C', str(sub), 'add', 'f'], check=True)
+        subprocess.run(['git', '-C', str(sub), 'commit', '-qm', 'one'], check=True, env=env)
+        sha = subprocess.run(['git', '-C', str(sub), 'rev-parse', 'HEAD'], capture_output=True, text=True, check=True).stdout.strip()
+        subprocess.run(['git', '-C', str(repo), 'update-index', '--add', '--cacheinfo', f'160000,{sha},sub'], check=True)
+        err = io.StringIO()
+        with redirect_stderr(err):
+            rc = gate.main(['pre-commit'], cwd=str(repo))
+        self.assertEqual(rc, 1)
+        self.assertIn('sub points at', err.getvalue())
+        self.assertIn('push the submodule first', err.getvalue())
+        subprocess.run(['git', '-C', str(sub), 'update-ref', 'refs/remotes/origin/main', sha], check=True)
+        with redirect_stderr(io.StringIO()):
+            self.assertEqual(gate.main(['pre-commit'], cwd=str(repo)), 0, 'held by a remote branch, the pointer passes')
 
 
 class PrePush(GateCase):

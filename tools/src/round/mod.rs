@@ -2,6 +2,7 @@
 //! The deterministic steps of a review round, one subcommand each. Prose in skills/review.md
 //! names the step; this binary runs it, so no agent turn does. `links` checks every blob link
 //! of a round, `prior` carries the earlier rounds' checks to the head.
+mod assemble;
 mod dispatch;
 mod links;
 mod prior;
@@ -11,6 +12,7 @@ use std::collections::HashMap;
 use std::path::Path;
 use std::process::Command;
 
+pub use assemble::{assemble_cmd, Row as ClaimRow};
 pub use dispatch::{dispatch_cmd, Bundle};
 pub use links::{find_links, judge, links, Blob, Link, Verdict};
 pub use prior::{checks_to_json, json_string, parse_row, prior, Hunk, LineMap, PriorCheck, Row};
@@ -43,7 +45,17 @@ pub const USAGE: &str = "round <subcommand> ...
       config in one bundle, generated files skipped. Each bundle lists the angles it has
       material for and the finders it earns: one per angle, or one carrying every angle
       under the floor. --diff-dir writes each bundle's diff with its enclosing functions
-      and a comment-blanked twin. The table to --out, else to stdout; JSON to --json.";
+      and a comment-blanked twin. The table to --out, else to stdout; JSON to --json.
+
+  assemble <round dir> [--repo <head worktree>] [--sha <sha>] [--risk <risk.json>] [--url <blob url base>]
+           [--title <text>] [--shape <text>]
+      claims.md and findings.md from the round's verdicts as data: candidates/*.json, what
+      each finder, the reflector and the critic returned, and verdicts/*.json, what each
+      verifier returned. claims.md holds the Candidates table, one row per verdict joined
+      to its candidate and one per candidate no verifier reached, the rows a finder
+      settled, the hit rate per tier and an empty Completeness section; findings.md one
+      block per finding in posting order, SKIP in front of a PLAUSIBLE Nit. Exit 1 when a
+      row's file:line is not at the head.";
 
 pub fn dispatch(args: &[String]) -> i32 {
     match args.first().map(String::as_str) {
@@ -51,6 +63,7 @@ pub fn dispatch(args: &[String]) -> i32 {
         Some("prior") if args.len() >= 2 => prior(&args[1..]),
         Some("risk") if args.len() >= 4 => risk(&args[1..]),
         Some("dispatch") if args.len() >= 4 => dispatch_cmd(&args[1..]),
+        Some("assemble") if args.len() >= 2 => assemble_cmd(&args[1..]),
         _ => {
             eprintln!("{USAGE}");
             2

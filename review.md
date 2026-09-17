@@ -20,7 +20,7 @@ every reference clickable, every file readable without the chat, and the one
 number or word that carries the decision in bold.
 
 Sections, and the moment each is read: *Workflow*, the parent, every round;
-*Launch*, the parent at step 4; *Finders*, *Reflector*, *Verifiers*, *Critic*,
+*Launch*, the parent at step 4; *Triage*, the triage agent; *Finders*, *Reflector*, *Verifiers*,
 *Writer* and *Text pass*, the stage of that name; *The critical pass*, a vulnerability
 fix; *Subjects*, a branch or a red CI; *Modes*, several targets, an authored
 target, `plan review`; *Fetch & understand*, the parent at step 1; *Re-review
@@ -50,7 +50,7 @@ The word sets the shape, and the word is how well the user knows the code:
 1. Prepare, per *Fetch & understand*, and dispatch the overview agent the moment the head worktree exists.
 2. Run the *Re-review rounds* gate when a prior round exists.
 3. *Reproduce the failure*: each suite once per tree state, the project's tool built once from the head worktree, named in `args.prebuilt`.
-4. Print the plan and launch, per *Launch*; the stages read *Finders*, *Verifiers*, *Critic*, *Writer* and *Text pass*.
+4. Print the plan and launch, per *Launch*; the triage names the class first, and the stages read *Finders*, *Reflector*, *Verifiers*, *Writer* and *Text pass*.
 5. Run the *Final check* of `skills/review-comment.md`, then the `skills/writing-style.md` Pass over `overview.md` and the draft, `./scripts/prose-check.py <file>` first; re-run it after any later edit to that prose, an edit made in answer to a question included, and state which passes ran. Where the target fixes a reported vulnerability, *The critical pass* in `skills/review.md` runs here.
 6. One commit and one push covering everything, pre-authorized per *Rules*.
 7. Retro, per *Retro*.
@@ -72,6 +72,23 @@ What the parent hands the runner, and what every stage gets from it.
 - The two drafting rules, `skills/review-comment.md` and `skills/writing-style.md`, are read when the writer stage opens, by the agent or the parent running it, never at the prompt: no stage before the writer drafts prose, and a rule read at the prompt sits in the parent's context through every finder and verifier call.
 - The verify stage is the claim gate; no second gate runs.
 - Without the runner, a harness that may dispatch agents dispatches the same stages as agents from the parent, same prompts, each returning its result as data and never a transcript; one that may run neither runs them serially in the parent. The round note names which of the three ran, what ruled out the others, and the parent's context at handover, read from the transcript's last `usage` line.
+
+### Triage
+
+One short agent before any stage is sized, reading the diff, the risk table
+and the material, and naming the change's class; the class sets the shape and
+the word caps it. Size is one factor and never the trigger.
+
+| Class | The change | The round |
+| --- | --- | --- |
+| trivial | no behaviour changes: a doc, a comment, a rename, a version bump, a test-only edit that adds no case | one solo agent finds, runs what it bands Warning, judges and writes; `solo.agents` 2 puts a fresh judge and writer behind a finder |
+| simple | one local behaviour change whose blast radius is one function and its direct callers | one finder per bundle carrying every angle, one judge batch, the writer, no reflector, no text pass |
+| normal | a behaviour change with more than one reach, a new invariant, a guard removed, a test that must turn red | the word's shape as configured |
+| complex | concurrency, consensus, gas or allocation accounting, funds, permissions or caller identity, cryptography, a state machine, a migration, a hot file with a removed guard, or a change one reading cannot hold | a second round by yield, one judge per run-shaped candidate, the text pass |
+
+- Unsure between two classes takes the higher.
+- `quick` caps the class at simple; `deep` skips the triage and takes complex; `args.shape` names a class outright; a round with topics, the critical pass, is never triaged.
+- A round that finds nothing runs no judge, no reflector and no text pass: the writer ships the header, the verdict and one true sentence, and `claims.md` the empty table.
 
 ### Finders
 
@@ -127,6 +144,7 @@ A drop, filled:
 
 - Drop a candidate only when a line of code in the diff or at the head, quoted, contradicts it outright; a comment, a doc line or a description never settles a drop, being the code's claim about itself: the guard it calls missing sits three lines up, the value it calls unbounded is clamped at the call site, the function it names was deleted.
 - Unsure keeps it. The verifiers do the killing a read cannot, and a Warning dropped on a guess is the round's worst outcome.
+- Under `reflector.min_candidates`, six, the stage is skipped: a read over three candidates is not worth an agent.
 - Every drop is a row of `claims.md`, the line quoted, so a later round reads what was cleared and why: write `<round dir>/candidates/reflector.json` before returning, `dropped` holding each drop with its candidate's file, line, angle and summary and your `settled_by`, and `candidates` holding the missing list.
 - Then ask what is missing, the round's one completeness question: an angle that came back thin, a class of the catalog no candidate touches, a changed test not re-added; return each as a candidate with the check that settles it, never a line already listed.
 
@@ -182,6 +200,7 @@ file and one merge pass assembling the whole.
 
 One agent, last, per the QA rule in `skills/review-comment.md`, over the
 draft and the overview.
+Under `text.min_findings`, four, the pass is skipped: `round check` and the writer's own read cover a draft that short.
 
 1. Run `./scripts/round links <round dir> --repo <head worktree>` first: it writes `links.md`, one row per link with whether the file resolves at the pinned sha and the range fits, and exits 1 on a miss.
 2. Read that table and add, per row, whether the landed lines carry the claim beside the link; none of it enters `claims.md`, which a reader opens for the findings.

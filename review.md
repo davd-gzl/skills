@@ -84,9 +84,10 @@ the word caps it. Size is one factor and never the trigger.
 | trivial | no behaviour changes: a doc, a comment, a rename, a version bump, a test-only edit that adds no case | one solo agent finds, runs what it bands Warning, judges and writes; `solo.agents` 2 puts a fresh judge and writer behind a finder |
 | simple | one local behaviour change whose blast radius is one function and its direct callers | one finder per bundle carrying every angle, one judge batch, the writer, no reflector, no text pass |
 | normal | a behaviour change with more than one reach, a new invariant, a guard removed, a test that must turn red | the word's shape as configured |
-| complex | concurrency, consensus, gas or allocation accounting, funds, permissions or caller identity, cryptography, a state machine, a migration, a hot file with a removed guard, or a change one reading cannot hold | a second round by yield, one judge per run-shaped candidate, the text pass |
+| complex | **one reading does not hold it**: the mechanism is new here, or two of them interact, or the reader cannot say from the diff alone what the code now does. The subjects that usually fail that test, and never pass it on their own: concurrency, consensus, gas or allocation accounting, funds, permissions or caller identity, cryptography, a state machine, a migration, a hot file with a removed guard | a second round by yield, one judge per run-shaped candidate, the text pass |
 
-- Unsure between two classes takes the higher.
+- Unsure between two classes takes the higher, once the reading has been tried.
+- Name what a second reading buys before naming a class, since a subject on the complex row is not the trigger. Nothing to name means normal.
 - `quick` caps the class at simple; `deep` skips the triage and takes complex; `args.shape` names a class outright; a round with topics, the critical pass, is never triaged.
 - A round that finds nothing runs no judge, no reflector and no text pass: the writer ships the header, the verdict and one true sentence, and `claims.md` the empty table.
 

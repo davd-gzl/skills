@@ -145,9 +145,9 @@ A drop, filled:
 
 - Drop a candidate only when a line of code in the diff or at the head, quoted, contradicts it outright; a comment, a doc line or a description never settles a drop, being the code's claim about itself: the guard it calls missing sits three lines up, the value it calls unbounded is clamped at the call site, the function it names was deleted.
 - Unsure keeps it. The verifiers do the killing a read cannot, and a Warning dropped on a guess is the round's worst outcome.
-- Under `reflector.min_candidates`, six, the stage is skipped: a read over three candidates is not worth an agent.
-- Every drop is a row of `claims.md`, the line quoted, so a later round reads what was cleared and why: write `<round dir>/candidates/reflector.json` before returning, `dropped` holding each drop with its candidate's file, line, angle and summary and your `settled_by`, and `candidates` holding the missing list.
-- Then ask what is missing, the round's one completeness question: an angle that came back thin, a class of the catalog no candidate touches, a changed test not re-added; return each as a candidate with the check that settles it, never a line already listed.
+- The gate is the diff, never the candidate count: under `reflector.min_bundles` the stage is skipped. A round with few candidates and wide material is where the completeness question pays most, and the drop half it would also lose is the half the judges already do.
+- **Answer the completeness question first**, the round's one: an angle that came back thin, a class of the catalog no candidate touches, a changed test not re-added; return each as a candidate with the check that settles it, never a line already listed. No later stage can add a candidate, a judge filing none of its own, so what this misses the round never sees; a drop it misses the judge routed to that candidate still makes.
+- Drop what is left with the calls that remain. Every drop is a row of `claims.md`, the line quoted, so a later round reads what was cleared and why: write `<round dir>/candidates/reflector.json` before returning, `dropped` holding each drop with its candidate's file, line, angle and summary and your `settled_by`, and `candidates` holding the missing list.
 
 ### Verifiers
 

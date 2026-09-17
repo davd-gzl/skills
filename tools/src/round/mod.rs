@@ -17,7 +17,10 @@ pub use assemble::{assemble_cmd, Row as ClaimRow};
 pub use check::{check_cmd, Hit};
 pub use dispatch::{dispatch_cmd, Bundle};
 pub use links::{find_links, judge, links, Blob, Link, Verdict};
-pub use prior::{checks_to_json, json_string, parse_row, prior, Hunk, LineMap, PriorCheck, Row};
+pub use prior::{
+    applied_rows, applied_to_json, checks_to_json, json_string, parse_row, prior, AppliedFix,
+    AppliedRow, Hunk, LineMap, PriorCheck, Row,
+};
 pub use risk::{rank, risk, FileRisk, Kind, Tier};
 
 pub const USAGE: &str = "round <subcommand> ...
@@ -28,12 +31,14 @@ pub const USAGE: &str = "round <subcommand> ...
       gh api, and the #L range inside it. One row per link into <round dir>/links.md,
       exit 1 when any link misses; a file the forge could not serve says why.
 
-  prior <slug dir> --repo <git dir> --sha <head sha> [--json <file>]
+  prior <slug dir> --repo <git dir> --sha <head sha> [--json <file>] [--applied <file>]
       The Check cell of every candidate row in the slug's earlier claims.md files,
       keyed file:line at the head: a row's line is mapped from its round's sha to the
       head through git diff, and a row whose line the head removed is dropped. A row
       with no file:line anchor is counted and left out. The State and Observed cells
-      never leave the file. JSON to --json, else to stdout.
+      never leave the file. JSON to --json, else to stdout. --applied writes the other
+      half, what an earlier round's ## Applied table says a commit already fixed, keyed
+      at the head the same way, so a finder is not sent to re-find it.
 
   risk <repo> <base> <head> [--prior <slug dir>] [--keywords <file>] [--out <file>] [--json <file>]
       Every changed file ranked hot, warm or cold from what git and the diff carry: a

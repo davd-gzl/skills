@@ -88,9 +88,11 @@ impl LineMap {
     }
 }
 
-/// A candidate row of `claims.md`: its `file:line` anchor and its Check cell.
+/// A candidate row of `claims.md`: its number, its `file:line` anchor and its Check cell. The
+/// number is what the round's own `## Applied` table names its findings by.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Row {
+    pub index: Option<usize>,
     pub state: String,
     pub anchor: String,
     pub check: String,
@@ -106,6 +108,7 @@ static CANDIDATE_ROW: LazyLock<Regex> = LazyLock::new(|| {
 pub fn parse_row(line: &str) -> Option<Row> {
     let caps = CANDIDATE_ROW.captures(line)?;
     Some(Row {
+        index: caps.get(1).and_then(|m| m.as_str().parse().ok()),
         state: caps[2].to_string(),
         anchor: caps[3].trim().to_string(),
         check: caps[4].trim().to_string(),
@@ -118,6 +121,59 @@ fn split_anchor(anchor: &str) -> Option<(&str, usize)> {
     let (path, line) = anchor.trim_matches('`').rsplit_once(':')?;
     let first = line.split('-').next().unwrap_or(line);
     Some((path, first.parse().ok()?))
+}
+
+/// One row of a round's `## Applied` table: the commit, the finding numbers it closes, and what it
+/// changed.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AppliedRow {
+    pub commit: String,
+    pub findings: Vec<usize>,
+    pub what: String,
+}
+
+static APPLIED_ROW: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"^\|\s*([0-9a-f]{7,40})\s*\|\s*([0-9][0-9,\s]*?)\s*\|\s*([^|]*?)\s*\|").unwrap()
+});
+
+/// The rows of the `## Applied` table, the section running from its heading to the next `## `. A
+/// row outside it is not one: the Candidates table above carries commits in no column.
+pub fn applied_rows(text: &str) -> Vec<AppliedRow> {
+    let mut out = Vec::new();
+    let mut inside = false;
+    for line in text.lines() {
+        if let Some(rest) = line.strip_prefix("## ") {
+            inside = rest.trim().eq_ignore_ascii_case("applied");
+            continue;
+        }
+        if !inside {
+            continue;
+        }
+        let Some(caps) = APPLIED_ROW.captures(line) else {
+            continue;
+        };
+        let findings: Vec<usize> = caps[2]
+            .split(',')
+            .filter_map(|n| n.trim().parse().ok())
+            .collect();
+        if findings.is_empty() {
+            continue;
+        }
+        out.push(AppliedRow {
+            commit: caps[1].to_string(),
+            findings,
+            what: caps[3].trim().to_string(),
+        });
+    }
+    out
+}
+
+/// A fix an earlier round applied, keyed at the head by `file:line`.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AppliedFix {
+    pub round: String,
+    pub commit: String,
+    pub what: String,
 }
 
 /// One earlier check, keyed at the head by `file:line`.
@@ -178,6 +234,8 @@ struct Tally {
     dropped: usize,
     /// Rows whose anchor is not `file:line`, an older table's claim sentence: nothing keys them.
     unanchored: usize,
+    /// Anchors an earlier round's `## Applied` table claims a commit closed.
+    applied: usize,
 }
 
 pub fn prior(args: &[String]) -> i32 {
@@ -203,6 +261,7 @@ pub fn prior(args: &[String]) -> i32 {
         }
     };
     let mut checks: BTreeMap<String, Vec<PriorCheck>> = BTreeMap::new();
+    let mut applied: BTreeMap<String, Vec<AppliedFix>> = BTreeMap::new();
     let mut maps = HeadMaps {
         repo,
         head,
@@ -217,6 +276,36 @@ pub fn prior(args: &[String]) -> i32 {
             .map(|(_, sha)| sha.to_string())
             .unwrap_or_default();
         let text = fs::read_to_string(dir.join("claims.md")).unwrap_or_default();
+        // The Applied table names its findings by the Candidates table's own numbering, so the
+        // numbers mean nothing outside the round that wrote them.
+        let by_index: HashMap<usize, String> = text
+            .lines()
+            .filter_map(parse_row)
+            .filter_map(|row| Some((row.index?, row.anchor)))
+            .collect();
+        for row in applied_rows(&text) {
+            for number in &row.findings {
+                let Some(anchor) = by_index.get(number) else {
+                    continue;
+                };
+                let Some((path, line)) = split_anchor(anchor) else {
+                    continue;
+                };
+                let at_head = match maps.land(&old_sha, path, line) {
+                    Landed::Same(at) | Landed::Moved(at) => at,
+                    Landed::Removed => continue,
+                };
+                tally.applied += 1;
+                applied
+                    .entry(format!("{path}:{at_head}"))
+                    .or_default()
+                    .push(AppliedFix {
+                        round: round.clone(),
+                        commit: row.commit.clone(),
+                        what: row.what.clone(),
+                    });
+            }
+        }
         for row in text.lines().filter_map(parse_row) {
             if row.check.is_empty() || row.check == "---" {
                 continue;
@@ -247,14 +336,25 @@ pub fn prior(args: &[String]) -> i32 {
         }
     }
     let json = checks_to_json(&checks);
+    if let Some(path) = opts.get("applied") {
+        if let Err(e) = fs::write(path, applied_to_json(&applied) + "\n") {
+            eprintln!("{path}: {e}");
+            return 2;
+        }
+    }
     let summary = format!(
-        "{} anchors from {} prior claims.md: {} rows kept, {} re-anchored to the head, {} dropped whose line the head removed, {} with no file:line anchor left out",
+        "{} anchors from {} prior claims.md: {} rows kept, {} re-anchored to the head, {} dropped whose line the head removed, {} with no file:line anchor left out. {} anchors an Applied table claims a commit closed, {}.",
         checks.len(),
         rounds.len(),
         tally.kept,
         tally.moved,
         tally.dropped,
-        tally.unanchored
+        tally.unanchored,
+        applied.len(),
+        match opts.get("applied") {
+            Some(path) => format!("in {path}"),
+            None => "not written: pass --applied <file> for them".to_string(),
+        }
     );
     match opts.get("json") {
         Some(path) => {
@@ -262,7 +362,7 @@ pub fn prior(args: &[String]) -> i32 {
                 eprintln!("{path}: {e}");
                 return 2;
             }
-            println!("{summary}, written to {path}");
+            println!("{summary} The checks are in {path}.");
         }
         None => {
             println!("{json}");
@@ -311,6 +411,28 @@ pub fn checks_to_json(checks: &BTreeMap<String, Vec<PriorCheck>>) -> String {
                         "{{\"round\": \"{}\", \"check\": \"{}\"}}",
                         json_string(&row.round),
                         json_string(&row.check)
+                    )
+                })
+                .collect();
+            format!("\"{}\": [{}]", json_string(anchor), items.join(", "))
+        })
+        .collect();
+    format!("{{{}}}", entries.join(", "))
+}
+
+/// `{"file:line": [{"round": "...", "commit": "...", "what": "..."}, ...], ...}`, keys in order.
+pub fn applied_to_json(applied: &BTreeMap<String, Vec<AppliedFix>>) -> String {
+    let entries: Vec<String> = applied
+        .iter()
+        .map(|(anchor, fixes)| {
+            let items: Vec<String> = fixes
+                .iter()
+                .map(|fix| {
+                    format!(
+                        "{{\"round\": \"{}\", \"commit\": \"{}\", \"what\": \"{}\"}}",
+                        json_string(&fix.round),
+                        json_string(&fix.commit),
+                        json_string(&fix.what)
                     )
                 })
                 .collect();
@@ -374,8 +496,9 @@ mod tests {
 
     #[test]
     fn parse_row_both_shapes() {
-        let row = |state: &str, anchor: &str, check: &str| {
+        let row = |index: Option<usize>, state: &str, anchor: &str, check: &str| {
             Some(Row {
+                index,
                 state: state.into(),
                 anchor: anchor.into(),
                 check: check.into(),
@@ -383,11 +506,11 @@ mod tests {
         };
         assert_eq!(
             parse_row("| 3 | CONFIRMED | Warning | a/b.go:12 | grep x | out | art |"),
-            row("CONFIRMED", "a/b.go:12", "grep x")
+            row(Some(3), "CONFIRMED", "a/b.go:12", "grep x")
         );
         assert_eq!(
             parse_row("| REFUTED | Nit | a.go:1 | ls | out | |"),
-            row("REFUTED", "a.go:1", "ls")
+            row(None, "REFUTED", "a.go:1", "ls")
         );
         assert_eq!(
             parse_row("| # | State | Band | file:line | Check | Observed | Artifact |"),
@@ -395,6 +518,66 @@ mod tests {
         );
         assert_eq!(parse_row("| --- | --- | --- | --- | --- |"), None);
         assert_eq!(parse_row("plain text"), None);
+    }
+
+    #[test]
+    fn applied_rows_only_inside_their_section() {
+        let text = "## Candidates\n\
+                    | 1 | CONFIRMED | Warning | a.go:2 | grep | out | |\n\
+                    | deadbeef1 | 9 | a row above the heading |\n\
+                    ## Applied\n\n\
+                    Four commits on a branch, every suite green.\n\n\
+                    | Commit | Findings | What changed |\n\
+                    | --- | --- | --- |\n\
+                    | 187f43bb8 | 3, 5, 7 | the comment states what the bound covers |\n\
+                    | 4306d0b55 | 2 | a recover on the metered path |\n\n\
+                    Not applied: finding 12, which asks for -race in CI.\n\
+                    ## Retro\n\
+                    | cafebabe | 4 | a row past the section |\n";
+        let rows = applied_rows(text);
+        assert_eq!(rows.len(), 2, "only the two rows under ## Applied");
+        assert_eq!(rows[0].commit, "187f43bb8");
+        assert_eq!(rows[0].findings, vec![3, 5, 7]);
+        assert_eq!(rows[0].what, "the comment states what the bound covers");
+        assert_eq!(rows[1].findings, vec![2]);
+        assert!(applied_rows("| 187f43bb8 | 3 | x |").is_empty());
+    }
+
+    #[test]
+    fn applied_fixes_key_at_the_head() {
+        let (repo, first, second) = shifted_repo("prior-applied");
+        let slug = tmp("prior-applied-slug");
+        let round = slug.join(format!("1-{first}"));
+        fs::create_dir_all(&round).unwrap();
+        let claims = "| # | State | Band | file:line | Check | Observed | Artifact |\n\
+                      | --- | --- | --- | --- | --- | --- | --- |\n\
+                      | 1 | CONFIRMED | Warning | f.go:2 | grep -n b f.go | 2:b | |\n\
+                      | 2 | CONFIRMED | Nit | f.go:4 | grep -n d f.go | 4:d | |\n\
+                      ## Applied\n\n\
+                      | Commit | Findings | What changed |\n\
+                      | --- | --- | --- |\n\
+                      | fc58bc855 | 1, 2 | the bound and its comment |\n";
+        fs::write(round.join("claims.md"), claims).unwrap();
+        let out = slug.join("applied.json");
+        let code = prior(&[
+            slug.to_string_lossy().into_owned(),
+            "--repo".into(),
+            repo.to_string_lossy().into_owned(),
+            "--sha".into(),
+            second,
+            "--applied".into(),
+            out.to_string_lossy().into_owned(),
+        ]);
+        assert_eq!(code, 0);
+        let json = fs::read_to_string(&out).unwrap();
+        assert_eq!(
+            json.trim(),
+            format!(
+                "{{\"f.go:4\": [{{\"round\": \"1-{first}\", \"commit\": \"fc58bc855\", \"what\": \"the bound and its comment\"}}]}}"
+            ),
+            "f.go:2 re-anchors to f.go:4 and f.go:4 is the line the head removed"
+        );
+        assert_eq!(applied_to_json(&BTreeMap::new()), "{}");
     }
 
     #[test]

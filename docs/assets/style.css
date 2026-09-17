@@ -1,0 +1,76 @@
+:root {
+  --ink: #1b1b1b;
+  --muted: #6b6b6b;
+  --line: #e4e4e4;
+  --accent: #0b57d0;
+  --paper: #fffdf9;
+  --code: #f4f2ee;
+}
+* { box-sizing: border-box; }
+html { font-size: 17px; }
+body {
+  margin: 0;
+  color: var(--ink);
+  background: var(--paper);
+  font-family: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+  line-height: 1.6;
+}
+header.site, main, footer.site {
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+header.site {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--line);
+  font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  font-size: 0.95rem;
+}
+header.site .name { font-weight: 700; color: var(--ink); text-decoration: none; letter-spacing: 0.02em; }
+header.site nav a { margin-left: 1.1rem; color: var(--muted); text-decoration: none; }
+header.site nav a:hover { color: var(--accent); }
+main { padding-top: 2rem; padding-bottom: 3rem; }
+h1.title { font-size: 2rem; line-height: 1.2; margin: 0 0 0.25rem; }
+p.date { color: var(--muted); margin: 0 0 2rem; font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; font-size: 0.9rem; }
+h2 { font-size: 1.4rem; margin: 2.2rem 0 0.6rem; line-height: 1.25; }
+h3 { font-size: 1.1rem; margin: 1.8rem 0 0.5rem; }
+p, ul, ol { margin: 0 0 1rem; }
+li { margin-bottom: 0.3rem; }
+a { color: var(--accent); }
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.85em;
+  background: var(--code);
+  padding: 0.1em 0.3em;
+  border-radius: 3px;
+}
+pre {
+  background: var(--code);
+  padding: 0.9rem 1rem;
+  overflow-x: auto;
+  border-radius: 4px;
+  line-height: 1.45;
+}
+pre code { background: none; padding: 0; font-size: 0.82em; }
+blockquote { margin: 1rem 0; padding: 0 1rem; border-left: 3px solid var(--line); color: var(--muted); }
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1rem 0 1.5rem;
+  font-size: 0.9rem;
+  font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  display: block;
+  overflow-x: auto;
+}
+th, td { text-align: left; vertical-align: top; padding: 0.45rem 0.6rem; border-bottom: 1px solid var(--line); }
+th { font-weight: 600; border-bottom: 2px solid var(--ink); }
+.mermaid { margin: 1rem 0 1.5rem; overflow-x: auto; }
+footer.site { padding-top: 1.5rem; padding-bottom: 2.5rem; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.9rem; font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; }
+@media (prefers-color-scheme: dark) {
+  :root { --ink: #e8e6e1; --muted: #9a9a9a; --line: #333; --accent: #7cb1ff; --paper: #161616; --code: #232323; }
+  th { border-bottom-color: var(--ink); }
+}

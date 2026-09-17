@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% if page.title %}{{ page.title }} · {% endif %}{{ site.title }}</title>
+  <meta name="description" content="{{ page.description | default: site.description }}">
+  <link rel="stylesheet" href="{{ '/assets/style.css' | relative_url }}">
+</head>
+<body>
+  <header class="site">
+    <a class="name" href="{{ '/' | relative_url }}">{{ site.title }}</a>
+    <nav>
+      <a href="{{ '/' | relative_url }}">readme</a>
+      <a href="{{ '/blog/' | relative_url }}">blog</a>
+      <a href="https://github.com/davd-gzl/skills">github</a>
+    </nav>
+  </header>
+  <main>
+    {% if page.title %}<h1 class="title">{{ page.title }}</h1>{% endif %}
+    {% if page.date %}<p class="date">{{ page.date | date: "%-d %B %Y" }}</p>{% endif %}
+    {{ content }}
+  </main>
+  <footer class="site">
+    <p>One measured fact per file, one post per day the workflow was measured. <a href="https://github.com/davd-gzl/skills">The corpus and its tools on GitHub.</a></p>
+  </footer>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+    for (const block of document.querySelectorAll("pre > code.language-mermaid")) {
+      const div = document.createElement("div");
+      div.className = "mermaid";
+      div.textContent = block.textContent;
+      block.parentElement.replaceWith(div);
+    }
+    mermaid.initialize({ startOnLoad: true, theme: "neutral" });
+  </script>
+</body>
+</html>

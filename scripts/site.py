@@ -27,11 +27,11 @@ def rewrite(text, base):
     return LINK.sub(one, text)
 
 
-def page(src, title, permalink):
+def page(src, title, permalink, date=None):
     body = open(os.path.join(ROOT, src)).read()
     body = rewrite(body, os.path.dirname(src))
     body = re.sub(r'^# .*\n', '', body, count=1)
-    front = f'---\ntitle: "{title}"\npermalink: {permalink}\n---\n\n'
+    front = f'---\nlayout: default\ntitle: "{title}"\npermalink: {permalink}\n' + (f'date: {date}\n' if date else '') + '---\n\n'
     return front + body
 
 
@@ -46,10 +46,10 @@ def build():
     out = {}
     out['docs/index.md'] = page('README.md', title_of('README.md'), '/')
     posts = sorted(f for f in os.listdir(os.path.join(ROOT, 'knowledge/blog')) if f.endswith('.md'))
-    index = ['---\ntitle: "Blog"\npermalink: /blog/\n---\n', 'One post per day the workflow was measured, newest first.\n']
+    index = ['---\nlayout: default\ntitle: "Blog"\npermalink: /blog/\n---\n', 'One post per day the workflow was measured, newest first.\n']
     for f in reversed(posts):
         slug = f[:-3]
-        out[f'docs/blog/{slug}.md'] = page(f'knowledge/blog/{f}', title_of(f'knowledge/blog/{f}'), f'/blog/{slug}/')
+        out[f'docs/blog/{slug}.md'] = page(f'knowledge/blog/{f}', title_of(f'knowledge/blog/{f}'), f'/blog/{slug}/', date=slug[:10])
         index.append(f'- [{title_of(f"knowledge/blog/{f}")}](/blog/{slug}/), {slug[:10]}')
     out['docs/blog/index.md'] = '\n'.join(index) + '\n'
     return out

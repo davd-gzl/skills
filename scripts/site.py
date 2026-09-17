@@ -11,10 +11,25 @@ exits 1 when docs/ differs from what the sources would build, for the gate.
 """
 import os
 import re
+import subprocess
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-BLOB = 'https://github.com/davd-gzl/skills/blob/main/'
+
+
+def repository():
+    """owner and name from the origin remote, so the site follows whichever fork or clone builds it."""
+    url = subprocess.run(['git', '-C', ROOT, 'remote', 'get-url', 'origin'], capture_output=True, text=True).stdout.strip()
+    m = re.search(r'github\.com[:/]([^/]+)/([^/.]+)', url)
+    if not m:
+        sys.exit(f'site: origin is not a GitHub remote: {url!r}')
+    return m.group(1), m.group(2)
+
+
+OWNER, NAME = repository()
+BRANCH = subprocess.run(['git', '-C', ROOT, 'rev-parse', '--abbrev-ref', 'HEAD'], capture_output=True, text=True).stdout.strip() or 'main'
+REPO_URL = f'https://github.com/{OWNER}/{NAME}'
+BLOB = f'{REPO_URL}/blob/{BRANCH}/'
 LINK = re.compile(r'\]\((?!https?://|#|mailto:)([^)\s]+)\)')
 
 
@@ -42,8 +57,32 @@ def title_of(src):
     return os.path.basename(src)
 
 
+def config():
+    """_config.yml from the remote: the title is the repository's name, the URL its Pages address."""
+    return f'''title: {NAME}
+description: A skill corpus for AI code review and the tools it runs on, with what each rule was measured on.
+url: https://{OWNER}.github.io
+baseurl: /{NAME}
+repository_url: {REPO_URL}
+markdown: kramdown
+kramdown:
+  input: GFM
+  syntax_highlighter_opts:
+    disable: true
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: default
+exclude:
+  - Gemfile
+  - Gemfile.lock
+'''
+
+
 def build():
     out = {}
+    out['docs/_config.yml'] = config()
     out['docs/index.md'] = page('README.md', title_of('README.md'), '/')
     posts = sorted(f for f in os.listdir(os.path.join(ROOT, 'knowledge/blog')) if f.endswith('.md'))
     index = ['---\nlayout: default\ntitle: "Blog"\npermalink: /blog/\n---\n', 'One post per day the workflow was measured, newest first.\n']

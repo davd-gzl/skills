@@ -13,7 +13,7 @@
     <nav>
       <a href="{{ '/' | relative_url }}">readme</a>
       <a href="{{ '/blog/' | relative_url }}">blog</a>
-      <a href="https://github.com/davd-gzl/skills">github</a>
+      <a href="{{ site.repository_url }}">github</a>
     </nav>
   </header>
   <main>
@@ -22,7 +22,7 @@
     {{ content }}
   </main>
   <footer class="site">
-    <p>One measured fact per file, one post per day the workflow was measured. <a href="https://github.com/davd-gzl/skills">The corpus and its tools on GitHub.</a></p>
+    <p>One measured fact per file, one post per day the workflow was measured. <a href="{{ site.repository_url }}">The corpus and its tools on GitHub.</a></p>
   </footer>
   <script type="module">
     import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";

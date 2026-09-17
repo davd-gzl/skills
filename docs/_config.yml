@@ -2,6 +2,7 @@ title: skills
 description: A skill corpus for AI code review and the tools it runs on, with what each rule was measured on.
 url: https://davd-gzl.github.io
 baseurl: /skills
+repository_url: https://github.com/davd-gzl/skills
 markdown: kramdown
 kramdown:
   input: GFM

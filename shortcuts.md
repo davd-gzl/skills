@@ -16,7 +16,7 @@ as the skill defines it; ask when the reading changes what gets built.
 | Word | What it starts | Rule |
 | --- | --- | --- |
 | `review <target>` | one review round: the overview, the comment draft, the claim table and its tests, pushed, nothing posted | `skills/review.md` |
-| `cheap review <target>`, `quick review <target>`, `deep review <target>` | the same round on a preset: `cheap` for the fewest tokens, one finder per bundle on the Warning-finding angles and one verifier, the overview of what a change is worth; `quick` for the shortest clock, the same finders and short parallel verifier batches with no reflector; `deep` where the code is complex or unknown, the hot bundles' finders twice, one verifier per candidate, the ceiling. Each word carries its own output ceiling; `+<n>` on the word overrides it. |
+| `quick review <target>`, `deep review <target>` | the same round on a preset: `quick` for the overview of what a change is worth, one finder per bundle on the Warning-finding angles, each running its own Warning checks, judges in short parallel batches, no reflector, no text pass; `deep` where the code is complex or unknown, a second round on every bundle that yielded, one judge per run-shaped candidate, the ceiling. Each word carries its own output ceiling; `+<n>` on the word overrides it. |
 | `plan review <target>` | the round's steps 1 to 3, then three to five questions about the target in one reply, each answer a topic and one finder, the run launching on `go` | *Modes*, `skills/review.md` |
 | `review all` | every open target not yet reviewed, the scope written down first | `skills/review-modes.md` |
 | `plan` | what the next review round will run and cost, the stage table and the projection | `./scripts/review-plan.py` |

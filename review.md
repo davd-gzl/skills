@@ -1,6 +1,6 @@
 ---
 name: review
-description: Use whenever a pull request, a branch, a working diff or a red CI is to be reviewed, in any project, and whenever the user says `review <target>`, `cheap review`, `quick review`, `deep review`, `plan review`, `review all`, pastes a pull request URL alone, or asks what to think of a change or why CI is red. One round, finders per angle, a verifier per candidate, a reflector, a writer, a text pass, producing overview.md, comment_<model>.md per skills/review-comment.md, claims.md and links.md. Several targets at once and a target the reviewer wrote are skills/review-modes.md.
+description: Use whenever a pull request, a branch, a working diff or a red CI is to be reviewed, in any project, and whenever the user says `review <target>`, `quick review`, `deep review`, `plan review`, `review all`, pastes a pull request URL alone, or asks what to think of a change or why CI is red. One round, finders per angle, a verifier per candidate, a reflector, a writer, a text pass, producing overview.md, comment_<model>.md per skills/review-comment.md, claims.md and links.md. Several targets at once and a target the reviewer wrote are skills/review-modes.md.
 argument-hint: <repo>#<pr-number> | <url> | <repo> <subject>
 ---
 
@@ -26,7 +26,7 @@ fix; *Subjects*, a branch or a red CI; *Modes*, several targets, an authored
 target, `plan review`; *Fetch & understand*, the parent at step 1; *Re-review
 rounds*, a prior round exists; *Reproduce the failure*, the parent at step 3
 and every verifier; *Review the diff*, the finders and the reflector; *Write
-tests for test-shaped findings*, the verifiers; *Overview*, the overview
+tests for test-shaped findings*, the finders and the judges; *Overview*, the overview
 agent; *Links & citations*, the writer; *Repro rules*, the verifiers and the
 writer; *Output*, the writer; *Calibration*, every stage; *Rules*, the parent
 at the close; *GitHub review draft*, the writer, through
@@ -43,10 +43,9 @@ The word sets the shape, and the word is how well the user knows the code:
 
 | Word | For | Shape |
 | --- | --- | --- |
-| `cheap review` | the fewest tokens: the overview of what a change is worth, the user running the checks past the first batch | one finder per bundle carrying the angles that find Warnings, lines, reach, removed and the catalog, the Warning cap whole and the Nit cap 3, no reflector, one full-tier verifier over the candidates above Nit by band, six per batch, the rest shipped PLAUSIBLE with their checks named, the Nit batch on the cheap tier, the writer, no text pass, a 400k ceiling |
-| `quick review` | the shortest clock: the same overview, sooner | the same finders, no reflector, every candidate above Nit verified in parallel batches of three at 12 calls, a longer run coming back PLAUSIBLE with its check named, Nit batches of two, the writer, no text pass, a 500k ceiling |
-| `review` | any change | one finder per bundle per angle the bundle has material for, the reflector, a verifier batch per bundle for every Warning and above, Nits and Suggestions in batches, the writer, the text pass |
-| `deep review` | code that is complex or unknown | every finder, the hot bundles' twice, the Warning cap 16 and the Nit cap 8, one verifier per candidate with its run at 30 calls, Nits in batches of six on the full tier, the text pass, a 2.5M ceiling; rounds by yield replace the fixed repeat once they land |
+| `quick review` | the overview of what a change is worth, the fewest tokens and the shortest clock | one finder per bundle carrying the angles that find Warnings, lines, reach, removed and the catalog, the Warning cap whole and the Nit cap 3, each finder running its own Warning checks, no reflector, judges by three at 12 calls and reads by eight, the writer, no text pass, a 500k ceiling |
+| `review` | any change | one finder per bundle per angle with material, each running its own Warning checks, the reflector, judges by six over the run-shaped candidates and by twelve over the reads, the writer, the text pass, a 1M ceiling |
+| `deep review` | code that is complex or unknown | every finder, a second round on every bundle that yielded a confirmed Warning or is hot, the Warning cap 16 and the Nit cap 8, one judge per run-shaped candidate at 30 calls, reads by six, the writer, the text pass, a 2.5M ceiling |
 
 1. Prepare, per *Fetch & understand*, and dispatch the overview agent the moment the head worktree exists.
 2. Run the *Re-review rounds* gate when a prior round exists.
@@ -61,11 +60,12 @@ The word sets the shape, and the word is how well the user knows the code:
 
 What the parent hands the runner, and what every stage gets from it.
 
-- Print the plan first: `./scripts/review-plan.py --rules-out <scratch>/rules`, with `--preset` for `cheap review`, `quick review` or `deep review`, and `--extra <stage>=<path>#<Heading>` for each section of the project delta a stage needs. Paste its table and projection in the reply that launches the run, so what is about to run and cost is on screen before it does.
+- `./scripts/review-setup.sh <head worktree> <base worktree> <scratch> --repo <owner/name> --target <text> --round-dir <dir> --catalog <file> --delta <project review.md> --prebuilt <tool>` does the fixed part of the launch in one command: the blanked copy of the head, the risk table, the bundles with their diffs, the rule files per stage, the diff and its material, and `args.json` for the workflow; the parent adds the threads or the blind flag and the notes. What it wraps, for a launch by hand:
+- Print the plan first: `./scripts/review-plan.py --rules-out <scratch>/rules`, with `--preset` for `quick review` or `deep review`, and `--extra <stage>=<path>#<Heading>` for each section of the project delta a stage needs. Paste its table and projection in the reply that launches the run, so what is about to run and cost is on screen before it does.
 - Then call the Workflow tool: `scripts/workflows/review-pipeline.js` as `scriptPath`, the prepared values as `args`, the preset as `args.preset`, the rules directory as `args.rules_dir`. The `review` word is the opt-in the harness's gate asks for, per *Consent* in the workspace `AGENTS.md`, and this sentence is the skill instruction it accepts.
 - `args.risk_json` is what `round risk --json` wrote and `args.blob_url` the head repository's blob base at the sha, `https://github.com/<owner>/<repo>/blob/<sha>`: `round assemble` puts the tier on every row and the `[gh]` link on every header from them.
 - `args.bundles` is what `round dispatch` wrote, and its table goes in the launch reply beside the plan's: the finder count is read off it, one per bundle per angle with material, or one carrying every angle for a bundle under the floor.
-- A preset moves knobs, the Warning cap never among them. `cheap` runs one finder per bundle on the Warning-finding angles and one full-tier verifier over the candidates above Nit by band; `quick` runs the same finders and verifies everything above Nit in short parallel batches with no reflector; both drop the text pass, so a candidate past a batch or a budget arrives as a question with its check named, the user runs it and flips the section to posted or `SKIP`, and step 5 is the only pass over the text. Every word carries an output ceiling in the config, `budget_total`, past which no verifier is dispatched; `+<n>` on the launch word overrides it.
+- A preset moves knobs, the Warning cap never among them. `quick` runs one finder per bundle on the Warning-finding angles, judges in short parallel batches and no reflector, and drops the text pass, so a candidate past a budget arrives as a question with its check named, the user runs it and flips the section to posted or `SKIP`, and step 5 is the only pass over the text. Every word carries an output ceiling in the config, `budget_total`, past which no verifier is dispatched; `+<n>` on the launch word overrides it.
 - Every stage carries a tool-call budget from the config and returns what it has when it runs out: a call re-reads everything the agent opened on and has read since, so a stage's cache cost is its calls times its context, `./scripts/review-retro.py` printing both per stage.
 - A round launched with a token target, `+2M` on the word, stops dispatching verifiers when the budget nears its floor; the candidates left unrun ship PLAUSIBLE with their check named, and the writer still runs.
 - Each stage reads only the rule sections its artifact needs, the set per stage held beside the stage's model in `scripts/workflows/review-pipeline.json` and written out by the plan as one file per stage, since an agent told `path#Heading` reads the file whole. The parent never picks the list: one chosen per round left the suite rule of *Reproduce the failure* out of every verifier's once.
@@ -93,7 +93,7 @@ A finder returns candidates as data, never prose. One, filled:
 
 - Read the diff written out at `args.diff_file`, the head worktree and the catalog; run nothing that writes. Reads of at most 500 lines and searches of at most 100 hits: a call re-reads the whole context, so a wide read costs every later turn.
 - Read the code before the description, since a description calling something safe lowers what a reader finds. Five angles read the copy of head with comment lines blanked and the blanked twin of the diff; the claims angle reads the description and the comments first, its subject; the refactor angle reads head.
-- Run the read-shaped half of your own `verify_by` before returning a candidate, the grep, the count, the file read; the mutation, the suite and the merge-base comparison belong to the verifier.
+- Run the read-shaped half of your own `verify_by` before returning a candidate, the grep, the count, the file read. For a candidate banded Critical or Warning, and for a rewrite, run the check itself in your own scratch worktree, `git -C <head worktree> worktree add --detach <scratch>/find-<job> <sha>`, removed at the end; write the artifact under `tests/<job>-<slug>.<ext>` per *Write tests for test-shaped findings*, and return the candidate with `run` true, its evidence, the key output quoted, and `repro_path`. A check the run refutes goes under `dropped` with the output as its settling line; one the budget did not reach returns with `run` false. The merge-base comparison belongs to the judge. A Nit, a Suggestion and a Missing test are read, never run.
 - Work the bands in order: the checks of every Critical, Warning and Missing test candidate before any Nit's or Suggestion's, so a budget that runs out leaves a Nit unchecked and never a Warning. Mark each candidate `checked` or not; one you did not reach goes back with its check named, never dropped.
 - Work the files in the risk table's order, hot first, then warm, then cold: a budget that runs out leaves a cold file unread and never a hot one, and every file is read once whatever its tier.
 - Drop only what the read settles beyond doubt, and return every dropped one under `dropped` with the command and the line that settled it: a claim killed with no row is one nobody can reopen. Unsure is not settled; it goes forward.
@@ -132,16 +132,14 @@ A drop, filled:
 
 ### Verifiers
 
-One agent per candidate for the big ones, from scratch, with the claim alone
-and none of the finder's reasoning. Routing by band and by the shape of the
-check:
+The judges. The finder ran the check of every Critical and Warning it
+returned and wrote the artifact; a judge takes a batch, reruns the artifact,
+reads the code and answers, and files no finding of its own. Routing by band:
 
 | Candidate | Who | Where |
 | --- | --- | --- |
-| a Warning, a mutation, a causal comparison | one agent per `verifier.batch` candidates of one bundle, three by default, each run from scratch at the full tier; one agent each under `deep` | one scratch worktree per agent, `git -C <head worktree> worktree add --detach <scratch>/verify-<n> <sha>`, the tree restored between claims, removed at the end |
-| a grep-shaped check, a refactor's test run, a Suggestion | one agent per `verifier_small.batch`, four by default, files kept adjacent, order shuffled, the cheaper tier | one shared worktree, the tree restored between claims |
-| a Nit | one cheap agent per `nit_batch`, twelve, its checks reads and never a mutation, the finder's own read re-run by an agent that was not its finder | the head worktree, untouched |
-| a Nit, under `deep` | smaller batches at the full tier, `nit_batch` and `nit_tools` from the preset | the head worktree |
+| a Critical, a Warning, a rewrite | one judge per `verifier.batch` run-shaped candidates of one bundle, six by default, one under `deep`; the artifact rerun from the file, the code read, the same check at the merge base where the claim is causal | one scratch worktree per judge, `git -C <head worktree> worktree add --detach <scratch>/judge-<n> <sha>`, the tree restored between candidates, removed at the end |
+| a Missing test, a Suggestion, a Nit | one judge per `verifier.read_batch`, twelve, under `verifier.read_tools` calls; a read settles it and never a mutation, a Missing test being an absence a grep settles | the head worktree, untouched |
 
 A verdict, filled:
 
@@ -154,17 +152,18 @@ A verdict, filled:
  "refuted_by": "cache.go:31 if ttl <= 0 { ttl = defaultTTL }"}
 ```
 
-- Run the check. When the claim is that the diff causes the behaviour, run the same check at the merge base and report both; enumerate the case space first, both, first only, second only, neither.
-- State exactly one of CONFIRMED, the run reproduced it with the key output quoted; PLAUSIBLE, the mechanism is real and no reproducer exists in this environment, with what would confirm it; REFUTED, the run shows it guarded or unreachable, with the proving line quoted.
-- For CONFIRMED and PLAUSIBLE write the artifact under `tests/`, per *Write tests for test-shaped findings*, and re-run it from the file.
+- CONFIRMED needs the exact lines or a concrete triggering input in the judge's own words, never the finder's evidence alone: a finder grades itself when the judge takes its word. Rerun the artifact from the file and read its output; where none exists or it does not reproduce the claim, build the smallest check that would.
+- When the claim is that the diff causes the behaviour, run the same check at the merge base and report both; enumerate the case space first, both, first only, second only, neither.
+- State exactly one of CONFIRMED, the run or the read reproduced it with the key output or the lines quoted; PLAUSIBLE, the mechanism is real and no reproducer exists in this environment, with what would confirm it; REFUTED, the run or the read shows it guarded, covered or unreachable, with the proving line quoted. A PLAUSIBLE Nit or Suggestion ships `SKIP`.
+- Give each candidate its own verdict; no verdict borrows from another's, and a batch that confirms every item has been read against that habit.
 - Band per *Calibration*; severity measures whether the defect is real, not how big. A refactor candidate whose rewrite passes the tests is a Suggestion carrying both line counts.
+- An artifact the judge builds itself goes under `tests/judge-<candidate>-<slug>.<ext>` per *Write tests for test-shaped findings*; the finder's keeps its name.
 - Report what the user loses, never the artifact that causes it.
 - Write the verdicts you return to `<round dir>/verdicts/<agent>.json`, each carrying its candidate's index, angle and check, so `round assemble` joins it to its row.
-- The verifier runs at the finder's tier today; the upgrade, when the plan allows it, is another model as capable or more on `verifier.model`, since a family confirms its own reading and the adversary is worth most when its weights are not the finder's. Never a smaller tier; the Nit batches are the measured exception.
+- The judge runs at the finder's tier today; the upgrade, when the plan allows it, is another model as capable or more on `verifier.model`, since a family confirms its own reading and the adversary is worth most when its weights are not the finder's. Never a smaller tier.
 - An earlier round's command for the same line arrives with the candidate, never its verdict; re-run it before building your own.
-- A small candidate that turns out to need a mutation or the base comes back PLAUSIBLE with the check named, never a guess; a small verdict naming no run, or PLAUSIBLE for that reason, is escalated to one full-tier agent.
-- Every verifier carries a tool-call budget and returns PLAUSIBLE with the check still to run when it runs out, since the slowest verifier holds every stage behind it. The project's tool sits prebuilt on the PATH, so none builds one and none runs `go build`, `make` or `go run`, since a named test compiles what it needs; run named tests, never a module sweep.
-
+- Every judge carries a tool-call budget and returns PLAUSIBLE with the check still to run when it runs out, since the slowest judge holds every stage behind it. The project's tool sits prebuilt on the PATH, so none builds one and none runs `go build`, `make` or `go run`, since a named test compiles what it needs; run named tests, never a module sweep.
+- Over six rounds the fresh verifiers this stage replaced refuted none of 52 Warnings and a tenth of the lower bands; the three Warnings ever refuted were a lone agent's, refuted by its own runs, which is why the finder runs and the judge judges.
 
 ### Writer
 
@@ -176,6 +175,7 @@ file and one merge pass assembling the whole.
 - `./scripts/round assemble <round dir> --repo <head worktree> --sha <sha> --risk <risk.json> --url <blob url base> --title <text> --shape <text>` first: it writes `claims.md` whole, the Candidates table from the verdicts as data, the rows the finders settled, the hit rate per tier and an empty Completeness section, and `findings.md`, one block per finding in posting order with `SKIP` in front of a PLAUSIBLE Nit or Suggestion. It exits 1 listing every anchor not at the head; such a row is settled by reading the code and moving the anchor, never by dropping the finding.
 - `claims.md` per *Output*: the table is the tool's and stays as written; the writer replaces the Completeness placeholder with its answers.
 - The draft's sections come from `findings.md`, never from the JSON under `candidates/` or `verdicts/`.
+- `./scripts/round check <round dir>` last, before returning: it lists every em-dash, every visible question, every finding header without its link and every phrase that points at the page, into `check.md`; the writer clears the list, so the text pass reads the wording and not the mechanics.
 - The `Round:` line names the shape: how many finders, whether a reflector ran, how many candidates, and that each was run from scratch by an agent that was not its finder, the Nits in their batches counted apart.
 
 ### Text pass
@@ -470,6 +470,7 @@ When a posted round's target merges or closes, `./scripts/review-outcomes.py <dr
 - State only what CI does not show, per `skills/writing-style.md`; never "tests pass", "lint clean", "build green".
 - A defect a CI job catches is never a comment, at any severity. Name the job that fails on it and drop the finding, because the author reads the red job before they read the review. What survives names the reason no job reaches it.
 - Severity is binary. Warning = a maintainer could plausibly block: correctness, security, decay, missing invariant. Nit = style, polish, optional. In doubt: Nit.
+- A wrong finding spends the author's trust, and the author stops reading after two: a thin Warning is a Nit or a `SKIP`, never a Warning posted on the chance it holds, and the outcome table, fixed against open per posted finding, is where that cost is measured.
 - The verdict answers to the severities, and a surviving Warning rules out APPROVE. Reconcile before shipping: either the finding is a Nit and the band was wrong, or the verdict is COMMENT. COMMENT when the change improves strictly on its base and the Warning is a defect it did not introduce; REQUEST CHANGES when the branch causes the Warning or ships it to users. Either way the verdict line names the Warning and says why it does or does not block.
 - Severity measures whether the defect is real, not how big. A small genuine correctness bug is a Warning; magnitude goes in the details. Suggestion is for non-bugs: latent-only risks, design tradeoffs.
 - **Weigh the recovery before the band, and read the finding's own limits paragraph as the reader will.** A reproduction proves the defect is reachable and says nothing about what it costs. Where the write-up already says the state is recoverable, the attack unrepeatable, or the loss one more ordinary transaction, that paragraph has set the band and it is low: a defect whose worst case is doing the same thing again is a Nit, however cleanly it reproduces. The tell is a finding arguing its own severity down in its second half while its first half claims the opposite.

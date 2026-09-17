@@ -564,12 +564,15 @@ fn read_tiers(path: &str) -> Result<HashMap<String, String>, String> {
 /// inputs, prints the counts, and exits 1 when an anchor misses at the head.
 pub fn assemble_cmd(args: &[String]) -> i32 {
     match run(args) {
-        Ok((summary, misses)) => {
+        Ok((summary, misses, ungated)) => {
             println!("{summary}");
             for m in &misses {
                 println!("anchor miss: {m}");
             }
-            if misses.is_empty() {
+            if let Some(why) = &ungated {
+                println!("ungated: {why}");
+            }
+            if misses.is_empty() && ungated.is_none() {
                 0
             } else {
                 1
@@ -582,8 +585,30 @@ pub fn assemble_cmd(args: &[String]) -> i32 {
     }
 }
 
-/// The work of `assemble_cmd`: the summary line and the anchor misses.
-fn run(args: &[String]) -> Result<(String, Vec<String>), String> {
+/// Whether the verdict a draft will carry rests on anything. `Some(why)` when the round holds
+/// candidates at a band that decides the verdict, Critical or Warning, and no verifier answered
+/// one of them: a whole round once reached its token target before the first judge and produced
+/// a well-formed `REQUEST CHANGES` over an empty `verdicts/`, every row reading "not run". A
+/// round that judged some and ran out on the rest is not this: those rows carry their checks and
+/// the count goes in the summary.
+fn ungated(rows: &[Row]) -> Option<String> {
+    let deciding = |r: &&Row| r.band == "Critical" || r.band == "Warning";
+    let total = rows.iter().filter(deciding).count();
+    if total == 0 {
+        return None;
+    }
+    let judged = rows.iter().filter(deciding).filter(|r| !r.unrun).count();
+    if judged > 0 {
+        return None;
+    }
+    Some(format!(
+        "{total} candidate{} at Critical or Warning and no verdict behind any of them, so the draft's verdict would rest on the finders alone; the header reads UNVERIFIED and no band posts until a judge runs",
+        if total == 1 { "" } else { "s" }
+    ))
+}
+
+/// The work of `assemble_cmd`: the summary line, the anchor misses, and the ungating reason.
+fn run(args: &[String]) -> Result<(String, Vec<String>, Option<String>), String> {
     let round = Path::new(&args[0]);
     let opts = options(args)?;
     let empty = String::new();
@@ -619,6 +644,7 @@ fn run(args: &[String]) -> Result<(String, Vec<String>), String> {
     Ok((
         summary(&rows, &dropped, &verdict_files, &cand_files),
         misses,
+        ungated(&rows),
     ))
 }
 
@@ -705,6 +731,25 @@ mod tests {
         let claims = fs::read_to_string(round.join("claims.md")).unwrap_or_default();
         let findings = fs::read_to_string(round.join("findings.md")).unwrap_or_default();
         (code, claims, findings)
+    }
+
+    #[test]
+    fn a_round_with_no_verdict_behind_a_warning_exits_one_and_says_so() {
+        let (round, _) = fixture("ungated");
+        for f in fs::read_dir(round.join("verdicts")).unwrap() {
+            fs::remove_file(f.unwrap().path()).unwrap();
+        }
+        let (code, _, _) = run_on(&round, &[]);
+        assert_eq!(code, 1);
+    }
+
+    #[test]
+    fn one_verdict_at_a_deciding_band_is_enough_to_gate_the_round() {
+        let (round, _) = fixture("gated");
+        // The Warning keeps its verdict; the Nits lose theirs, which a budget stop does.
+        fs::remove_file(round.join("verdicts/nits-1.json")).unwrap();
+        let (code, _, _) = run_on(&round, &[]);
+        assert_eq!(code, 0);
     }
 
     #[test]

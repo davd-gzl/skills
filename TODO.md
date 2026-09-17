@@ -23,3 +23,10 @@ Skill work the user owns. One line each, newest last.
   rule in `review-comment.md`; what is left here is whether a check can run, or
   whether the Pass has to say it is a human read. Estimate: one afternoon for a
   term-extraction check, or one line if the Pass just states it.
+- Review upgrades target code, not the description or the prose around it. The
+  6177 retro turned up a real pass that would have audited the pull request's own
+  evidence, where the author's "no `-ldflags` recorded" argument was invalid
+  because Go omits the flag whenever `-trimpath` is set; it is out of scope by
+  the user's word, and the three upgrades kept are the parser's input space, the
+  uncompiled `Missing test` artifact and the unread half of an enumeration. Scope
+  later upgrades the same way.

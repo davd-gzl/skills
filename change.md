@@ -198,3 +198,10 @@ failure. Use `--dry-run` when anything about the drafts is uncertain, and
 commit the updated drafts after. Nothing else goes up with it: the pull request
 carries its body and no note from its own author, per
 `skills/review-comment.md`.
+
+After any push to an open pull request, read what the bots posted before the
+turn ends: `gh api repos/<owner>/<repo>/pulls/<n>/comments` and
+`gh pr checks <n>`. Report what landed, and say plainly when nothing has yet. A
+review bot answers a push within minutes, so a turn that stops at the push
+leaves the user to find the findings. Replying to one is the project's own
+rule, in `projects/<repo>/AGENTS.md`.

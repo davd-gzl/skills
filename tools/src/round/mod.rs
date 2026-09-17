@@ -61,14 +61,16 @@ pub const USAGE: &str = "round <subcommand> ...
       verifier returned. claims.md holds the Candidates table, one row per verdict joined
       to its candidate and one per candidate no verifier reached, the rows a finder
       settled, the hit rate per tier and an empty Completeness section; findings.md one
-      block per finding in posting order, SKIP in front of a PLAUSIBLE Nit. Exit 1 when a
-      row's file:line is not at the head.
+      block per finding in posting order, each header closed with the verifier's band as
+      ' · <Band>', which is what post-review.sh --list and --band read, and SKIP in
+      front of a PLAUSIBLE Nit. Exit 1 when a row's file:line is not at the head.
 
   check <round dir> [--overview <file>] [--out <file>]
       The mechanical half of the text pass over the round's comment_*.md and the overview.md
       beside the directory: an em-dash outside a fence, a visible sentence ending in a
-      question mark, a finding header without its [gh] link, a phrase that points at the
-      page, a Full review: line. One row per hit into <round dir>/check.md; exit 1 on any.";
+      question mark, a finding header without its [gh] link or without its ' · <Band>'
+      tag, a phrase that points at the page, a Full review: line. One row per hit into
+      <round dir>/check.md; exit 1 on any.";
 
 pub fn dispatch(args: &[String]) -> i32 {
     match args.first().map(String::as_str) {

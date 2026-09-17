@@ -55,6 +55,9 @@ fn prose_lines(text: &str) -> Vec<(usize, String)> {
 /// carry the link and whose sentences must not ask.
 fn check_text(name: &str, text: &str, draft: bool) -> Vec<Hit> {
     let header = Regex::new(r"^## (SKIP )?\S+:\d+(-\d+)?( |$)").unwrap();
+    // The band tag ./scripts/post-review.sh --band selects on, at the header's end. Without it the
+    // section is invisible to every selection flag and posting means editing the draft by hand.
+    let band = Regex::new(r"(·|\|)\s*(Critical|Warning|Missing test|Nit|Suggestion|Test)\s*$").unwrap();
     let question = Regex::new(r"\?\s*$").unwrap();
     let mut hits = Vec::new();
     let hit = |hits: &mut Vec<Hit>, line: usize, what: &str| {
@@ -81,6 +84,13 @@ fn check_text(name: &str, text: &str, draft: bool) -> Vec<Hit> {
             if content.starts_with("## ") && header.is_match(&content) && !content.contains("[gh](")
             {
                 hit(&mut hits, line, "finding header without its [gh] link");
+            }
+            if content.starts_with("## ") && header.is_match(&content) && !band.is_match(&content) {
+                hit(
+                    &mut hits,
+                    line,
+                    "finding header without its band tag, ' · <Band>' at the end",
+                );
             }
             if !content.starts_with('#')
                 && !content.starts_with('>')
@@ -188,7 +198,7 @@ mod tests {
     fn a_clean_draft_has_no_hits() {
         let round = round_with(
             "check-clean",
-            "# Review\n\n## pkg/a.go:10 [gh](https://x/a.go#L10)\nThe clamp is missing.\n\n```go\n// a — dash in code is fine?\n```\n",
+            "# Review\n\n## pkg/a.go:10 [gh](https://x/a.go#L10) \u{b7} Warning\nThe clamp is missing.\n\n```go\n// a — dash in code is fine?\n```\n",
             "# Subject\n\nWhat it is for.\n",
         );
         assert_eq!(check_cmd(&[round.display().to_string()]), 0);
@@ -218,6 +228,7 @@ mod tests {
             "points at the page: \"see below\"",
             "points at the page: \"as mentioned\"",
             "points at the page: \"see above\"",
+            "finding header without its band tag",
         ] {
             assert!(table.contains(what), "{what} missing in\n{table}");
         }

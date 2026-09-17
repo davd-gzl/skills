@@ -478,7 +478,12 @@ fn findings_md(rows: &[Row], url: &str, misses: &[String]) -> String {
                 r.line
             )
         };
-        out.push_str(&format!("\n## {skip}{}:{}{link}\n", r.file, r.line));
+        // The band closes the header, which is what ./scripts/post-review.sh --list and --band read:
+        // untagged, a section can only be chosen by editing the draft.
+        out.push_str(&format!(
+            "\n## {skip}{}:{}{link} · {}\n",
+            r.file, r.line, r.band
+        ));
         let read_only = if r.unrun {
             ", on the finder's read only"
         } else {
@@ -805,7 +810,7 @@ mod tests {
             "{claims}"
         );
         assert!(!claims.contains("pkg/a.go:40 | grep"), "{claims}");
-        assert!(findings.contains("## pkg/b.go:2\nState: PLAUSIBLE, band: Warning, angle: critic, on the finder's read only\nTL;DR: nothing covers the empty case\nCheck: go test -run TestEmpty\n"), "{findings}");
+        assert!(findings.contains("## pkg/b.go:2 · Warning\nState: PLAUSIBLE, band: Warning, angle: critic, on the finder's read only\nTL;DR: nothing covers the empty case\nCheck: go test -run TestEmpty\n"), "{findings}");
     }
 
     #[test]

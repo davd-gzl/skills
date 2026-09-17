@@ -2,13 +2,16 @@
 
 My skills: the instruction sets my agents load before working on my projects.
 
-## Three reviews
+## Four reviews
 
 | Word | For | Cost, projected today |
 | --- | --- | --- |
-| `quick review <target>` | a change I already trust, a second pair of eyes | 14 agents, 312k output, 40 minutes |
-| `review <target>` | any change, the normal round | 42 agents, 1.1M output, 75 minutes |
-| `deep review <target>` | code that is complex or unknown, and worth a run behind every claim | 193 agents, 4.6M output, 75 minutes plus the queue |
+| `cheap review <target>` | the fewest tokens: what a change is worth, one finder per bundle and one verifier, flat whatever the diff | about 8 agents, 225k output, 50 minutes |
+| `quick review <target>` | the shortest clock: the same overview with short parallel verifier batches, agents growing with the diff | about 10 agents, 220k output, 40 minutes |
+| `review <target>` | any change, the normal round: one finder per bundle per angle, the reflector, verifier batches per bundle, Nit batches, the writer, the text pass | about 33 agents, 760k output, 60 minutes |
+| `deep review <target>` | code that is complex or unknown, and worth a run behind every claim: the hot bundles' finders twice, one verifier per candidate, the ceiling | about 66 agents, 1.5M output, 75 minutes |
+
+Every word carries its own output ceiling in `review-pipeline.json`, 400k to 2.5M, past which no verifier is dispatched and the writer still runs; `+<n>` on the word overrides it. The finders run at xhigh in every word: on gno#6187 they returned all six known Warnings at xhigh and three at high, for a sixth less output. Cheap and quick are the same overview, the fewest tokens against the shortest clock, and on a four-bundle diff they cost the same; cheap stays flat as the diff grows and quick's clock does.
 
 The word is how well I know the code, and the cost climbs with it; the plan a
 round prints before it launches gives the figures for that diff. What each word
@@ -74,8 +77,6 @@ Everything starts with a review, on a PR, a branch, or a red CI.
    to a file; a Nit outside `deep` gets no agent and ships on the finder's
    read, marked unverified. A verdict quotes its run, and a finding whose fix is a test
    ships the test, paste-ready.
-6. **Criticise.** One critic reads every candidate beside the verifiers and
-   asks what is missing; its candidates verify in the same wave.
 7. **Write.** `overview.md` for the reader who knows nothing about the subject,
    `comment_<model>.md` with one anchored section per finding, posted or
    `SKIP`, and `claims.md`, the record: the verdict, one row per candidate with
@@ -100,13 +101,15 @@ none reading another's reasoning.
 ```mermaid
 flowchart TD
   P[parent: sync, worktrees at head and merge base,<br/>check runs, suites once per tree, catalog, prior rounds] --> F
-  F[finders, one per angle the diff has material for,<br/>twice under deep, read only] --> M[merge per file:line]
-  M -->|Warning, mutation, causal| B[one verifier per claim<br/>fresh context, own worktree, xhigh]
-  M -->|grep-shaped, refactor, Nit, Suggestion| S[small verifiers<br/>4 per file, shuffled, medium]
+  P --> O[overview agent: the subject for a reader who knows nothing,<br/>on disk beside the finders, never at the end]
+  F[finders, one per bundle per angle the bundle has material for,<br/>the hot bundles' twice under deep, read only] --> M[merge per file:line]
+  M --> R[reflector: one read of every candidate against the diff,<br/>drops what a quoted line contradicts, asks what is missing]
+  R -->|Warning, mutation, causal| B[verifiers, three claims of one bundle per agent<br/>fresh context, own worktree, xhigh; one per claim under deep]
+  R -->|grep-shaped, refactor, Suggestion| S[small verifiers<br/>4 per file, shuffled, sonnet high]
+  R -->|Nit| N[Nit batches, twelve per agent,<br/>a read and never a run, sonnet high]
   S -->|no run, or PLAUSIBLE| B
-  M --> C[critic, read only, beside the verifiers: what is missing]
-  C -->|new candidates| B
-  C --> W[writer: overview.md, comment draft, claims.md, tests/]
+  B --> A[round assemble: claims.md and findings.md<br/>from candidates/ and verdicts/ on disk]
+  A --> W[writer: overview.md, the comment draft from findings.md,<br/>the completeness answers]
   W --> T[text pass: round links, the claim column, rewrites]
   T --> Q[parent: final check, style pass, one commit, one push]
   Q -->|post| G[the GitHub review]
@@ -117,7 +120,6 @@ flowchart TD
 | finder, one per angle with material, every angle twice under `deep` | the diff with its comments blanked for five angles, its angle's rule sections, the catalog | candidates: `file:line`, failure scenario, the check, the band, whether the finder ran the read-shaped half itself | xhigh, cap 6 per finder and 12 above Nit; `deep` 16 and 16 |
 | verifier | one claim, the claim alone, a tool-call budget | CONFIRMED, PLAUSIBLE or REFUTED, the run quoted, the artifact under `tests/` | xhigh, one vote |
 | small verifier | up to four claims on one file, order shuffled; a Nit outside `deep` gets none and ships `UNVERIFIED` on the finder's read | one verdict each; a weak one escalates | medium, on sonnet; `deep` puts the Nits under opus at high |
-| critic | every candidate, beside the first verify wave | candidates for what nobody ran | xhigh |
 | writer | verified findings, prior rounds, the candidate rows already tabled | `overview.md`, `comment_<model>.md`, `claims.md` | high |
 | text pass | the draft, the overview, `links.md` from `round links` | the claim column, the rewrites applied | xhigh |
 
@@ -130,10 +132,14 @@ projects/<repo>/reviews/<slug>/
     comment_<model>.md   Event, Verdict, Model, Commit, Overview, Open the code, Round; the Body;
                          one section per finding, posted or SKIP, its repro collapsed
     claims.md            one row per candidate: state, band, file:line, the check,
-                         the output, the artifact; the completeness answers
+                         the output, the artifact, the tier; the completeness answers
+    findings.md          the draft's skeleton from round assemble, one block per finding
+                         in posting order, the check on each
     links.md             every link of the draft and the overview, resolved at its sha,
                          its range checked, the claim column
     tests/               every artifact a verifier ran
+    candidates/          what each finder and the reflector returned, as JSON
+    verdicts/            what each verifier returned, as JSON
 ```
 
 What the round carries in:
@@ -161,13 +167,13 @@ own argument and waits for the outcome table to measure it.
 | Routing by band and check shape, weak small verdicts escalated | A difficulty model reaches 90 % of the strongest configuration at 1 to 10 % of its cost; a confidence threshold miscalibrates on the hard items that most need escalation, so the key is structural | [RADAR, ICLR 2026](https://people.umass.edu/~andrewlan/papers/26iclr-radar.pdf), [Conformal Cascade 2026](https://arxiv.org/html/2607.25018) |
 | Small verifiers on the cheaper family tier | Their checks open with grep, count, ls or wc, or run a refactor's tests, and a weak verdict escalates to a full-tier agent, so a miss there costs one escalation while the stage costs a fifth; the next round's confirmed count against the last measures it | *reason* |
 | One vote per claim | Nine same-family judges carry 2.2 independent votes and the best single judge beat the panel; a cross-family refuter caught 16 % of same-family misses, and every model here is one family | [Nine Judges, Two Effective Votes 2026](https://arxiv.org/html/2605.29800), [Refute-or-Promote 2026](https://arxiv.org/abs/2604.19049) |
-| Finders at `high`, hard verifiers at `xhigh` | Finders read and name; a miss there is caught by the critic, a miss at the verifier is final. Reasoning tokens fell 76 % with no accuracy loss on extraction-shaped work | [Srivastava et al. 2026](https://arxiv.org/abs/2511.04108); *reason* for the split |
+| Finders and hard verifiers at `xhigh` | On gno#6187 finders at xhigh returned all six known Warnings and finders at high three, for a sixth less output; a miss at the verifier is final | *measured, one run each* |
 | Code before the description; the claims angle alone reads the description first | "Bug-free" framing on vulnerable code cut detection by 16.2 to 93.5 points across six models; "vulnerable" framing on clean code raised false positives by 0.8 to 13.6 | [Mitropoulos et al. 2026](https://arxiv.org/abs/2603.18740) |
 | Five finders read a copy of head with comment lines blanked | The same framing sits inside the code, in a godoc calling something bounded or safe; the claims angle keeps the comments as its subject, the refactor angle as its lines | [Mitropoulos et al. 2026](https://arxiv.org/abs/2603.18740); *reason* for the extension |
-| A critic beside the first verify wave | A cap hit silently, an angle under-scoped and a changed test not re-added are misses no verifier sees, and none needs a verdict to spot; run after the verdicts, the critic waited 40 minutes on the slowest verifier once | *measured* |
+| One reflector, before the verifiers, drops and asks what is missing | It reads every candidate once against the diff, drops only what a code line contradicts, and asks the completeness question the critic used to ask beside the verifiers at three times the cost; its candidates verify in the first wave | *measured: 5 of 75 dropped, 3 on a comment's word, 3 added* |
 | Angles gated on the diff's material | An angle with nothing to walk costs a full read and returns nothing: no test file, no tests angle | *reason* |
 | A tool-call budget per verifier | One verifier ran 42 minutes and held four stages behind it; a budget ends it PLAUSIBLE with the check named, which the next round runs | *measured* |
-| `quick` bounds the wall clock, never the tokens | A round's minutes are its serial chain, finders, the slowest verifier, the writer, the text pass, and a lower cap or effort leaves that chain as long; quick caps the verifier's tool calls, batches two, and drops the critic and the text pass | *reason* |
+| `quick` bounds the wall clock and `cheap` the tokens | A round's minutes are its serial chain, finders, the slowest verifier, the writer, the text pass, and a lower cap or effort leaves that chain as long; quick caps the verifier's tool calls, batches two, and drops the reflector and the text pass | *reason* |
 | The catalog walked and extended each round | A finder walking no catalog walks nothing; a confirmed class the catalog lacked is the class it misses next time | *reason* |
 | The re-review gate by patch-id | Nobody re-reviews code that did not change; a merge commit's conflict hunks are diff | *reason* |
 | Outcome table per posted round | Every number above comes from someone else's task; what authors fixed, resolved or left open per angle, band and tier is what tunes the next batch size, cap and tier | [When Auditors Fabricate 2026](https://arxiv.org/abs/2609.09696) on mechanical verification of every reported finding; *reason* |
@@ -197,7 +203,7 @@ own argument and waits for the outcome table to measure it.
 | [`TODO.md`](TODO.md) | skill work I own but have not started | one line per item, newest last |
 | [`knowledge/`](knowledge/) | a design question about the workflow comes up | one measured fact per file: what holds, the numbers, the source, what it changes |
 | [`scripts/scrub.sh`](scripts/scrub.sh) | a push of this repository, from `scripts/git-hooks/pre-push` | a refusal when a pushed line or a commit message carries a secret shape or a name the consumer's `workspace.json` lists |
-| [`tools/`](tools/) | one Rust crate, two binaries: `round links`, `round prior`, `round risk` and `round dispatch` for a review round's fixed steps, `rules lint` for this corpus | `links.md` with every link resolved at its sha and its range checked; the earlier rounds' checks re-anchored to the head; the lint below; built by the consumer's sync onto `~/bin` and reached through its `scripts/round` and `scripts/rules` shims, tested by `cargo test --manifest-path tools/Cargo.toml`, a golden fixture under `tools/tests/lint` holding the lint's whole output |
+| [`tools/`](tools/) | one Rust crate, two binaries: `round links`, `round prior`, `round risk`, `round dispatch` and `round assemble` for a review round's fixed steps, `rules lint` for this corpus | `links.md` with every link resolved at its sha and its range checked; the earlier rounds' checks re-anchored to the head; the lint below; built by the consumer's sync onto `~/bin` and reached through its `scripts/round` and `scripts/rules` shims, tested by `cargo test --manifest-path tools/Cargo.toml`, a golden fixture under `tools/tests/lint` holding the lint's whole output |
 
 ## The chat register
 

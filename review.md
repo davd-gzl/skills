@@ -1,6 +1,6 @@
 ---
 name: review
-description: Use whenever a pull request, a branch, a working diff or a red CI is to be reviewed, in any project, and whenever the user says `review <target>`, `quick review`, `deep review`, `plan review`, `review all`, pastes a pull request URL alone, or asks what to think of a change or why CI is red. One round, finders per angle, a verifier per candidate, a critic, a writer, a text pass, producing overview.md, comment_<model>.md per skills/review-comment.md, claims.md and links.md. Several targets at once and a target the reviewer wrote are skills/review-modes.md.
+description: Use whenever a pull request, a branch, a working diff or a red CI is to be reviewed, in any project, and whenever the user says `review <target>`, `cheap review`, `quick review`, `deep review`, `plan review`, `review all`, pastes a pull request URL alone, or asks what to think of a change or why CI is red. One round, finders per angle, a verifier per candidate, a reflector, a writer, a text pass, producing overview.md, comment_<model>.md per skills/review-comment.md, claims.md and links.md. Several targets at once and a target the reviewer wrote are skills/review-modes.md.
 argument-hint: <repo>#<pr-number> | <url> | <repo> <subject>
 ---
 
@@ -25,7 +25,7 @@ Sections, and the moment each is read: *Workflow*, the parent, every round;
 fix; *Subjects*, a branch or a red CI; *Modes*, several targets, an authored
 target, `plan review`; *Fetch & understand*, the parent at step 1; *Re-review
 rounds*, a prior round exists; *Reproduce the failure*, the parent at step 3
-and every verifier; *Review the diff*, the finders and the critic; *Write
+and every verifier; *Review the diff*, the finders and the reflector; *Write
 tests for test-shaped findings*, the verifiers; *Overview*, the overview
 agent; *Links & citations*, the writer; *Repro rules*, the verifiers and the
 writer; *Output*, the writer; *Calibration*, every stage; *Rules*, the parent
@@ -43,9 +43,10 @@ The word sets the shape, and the word is how well the user knows the code:
 
 | Word | For | Shape |
 | --- | --- | --- |
-| `quick review` | a change already trusted, a second pair of eyes | one finder per bundle carrying every angle at low caps, the reflector, verifier batches on a short budget, no critic, no text pass |
-| `review` | any change | one finder per bundle per angle the bundle has material for, the reflector, a verifier batch per bundle for every Warning and above, Nits and Suggestions in batches, the critic, the writer, the text pass |
-| `deep review` | code that is complex or unknown | every bundle's angles twice and the hot bundles' a third time, one verifier per candidate with its run, smaller Nit batches, the ceiling |
+| `cheap review` | the fewest tokens: the overview of what a change is worth, the user running the checks past the first batch | one finder per bundle carrying the angles that find Warnings, lines, reach, removed and the catalog, the Warning cap whole and the Nit cap 3, no reflector, one full-tier verifier over the candidates above Nit by band, six per batch, the rest shipped PLAUSIBLE with their checks named, the Nit batch on the cheap tier, the writer, no text pass, a 400k ceiling |
+| `quick review` | the shortest clock: the same overview, sooner | the same finders, no reflector, every candidate above Nit verified in parallel batches of three at 12 calls, a longer run coming back PLAUSIBLE with its check named, Nit batches of two, the writer, no text pass, a 500k ceiling |
+| `review` | any change | one finder per bundle per angle the bundle has material for, the reflector, a verifier batch per bundle for every Warning and above, Nits and Suggestions in batches, the writer, the text pass |
+| `deep review` | code that is complex or unknown | every finder, the hot bundles' twice, the Warning cap 16 and the Nit cap 8, one verifier per candidate with its run at 30 calls, Nits in batches of six on the full tier, the text pass, a 2.5M ceiling; rounds by yield replace the fixed repeat once they land |
 
 1. Prepare, per *Fetch & understand*, and dispatch the overview agent the moment the head worktree exists.
 2. Run the *Re-review rounds* gate when a prior round exists.
@@ -60,10 +61,11 @@ The word sets the shape, and the word is how well the user knows the code:
 
 What the parent hands the runner, and what every stage gets from it.
 
-- Print the plan first: `./scripts/review-plan.py --rules-out <scratch>/rules`, with `--preset` for `quick review`, `lean review` or `deep review`, and `--extra <stage>=<path>#<Heading>` for each section of the project delta a stage needs. Paste its table and projection in the reply that launches the run, so what is about to run and cost is on screen before it does.
+- Print the plan first: `./scripts/review-plan.py --rules-out <scratch>/rules`, with `--preset` for `cheap review`, `quick review` or `deep review`, and `--extra <stage>=<path>#<Heading>` for each section of the project delta a stage needs. Paste its table and projection in the reply that launches the run, so what is about to run and cost is on screen before it does.
 - Then call the Workflow tool: `scripts/workflows/review-pipeline.js` as `scriptPath`, the prepared values as `args`, the preset as `args.preset`, the rules directory as `args.rules_dir`. The `review` word is the opt-in the harness's gate asks for, per *Consent* in the workspace `AGENTS.md`, and this sentence is the skill instruction it accepts.
+- `args.risk_json` is what `round risk --json` wrote and `args.blob_url` the head repository's blob base at the sha, `https://github.com/<owner>/<repo>/blob/<sha>`: `round assemble` puts the tier on every row and the `[gh]` link on every header from them.
 - `args.bundles` is what `round dispatch` wrote, and its table goes in the launch reply beside the plan's: the finder count is read off it, one per bundle per angle with material, or one carrying every angle for a bundle under the floor.
-- A preset moves knobs, the Warning cap never among them. `quick` runs the finders the config names and drops the critic and the text pass, so its round ends on the writer and step 5 is its only pass over the text.
+- A preset moves knobs, the Warning cap never among them. `cheap` runs one finder per bundle on the Warning-finding angles and one full-tier verifier over the candidates above Nit by band; `quick` runs the same finders and verifies everything above Nit in short parallel batches with no reflector; both drop the text pass, so a candidate past a batch or a budget arrives as a question with its check named, the user runs it and flips the section to posted or `SKIP`, and step 5 is the only pass over the text. Every word carries an output ceiling in the config, `budget_total`, past which no verifier is dispatched; `+<n>` on the launch word overrides it.
 - Every stage carries a tool-call budget from the config and returns what it has when it runs out: a call re-reads everything the agent opened on and has read since, so a stage's cache cost is its calls times its context, `./scripts/review-retro.py` printing both per stage.
 - A round launched with a token target, `+2M` on the word, stops dispatching verifiers when the budget nears its floor; the candidates left unrun ship PLAUSIBLE with their check named, and the writer still runs.
 - Each stage reads only the rule sections its artifact needs, the set per stage held beside the stage's model in `scripts/workflows/review-pipeline.json` and written out by the plan as one file per stage, since an agent told `path#Heading` reads the file whole. The parent never picks the list: one chosen per round left the suite rule of *Reproduce the failure* out of every verifier's once.
@@ -95,6 +97,7 @@ A finder returns candidates as data, never prose. One, filled:
 - Work the bands in order: the checks of every Critical, Warning and Missing test candidate before any Nit's or Suggestion's, so a budget that runs out leaves a Nit unchecked and never a Warning. Mark each candidate `checked` or not; one you did not reach goes back with its check named, never dropped.
 - Work the files in the risk table's order, hot first, then warm, then cold: a budget that runs out leaves a cold file unread and never a hot one, and every file is read once whatever its tier.
 - Drop only what the read settles beyond doubt, and return every dropped one under `dropped` with the command and the line that settled it: a claim killed with no row is one nobody can reopen. Unsure is not settled; it goes forward.
+- Write the object you return to `<round dir>/candidates/find-<job>.json` before returning.
 - Return at most `cap_high` candidates banded Critical, Warning or Missing test and at most `cap` banded Nit or Suggestion, each list ordered by how likely a verifier confirms it, since everything past a cap is dropped unread; a Nit never takes a Warning's slot.
 - Band on what a user loses when the line runs, never on the size of the fix: a read surface that aborts on ordinary input, a write that cannot be undone and a value another party can move are Warnings whatever their patch size; Nit is polish a maintainer would not block on.
 - A candidate whose only fix is a comment's or a doc's wording is never returned: it ships `SKIP` per *Calibration* and costs a verifier; the code a comment misdescribes is the candidate where the code is wrong.
@@ -122,10 +125,10 @@ A drop, filled:
 {"index": 14, "settled_by": "cache.go:31 `if ttl <= 0 { ttl = defaultTTL }`: the zero the candidate says reaches Set is rewritten two lines above the call"}
 ```
 
-- Drop a candidate only when a line of the diff or the head, quoted, contradicts it outright: the guard it calls missing sits three lines up, the value it calls unbounded is clamped at the call site, the function it names was deleted.
+- Drop a candidate only when a line of code in the diff or at the head, quoted, contradicts it outright; a comment, a doc line or a description never settles a drop, being the code's claim about itself: the guard it calls missing sits three lines up, the value it calls unbounded is clamped at the call site, the function it names was deleted.
 - Unsure keeps it. The verifiers do the killing a read cannot, and a Warning dropped on a guess is the round's worst outcome.
-- Every drop is a row of `claims.md`, the line quoted, so a later round reads what was cleared and why.
-- Then ask what is missing, the critic's question asked early: an angle that came back thin, a class of the catalog no candidate touches, a changed test not re-added; return each as a candidate with the check that settles it, never a line already listed.
+- Every drop is a row of `claims.md`, the line quoted, so a later round reads what was cleared and why: write `<round dir>/candidates/reflector.json` before returning, `dropped` holding each drop with its candidate's file, line, angle and summary and your `settled_by`, and `candidates` holding the missing list.
+- Then ask what is missing, the round's one completeness question: an angle that came back thin, a class of the catalog no candidate touches, a changed test not re-added; return each as a candidate with the check that settles it, never a line already listed.
 
 ### Verifiers
 
@@ -156,28 +159,24 @@ A verdict, filled:
 - For CONFIRMED and PLAUSIBLE write the artifact under `tests/`, per *Write tests for test-shaped findings*, and re-run it from the file.
 - Band per *Calibration*; severity measures whether the defect is real, not how big. A refactor candidate whose rewrite passes the tests is a Suggestion carrying both line counts.
 - Report what the user loses, never the artifact that causes it.
+- Write the verdicts you return to `<round dir>/verdicts/<agent>.json`, each carrying its candidate's index, angle and check, so `round assemble` joins it to its row.
+- The verifier runs at the finder's tier today; the upgrade, when the plan allows it, is another model as capable or more on `verifier.model`, since a family confirms its own reading and the adversary is worth most when its weights are not the finder's. Never a smaller tier; the Nit batches are the measured exception.
 - An earlier round's command for the same line arrives with the candidate, never its verdict; re-run it before building your own.
 - A small candidate that turns out to need a mutation or the base comes back PLAUSIBLE with the check named, never a guess; a small verdict naming no run, or PLAUSIBLE for that reason, is escalated to one full-tier agent.
-- Every verifier carries a tool-call budget and returns PLAUSIBLE with the check still to run when it runs out, since the slowest verifier holds every stage behind it. The project's tool sits prebuilt on the PATH, so none builds one; run named tests, never a module sweep.
+- Every verifier carries a tool-call budget and returns PLAUSIBLE with the check still to run when it runs out, since the slowest verifier holds every stage behind it. The project's tool sits prebuilt on the PATH, so none builds one and none runs `go build`, `make` or `go run`, since a named test compiles what it needs; run named tests, never a module sweep.
 
-### Critic
-
-One agent, reading every candidate beside the first verify wave. It asks what
-is missing: an angle that came back thin, a shape nobody ran, a changed test
-not re-added, a cap hit silently, a class of the catalog no candidate touches.
-It returns candidates with the check that settles each, never a line already
-listed, and they verify in the same wave, so no second wave waits on the
-slowest verifier.
 
 ### Writer
 
 One agent, or several past `writer.batch` kept findings, drafting sections by
 file and one merge pass assembling the whole.
 
-- `overview.md` per *Overview*, when the slug has none.
-- `comment_<model>.md` per `skills/review-comment.md`, its header opening on the `Verdict:` line, every finding a section, posted or `SKIP`. A PLAUSIBLE finding is a question.
-- `claims.md` per *Output*: the candidate rows come from the workflow, written from the verdicts as data, so the writer composes the draft alone and adds the completeness answers.
-- The `Round:` line names the shape: how many finders, whether a critic ran, how many candidates, and that each was run from scratch by an agent that was not its finder, the Nits in their batches counted apart.
+- `overview.md` is never the writer's: the parent's overview agent wrote it at step 1, or the runner's, started beside the finders when the launch came without `overview_exists`; the writer links it.
+- `comment_<model>.md` per `skills/review-comment.md`, its header opening on the `Verdict:` line, every finding a section, posted or `SKIP`. A PLAUSIBLE Warning is a question; a PLAUSIBLE Nit or Suggestion ships `SKIP`, since a read that cannot settle it is no ground to post.
+- `./scripts/round assemble <round dir> --repo <head worktree> --sha <sha> --risk <risk.json> --url <blob url base> --title <text> --shape <text>` first: it writes `claims.md` whole, the Candidates table from the verdicts as data, the rows the finders settled, the hit rate per tier and an empty Completeness section, and `findings.md`, one block per finding in posting order with `SKIP` in front of a PLAUSIBLE Nit or Suggestion. It exits 1 listing every anchor not at the head; such a row is settled by reading the code and moving the anchor, never by dropping the finding.
+- `claims.md` per *Output*: the table is the tool's and stays as written; the writer replaces the Completeness placeholder with its answers.
+- The draft's sections come from `findings.md`, never from the JSON under `candidates/` or `verdicts/`.
+- The `Round:` line names the shape: how many finders, whether a reflector ran, how many candidates, and that each was run from scratch by an agent that was not its finder, the Nits in their batches counted apart.
 
 ### Text pass
 
@@ -216,7 +215,7 @@ findings is `skills/change.md`; they stay here.
 **A round whose target fixes a reported vulnerability closes on one pass per
 bound the fix claims to hold.** The fix's own description names the bounds.
 
-- Each bound is an entry of `args.topics`, one finder each, under the `critical` preset of `scripts/workflows/review-pipeline.json`: no general angle, no critic, no text pass.
+- Each bound is an entry of `args.topics`, one finder each, under the `critical` preset of `scripts/workflows/review-pipeline.json`: no general angle, no text pass.
 - The writer appends its verdicts to the round's `claims.md` under `## Critical pass <n>` rather than writing a round.
 - Pass the round's own `prior_checks`, so no check runs twice, and print the cost first with `./scripts/review-plan.py --preset critical --topics <n>`.
 - **Run another pass while the last one returned a candidate the verifiers banded above Nit.** Stop at two whatever the second returns, and name in the round note which bound is left standing on one pass.
@@ -376,7 +375,7 @@ Start each test file with a comment block carrying exact repro commands runnable
 
 ## Overview (`overview.md`)
 
-Write one for every target, first: its own agent, dispatched at step 1 while the parent prepares the round, so it is on disk and linked before a finder starts. The findings are written for a reader who already knows the subject; the overview is the only artifact that assumes nothing, and it is what the user opens first, the draft second. A judgement call about complexity was the rule before this one, and it answered "skip" for subjects a reader could not follow.
+Write one for every target, first: its own agent, dispatched at step 1 while the parent prepares the round, so it is on disk and linked before a finder starts; a run launched without `overview_exists` starts that agent itself beside the finders, so the reader has it minutes in and never at the end. The findings are written for a reader who already knows the subject; the overview is the only artifact that assumes nothing, and it is what the user opens first, the draft second. A judgement call about complexity was the rule before this one, and it answered "skip" for subjects a reader could not follow.
 
 The skeleton, filled per subject:
 
@@ -443,8 +442,11 @@ projects/<repo>/reviews/<slug>/
     comment_<model>.md   the draft: Verdict, Event, Model, Commit, Overview, Open the code, Round;
                          the Body; one section per finding, posted or SKIP, its repro collapsed
     claims.md            one row per candidate, then the completeness answers, then Outcomes
+    findings.md          the draft's skeleton, one block per finding in posting order, from `round assemble`
     links.md             one row per link of the draft and the overview
     tests/               every artifact a verifier ran
+    candidates/          what each finder and the reflector returned, as JSON
+    verdicts/            what each verifier returned, as JSON
 ```
 
 A row of `claims.md`, and the round note above it in the draft:
@@ -452,13 +454,14 @@ A row of `claims.md`, and the round note above it in the draft:
 ```markdown
 | 7 | REFUTED | Warning | pkg/store/cache.go:88 | go test ./pkg/store -run TestTTL, 0 TTL case | evicts after 5m, PASS; cache.go:31 clamps ttl <= 0 | | hot |
 
-Round: 1. 7 finders, one critic, 58 candidates, 23 of them Nits on the finder's own read and the rest run from scratch by an agent that was not its finder.
+Round: 1. 7 finders, one reflector, 58 candidates, 23 of them Nits on the finder's own read and the rest run from scratch by an agent that was not its finder.
 ```
 
 - `comment_<model>.md`, the draft, per `skills/review-comment.md`: every finding as a section, posted or `SKIP`, with its repro. Its header carries the verdict, the model and effort, the reviewed sha, the overview link and the round note, and `./scripts/post-review.sh` sends nothing above the first section, so the round's judgement and its shape live in the one file the user opens.
-- `claims.md`, the record: one row per candidate the verifiers ran, and one at state `UNVERIFIED` per Nit the round's ceiling left unrun: state, band, `file:line`, the check, the observed output, the artifact under `tests/`, and the tier the risk table gave its file. A refuted candidate keeps its row with the proving line, so a later round reads what was cleared and why. Then the completeness answers.
+- `claims.md`, the record, written by `./scripts/round assemble <round dir>` from `candidates/` and `verdicts/`: one row per candidate the verifiers ran, and one at state `UNVERIFIED` per Nit the round's ceiling left unrun: state, band, `file:line`, the check, the observed output, the artifact under `tests/`, and the tier the risk table gave its file. A refuted candidate keeps its row with the proving line, so a later round reads what was cleared and why. Then the completeness answers.
 - `tests/`, every artifact a verifier ran, per *Write tests for test-shaped findings*.
 - `links.md`, the text pass's row per link, which is the pass's own coverage proof and not a finding.
+- `candidates/` and `verdicts/`, one JSON file per agent, the same object it returned, so the record is on disk before the writer runs and a stage that dies loses its own file and nothing else.
 
 When a posted round's target merges or closes, `./scripts/review-outcomes.py <draft> --write` adds an Outcomes table to `claims.md`: per posted finding, fixed, resolved or open, and whether the author replied. That table is what a change to a tier, a cap or a batch is measured against.
 

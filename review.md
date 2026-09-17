@@ -118,6 +118,11 @@ A finder returns candidates as data, never prose. One, filled:
 - Write the object you return to `<round dir>/candidates/find-<job>.json` before returning.
 - Return at most `cap_high` candidates banded Critical, Warning or Missing test and at most `cap` banded Nit or Suggestion, each list ordered by how likely a verifier confirms it, since everything past a cap is dropped unread; a Nit never takes a Warning's slot.
 - Band on what a user loses when the line runs, never on the size of the fix: a read surface that aborts on ordinary input, a write that cannot be undone and a value another party can move are Warnings whatever their patch size; Nit is polish a maintainer would not block on.
+- **Missing test is a `deep` band and no other round returns one.** An absence costs a finder's
+  slot and a judge's read, and the round that is not deep spends both on what the diff does.
+  The knob is `finder.missing_test` in `scripts/workflows/review-pipeline.json`, true under the
+  `deep` preset alone; a gap worth the author's time at another word is a Warning on the code
+  the test would have caught.
 - A candidate whose only fix is a comment's or a doc's wording is never returned: it ships `SKIP` per *Calibration* and costs a verifier; the code a comment misdescribes is the candidate where the code is wrong.
 
 | Angle | Walks | Runs when |

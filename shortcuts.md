@@ -125,15 +125,11 @@ TL;DR: seven findings, one Warning; waits on `post`.
   **Group them one table column per target**, or per category where the work had
   no target, the links running inline inside each cell. A bullet or a row per
   file turns four artifacts into a screen the reader scrolls past.
-- **Every token count is reported with its dollar cost.** The rates are
-  `claude-api`'s model table, read that turn and never from memory: output and
-  uncached input at their per-MTok price, a cache read at a tenth of input, a
-  cache write at twice it under this session's one-hour TTL. Name the tool each
-  figure came from, since a raw transcript sum double-counts a streamed message
-  and `./scripts/review-retro.py` counts it once. A saving some other shape would
-  have bought is the same claim and takes the same proof: count the turns it
-  removes, then say the figure. An impression of where the money went names the
-  wrong lever, and the user spends their decision on it.
+- **Report a count with its cost, at rates read in the same turn.** Where those
+  rates are read is *Capabilities* in `workspace.md`. Name the tool each figure
+  came from: a raw transcript sum double-counts a streamed message.
+- **A saving takes the same count as a spend.** Count the turns the other shape
+  removes before naming the figure.
 - Retry a permission refusal from the harness once: a classifier is not
   deterministic. A 403 `Resource not accessible by personal access token` is a
   missing scope, handled per `skills/review-comment.md`.

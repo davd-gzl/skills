@@ -1,6 +1,6 @@
 ---
 name: review
-description: Use whenever a pull request, a branch, a working diff or a red CI is to be reviewed, in any project, and whenever the user says `review <target>`, `quick review`, `deep review`, `plan review`, `review all`, pastes a pull request URL alone, or asks what to think of a change or why CI is red. One round, finders per angle, a verifier per candidate, a reflector, a writer, a text pass, producing overview.md, comment_<model>.md per skills/review-comment.md, claims.md and links.md. Several targets at once and a target the reviewer wrote are skills/review-modes.md.
+description: Use whenever a pull request, a branch, a working diff or a red CI is to be reviewed, in any project, and whenever the user says `review <target>`, `quick review`, `deep review`, `plan review`, `review all`, pastes a pull request URL alone, or asks what to think of a change or why CI is red. One round, finders per angle, judges batched by band, a reflector, a writer, a text pass, producing overview.md, comment_<model>.md per skills/review-comment.md, claims.md and links.md. Several targets at once and a target the reviewer wrote are skills/review-modes.md.
 argument-hint: <repo>#<pr-number> | <url> | <repo> <subject>
 prompt-sections: [Words and sections, The round, Launch, Fetch & understand, Re-review rounds, Reproduce the failure, Output, Retro, Handover]
 ---
@@ -93,7 +93,7 @@ the word caps it. Size is one factor and never the trigger.
 | complex | **one reading does not hold it**: the mechanism is new here, or two of them interact, or the reader cannot say from the diff alone what the code now does. The subjects that usually fail that test, and never pass it on their own: concurrency, consensus, gas or allocation accounting, funds, permissions or caller identity, cryptography, a state machine, a migration, a hot file with a removed guard | a second round by yield, judges by three, the text pass |
 
 - Unsure between two classes takes the higher, once the reading has been tried.
-- Name what a second reading buys before naming a class, since a subject on the complex row is not the trigger. Nothing to name means normal.
+- Name what a second reading buys before naming a class, and quote the line that makes one reading insufficient. A reason taken from the file list rather than the files is not one, so a subject on the complex row is still not the trigger, and without that quoted line the class is normal.
 - `quick` caps the class at simple; `deep` skips the triage and takes complex; `args.shape` names a class outright; a round with topics, the critical pass, is never triaged.
 - A round that finds nothing runs no judge, no reflector and no text pass: the writer ships the header, the verdict and one true sentence, and `claims.md` the empty table.
 

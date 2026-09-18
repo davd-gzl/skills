@@ -199,6 +199,13 @@ commit the updated drafts after. Nothing else goes up with it: the pull request
 carries its body and no note from its own author, per
 `skills/review-comment.md`.
 
+Before any claim about an open pull request's body, code or threads, run
+`./scripts/pr-state <change dir>`: it prints the pull request's head, the fork
+branch's tip, the local tree's HEAD and the sha the body names, and exits 1
+where they differ. A claim then reads the body, the diff and the threads at
+the pushed sha and says so, since the local branch may hold work nobody pushed
+and a body read against HEAD describes a tree the reviewer never saw.
+
 After any push to an open pull request, read what the bots posted before the
 turn ends: `gh api repos/<owner>/<repo>/pulls/<n>/comments` and
 `gh pr checks <n>`. Report what landed, and say plainly when nothing has yet. A

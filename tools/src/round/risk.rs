@@ -147,6 +147,8 @@ static GENERATED_PATH: LazyLock<Regex> = LazyLock::new(|| {
 });
 static GENERATED_LINE: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"(Code generated|DO NOT EDIT|@generated)").unwrap());
+/// A script under `.github/` or beside a Makefile is code, whatever directory it sits in: it runs.
+static SCRIPT_EXT: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\.(py|sh|bash|js|mjs|cjs|ts|go|rs|rb)$").unwrap());
 static CONFIG_PATH: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"(\.(json|ya?ml|toml|ini|cfg|env|lock)$|(^|/)(Dockerfile|Makefile|\.github/))")
         .unwrap()
@@ -168,7 +170,7 @@ pub fn kind_of(path: &str, added_lines: &[&str]) -> Kind {
         Kind::Test
     } else if DOC_PATH.is_match(path) {
         Kind::Doc
-    } else if CONFIG_PATH.is_match(path) {
+    } else if CONFIG_PATH.is_match(path) && !SCRIPT_EXT.is_match(path) {
         Kind::Config
     } else {
         Kind::Code
@@ -806,5 +808,16 @@ mod tests {
             "{table}"
         );
         assert!(!table.contains("keyword token"), "{table}");
+    }
+}
+
+#[cfg(test)]
+mod script_kind_tests {
+    use super::*;
+
+    #[test]
+    fn a_script_under_github_is_code_and_a_workflow_is_config() {
+        assert_eq!(kind_of(".github/scripts/build-pages-index.py", &[]), Kind::Code);
+        assert_eq!(kind_of(".github/workflows/ci.yml", &[]), Kind::Config);
     }
 }

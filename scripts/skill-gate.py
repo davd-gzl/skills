@@ -144,31 +144,10 @@ SETS = '.skill-gate/sets'  # <root>/.skill-gate/sets/<name>.md, a skill cut to t
 FRONT_SECTIONS = re.compile(r'^prompt-sections:\s*\[(.*?)\]\s*$', re.M)
 
 
-def section(text, name):
-    """One heading and everything under it, to the next heading of equal or shallower depth. A `#` line inside a
-    fenced block is content, never a heading: skeletons and repro blocks carry them, and reading one as a heading
-    ends the section at the fence and drops the rest in silence."""
-    lines = text.splitlines()
-    fenced = False
-    start = depth = None
-    for i, line in enumerate(lines):
-        if re.match(r'^\s*(```|~~~)', line):
-            fenced = not fenced
-            continue
-        if fenced:
-            continue
-        m = re.match(r'^(#{1,6})\s+(.*)', line)
-        if not m:
-            continue
-        if start is None:
-            if m.group(2).strip().lower().startswith(name.strip().lower()):
-                start, depth = i, len(m.group(1))
-            continue
-        if len(m.group(1)) <= depth:
-            return '\n'.join(lines[start:i]).rstrip() + '\n'
-    if start is None:
-        return None
-    return '\n'.join(lines[start:]).rstrip() + '\n'
+import importlib.util as _ilu
+_spec = _ilu.spec_from_file_location('sections', Path(__file__).resolve().parent / 'sections.py')
+_sections = _ilu.module_from_spec(_spec); _spec.loader.exec_module(_sections)
+section = _sections.section
 
 
 def cut_to_sections(name, path):
@@ -682,6 +661,13 @@ def prompt_head(prompt):
     return ' '.join(re.sub(r'^\W+', '', prompt).split()[:PROMPT_HEAD])
 
 
+def private_names():
+    try:
+        return set(json.loads((root() / 'workspace.json').read_text()).get('private_names', []))
+    except (OSError, ValueError):
+        return set()
+
+
 def prompt_reads(prompt):
     """The skills and project deltas a prompt calls for, in the order they matched."""
     names = []
@@ -707,6 +693,11 @@ def prompt_reads(prompt):
         name = d.name
         family = name.split('-')[0]  # the word before the first dash opens every project sharing it, and any word it starts
         hit = re.search(r'(?<![\w-])' + re.escape(family), words, re.I)
+        # A private project, one whose name or repository the consumer's workspace.json lists as private,
+        # opens on its own name alone: a family word in a pull request review of the public sibling
+        # pulled a security archive's conventions into every such session.
+        if hit and (name in private_names() or repos.get(name, '') in private_names()) and family != name:
+            hit = re.search(r'(?<![\w-])' + re.escape(name) + r'(?![\w-])', words, re.I)
         hit = hit or (repos.get(name) and re.search(re.escape(repos[name]) + r'(?![\w-])', prompt, re.I))
         if hit and name not in names:
             names.append(name)
@@ -841,7 +832,15 @@ def cmd_hook_claude(stdin, stdout):
     if tool in ('Write', 'Edit', 'MultiEdit') and inp.get('file_path'):
         paths = [inp['file_path']]
     elif tool == 'Bash':
-        paths = sorted(bash_targets(inp.get('command', '')))
+        cmd = inp.get('command', '')
+        # The invocation itself, never a message quoting the words: `git -c user.name=... commit` or
+        # `git commit ... --author=`, on one command line.
+        if (re.search(r'\bgit\b[^\n|;&]*?\s-c\s*user\.(name|email)=[^\n|;&]*\bcommit\b', cmd)
+                or re.search(r'\bgit\b[^\n|;&]*\bcommit\b[^\n|;&]*\s--author[= ]', cmd)):
+            print('Refused: a git commit that sets user.name, user.email or --author by hand. The identity is the '
+                  'checkout\'s pin and the verb: ./scripts/commit -m <message> <path>..., per Commit identity in skills/git.md.', file=sys.stderr)
+            return 2
+        paths = sorted(bash_targets(cmd))
     else:
         return 0
     names = []

@@ -899,3 +899,17 @@ class FencedHashIsNotAHeading(GateCase):
     def test_a_tilde_fence_counts_too(self):
         body = gate.section(self.FILE.replace('```', '~~~'), 'Alpha')
         self.assertIn('after', body)
+
+
+class IdentityRefusal(unittest.TestCase):
+    def run_hook(self, command):
+        out = io.StringIO()
+        payload = {'tool_name': 'Bash', 'tool_input': {'command': command}}
+        return gate.main(['hook-claude'], stdin=io.StringIO(json.dumps(payload)), stdout=out)
+
+    def test_a_hand_set_identity_is_refused(self):
+        self.assertEqual(self.run_hook('git -c user.name=x commit -m hi'), 2)
+        self.assertEqual(self.run_hook('git commit -m hi --author="x <x@y>"'), 2)
+
+    def test_a_message_quoting_the_words_passes(self):
+        self.assertEqual(self.run_hook('./scripts/commit -m "gate: a commit that sets user.name or --author is refused" a.md'), 0)

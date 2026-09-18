@@ -39,7 +39,9 @@ The hooks do the putting; the gate warns on anything written unread.
 Three principles outrank every rule. Build what the task asks for and nothing
 speculative. Read the rule before writing the artifact. Measure, never assume:
 a convention, a capability and a count come from a command run this session,
-never from memory or from a file that recorded them once.
+never from memory or from a file that recorded them once. Every skill has a
+second goal beside its task: the same decision in fewer turns, since a turn
+re-sends the whole context and output tokens are the minor term.
 
 Nothing reaches anyone without my word, typed in the current turn: `post`,
 `push`, `merge`. `go`, `ok` and `yes` authorise nothing, and every draft is shown
@@ -210,7 +212,7 @@ own argument and waits for the outcome table to measure it.
 | [`git.md`](git.md) | a turn will commit, push, sync a checkout, or touch a submodule or worktree | the identity every commit takes, where a push goes, the commands that report success and move nothing |
 | [`writing-style.md`](writing-style.md) | any visible prose, in any project | the rules every other skill defers to, the closing Pass, the chat register, the posted-comment shape |
 | [`shortcuts.md`](shortcuts.md) | every reply, in any workspace | the words, the shape of a reply, the account of what a turn did, the closing block |
-| [`authoring.md`](authoring.md) | a rule is added, edited or removed | where it lives, the shape it takes, what it displaces |
+| [`authoring.md`](authoring.md) | a rule is added, edited or removed | where it lives, the shape it takes, what it displaces, the turns it must not add; its sources sit in `knowledge/`, never in the rule |
 | [`archive/`](archive/) | nothing loads it | snapshots of a skill before a change that altered its voice, the advisory shape for a disclosure, and the harness that chose the Short form wording |
 | [`TODO.md`](TODO.md) | skill work I own but have not started | one line per item, newest last |
 | [`knowledge/`](knowledge/) | a design question about the workflow comes up | one measured fact per file: what holds, the numbers, the source, what it changes |

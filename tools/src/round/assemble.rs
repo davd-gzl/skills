@@ -8,7 +8,9 @@
 //! `findings.md`, one block per finding in posting order with everything the writer needs.
 
 use std::collections::HashMap;
+use regex::Regex;
 use std::fs;
+use std::sync::LazyLock;
 use std::path::{Path, PathBuf};
 
 use serde_json::Value;
@@ -612,6 +614,35 @@ fn ungated(rows: &[Row]) -> Option<String> {
     ))
 }
 
+/// A scratch worktree's prefix in a quoted command: `<scratch>/judge-3/`, `<scratch>/find-b1-lines/`.
+static SCRATCH_WORKTREE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r#"/[^\s"'`]*?/(judge-\d+|find-[^/\s"'`]+)/"#).unwrap());
+
+/// One cell with the head worktree and every scratch worktree prefix cut, so the path is the
+/// repo's own: a judge quotes the command it ran, and that line carries where it ran it.
+fn strip_local(s: &str, repo: &str) -> String {
+    let repo = repo.trim_end_matches('/');
+    let s = s.replace(&format!("{repo}/"), "").replace(repo, ".");
+    SCRATCH_WORKTREE.replace_all(&s, "").into_owned()
+}
+
+/// Every cell a stage wrote from its own command line, rewritten by `strip_local`.
+fn strip_local_paths(cands: &mut [Candidate], verdicts: &mut [Verdict], dropped: &mut [Dropped], repo: &str) {
+    for c in cands.iter_mut() {
+        c.verify_by = strip_local(&c.verify_by, repo);
+        c.summary = strip_local(&c.summary, repo);
+    }
+    for v in verdicts.iter_mut() {
+        for cell in [&mut v.tldr, &mut v.details, &mut v.evidence, &mut v.refuted_by, &mut v.verify_by, &mut v.repro_path] {
+            *cell = strip_local(cell, repo);
+        }
+    }
+    for d in dropped.iter_mut() {
+        d.settled_by = strip_local(&d.settled_by, repo);
+        d.summary = strip_local(&d.summary, repo);
+    }
+}
+
 /// The work of `assemble_cmd`: the summary line, the anchor misses, and the ungating reason.
 fn run(args: &[String]) -> Result<(String, Vec<String>, Option<String>), String> {
     let round = Path::new(&args[0]);
@@ -629,8 +660,11 @@ fn run(args: &[String]) -> Result<(String, Vec<String>, Option<String>), String>
         Some(path) => read_tiers(path)?,
         None => HashMap::new(),
     };
-    let (cands, dropped) = candidates(&cand_files);
-    let verdicts = verdicts(&verdict_files);
+    let (mut cands, mut dropped) = candidates(&cand_files);
+    let mut verdicts = verdicts(&verdict_files);
+    if let Some(repo) = opts.get("repo") {
+        strip_local_paths(&mut cands, &mut verdicts, &mut dropped, repo);
+    }
     let rows = rows(&verdicts, &cands, &dropped, &tiers);
     let misses = match opts.get("repo") {
         Some(repo) => anchor_misses(&rows, repo, opts.get("sha").unwrap_or(&empty)),
@@ -736,6 +770,14 @@ mod tests {
         let claims = fs::read_to_string(round.join("claims.md")).unwrap_or_default();
         let findings = fs::read_to_string(round.join("findings.md")).unwrap_or_default();
         (code, claims, findings)
+    }
+
+    #[test]
+    fn the_head_worktree_and_a_scratch_worktree_leave_every_cell() {
+        assert_eq!(strip_local("grep -n Foo /w/head/pkg/a.go: 12", "/w/head/"), "grep -n Foo pkg/a.go: 12");
+        assert_eq!(strip_local("cd /w/head && go test ./pkg", "/w/head"), "cd . && go test ./pkg");
+        assert_eq!(strip_local("go test /tmp/claude/x/judge-3/pkg/... and /tmp/claude/x/find-b1-lines/pkg/a.go", "/w/head"), "go test pkg/... and pkg/a.go");
+        assert_eq!(strip_local("pkg/a.go:10 holds", "/w/head"), "pkg/a.go:10 holds");
     }
 
     #[test]

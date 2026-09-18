@@ -50,7 +50,7 @@ The word sets the shape, and the word is how well the user knows the code:
 | --- | --- | --- |
 | `quick review` | the overview of what a change is worth, the fewest tokens and the shortest clock | one finder per bundle carrying the angles that find Warnings, lines, reach, removed and the catalog, the Warning cap whole and the Nit cap 3, each finder running its own Warning checks, no reflector, judges by three at 12 calls and reads by eight, the writer, the text pass past 120 visible words of findings, a 500k ceiling |
 | `review` | any change | one finder per bundle per angle with material, each running its own Warning checks, the reflector, judges by six over the run-shaped candidates and by twelve over the reads, the writer, the text pass, a 1M ceiling |
-| `deep review` | code that is complex or unknown | every finder, a second round on every bundle that yielded a confirmed Warning or is hot, the Warning cap 16 and the Nit cap 8, judges by three at 30 calls, reads by six, the writer, the text pass, a 2.5M ceiling |
+| `deep review` | code that is complex or unknown | every finder at 60 calls, a hot bundle over the floor split by code file, the Warning cap 16 and the Nit cap 8, judges by three at 30 calls, reads by six, the writer, the text pass, a 2.5M ceiling |
 
 1. Prepare, per *Fetch & understand*, and dispatch the overview agent the moment the head worktree exists.
 2. Run the *Re-review rounds* gate when a prior round exists.
@@ -90,7 +90,7 @@ the word caps it. Size is one factor and never the trigger.
 | trivial | no behaviour changes and no prose asserting one: a comment, a rename, a version bump, a test-only edit that adds no case; a doc stating what the code does at runtime carries the round's risk in its claims and is normal | one solo agent finds, runs what it bands Warning, judges and writes; `solo.agents` 2 puts a fresh judge and writer behind a finder |
 | simple | one local behaviour change whose blast radius is one function and its direct callers | one finder per bundle carrying every angle, one judge batch, the writer, no reflector, no text pass |
 | normal | a behaviour change with more than one reach, a new invariant, a guard removed, a test that must turn red | the word's shape as configured |
-| complex | **one reading does not hold it**: the mechanism is new here, or two of them interact, or the reader cannot say from the diff alone what the code now does. The subjects that usually fail that test, and never pass it on their own: concurrency, consensus, gas or allocation accounting, funds, permissions or caller identity, cryptography, a state machine, a migration, a hot file with a removed guard | a second round by yield, judges by three, the text pass |
+| complex | **one reading does not hold it**: the mechanism is new here, or two of them interact, or the reader cannot say from the diff alone what the code now does. The subjects that usually fail that test, and never pass it on their own: concurrency, consensus, gas or allocation accounting, funds, permissions or caller identity, cryptography, a state machine, a migration, a hot file with a removed guard | finders at 60 calls, hot bundles split by code file, judges by three, the text pass |
 
 - Unsure between two classes takes the higher, once the reading has been tried.
 - Name what a second reading buys before naming a class, and quote the line that makes one reading insufficient. A reason taken from the file list rather than the files is not one, so a subject on the complex row is still not the trigger, and without that quoted line the class is normal.
@@ -101,9 +101,10 @@ the word caps it. Size is one factor and never the trigger.
 
 One finder per bundle per angle the bundle has material for, the bundles from
 `round dispatch`; a bundle under the floor gets one finder carrying every angle it
-has, so the count follows the diff. Under `deep` every bundle's angles run twice
-and a hot bundle's a third time, on independent contexts, merged per line like any
-two finders. Every bundle is read once whatever its tier.
+has, so the count follows the diff. A hot bundle over the floor is split by code
+file, so two finders of one angle read different material and never the same
+twice; a complex change buys a longer reading, `finder.tools`, not a second one.
+Every bundle is read once whatever its tier.
 
 A finder returns candidates as data, never prose. One, filled:
 
@@ -205,7 +206,7 @@ file and one merge pass assembling the whole.
 - `./scripts/round assemble <round dir> --repo <head worktree> --sha <sha> --risk <risk.json> --url <blob url base> --title <text> --shape <text>` first: it writes `claims.md` whole, the Candidates table from the verdicts as data, the rows the finders settled, the hit rate per tier and an empty Completeness section, and `findings.md`, one block per finding in posting order with `SKIP` in front of a PLAUSIBLE Nit or Suggestion. It exits 1 listing every anchor not at the head; such a row is settled by reading the code and moving the anchor, never by dropping the finding.
 - `claims.md` per *Output*: the table is the tool's and stays as written; the writer replaces the Completeness placeholder with its answers.
 - The draft's sections come from `findings.md`, never from the JSON under `candidates/` or `verdicts/`.
-- `./scripts/round check <round dir>` last, before returning: it lists every em-dash, every visible question, every finding header without its link and every phrase that points at the page, into `check.md`; the writer clears the list, so the text pass reads the wording and not the mechanics.
+- `./scripts/round check <round dir>` last, before returning: it lists every em-dash, every visible question, every finding header without its link, every phrase that points at the page and every absolute path outside the reviewed repo, into `check.md`; then `./scripts/prose-check.py <draft>`, the sentence half: a sentence past the ceiling, a subject shape, a process word. The writer clears both lists, since the two gates do not overlap and a round whose text pass is skipped ships what the writer returned.
 - The `Round:` line names the shape: how many finders, whether a reflector ran, how many candidates, and that each was run from scratch by an agent that was not its finder, the Nits in their batches counted apart.
 
 ### Text pass
@@ -301,7 +302,7 @@ Reading the target:
 - For a PR: `gh pr view <number> -R <repo> --json title,body,author,baseRefName,headRefName,files,additions,deletions,commits` and `gh pr diff <number> -R <repo>`.
 - Read the description, linked issues, all comments via `gh api repos/<repo>/issues/<number>/comments`, and all review comments via `gh api repos/<repo>/pulls/<number>/comments`. Note unresolved threads. Paginate every list call with `gh api --paginate`: truncation at 30 items is silent.
 - Read past reviews in `projects/<repo>/reviews/` first; focus on what changed since the last reviewed commit.
-- Read `projects/<repo>/CONTEXT.md` before the target and take the round's pace from it, which outranks the plan's projection: a launch weeks away means a lower finder cap and more targets, a quiet stretch the full cap and a second round. An author's stated wants shape the draft, and a finding class they asked not to receive ships `SKIP`.
+- Read `projects/<repo>/CONTEXT.md` before the target and take the round's pace from it, which outranks the plan's projection: a launch weeks away means a lower finder cap and more targets, a quiet stretch the full cap and the `deep` word. An author's stated wants shape the draft, and a finding class they asked not to receive ships `SKIP`.
 - Read every changed file in full, and map callers, dependents, and siblings. A guard the diff rewrites, a nil check, a panic, an early return, is mapped at the merge base before its replacement is read: what the rewrite changes is what each of those callers now gets, and a reader who opens the new code first finds the base's reachability last.
 - **A finding the description already names is one sentence at most, and often none.** The author wrote it down on purpose, so restating it back at them spends the review's attention on the one thing they cannot learn from it. What is left worth saying is the consequence they may not have pictured, and a clip says that better than a paragraph.
 

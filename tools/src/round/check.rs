@@ -1,11 +1,15 @@
 //! `round check`: the mechanical half of the text pass over a round's draft and overview, so the
 //! pass keeps only the judgement. An em-dash outside a fence, a visible sentence ending in a
 //! question mark, a finding header without its `[gh]` link, a phrase that points at the page
-//! instead of the code, a `Full review:` line. One row per hit into `<round dir>/check.md`,
+//! instead of the code, a `Full review:` line, and, over the draft, `claims.md`, `findings.md`,
+//! `candidates/` and `verdicts/`, an absolute path outside the reviewed repo, which a judge
+//! quoting its own command line carries in. One row per hit into `<round dir>/check.md`,
 //! exit 1 when any hit.
 
 use std::fs;
 use std::path::Path;
+
+use std::sync::LazyLock;
 
 use regex::Regex;
 
@@ -175,6 +179,7 @@ fn run(args: &[String]) -> Result<Vec<Hit>, String> {
     if let Some(list) = opts.get("private") {
         hits.extend(private_names(round, list)?);
     }
+    hits.extend(absolute_paths(round, &overview));
     let out = opts
         .get("out")
         .map(|p| Path::new(p).to_path_buf())
@@ -194,6 +199,57 @@ fn private_names(round: &Path, list: &str) -> Result<Vec<Hit>, String> {
         .filter(|l| !l.is_empty())
         .map(String::from)
         .collect();
+    let mut hits = Vec::new();
+    for f in record_files(round) {
+        let text = fs::read_to_string(&f).unwrap_or_default();
+        let short = short_name(round, &f);
+        for (i, line) in text.lines().enumerate() {
+            for name in &names {
+                let re = Regex::new(&format!(r"(?i)(^|[^A-Za-z0-9_-]){}([^A-Za-z0-9_-]|$)", regex::escape(name))).unwrap();
+                if re.is_match(line) {
+                    hits.push(Hit { file: short.clone(), line: i + 1, what: format!("private name: {name}") });
+                }
+            }
+        }
+    }
+    Ok(hits)
+}
+
+/// A local path a verifier quoted from its own command line: a home directory, the scratch
+/// directory, a worktree. The reviewed repo's own paths are relative and never match.
+static LOCAL_PATH: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r#"(^|[^A-Za-z0-9_./-])((/home/|/Users/|/root/|/tmp/claude|/tmp/agent-workspace|(/[^\s"'`)]*)?/\.worktrees/)[^\s"'`)]*)"#).unwrap()
+});
+
+/// Every absolute path outside the reviewed repo over the round's record and the overview.
+fn absolute_paths(round: &Path, overview: &Path) -> Vec<Hit> {
+    let mut files = record_files(round);
+    if overview.is_file() {
+        files.push(overview.to_path_buf());
+    }
+    let mut hits = Vec::new();
+    for f in files {
+        let text = fs::read_to_string(&f).unwrap_or_default();
+        let short = short_name(round, &f);
+        for (i, line) in text.lines().enumerate() {
+            if let Some(m) = LOCAL_PATH.captures(line) {
+                let path: String = m[2].chars().take(60).collect();
+                hits.push(Hit { file: short.clone(), line: i + 1, what: format!("absolute path: {path}") });
+            }
+        }
+    }
+    hits
+}
+
+/// The file's name relative to the round, for the table.
+fn short_name(round: &Path, f: &Path) -> String {
+    f.strip_prefix(round)
+        .map(|p| p.to_string_lossy().into_owned())
+        .unwrap_or_else(|_| f.to_string_lossy().into_owned())
+}
+
+/// The round's record: the draft, `claims.md`, `findings.md`, `candidates/` and `verdicts/`.
+fn record_files(round: &Path) -> Vec<std::path::PathBuf> {
     let mut files: Vec<std::path::PathBuf> = Vec::new();
     if let Ok(entries) = fs::read_dir(round) {
         for e in entries.flatten() {
@@ -209,23 +265,7 @@ fn private_names(round: &Path, list: &str) -> Result<Vec<Hit>, String> {
         }
     }
     files.sort();
-    let mut hits = Vec::new();
-    for f in files {
-        let text = fs::read_to_string(&f).unwrap_or_default();
-        let short = f
-            .strip_prefix(round)
-            .map(|p| p.to_string_lossy().into_owned())
-            .unwrap_or_else(|_| f.to_string_lossy().into_owned());
-        for (i, line) in text.lines().enumerate() {
-            for name in &names {
-                let re = Regex::new(&format!(r"(?i)(^|[^A-Za-z0-9_-]){}([^A-Za-z0-9_-]|$)", regex::escape(name))).unwrap();
-                if re.is_match(line) {
-                    hits.push(Hit { file: short.clone(), line: i + 1, what: format!("private name: {name}") });
-                }
-            }
-        }
-    }
-    Ok(hits)
+    files
 }
 
 #[cfg(test)]
@@ -244,6 +284,19 @@ mod tests {
         assert_eq!(code, 1);
         let table = fs::read_to_string(round.join("check.md")).unwrap();
         assert!(table.contains("private name: secret-fixes"), "{table}");
+    }
+
+    #[test]
+    fn an_absolute_path_in_the_record_is_a_hit_and_a_repo_path_is_not() {
+        let round = round_with("check-abs", "# Review\n\n## pkg/a.go:10 [gh](https://x/a.go#L10) \u{b7} Warning\nRun `go test ./pkg` from the clone.\n", "# S\n\nOk.\n");
+        fs::create_dir_all(round.join("verdicts")).unwrap();
+        fs::write(round.join("verdicts").join("judge-1.json"), "{\"evidence\": \"grep -n Foo /home/someone/work/.worktrees/repo-1/pkg/a.go: 12\"}\n").unwrap();
+        fs::write(round.join("claims.md"), "| 1 | CONFIRMED | Warning | pkg/a.go:10 | grep -n Foo pkg/a.go | 12 | | hot |\n").unwrap();
+        let code = check_cmd(&[round.display().to_string()]);
+        assert_eq!(code, 1);
+        let table = fs::read_to_string(round.join("check.md")).unwrap();
+        assert!(table.contains("verdicts/judge-1.json") && table.contains("absolute path: /home/someone/work/.worktrees/repo-1/pkg/a.go"), "{table}");
+        assert!(!table.contains("claims.md"), "a relative path is not a hit: {table}");
     }
 
     fn round_with(name: &str, draft: &str, overview: &str) -> std::path::PathBuf {

@@ -192,6 +192,41 @@ fn finders_for(angles: &[&'static str], lines: usize) -> Vec<Vec<&'static str>> 
     }
 }
 
+/// One unit per code file, each test file riding with the code file its name matches,
+/// `a_test.go` with `a.go` and `test_a.py` with `a.py`, else with the first.
+fn split_by_code_file<'a>(members: &[&'a FileFacts]) -> Vec<(String, Vec<&'a FileFacts>)> {
+    let mut units: Vec<(String, Vec<&'a FileFacts>)> = members
+        .iter()
+        .filter(|f| f.kind != Kind::Test)
+        .map(|f| (f.path.clone(), vec![*f]))
+        .collect();
+    for f in members.iter().filter(|f| f.kind == Kind::Test) {
+        let stem = test_stem(&f.path);
+        let at = units
+            .iter()
+            .position(|(p, _)| test_stem(p) == stem)
+            .unwrap_or(0);
+        units[at].1.push(f);
+    }
+    units
+}
+
+/// `pkg/a_test.go`, `pkg/test_a.py`, `src/a.spec.ts` and `pkg/a.go` all give `pkg/a`.
+fn test_stem(path: &str) -> String {
+    let (dir, name) = path.rsplit_once('/').unwrap_or(("", path));
+    let base = name.split('.').next().unwrap_or(name);
+    let base = base.strip_prefix("test_").unwrap_or(base);
+    let base = base
+        .strip_suffix("_filetest")
+        .or_else(|| base.strip_suffix("_test"))
+        .unwrap_or(base);
+    if dir.is_empty() {
+        base.to_string()
+    } else {
+        format!("{dir}/{base}")
+    }
+}
+
 /// The tier of a bundle: the hottest of its files, from the risk table's lists.
 fn tier_for(files: &[&FileFacts], risk: &HashMap<String, String>) -> String {
     for want in ["hot", "warm", "cold"] {
@@ -228,7 +263,8 @@ fn read_risk(path: &str) -> Result<HashMap<String, String>, String> {
 }
 
 /// The bundles of a diff. Code and test files group by directory, small directories merge with
-/// a sibling until the floor, a bundle over the ceiling splits by file; docs and config form one
+/// a sibling until the floor, a bundle over the ceiling or a hot bundle over the floor splits by
+/// code file, each test file beside the code file its name matches; docs and config form one
 /// bundle for the claims angle; generated files are skipped and listed.
 pub(super) fn bundles(
     files: &[FileFacts],
@@ -264,14 +300,18 @@ pub(super) fn bundles(
             _ => groups.push((vec![dir], fs_)),
         }
     }
-    // Split: a group over the ceiling with several files becomes one bundle per file.
+    // Split: a group over the ceiling with several code files becomes one bundle per code file,
+    // and so does a hot group over the floor: two finders of one angle then read different
+    // material, disjoint by construction, where a second round over the same bundle re-read it.
     let mut units: Vec<(String, Vec<&FileFacts>)> = Vec::new();
     for (dirs, members) in groups {
         let lines: usize = members.iter().map(|f| f.lines()).sum();
-        if lines > CEILING && members.len() > 1 {
-            for f in members {
-                units.push((f.path.clone(), vec![f]));
-            }
+        let code_files = members.iter().filter(|f| f.kind != Kind::Test).count();
+        let hot = members
+            .iter()
+            .any(|f| risk.get(&f.path).map(String::as_str) == Some("hot"));
+        if code_files > 1 && (lines > CEILING || (hot && lines >= FLOOR)) {
+            units.extend(split_by_code_file(&members));
         } else {
             let name = if dirs.len() == 1 {
                 dirs[0].clone()
@@ -672,6 +712,31 @@ mod tests {
             "one finder carrying both under the floor"
         );
         assert!(finders_for(&[], 3).is_empty());
+    }
+
+    fn fact(path: &str, kind: Kind, added: usize) -> FileFacts {
+        FileFacts { path: path.to_string(), kind, added, deleted: 0, comments: 0, block_max: 0 }
+    }
+
+    #[test]
+    fn a_hot_bundle_over_the_floor_splits_by_code_file() {
+        let files = vec![
+            fact("pkg/x.go", Kind::Code, 80),
+            fact("pkg/y.go", Kind::Code, 60),
+            fact("pkg/y_test.go", Kind::Test, 10),
+        ];
+        let (cold, _) = bundles(&files, &HashMap::new(), false);
+        assert_eq!(cold.len(), 1, "under the ceiling and not hot, one bundle: {cold:?}");
+        assert_eq!(cold[0].files, vec!["pkg/x.go", "pkg/y.go", "pkg/y_test.go"]);
+        let risk = HashMap::from([("pkg/x.go".to_string(), "hot".to_string())]);
+        let (hot, _) = bundles(&files, &risk, false);
+        assert_eq!(hot.len(), 2, "{hot:?}");
+        assert_eq!(hot[0].files, vec!["pkg/x.go"]);
+        assert_eq!(hot[1].files, vec!["pkg/y.go", "pkg/y_test.go"], "the test rides with its code file");
+        assert_eq!(hot[0].tier, "hot");
+        assert_eq!(test_stem("pkg/test_a.py"), "pkg/a");
+        assert_eq!(test_stem("src/a.spec.ts"), "src/a");
+        assert_eq!(test_stem("r/x/x_filetest.gno"), "r/x/x");
     }
 
     #[test]

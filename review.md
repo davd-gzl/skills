@@ -50,7 +50,7 @@ The word sets the shape, and the word is how well the user knows the code:
 | --- | --- | --- |
 | `quick review` | the overview of what a change is worth, the fewest tokens and the shortest clock | one finder per bundle carrying the angles that find Warnings, lines, reach, removed and the catalog, the Warning cap whole and the Nit cap 3, each finder running its own Warning checks, no reflector, judges by three at 12 calls and reads by eight, the writer, the text pass past 120 visible words of findings, a 500k ceiling |
 | `review` | any change | one finder per bundle per angle with material, each running its own Warning checks, the reflector, judges by six over the run-shaped candidates and by twelve over the reads, the writer, the text pass, a 1M ceiling |
-| `deep review` | code that is complex or unknown | every finder, a second round on every bundle that yielded a confirmed Warning or is hot, the Warning cap 16 and the Nit cap 8, one judge per run-shaped candidate at 30 calls, reads by six, the writer, the text pass, a 2.5M ceiling |
+| `deep review` | code that is complex or unknown | every finder, a second round on every bundle that yielded a confirmed Warning or is hot, the Warning cap 16 and the Nit cap 8, judges by three at 30 calls, reads by six, the writer, the text pass, a 2.5M ceiling |
 
 1. Prepare, per *Fetch & understand*, and dispatch the overview agent the moment the head worktree exists.
 2. Run the *Re-review rounds* gate when a prior round exists.
@@ -90,7 +90,7 @@ the word caps it. Size is one factor and never the trigger.
 | trivial | no behaviour changes: a doc, a comment, a rename, a version bump, a test-only edit that adds no case | one solo agent finds, runs what it bands Warning, judges and writes; `solo.agents` 2 puts a fresh judge and writer behind a finder |
 | simple | one local behaviour change whose blast radius is one function and its direct callers | one finder per bundle carrying every angle, one judge batch, the writer, no reflector, no text pass |
 | normal | a behaviour change with more than one reach, a new invariant, a guard removed, a test that must turn red | the word's shape as configured |
-| complex | **one reading does not hold it**: the mechanism is new here, or two of them interact, or the reader cannot say from the diff alone what the code now does. The subjects that usually fail that test, and never pass it on their own: concurrency, consensus, gas or allocation accounting, funds, permissions or caller identity, cryptography, a state machine, a migration, a hot file with a removed guard | a second round by yield, one judge per run-shaped candidate, the text pass |
+| complex | **one reading does not hold it**: the mechanism is new here, or two of them interact, or the reader cannot say from the diff alone what the code now does. The subjects that usually fail that test, and never pass it on their own: concurrency, consensus, gas or allocation accounting, funds, permissions or caller identity, cryptography, a state machine, a migration, a hot file with a removed guard | a second round by yield, judges by three, the text pass |
 
 - Unsure between two classes takes the higher, once the reading has been tried.
 - Name what a second reading buys before naming a class, since a subject on the complex row is not the trigger. Nothing to name means normal.
@@ -168,7 +168,7 @@ reads the code and answers, and files no finding of its own. Routing by band:
 
 | Candidate | Who | Where |
 | --- | --- | --- |
-| a Critical, a Warning, a rewrite | one judge per `verifier.batch` run-shaped candidates of one bundle, six by default, one under `deep`; the artifact rerun from the file, the code read, the same check at the merge base where the claim is causal | one scratch worktree per judge, `git -C <head worktree> worktree add --detach <scratch>/judge-<n> <sha>`, the tree restored between candidates, removed at the end |
+| a Critical, a Warning, a rewrite | one judge per `verifier.batch` run-shaped candidates of one bundle, six by default, three under `deep`; the artifact rerun from the file, the code read, the same check at the merge base where the claim is causal | one scratch worktree per judge, `git -C <head worktree> worktree add --detach <scratch>/judge-<n> <sha>`, the tree restored between candidates, removed at the end |
 | a Missing test, a Suggestion, a Nit | one judge per `verifier.read_batch`, twelve, under `verifier.read_tools` calls; a read settles it and never a mutation, a Missing test being an absence a grep settles | the head worktree, untouched |
 
 A verdict, filled:

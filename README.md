@@ -8,7 +8,7 @@ My skills: the instruction sets my agents load before working on my projects.
 | --- | --- | --- |
 | `quick review <target>` | the overview of what a change is worth: one finder per bundle on the Warning-finding angles, each running its own Warning checks, judges in short parallel batches, no reflector, the text pass past 120 visible words of findings | about 8 agents, 360k output, 45 minutes, estimate |
 | `review <target>` | any change; a triage names the class first and a simple change runs one finder per bundle, one judge and the writer, a trivial one a single agent; the normal round: one finder per bundle per angle, each running its own Warning checks, the reflector, judges by six over the run-shaped candidates and by twelve over the reads, the writer, the text pass | about 24 agents, 1.1M output, 60 minutes |
-| `deep review <target>` | code that is complex or unknown: a second round on every bundle that yielded, one judge per run-shaped candidate, the ceiling | about 57 agents, 2.2M output, 90 minutes |
+| `deep review <target>` | code that is complex or unknown: a second round on every bundle that yielded, judges by three, the ceiling | about 57 agents, 2.2M output, 90 minutes |
 
 ### The shape follows the change
 
@@ -19,7 +19,7 @@ A triage agent runs before any stage is sized: one short read of the diff, the r
 | trivial | no behaviour changes: a doc, a comment, a rename, a version bump | one solo agent finds, runs what it bands Warning, judges and writes | 2 agents, ~64k output, about 8 minutes |
 | simple | one local behaviour change, one function and its direct callers | one finder per bundle carrying every angle, one judge, the writer; no reflector, no text pass | 5 agents, ~80k, about 17 minutes |
 | normal | more than one reach, a new invariant, a guard removed, a test that must turn red | the word's shape | 7 agents, ~113k, about 25 minutes |
-| complex | concurrency, consensus, gas, funds, permissions, cryptography, a state machine, unknown code | a second round by yield, one judge per run-shaped candidate, the text pass | |
+| complex | concurrency, consensus, gas, funds, permissions, cryptography, a state machine, unknown code | a second round by yield, judges by three, the text pass | |
 
 The useless steps go by themselves: a round that finds nothing runs no judge, no reflector and no text pass; the reflector is skipped under six candidates and the text pass under four findings; the overview is a dozen lines for a simple change. A 1,200-line change on `review` still projects at 24 agents and about 1.1M output, so a seven-line fix costs a tenth of it rather than half.
 

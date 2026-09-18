@@ -2,11 +2,14 @@
 name: review
 description: Use whenever a pull request, a branch, a working diff or a red CI is to be reviewed, in any project, and whenever the user says `review <target>`, `quick review`, `deep review`, `plan review`, `review all`, pastes a pull request URL alone, or asks what to think of a change or why CI is red. One round, finders per angle, a verifier per candidate, a reflector, a writer, a text pass, producing overview.md, comment_<model>.md per skills/review-comment.md, claims.md and links.md. Several targets at once and a target the reviewer wrote are skills/review-modes.md.
 argument-hint: <repo>#<pr-number> | <url> | <repo> <subject>
+prompt-sections: [Words and sections, The round, Launch, Fetch & understand, Re-review rounds, Reproduce the failure, Output, Retro, Handover]
 ---
 
 # Review
 
 **Input:** `$ARGUMENTS`: a PR number or URL, a repo name plus a subject, or several of these. Process each target independently.
+
+## Words and sections
 
 One word per thing, everywhere in a round: a *candidate* is what a finder
 returns; a *finding* is a candidate a verifier kept; a *claim* is a sentence
@@ -34,6 +37,8 @@ at the close; *GitHub review draft*, the writer, through
 
 ## Workflow
 
+### The round
+
 One shape for every target, whatever its size: the parent prepares, a workflow
 finds, verifies, criticises and writes, the parent checks and ships. Run from
 the workspace root; multi-target runs wrap this via *Parallel dispatch* in
@@ -43,13 +48,13 @@ The word sets the shape, and the word is how well the user knows the code:
 
 | Word | For | Shape |
 | --- | --- | --- |
-| `quick review` | the overview of what a change is worth, the fewest tokens and the shortest clock | one finder per bundle carrying the angles that find Warnings, lines, reach, removed and the catalog, the Warning cap whole and the Nit cap 3, each finder running its own Warning checks, no reflector, judges by three at 12 calls and reads by eight, the writer, no text pass, a 500k ceiling |
+| `quick review` | the overview of what a change is worth, the fewest tokens and the shortest clock | one finder per bundle carrying the angles that find Warnings, lines, reach, removed and the catalog, the Warning cap whole and the Nit cap 3, each finder running its own Warning checks, no reflector, judges by three at 12 calls and reads by eight, the writer, the text pass past 120 visible words of findings, a 500k ceiling |
 | `review` | any change | one finder per bundle per angle with material, each running its own Warning checks, the reflector, judges by six over the run-shaped candidates and by twelve over the reads, the writer, the text pass, a 1M ceiling |
 | `deep review` | code that is complex or unknown | every finder, a second round on every bundle that yielded a confirmed Warning or is hot, the Warning cap 16 and the Nit cap 8, one judge per run-shaped candidate at 30 calls, reads by six, the writer, the text pass, a 2.5M ceiling |
 
 1. Prepare, per *Fetch & understand*, and dispatch the overview agent the moment the head worktree exists.
 2. Run the *Re-review rounds* gate when a prior round exists.
-3. *Reproduce the failure*: each suite once per tree state, the project's tool built once from the head worktree, named in `args.prebuilt`.
+3. *Reproduce the failure*: each suite once per tree state, the project's tool built once from the head worktree, named in `args.prebuilt`; a tool whose source lives in another repository is pinned there, per that section.
 4. Print the plan and launch, per *Launch*; the triage names the class first, and the stages read *Finders*, *Reflector*, *Verifiers*, *Writer* and *Text pass*.
 5. Run the *Final check* of `skills/review-comment.md`, then the `skills/writing-style.md` Pass over `overview.md` and the draft, `./scripts/prose-check.py <file>` first; re-run it after any later edit to that prose, an edit made in answer to a question included, and state which passes ran. Where the target fixes a reported vulnerability, *The critical pass* in `skills/review.md` runs here.
 6. One commit and one push covering everything, pre-authorized per *Rules*.
@@ -109,8 +114,8 @@ A finder returns candidates as data, never prose. One, filled:
  "band": "Warning", "checked": true}
 ```
 
-- Read the diff written out at `args.diff_file`, the head worktree and the catalog; run nothing that writes. Reads of at most 500 lines and searches of at most 100 hits: a call re-reads the whole context, so a wide read costs every later turn.
-- Read the code before the description, since a description calling something safe lowers what a reader finds. Five angles read the copy of head with comment lines blanked and the blanked twin of the diff; the claims angle reads the description and the comments first, its subject; the refactor angle reads head.
+- Read the diff written out at `args.diff_file`, the head worktree and the catalog; run nothing that writes. Reads of at most 500 lines and searches of at most 100 hits, and every command the smallest output that settles the step, a count, a `head`, a `--stat`, a grep: a tool result stays in context for every later turn, so a wide read costs every one of them.
+- Read the code before the description, since a description calling something safe lowers what a reader finds. Five angles read the copy of head with comment lines blanked and the blanked twin of the diff; the claims angle reads the description and the comments first, its subject; the refactor and rollout angles read head, a comment being where a boot-time guarantee is stated.
 - Run the read-shaped half of your own `verify_by` before returning a candidate, the grep, the count, the file read. For a candidate banded Critical or Warning, and for a rewrite, run the check itself in your own scratch worktree, `git -C <head worktree> worktree add --detach <scratch>/find-<job> <sha>`, removed at the end; write the artifact under `tests/<job>-<slug>.<ext>` per *Write tests for test-shaped findings*, and return the candidate with `run` true, its evidence, the key output quoted, and `repro_path`. A check the run refutes goes under `dropped` with the output as its settling line; one the budget did not reach returns with `run` false. The merge-base comparison belongs to the judge. A Nit, a Suggestion and a Missing test are read, never run.
 - Work the bands in order: the checks of every Critical, Warning and Missing test candidate before any Nit's or Suggestion's, so a budget that runs out leaves a Nit unchecked and never a Warning. Mark each candidate `checked` or not; one you did not reach goes back with its check named, never dropped.
 - Work the files in the risk table's order, hot first, then warm, then cold: a budget that runs out leaves a cold file unread and never a hot one, and every file is read once whatever its tier.
@@ -345,6 +350,7 @@ Open every full re-review round with a `Round:` line in the draft's header: `Rou
 - **Run each suite and each linter once per tree state, into a file under `<scratch>`, and read only a grep of that file: the exit code, the failing names, the counts.** A suite piped into the context carries the toolchain's every build warning, re-read on every later call, and re-running that state shows nothing new. *Repro rules* still paste that run's output, trimmed, which the file holds.
 - **Where the harness cannot select one fixture, run a probe in a copy of the package pruned to that fixture, never in the worktree**, with the copy recipe in the project's delta.
 - Before attributing any failure to the diff, run the same check on the merge-base. A failure that also occurs there is pre-existing.
+- **Where the head worktree carries no source for the project's tool, `make install` fetching it from another repository, pin that tool's revision before any run: install it from the revision the target names, record the revision in `claims.md`, and band no claim needing it CONFIRMED against a binary the round did not pin.**
 - **Run the project's own tool from the branch's source, never an installed binary.** An installed binary exercises the code it was built from, not the branch's, so a change to the tool tests itself out of the run.
 - A repository-level failure gets the same discipline: reproduce each condition on the default branch and identify the introducing commit where history allows.
 - When a target changes runtime behavior of a server or tool, boot it and exercise it live; record what was verified live as rows in `claims.md`.

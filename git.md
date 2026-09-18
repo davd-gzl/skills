@@ -17,7 +17,7 @@ visibility: the user's own for a public destination, and for a private one a
 machine handle tied to no account, so the commit counts toward nobody's graph.
 `--show` prints the handle it would use and commits nothing.
 
-**Pin the identity in every checkout's own git config, `./scripts/identity --write`.**
+Pin the identity in every checkout's own git config, `./scripts/identity --write`.
 The verb above sets the four variables for its own call and reaches nothing else, so `git rebase`,
 `git cherry-pick`, `git commit --amend` and a bare `git commit` take the config identity: a push
 refused as non-fast-forward is retried with a rebase, and that rebase rewrites a correctly authored
@@ -119,36 +119,49 @@ A submodule sits on a detached HEAD, and every failure here follows from that.
   `git push --recurse-submodules=on-demand` does both. A clone breaks when a
   gitlink's commit is not on the url `.gitmodules` names, and `workspace.md`
   says which submodules point at a fork.
-- **Version a fix branch as a submodule, never a worktree.** A worktree's `.git`
+- Version a fix branch as a submodule, never a worktree. A worktree's `.git`
   is a file into the main object store, so git cannot track it.
   `git submodule add -b <branch> <fork-url> <path>` records the branch, which
   `git submodule update --remote` follows. Every presented fix pays a second
   clone; the worktree stays scratch.
-- **Write the submodule push and the parent's gitlink bump as one script of
-  `git -C <path>` commands, never a `cd` chain.** A `cd` inside a compound
+- Write the submodule push and the parent's gitlink bump as one script of
+  `git -C <path>` commands, never a `cd` chain. A `cd` inside a compound
   command leaves every later line running from the wrong tree, so the parent
   bump fails after the submodule push already landed and the turn ends half
   pushed. Neither half waits for a word the other did not need.
-- **Restore a checkout to its default branch after working in it**, or the
+- Restore a checkout to its default branch after working in it, or the
   parent's gitlink moves and the tree is dirty.
 
 ## Commands that lie
 
-- **Quote every `<sha>:<path>` argument.** Under zsh `git show $c:review.md`
+- Quote every `<sha>:<path>` argument. Under zsh `git show $c:review.md`
   expands as `${c:r}` plus `eview.md`, so the command fails on an unknown
   revision while the loop around it keeps going and reports clean for every
   commit. Write `git show "${c}:review.md"`.
   `./scripts/env-check.sh shell` names the shell in play.
-- **`gh pr edit` reports a scope failure as success.** It resolves reviewers and
+- `gh pr edit` reports a scope failure as success. It resolves reviewers and
   assignees over GraphQL before it patches, so a token without `read:org`
   prints `Your token has not been granted the required scopes`, sends no edit,
   exits 0, and the old body stays. Patch over REST,
   `gh api -X PATCH repos/<owner>/<repo>/pulls/<n> -F body=@<file>`, and read
   the body back after every edit.
-- **Stage under `set -e` with care.** A `git add` naming a path already staged
+- Stage under `set -e` with care. A `git add` naming a path already staged
   as deleted exits nonzero and stages nothing beside it, so the commit carries
   the deletion alone. A tree that looks current is a snapshot of its last sync,
   and a deletion the other side never touched merges silently.
+
+## Merging
+
+**Merge with `git merge --no-commit --no-ff`.** The merge stays open, so the
+editor's source control lists the conflicted files alone and the user resolves
+from there.
+
+- Stop at the first conflict and report the files. No `git checkout --ours`
+  or `--theirs`, and no edit to a conflicted file on the session's own judgement.
+- Explain each conflict before any resolution is written: what each side wants,
+  why they differ, and what the resolution costs to maintain. The user picks;
+  apply the choice once they have made it.
+- Commit the merge after the user confirms the resolution, never before.
 
 ## A stale branch
 

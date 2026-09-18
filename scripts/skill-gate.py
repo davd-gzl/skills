@@ -125,6 +125,92 @@ def session_key():
     return str(os.getppid())
 
 
+def always_whole():
+    """The skills every turn runs on, which are never cut however they are declared: the register and the words the
+    root CLAUDE.md imports, so the harness already carries them whole and the gate must record the same bytes."""
+    names = set(IMPORTED)
+    try:
+        text = (root() / 'CLAUDE.md').read_text()
+    except OSError:
+        return names
+    for line in text.splitlines():
+        line = line.strip()
+        if line.startswith('@'):
+            names.add(re.sub(r'^skills/|\.md$', '', line[1:].strip()))
+    return names
+
+
+SETS = '.skill-gate/sets'  # <root>/.skill-gate/sets/<name>.md, a skill cut to the sections its reader needs
+FRONT_SECTIONS = re.compile(r'^prompt-sections:\s*\[(.*?)\]\s*$', re.M)
+
+
+def section(text, name):
+    """One heading and everything under it, to the next heading of equal or shallower depth. A `#` line inside a
+    fenced block is content, never a heading: skeletons and repro blocks carry them, and reading one as a heading
+    ends the section at the fence and drops the rest in silence."""
+    lines = text.splitlines()
+    fenced = False
+    start = depth = None
+    for i, line in enumerate(lines):
+        if re.match(r'^\s*(```|~~~)', line):
+            fenced = not fenced
+            continue
+        if fenced:
+            continue
+        m = re.match(r'^(#{1,6})\s+(.*)', line)
+        if not m:
+            continue
+        if start is None:
+            if m.group(2).strip().lower().startswith(name.strip().lower()):
+                start, depth = i, len(m.group(1))
+            continue
+        if len(m.group(1)) <= depth:
+            return '\n'.join(lines[start:i]).rstrip() + '\n'
+    if start is None:
+        return None
+    return '\n'.join(lines[start:]).rstrip() + '\n'
+
+
+def cut_to_sections(name, path):
+    """A skill declaring `prompt-sections: [...]` in its frontmatter is read as that cut, written under
+    <root>/.skill-gate/sets and refreshed whenever the source changes, so the reader loads the sections its
+    moment needs and never the stage sections it does not. No declaration returns the file itself."""
+    try:
+        text = path.read_text()
+    except OSError:
+        return path
+    if name in always_whole():
+        return path       # already in context whole; a cut here would desync the record from what was loaded
+    m = FRONT_SECTIONS.search(text.split('---', 2)[1]) if text.startswith('---') else None
+    if not m:
+        return path
+    wanted = [w.strip() for w in m.group(1).split(',') if w.strip()]
+    if not wanted:
+        return path
+    out = root() / SETS / f'{name}.md'
+    stamp = f'<!-- {name}: {len(wanted)} sections of {path.relative_to(root()).as_posix()} at {digest(path)[:12]}.'
+    if out.is_file():
+        try:
+            if out.read_text().startswith(stamp):
+                return out
+        except OSError:
+            pass
+    parts, missing = [], []
+    for w in wanted:
+        body = section(text, w)
+        parts.append(body) if body else missing.append(w)
+    if missing:                       # a renamed heading falls back to the whole file rather than cutting it away
+        return path
+    head = (stamp + ' Read the whole file for anything else. -->\n\n'
+            + text.split('---', 2)[2].split('\n##', 1)[0].strip() + '\n\n')
+    try:
+        out.parent.mkdir(parents=True, exist_ok=True)
+        out.write_text(head + '\n'.join(parts))
+    except OSError:
+        return path
+    return out
+
+
 def resolve(name):
     """A skill, a project delta or a root file by name; a slashed name is a shape under a skill, or a project's context as <repo>/context."""
     paths = [root() / 'skills' / f'{name}.md']
@@ -134,7 +220,7 @@ def resolve(name):
         paths.append(root() / 'projects' / name[:-len('/context')] / 'CONTEXT.md')
     for path in paths:
         if path.is_file():
-            return path
+            return cut_to_sections(name, path) if path.parent.name == 'skills' else path
     return None
 
 
@@ -638,6 +724,9 @@ def session_reads():
 def name_of(path, base=None):
     """The skill, shape, delta or root-file name a path resolves to, else None."""
     for rel in relatives(path, base):
+        m = re.match(re.escape(SETS) + r'/([^/]+)\.md$', rel)
+        if m:
+            return m.group(1)
         m = re.match(r'skills/([^/]+(?:/[^/]+)?)\.md$', rel)
         if m:
             return m.group(1)
@@ -681,6 +770,21 @@ INTRO = ('Principles, Invariants, the words and the register are in context thro
          'what the gate records; ./scripts/skill <name> names its path.')
 
 
+def unimported():
+    """The always-loaded skill files the root CLAUDE.md does not import, read from its `@` lines, so the
+    session-start line reports the graph and never asserts it."""
+    try:
+        text = (root() / 'CLAUDE.md').read_text()
+    except OSError:
+        return []      # no adapter here, nothing to check against
+    imports = set()
+    for line in text.splitlines():
+        line = line.strip()
+        if line.startswith('@'):
+            imports.add(line[1:].strip())
+    return [f'skills/{n}.md' for n in IMPORTED if f'skills/{n}.md' not in imports]
+
+
 def cmd_session_start(stdin, stdout):
     """Sync on startup and clear, and record the CLAUDE.md imports as read; after a compaction or a resume, forget the session's reads and name them for re-reading."""
     source = _payload(stdin).get('source', 'startup')
@@ -698,6 +802,9 @@ def cmd_session_start(stdin, stdout):
     for name in IMPORTED:
         record_read(name)
     extra.append(INTRO)
+    missing = unimported()
+    if missing:
+        extra.append('Warning: CLAUDE.md imports none of ' + ', '.join(missing) + ', so the register and the words reach nobody; per AGENTS.md the root CLAUDE.md imports AGENTS.md and both.')
     point(names, 'Read again, since the compaction dropped them from context:', 'SessionStart', stdout, extra)
     return 0
 

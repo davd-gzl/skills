@@ -33,7 +33,7 @@ One step, as a draft: `Inv1 → post waits. diff 3 files, private names 0. write
 - A problem with layers gets its outline first, one draft per layer under it.
 - A step a written recipe covers follows the recipe, in `projects/<repo>/AGENTS.md` or `skills/knowledge/`, rather than re-deriving it.
 - Prompt, rules and file text already in context are named, not quoted.
-- An unknown fact gets its command before any draft builds on it.
+- An unknown fact gets its command before any draft builds on it, and the command returns the smallest output that settles the step: a count, a `head`, a `--stat`, a grep, since every tool result stays in context for every later turn and the reply does not.
 - Only the option taken is written; a path the reply will not take is dropped before it is reasoned through.
 - One pass; a re-check fires only on a tool result that contradicts a step.
 - A fact, a status line or a path is answered with no draft.

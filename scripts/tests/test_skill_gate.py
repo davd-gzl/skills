@@ -810,3 +810,92 @@ class Prompt(HookCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class PromptSections(GateCase):
+    """A skill declaring prompt-sections is read as that cut, so the reader loads its moment's sections
+    and not the stage sections some other moment needs."""
+
+    FILE = ('---\nname: review\nprompt-sections: [Alpha, Gamma]\n---\n\n# Review\n\nIntro line.\n\n'
+            '## Alpha\n\nkeep alpha\n\n### Alpha child\n\nkeep child\n\n'
+            '## Beta\n\nDROP beta\n\n## Gamma\n\nkeep gamma\n')
+
+    def declare(self, text=None):
+        (self.root / 'skills' / 'review.md').write_text(text if text is not None else self.FILE)
+
+    def test_resolve_returns_the_cut_and_drops_the_undeclared_section(self):
+        self.declare()
+        cut = gate.resolve('review')
+        self.assertEqual(cut.name, 'review.md')
+        self.assertIn('.skill-gate/sets', cut.as_posix())
+        body = cut.read_text()
+        self.assertIn('keep alpha', body)
+        self.assertIn('keep child', body)      # a ### rides with its ## parent
+        self.assertIn('keep gamma', body)
+        self.assertNotIn('DROP beta', body)
+        self.assertIn('# Review', body)        # the title and the intro survive the cut
+
+    def test_no_declaration_resolves_to_the_file_itself(self):
+        self.declare('# Review\n\n## Alpha\n\nbody\n')
+        self.assertEqual(gate.resolve('review'), self.root / 'skills' / 'review.md')
+
+    def test_a_renamed_heading_falls_back_to_the_whole_file(self):
+        self.declare(self.FILE.replace('## Gamma', '## Delta'))
+        self.assertEqual(gate.resolve('review'), self.root / 'skills' / 'review.md')
+
+    def test_the_cut_refreshes_when_the_source_changes(self):
+        self.declare()
+        self.assertIn('keep gamma', gate.resolve('review').read_text())
+        self.declare(self.FILE.replace('keep gamma', 'gamma rewritten'))
+        self.assertIn('gamma rewritten', gate.resolve('review').read_text())
+
+    def test_the_cut_records_as_a_read_of_the_skill(self):
+        self.declare()
+        self.assertEqual(gate.name_of(gate.resolve('review')), 'review')
+        self.assertTrue(gate.record_read('review'))
+        self.assertTrue(gate.is_read('review'))
+
+
+class AlwaysWhole(PromptSections):
+    """The skills every turn runs on are never cut, however they are declared: the harness carries them whole
+    through CLAUDE.md, so a cut would record bytes the session never loaded."""
+
+    def test_an_imported_skill_is_never_cut(self):
+        (self.root / 'skills' / 'short-form.md').write_text(self.FILE)
+        self.assertEqual(gate.resolve('short-form'), self.root / 'skills' / 'short-form.md')
+
+    def test_a_claude_md_import_is_never_cut(self):
+        (self.root / 'CLAUDE.md').write_text('@AGENTS.md\n@skills/writing-style.md\n')
+        (self.root / 'skills' / 'writing-style.md').write_text(self.FILE)
+        self.assertEqual(gate.resolve('writing-style'), self.root / 'skills' / 'writing-style.md')
+
+    def test_a_skill_no_one_imports_still_cuts(self):
+        (self.root / 'CLAUDE.md').write_text('@AGENTS.md\n')
+        self.declare()
+        self.assertIn('.skill-gate/sets', gate.resolve('review').as_posix())
+
+
+class FencedHashIsNotAHeading(GateCase):
+    """A `#` line inside a fenced block is content. Reading one as a heading ended the section at the fence and
+    dropped the rest in silence, which cost skills/review.md#Overview its whole skeleton."""
+
+    FILE = ('---\nname: review\nprompt-sections: [Alpha]\n---\n\n# Review\n\n'
+            '## Alpha\n\nbefore\n\n```markdown\n# <the subject>\n## What it is for\n```\n\nafter\n\n'
+            '## Beta\n\nDROP beta\n')
+
+    def test_a_fenced_hash_does_not_end_the_section(self):
+        body = gate.section(self.FILE, 'Alpha')
+        self.assertIn('before', body)
+        self.assertIn('after', body)          # the fence used to end it here
+        self.assertIn('# <the subject>', body)
+        self.assertNotIn('DROP beta', body)
+
+    def test_the_cut_carries_the_whole_fenced_section(self):
+        (self.root / 'skills' / 'review.md').write_text(self.FILE)
+        body = gate.resolve('review').read_text()
+        self.assertIn('after', body)
+        self.assertNotIn('DROP beta', body)
+
+    def test_a_tilde_fence_counts_too(self):
+        body = gate.section(self.FILE.replace('```', '~~~'), 'Alpha')
+        self.assertIn('after', body)

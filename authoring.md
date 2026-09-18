@@ -116,6 +116,20 @@ one pass.
 - A word the user types is defined in `skills/shortcuts.md` and nowhere
   else. Another file names the word and points at that table; a second table
   drifts from the first, which the lint reports as a copy.
+- **A file whose sections fire at different moments declares its reader's set in
+  its frontmatter, `prompt-sections: [<heading>, ...]`.** The gate resolves the
+  name to that cut, rebuilt whenever the file changes, so the reader loads its
+  own moment and carries no section another moment needs. Name the headings the
+  reader the gate answers needs; a heading the list names and the file has since
+  renamed falls back to the whole file rather than cutting it away. This is what
+  a split would otherwise be for, without the second file: split only where the
+  sections are separate documents to whoever edits them. Check with
+  `./scripts/skill <name>`, which prints the path the gate hands over.
+- **A skill the root `CLAUDE.md` imports is never cut, whatever its frontmatter
+  says.** The harness loads it whole as the session opens, so a cut would record
+  bytes nobody read, and those files are what every turn runs on rather than one
+  moment in it. The gate refuses the cut there and hands the file, so a
+  `prompt-sections` line on one of them changes nothing.
 
 ## Capabilities
 

@@ -25,13 +25,13 @@ it, so the readability rules below stop at its edge: semantics only, content
 words, symbols and numbers in the domain's own terms, no function word, no
 sentence. Length follows the step's difficulty, never
 a count: a fixed cap sits on the same accuracy curve as prose and loses on the
-hard step, per `skills/knowledge/thinking-length-follows-difficulty.md`.
+hard step.
 
 One step, as a draft: `Inv1 → post waits. diff 3 files, private names 0. write, lint, reply`
 
 - Each step, the shortest draft that carries it; a hard step takes the length it needs.
 - A problem with layers gets its outline first, one draft per layer under it.
-- A step a written recipe covers follows the recipe, in `projects/<repo>/AGENTS.md` or `skills/knowledge/`, rather than re-deriving it.
+- A step a written recipe covers follows the recipe rather than re-deriving it.
 - Prompt, rules and file text already in context are named, not quoted.
 - An unknown fact gets its command before any draft builds on it, and the command returns the smallest output that settles the step: a count, a `head`, a `--stat`, a grep, since every tool result stays in context for every later turn and the reply does not.
 - Only the option taken is written; a path the reply will not take is dropped before it is reasoned through.

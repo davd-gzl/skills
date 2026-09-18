@@ -12,8 +12,7 @@ place against the rules already there, and adding one is a trade.
 
 Every skill has one goal beside its task: the same decision in fewer turns. A
 turn re-sends the whole context, so the turn count times the context is the
-cost, per `skills/knowledge/cost-is-agents-times-turns-times-context.md`, and
-output tokens are the minor term. A rule that cuts words and adds a turn has
+cost, and output tokens are the minor term. A rule that cuts words and adds a turn has
 raised the cost; one that batches reads, hands a value the agent would have
 fetched, or settles a step in one call has cut it. The decision stays equal or
 the rule is not an upgrade: the outcome table, the finding set and the reply's
@@ -64,7 +63,9 @@ half the reader sampled. Split it.
 
 **State it, then stop.** The reason belongs in the rule only where the reader
 would otherwise apply it wrongly. What does not belong: the session that
-produced it, the sha it was found on, the date, what was tried first. That
+produced it, the sha it was found on, the date, what was tried first, the
+knowledge file or the paper behind it, which the commit message names and the
+reader of the rule never needs. That
 record is the artifact's, a `plan.md`, a `claims.md`, a commit message, and the
 lint rejects a date or a bare sha in a rule line.
 

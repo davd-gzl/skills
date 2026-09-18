@@ -6,9 +6,10 @@ description: Use when adding, editing, or removing a rule in any AGENTS.md, harn
 # Authoring a rule
 
 Every rule costs attention on every turn that loads it, and the corpus is read
-by a model with a finite budget for it. A file that holds every rule ever
-written enforces none of them reliably: the reader samples. So a rule earns its
-place against the rules already there, and adding one is a trade.
+by a model with a finite budget for it. What decays is the set loaded at once:
+past a few dozen rules in one context the reader samples, omission first, and a
+file that holds every rule ever written enforces none of them. So a rule earns
+its place against the rules already loaded beside it, and adding one is a trade.
 
 Every skill has one goal beside its task: the same decision in fewer turns. A
 turn re-sends the whole context, so the turn count times the context is the
@@ -47,63 +48,66 @@ until someone works in the other house.
 
 ## The shape
 
-**Name the action, not only its absence.** `Push the submodule in the command
-that commits it` beats `never leave a submodule commit unpushed`: the first says
-what to type. Keep the negative form only where no action replaces it, a publish
-that must not happen having none, and the corpus health table counts how far
-that has drifted.
+Name the action, not only its absence. `Push the submodule in the command that
+commits it` beats `never leave a submodule commit unpushed`: the first says what
+to type, and a reader takes a prohibition for the action it names often enough
+that the negative form stays only where no action replaces it, a publish that
+must not happen having none. The corpus health table counts how far that has
+drifted.
 
-**Open with the trigger.** The first clause says when the rule fires, so a
-reader whose task does not match skips the rest in one glance. `Before pushing a
-parent that moved a gitlink, confirm the commit resolves on the submodule's
-remote.` A rule whose trigger is every turn belongs in Invariants or nowhere.
+Put what matters first and last. A reader weighs the opening and the close of a
+file and loses the middle, so the rule whose violation costs most opens its
+section, the one read at the close ends it, and the middle holds what a reader
+can miss once.
 
-**One rule, one bullet.** A bullet carrying two rules is followed for whichever
-half the reader sampled. Split it.
+Open with the trigger. The first clause says when the rule fires, so a reader
+whose task does not match skips the rest in one glance. `Before pushing a parent
+that moved a gitlink, confirm the commit resolves on the submodule's remote.` A
+rule whose trigger is every turn belongs in Invariants or nowhere.
 
-**State it, then stop.** The reason belongs in the rule only where the reader
-would otherwise apply it wrongly. What does not belong: the session that
-produced it, the sha it was found on, the date, what was tried first, the
-knowledge file or the paper behind it, which the commit message names and the
-reader of the rule never needs. That
-record is the artifact's, a `plan.md`, a `claims.md`, a commit message, and the
-lint rejects a date or a bare sha in a rule line.
+One rule, one bullet. A bullet carrying two rules is followed for whichever half
+the reader sampled. Split it.
 
-**Cut the draft before committing it.** A rule arrives carrying the round that
-produced it, because that is what the writer has in mind. Read it back and
-delete every sentence that is not the trigger, the action or the tell: what it
-cost, what was tried first, how many attempts. That half goes in the commit
-message, which is where the next reader looks for it. A rule is cut once, here,
-at the length it keeps; nothing later cuts it for length.
+State it, then stop. The reason belongs in the rule only where the reader would
+otherwise apply it wrongly. What does not belong: the session that produced it,
+the sha it was found on, the date, what was tried first, the knowledge file or
+the paper behind it. That record is the artifact's, a `plan.md`, a `claims.md`,
+a commit message, and the lint rejects a date or a bare sha in a rule line.
 
-**Read a new rule against the mistake that earned it, and keep it only if it
-forbids what you did.** A rule drafted in the turn it was earned comes out
-shaped to excuse that turn: the escape clause, `may`, `where justified`, `unless
-the context differs`, arrives because the writer needs the last hour to have
-been defensible, and it licenses the next reader instead of constraining them.
-Write the one that would have stopped it.
+Cut the draft before committing it. A rule arrives carrying the round that
+produced it. Read it back and delete every sentence that is not the trigger, the
+action or the tell; what it cost and what was tried first go in the commit
+message. A rule is cut once, here, at the length it keeps.
 
-**Write what a measurement means, and the command, never the reading.** A count,
-a duration or a version frozen into a rule is right on the day it is taken and
+Read a new rule against the mistake that earned it, and keep it only if it
+forbids what you did. A rule drafted in the turn it was earned comes out shaped
+to excuse that turn: `may`, `where justified`, `unless the context differs`
+license the next reader instead of constraining them. Write the one that would
+have stopped it.
+
+Write what a measurement means, and the command, never the reading. A count, a
+duration or a version frozen into a rule is right on the day it is taken and
 wrong afterwards, while the reader trusts it because it is specific. Keep the
 conclusion it supports and name the command that prints it fresh.
 
-**Key a rule on the property a count stands for, never on the count as a
-limit.** A ceiling on lines, files, agents or minutes admits a change on one
-reading of the count and refuses it on another, and says nothing about what
+Key a rule on the property a count stands for, never on the count as a limit. A
+ceiling on lines, files, agents, minutes or shell commands admits a change on
+one reading of the count and refuses it on another, and says nothing about what
 the change reaches. Name the property, a consumer outside the package, a
-surviving Warning, and the command that prints it. The three counts of
-`skills/writing-style.md` measure a sentence, not the work, and stay.
+surviving Warning, a command that changes what a later session reads, and the
+command that prints it. The three counts of `skills/writing-style.md` measure a
+sentence, not the work, and stay.
 
-**Bold is a rank, not a voice.** It marks the rules whose violation cannot be
-undone. When most bullets in a file are bold, the file has stopped ranking and
-the reader is back to sampling. The health table prints the share.
+Bold is a rank, not a voice. It marks the rules whose violation cannot be
+undone, and nothing else in a skill file; when most bullets are bold the file
+has stopped ranking and the reader is back to sampling. The health table prints
+the share.
 
-**Write the reader's words**, per `skills/writing-style.md`. Every rule here is
-read by someone who has not seen the incident behind it.
+Write the reader's words, per `skills/writing-style.md`. Every rule here is read
+by someone who has not seen the incident behind it.
 
-**A rule that names a new home for visible prose names the writing-style section
-it defers to.** Its reader stops at the new rule and takes it as the whole spec
+A rule that names a new home for visible prose names the writing-style section
+it defers to. Its reader stops at the new rule and takes it as the whole spec
 for that place, so what `skills/writing-style.md` already requires there, the
 link on every named thing for one, is lost unless the rule points at it.
 
@@ -117,30 +121,26 @@ one pass.
   file from that line alone and leans toward not picking, so a situation the
   description leaves out never reaches the file; the body never restates when
   to use it.
-- The example before the rule, wherever a worked line, a command or a shape
-  lands it in one read. `skills/pr-body/one-concern.md` opens on the shape
-  and closes on the body it came from; a rule whose only form is a sentence is
-  read as a sentence and sampled.
+- One example before the rule, wherever a worked line, a command or a shape
+  lands it in one read, and never a list of them: a second example is read as
+  the rule's whole range, and past a few they cost more than they teach.
+  `skills/pr-body/one-concern.md` opens on the shape and closes on the body it
+  came from.
 - A table of contents at the head of a file a reader opens for one section,
-  `skills/review.md` for one, whose stage sections sit under thousands of words
-  the stage does not read: one line per section naming the moment it is read.
+  `skills/review.md` for one: one line per section naming the moment it is read.
 - A word the user types is defined in `skills/shortcuts.md` and nowhere
   else. Another file names the word and points at that table; a second table
   drifts from the first, which the lint reports as a copy.
-- **A file whose sections fire at different moments declares its reader's set in
-  its frontmatter, `prompt-sections: [<heading>, ...]`.** The gate resolves the
-  name to that cut, rebuilt whenever the file changes, so the reader loads its
-  own moment and carries no section another moment needs. Name the headings the
-  reader the gate answers needs; a heading the list names and the file has since
-  renamed falls back to the whole file rather than cutting it away. This is what
-  a split would otherwise be for, without the second file: split only where the
-  sections are separate documents to whoever edits them. Check with
-  `./scripts/skill <name>`, which prints the path the gate hands over.
-- **A skill the root `CLAUDE.md` imports is never cut, whatever its frontmatter
-  says.** The harness loads it whole as the session opens, so a cut would record
-  bytes nobody read, and those files are what every turn runs on rather than one
-  moment in it. The gate refuses the cut there and hands the file, so a
-  `prompt-sections` line on one of them changes nothing.
+- A file whose sections fire at different moments declares its reader's set in
+  its frontmatter, `prompt-sections: [<heading>, ...]`, and the gate hands that
+  cut, rebuilt whenever the file changes, so the reader loads its own moment and
+  no other's. A heading the list names and the file has since renamed falls back
+  to the whole file. Split into a second file only where the sections are
+  separate documents to whoever edits them. `./scripts/skill <name>` prints the
+  path the gate hands over.
+- A skill the root `CLAUDE.md` imports is never cut, whatever its frontmatter
+  says: the harness loads it whole as the session opens, and every turn runs on
+  it. The gate hands the file and a `prompt-sections` line there changes nothing.
 
 ## Capabilities
 
@@ -161,19 +161,19 @@ what a failure looked like, the fixture a manual test needs. Those go in
 before the first task there, and write to it in the same turn a fact is measured,
 unasked. Never offer the recording as a next step.
 
-- **Conventions, each with the command that produced it**: merge style, commit
+- Conventions, each with the command that produced it: merge style, commit
   granularity, subject and body shape, changelog placement and selection, issue
   title style, which CI signals lie, every trap that cost a round. A convention
   read off the repository's documentation, or inferred from its commit format, is
   not measured.
-- **A glossary, filled while first reading the code**: the term the codebase
+- A glossary, filled while first reading the code: the term the codebase
   uses, the words a reader outside the project has for the same thing, and the
   few where the project's own name is unavoidable. Fill it during that first
   read, never while editing a draft, because a term stops looking like jargon to
   whoever just read the file defining it. Every posted string then takes its
   words from the right-hand column, per *Write the reader's words* in
   `skills/writing-style.md`.
-- **What a session cost to find**: how the project runs locally, the fixture or
+- What a session cost to find: how the project runs locally, the fixture or
   seed data a manual test needs, the version and system package a build required,
   the error a wrong one prints. Each entry carries its symptom, so the next
   session recognises the failure before diagnosing it again.
@@ -193,11 +193,11 @@ the user has said, and write to it in the turn a fact arrives: the user states
 it, or a round observes it, an author asking twice for the same thing for one.
 A fact with a command behind it goes to `AGENTS.md` beside it instead.
 
-- **Where the project stands**: the phase, a launch weeks away or a quiet
+- Where the project stands: the phase, a launch weeks away or a quiet
   stretch, and what it is trying to become, in two or three lines.
-- **The people**: one line per login, how they work and what they want from a
+- The people: one line per login, how they work and what they want from a
   review, a test in every finding, no nits, the decision in the first line.
-- **The review pace**: what the phase sets, in the terms *Fetch & understand*
+- The review pace: what the phase sets, in the terms *Fetch & understand*
   in `skills/review.md` reads: how many rounds, how fast, on which path.
 
 The file is private, per Invariant 5 in the workspace `AGENTS.md`. Every change
@@ -251,70 +251,105 @@ contradiction wearing a hat.
 
 ## Measuring a rule
 
-A wording whose effect is in doubt is measured, and the whole run is designed
-before the first call: isolation flags first, `--tools "" --strict-mcp-config
---disable-slash-commands --setting-sources ""`, since a plugin hook or a skill
-injection contaminates every answer and `--bare` drops OAuth; every variant in
-that one run at effort `medium`; one blind judge pass, labels hidden and order
-shuffled, on single-pass readability and substance kept. A round per variant
-multiplies the calls by the rounds and waits for each round's slowest call.
-`skills/archive/chat-register/` is the harness that measured *Short form* in
-`skills/short-form.md`, kept as the record of that run.
+A wording whose effect is in doubt is measured before it lands, the whole run
+designed before the first call: isolation flags first, `--tools ""
+--strict-mcp-config --disable-slash-commands --setting-sources ""`, since a
+plugin hook or a skill injection contaminates every answer and `--bare` drops
+OAuth; every variant in one run at effort `medium`; one blind judge pass, labels
+hidden and order shuffled, on single-pass readability and substance kept.
+`skills/archive/chat-register/` is the harness that measured *Short form*, kept
+as the record of that run.
 
-A published result is one measurement on its own models, benchmarks and date,
-and a knowledge line carries those conditions beside its number, so a rule
-drawn from it is measured here, per this section, before it is trusted.
+A published result is one measurement on its own models, benchmarks and date:
+the knowledge line carries those conditions beside its number, and a rule drawn
+from it is measured here before it is trusted.
 
 ## Editing this corpus
 
 - `skills/` is the canonical repository, `davd-gzl/skills`, mounted as a
   submodule in every workspace. Edit here, never in a copy.
 - **`skills/` is public and generic: no secret, no private name and no local
-  path in any file or commit message here.** A token, a key, a hostname, a
-  private repository, a person, a round number or an absolute path is disclosed
-  the moment it is pushed, and a force-push does not take it back. Every fact
-  that names one consumer lives in that consumer's tree, `workspace.md`,
-  `workspace.json` or `projects/<repo>/AGENTS.md`, and a skill reaches it by
-  naming that file, never the value. `skills/scripts/scrub.sh` runs from the
-  pre-push hook here over every line a push adds, the shapes a credential takes
-  and the names the consumer's `workspace.json` lists, and refuses the push on a
-  hit; `skills/scripts/scrub.sh --tree` reads the whole tree the same way.
+  path in any file or commit message here.** A token, a hostname, a private
+  repository, a person, a round number or an absolute path is disclosed the
+  moment it is pushed. A fact naming one consumer lives in that consumer's tree,
+  `workspace.md`, `workspace.json` or `projects/<repo>/AGENTS.md`, and a skill
+  names that file, never the value. `skills/scripts/scrub.sh` runs from the
+  pre-push hook over every line a push adds and refuses the push on a hit;
+  `--tree` reads the whole tree the same way.
 - Read the whole file before changing a rule in it. A range read against the two
-  sections a task seems to need is how a section gets missed, and the draft
-  comes out well-formed against the rules that were read.
+  sections a task seems to need is how a section gets missed.
 - Re-read after `git -C skills log -1` shows a commit that was not there before.
   Another session moves the pin mid-turn.
 - A rule that proved unclear, missing or wrong during use is corrected in its
   file in the same turn, before the work that exposed it continues.
+- A knob, a stage or a word that a change renames is grepped across `skills/`,
+  `scripts/workflows/` and the README before the commit, since the old shape
+  stays stated wherever the grep is not run.
 - Run `./scripts/rules lint` over every file the edit touched, plus the workspace
   root `AGENTS.md`, and fix what it reports rather than narrowing what it reads.
 
 ## A deterministic step is a tool
 
-A step whose answer a program can compute is written as a tool under `tools/` and named by the skill, never asked of a model: resolving a link at a sha, re-anchoring a line through a diff, ranking files by what the diff did to them, cutting a diff into bundles, writing a table from verdicts, checking that a cited file and line exist, counting, sorting, deduplicating by key. A model asked for such a step does it slowly, at a price, and sometimes wrongly, and a wrong table nobody can reopen is worse than no table; the tool does it in a second, the same way every time, and its test pins the way. The rule holds even where the step is small: a check the writer runs before returning costs one call, a check the model is trusted to have done costs the reader.
+A step whose answer a program can compute is a tool under `tools/`, named by
+the skill and never asked of a model: resolving a link at a sha, re-anchoring a
+line through a diff, ranking files, cutting a diff into bundles, writing a table
+from verdicts, checking that a cited line exists, counting, sorting,
+deduplicating by key. A model does such a step slowly, at a price, sometimes
+wrongly, and a wrong table nobody can reopen is worse than none; the tool does
+it in a second, the same way every time, and its test pins the way. The rule
+holds where the step is small: a check the writer runs costs one call, a check
+the model is trusted to have done costs the reader.
 
 - When a skill's step reads as "list", "resolve", "rank", "cut", "join", "count" or "check that", ask what the input and the output are; if both are files, it is a tool.
 - The tool exits non-zero on what it finds and the skill says what the agent does with the exit, so a miss is never a line in prose the next stage may skip.
 - The skill names the command with its arguments and reads nothing the tool already settled; the crate's README carries the contract and the tests carry the examples.
 
-**A write gets a verb; a read stays free.** Changing a tracked artifact goes
-through a named script under `scripts/`, never through a shell line composed in
-the turn: committing, pushing, posting, editing the `TODO.md`, tagging a draft,
+A write gets a verb; a read stays free. Changing a tracked artifact goes
+through a named script under `scripts/`, never a shell line composed in the
+turn: committing, pushing, posting, editing the `TODO.md`, tagging a draft,
 sweeping a round. A shell line is written once, from memory, under no test, and
-its next reader cannot tell a deliberate choice from a typo. Reading is the
-opposite case and stays unrestricted, `grep`, `git log`, a count, a probe: the
-Principles ask for a measurement taken this session, and a verb nobody wrote yet
-is not a reason to answer from memory. Where a write has no verb, write the verb.
-
-The count of commands is never the rule. A ceiling on shell lines admits a job
-on one reading and refuses it on another, per *Key a rule on the property a
-count stands for* above; what decides is whether the command changes something
-a later session reads.
+its next reader cannot tell a deliberate choice from a typo. Reading stays
+unrestricted, `grep`, `git log`, a count, a probe: the Principles ask for a
+measurement taken this session, and a verb nobody wrote yet is no reason to
+answer from memory. Where a write has no verb, write the verb.
 
 ## A change to the run's shape
 
-A rule that moves a stage, a tier, a cap, a batch, a read order or an agent count is handed over with its estimate: output tokens, cache read, cache write and minutes per round against the last measured round, as `./scripts/review-plan.py` projects them, and the direction of the finding rate, each a number and each marked estimate until the outcome table measures it. An estimate in output tokens alone measures the minor term, `./scripts/review-retro.py` printing the split per stage. A change with no estimate is a change nobody can judge.
+A rule that moves a stage, a tier, a cap, a batch, a read order or an agent
+count is handed over with its estimate: turns per agent, output tokens, cache
+read, cache write and minutes per round against the last measured round, as
+`./scripts/review-plan.py` projects them, and the direction of the finding
+rate, each a number and each marked estimate until the outcome table measures
+it. An estimate in output tokens alone measures the minor term,
+`./scripts/review-retro.py` printing the split per stage. A change with no
+estimate is a change nobody can judge.
 
 ## Upgrading from the TODO
 
-`upgrade skills` runs on the strongest model available and takes the workspace's `TODO.md` line by line, newest first. Before any line's work, the lines the session takes get `Taken: <the session's start sha>` at their end, in one commit pushed first, since another session reads the list only from the remote; a line another session marked is skipped, and a marker whose line did not land leaves in the session's closing commit. A line about a project, a defect, an issue to file, a target's behaviour, a recipe or a catalog, is not the upgrade's and never was the file's: it is moved as it stands into that project's tree, per *Writing it down* in the workspace `AGENTS.md`, and named in the closing list, so the project's next session takes it from there. Each line is read as its critic before any work: does the check it names still hold, does the rule it proposes fit the corpus, does what it costs pay. A line that passes becomes a rule, per *Where it goes* and *The shape*, with what it displaces named, or a script, where a command can enforce it. A line that fails the read, or whose check fails when run, or that a rule already covers, is never struck on the session's own judgement: it goes to the user as one question, the line and the objection, and waits for the word. A line whose work is a run or a capability not yet there stays, with `Waits:` and what it waits on, and is read again at the next `upgrade skills`. One commit per line, its message the line's substance, its estimate per *A change to the run's shape* where it moves a run. The line is struck in the same commit as its work. The session ends on the list of what landed, what was asked and what was struck, then a verdict on every line that stays, project lines and `Waits:` lines included: keep, strike, move or fold, each with its reason in one clause, since a line nobody re-reads outlives its use; the user's word strikes, never the verdict. Nothing is pushed.
+`upgrade skills` runs on the strongest model available and takes the
+workspace's `TODO.md` line by line, newest first. Nothing is pushed but the
+marker commit.
+
+- Before any line's work, the lines the session takes get `Taken: <the
+  session's start sha>` at their end, in one commit pushed first, since another
+  session reads the list only from the remote; a line another session marked is
+  skipped, and a marker whose line did not land leaves in the closing commit.
+- A line about a project, a defect, an issue to file, a target's behaviour, a
+  recipe or a catalog, moves as it stands into that project's tree, per
+  *Writing it down* in the workspace `AGENTS.md`, and is named in the closing
+  list.
+- Each line is read as its critic before any work: does the check it names
+  still hold, does the rule it proposes fit the corpus, does what it costs pay.
+- A line that passes becomes a rule, per *Where it goes* and *The shape*, with
+  what it displaces named, or a script where a command can enforce it; one
+  commit per line, its message the line's substance and its estimate per *A
+  change to the run's shape*, the line struck in that commit.
+- A line that fails the read, whose check fails when run, or that a rule
+  already covers goes to the user as one question, the line and the objection,
+  and waits for the word; the session's own judgement never strikes it.
+- A line whose work is a run or a capability not yet there stays, with `Waits:`
+  and what it waits on.
+- The session ends on what landed, what was asked and what was struck, then a
+  verdict on every line that stays, `Waits:` and project lines included: keep,
+  strike, move or fold, each with its reason in one clause; the user's word
+  strikes, never the verdict.

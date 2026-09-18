@@ -100,13 +100,13 @@ class Transcript(unittest.TestCase):
                    entry('assistant', [{'type': 'thinking', 'thinking': 'x'}]),
                    entry('assistant', [{'type': 'text', 'text': 'Done.'}]),
                    entry('assistant', [{'type': 'text', 'text': 'Push waits.'}]))
-        text, prompt = rc.final_reply(self.path)
+        text, prompt, _ = rc.final_reply(self.path)
         self.assertEqual(text, 'Done.\n\nPush waits.')
         self.assertEqual(prompt, 'do the thing')
 
     def test_a_turn_ending_on_a_tool_call_has_no_reply(self):
         self.write(entry('user', 'go'), entry('assistant', [{'type': 'tool_use', 'name': 'Bash'}]))
-        self.assertEqual(rc.final_reply(self.path), ('', ''))
+        self.assertEqual(rc.final_reply(self.path), ('', '', 0))
 
     def test_a_sidechain_is_not_the_reply(self):
         self.write(entry('user', 'go'),
@@ -117,7 +117,18 @@ class Transcript(unittest.TestCase):
     def test_replies_pairs_each_with_its_prompt(self):
         self.write(entry('user', 'one'), entry('assistant', [{'type': 'text', 'text': 'A.'}]),
                    entry('user', 'two +'), entry('assistant', [{'type': 'text', 'text': 'B.'}]))
-        self.assertEqual([(t, p) for t, p, _ in rc.replies(self.path)], [('A.', 'one'), ('B.', 'two +')])
+        self.assertEqual([(t, p) for t, p, _, _ in rc.replies(self.path)], [('A.', 'one'), ('B.', 'two +')])
+
+    def test_thinking_tokens_are_summed_over_the_turn(self):
+        usage = {'output_tokens': 9, 'output_tokens_details': {'thinking_tokens': 40}}
+        thought = lambda content: json.dumps({'type': 'assistant', 'timestamp': '2026-09-09T10:00:00Z',
+                                              'message': {'content': content, 'usage': usage}})
+        self.write(entry('user', 'go'),
+                   thought([{'type': 'tool_use', 'name': 'Bash'}]),
+                   entry('user', [{'type': 'tool_result', 'content': 'ok'}]),
+                   thought([{'type': 'text', 'text': 'Done.'}]))
+        self.assertEqual(rc.final_reply(self.path)[2], 80)
+        self.assertEqual(rc.replies(self.path)[0][3], 80)
 
 
 class Hook(Transcript):
@@ -138,6 +149,15 @@ class Hook(Transcript):
     def test_a_plus_prompt_exempts_the_reply(self):
         self.write(entry('user', '+ why'), entry('assistant', [{'type': 'text', 'text': DRIFTED}]))
         self.assertEqual(self.run_hook({'transcript_path': self.path})[0], 0)
+
+    def test_a_prompt_asking_to_explain_exempts_the_reply_and_last_names_the_trigger(self):
+        self.write(entry('user', 'explain me all above'), entry('assistant', [{'type': 'text', 'text': DRIFTED}]),
+                   entry('user', 'next'))
+        self.assertEqual(self.run_hook({'transcript_path': self.path})[0], 0)
+        out = io.StringIO()
+        rc.main(['--last', self.path], stdout=out)
+        self.assertIn('matched "explain"', out.getvalue())
+        self.assertNotIn('articles per 100', out.getvalue())
 
     def test_a_clipped_reply_passes(self):
         self.write(entry('user', 'why'), entry('assistant', [{'type': 'text', 'text': CLIPPED}]))

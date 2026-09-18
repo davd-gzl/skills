@@ -20,7 +20,10 @@ trusting it, and hands the numbers back for a rewrite.
 Measured over the prose alone. Fenced blocks, inline code, blockquotes, table
 rows, link targets and lines between two `---` rules are dropped, since a draft
 quoted in a reply stays as written. Under MIN_WORDS nothing is measured, and a
-prompt opening or closing on `+` exempts its reply. A reply carrying a closing
+prompt opening or closing on `+` exempts its reply, as does one asking for an
+explanation, EXPLAIN naming the triggers; --last says which one lifted it. Every
+line carries the thinking tokens the turn spent, from the transcript's usage
+block, so a rule on the thinking has a number. A reply carrying a closing
 block, the artifact lines, carries the `Did:` account above it, as plain lines:
 an account inside a code fence is named, as is one with no `---` rule above it.
 The account, quotes, tables and code
@@ -169,17 +172,33 @@ def prompt_text(e):
     return '\n'.join(b.get('text') or '' for b in blocks(e) if b.get('type') == 'text').strip()
 
 
+# The prompts that ask for an explanation; a bare `why` stays out, since a question wanting a fact is not one.
+EXPLAIN = re.compile(r"\b(explain|elaborate|walk me through|in detail|tell me more|what do you mean|wdym)\b", re.I)
+
+
 def exempt(prompt):
-    return prompt.startswith('+') or prompt.endswith('+')
+    """The trigger that lifts the reply to explanation, else ''. `+` is the mark; a prompt asking for an
+    explanation is its equal, per Short form."""
+    if prompt.startswith('+') or prompt.endswith('+'):
+        return '+'
+    m = EXPLAIN.search(prompt)
+    return m.group(0) if m else ''
+
+
+def thinking_tokens(e):
+    """The thinking tokens one assistant message spent, from its usage block; 0 where the record has none."""
+    u = (e.get('message') or {}).get('usage') or {}
+    return int(((u.get('output_tokens_details') or {}).get('thinking_tokens')) or 0)
 
 
 def replies(path):
     """Every final reply in a transcript: the assistant text that a prompt or the end of the file follows,
-    with the prompt it answered and the time it was written."""
-    out, text, prompt, when = [], [], '', ''
+    with the prompt it answered, the time it was written and the thinking tokens its turn spent."""
+    out, text, prompt, when, think = [], [], '', '', 0
     for e in entries(path):
         t = e.get('type')
         if t == 'assistant':
+            think += thinking_tokens(e)
             texts = [b.get('text') or '' for b in blocks(e) if b.get('type') == 'text']
             if any(b.get('type') == 'tool_use' for b in blocks(e)):
                 text = []          # narration before a tool call is not the turn's reply
@@ -188,12 +207,13 @@ def replies(path):
                 when = e.get('timestamp', '')
         elif t == 'user':
             if text:
-                out.append(('\n\n'.join(text), prompt, when))
+                out.append(('\n\n'.join(text), prompt, when, think))
                 text = []
             if is_prompt(e):
                 prompt = prompt_text(e)
+                think = 0
     if text:
-        out.append(('\n\n'.join(text), prompt, when))
+        out.append(('\n\n'.join(text), prompt, when, think))
     return out
 
 
@@ -201,13 +221,15 @@ def final_reply(path, after_prompt=False):
     """The last reply and the prompt it answers, read from the tail of the transcript: the assistant
     text below the last user entry, tool result or prompt, then the prompt above it. At prompt time
     the prompt just typed may already sit at the tail; after_prompt steps over it."""
-    text, prompt, collecting = [], '', True
+    text, prompt, collecting, think = [], '', True, 0
     for e in reversed(list(entries(path, tail=1 << 19))):
         t = e.get('type')
-        if t == 'assistant' and collecting:
-            if not text and any(b.get('type') == 'tool_use' for b in blocks(e)):
-                return '', ''      # the turn ended on a tool call, nothing to measure
-            text[:0] = [b.get('text') or '' for b in blocks(e) if b.get('type') == 'text']
+        if t == 'assistant':
+            think += thinking_tokens(e)
+            if collecting:
+                if not text and any(b.get('type') == 'tool_use' for b in blocks(e)):
+                    return '', '', 0      # the turn ended on a tool call, nothing to measure
+                text[:0] = [b.get('text') or '' for b in blocks(e) if b.get('type') == 'text']
         elif t == 'user':
             if after_prompt and not text and is_prompt(e):
                 after_prompt = False
@@ -216,12 +238,12 @@ def final_reply(path, after_prompt=False):
             if is_prompt(e):
                 prompt = prompt_text(e)
                 break
-    return '\n\n'.join(text), prompt
+    return '\n\n'.join(text), prompt, think
 
 
-def report(m):
+def report(m, think=None):
     return (f"reply-check: {m['words']} words, {m['articles']} articles per 100, "
-            f"{m['per_sentence']} words per sentence")
+            f"{m['per_sentence']} words per sentence" + (f', {think} thinking tokens this turn' if think is not None else ''))
 
 
 def cmd_hook(stdin, stderr):
@@ -235,7 +257,7 @@ def cmd_hook(stdin, stderr):
     if not path:
         return 0
     try:
-        text, prompt = final_reply(path)
+        text, prompt, think = final_reply(path)
     except OSError:
         return 0
     if not text or exempt(prompt):
@@ -243,21 +265,26 @@ def cmd_hook(stdin, stderr):
     m = measure(text)
     if not m['reasons']:
         return 0
-    print(report(m) + '; ' + '; '.join(m['reasons']) + '.\n' + REGISTER, file=stderr)
+    print(report(m, think) + '; ' + '; '.join(m['reasons']) + '.\n' + REGISTER, file=stderr)
     return 2
 
 
 def cmd_last(path, stdout):
     """One line on the last reply when it drifted, for the next turn's context; nothing when it held."""
     try:
-        text, prompt = final_reply(path, after_prompt=True)
+        text, prompt, think = final_reply(path, after_prompt=True)
     except OSError:
         return 0
-    if not text or exempt(prompt):
+    if not text:
+        return 0
+    lift = exempt(prompt)
+    if lift:
+        if lift != '+':
+            print(f'reply-check: the last reply was exempt, the prompt asked to explain, matched "{lift}"; {think} thinking tokens that turn.', file=stdout)
         return 0
     m = measure(text)
     if m['reasons']:
-        print(report(m) + '; ' + '; '.join(m['reasons']) + '.', file=stdout)
+        print(report(m, think) + '; ' + '; '.join(m['reasons']) + '.', file=stdout)
     return 0
 
 
@@ -280,18 +307,19 @@ def title(path):
 def cmd_scan(paths, since, stdout):
     rows = []
     for path in paths:
-        rs = [(t, p) for t, p, when in replies(path) if when >= since and not exempt(p)]
-        ms = [measure(t) for t, _ in rs]
-        ms = [m for m in ms if m['words'] >= MIN_WORDS]
+        rs = [(t, p, k) for t, p, when, k in replies(path) if when >= since and not exempt(p)]
+        ms = [(measure(t), k) for t, _, k in rs]
+        ms = [(m, k) for m, k in ms if m['words'] >= MIN_WORDS]
         if not ms:
             continue
-        drifted = sum(1 for m in ms if m['reasons'])
-        rows.append((drifted, len(ms), statistics.median(m['articles'] for m in ms), title(path), path))
+        drifted = sum(1 for m, _ in ms if m['reasons'])
+        rows.append((drifted, len(ms), statistics.median(m['articles'] for m, _ in ms),
+                     statistics.median(k for _, k in ms), title(path), path))
     rows.sort(key=lambda r: (-r[0], -r[1]))
-    print('| drifted | measured | median articles/100 | session |', file=stdout)
-    print('| --- | --- | --- | --- |', file=stdout)
-    for d, n, med, t, _ in rows:
-        print(f'| {d} | {n} | {med:.1f} | {t} |', file=stdout)
+    print('| drifted | measured | median articles/100 | median thinking tokens/turn | session |', file=stdout)
+    print('| --- | --- | --- | --- | --- |', file=stdout)
+    for d, n, med, think, t, _ in rows:
+        print(f'| {d} | {n} | {med:.1f} | {think:.0f} | {t} |', file=stdout)
     return 0
 
 

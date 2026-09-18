@@ -227,7 +227,8 @@ notifications, never from memory:
 - what failed: an agent that died, a cap hit, an escalation, an angle whose candidates were mostly refuted, minutes over the plan;
 - what worked: an angle whose candidates held, a batch that verified clean;
 - the hit rate per tier: confirmed rows over rows per tier, from the Tier column, beside the files per tier in the risk table; a tier whose rate is not above the next one's is a weight to revisit in `round risk`;
-- one upgrade to the workflow with its estimate per *A change to the run's shape* in `skills/authoring.md`, written the same turn as a line of the workspace's `TODO.md`, where `upgrade skills` picks it up.
+- one upgrade to the workflow with its estimate per *A change to the run's shape* in `skills/authoring.md`, written the same turn as a line of the workspace's `TODO.md`, where `upgrade skills` picks it up;
+- every agent's row in the metrics store, which the harness hook writes as each agent ends and `./scripts/agent-metrics.py add <workflow dir>/agent-*.jsonl` completes for a round the hook missed; `./scripts/agent-metrics.py summary` is where a baseline's turns, tokens and minutes are read, an average over every agent of that stage and never one round.
 
 The handover repeats the retro in three lines.
 

@@ -9,6 +9,8 @@ and instruction shapes it names, a claim to test here and not a fact.
 - Reasoning degrades at input lengths far under the context maximum; padding alone does it; 2024 models. Source: [Same task, more tokens](https://aclanthology.org/2024.acl-long.818/).
 - The smallest set of high-signal tokens, with brittle if-else prompts named as a failure mode. Source: [Effective context engineering](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents), kept whole in `skills/knowledge/context-engineering.md`.
 
+- A source named inside a rule is context every turn loads for a reader who never opens it, so the rule states the action and this directory keeps the why; measured on this workspace, where the always-loaded set sat near the collapse line above.
+
 Measure: `wc -w` over the files `CLAUDE.md` imports for the loaded set, and
 `grep -cE '^\s*[-0-9]' <file>` for its rule lines.
 

@@ -36,6 +36,7 @@ never blocks: a rough rule lands, and a later pass fixes it.
 | What this machine can do | No file. It is a command, see *Capabilities* |
 | A rule a harness offers to keep in its own memory store | No file it owns. The corpus holds every rule, so it goes to the row above it |
 | A measured fact, a decision, the state of the work, the user's priorities | A knowledge file, the change's `plan.md`, the `TODO.md`, a config doc: files the checkout carries to any device. The harness memory directory stays empty, since a run that leans on it works on one machine |
+| Why a rule is built the way it is, and the source behind it | `skills/knowledge/`, one measured fact per file with its conditions and a `Changes:` line naming the rule it shaped, written in the commit that lands or changes the rule; the rule itself names none of it |
 
 One home each. A rule worth stating in two files is one rule stated in the
 broader file and linked from the narrower, and the lint reports the copy. A
@@ -282,6 +283,9 @@ from it is measured here before it is trusted.
   Another session moves the pin mid-turn.
 - A rule that proved unclear, missing or wrong during use is corrected in its
   file in the same turn, before the work that exposed it continues.
+- A rule that lands or changes gets its why and its source into `skills/knowledge/`
+  in the same commit, per *Where it goes*: a rule with no knowledge line is one
+  nobody can re-derive or re-measure.
 - A knob, a stage or a word that a change renames is grepped across `skills/`,
   `scripts/workflows/` and the README before the commit, since the old shape
   stays stated wherever the grep is not run.

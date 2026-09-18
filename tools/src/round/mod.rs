@@ -65,7 +65,9 @@ pub const USAGE: &str = "round <subcommand> ...
       ' · <Band>', which is what post-review.sh --list and --band read, and SKIP in
       front of a PLAUSIBLE Nit. Exit 1 when a row's file:line is not at the head.
 
-  check <round dir> [--overview <file>] [--out <file>]
+  check <round dir> [--overview <file>] [--out <file>] [--private <file>]
+      --private names, one per line, that the draft, claims.md, candidates/ and verdicts/
+      must not carry, whole words: each hit is a row and the exit is 1.
       The mechanical half of the text pass over the round's comment_*.md and the overview.md
       beside the directory: an em-dash outside a fence, a visible sentence ending in a
       question mark, a finding header without its [gh] link or without its ' · <Band>'

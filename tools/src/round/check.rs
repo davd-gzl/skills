@@ -172,6 +172,9 @@ fn run(args: &[String]) -> Result<Vec<Hit>, String> {
     if let Ok(text) = fs::read_to_string(&overview) {
         hits.extend(check_text("overview.md", &text, false));
     }
+    if let Some(list) = opts.get("private") {
+        hits.extend(private_names(round, list)?);
+    }
     let out = opts
         .get("out")
         .map(|p| Path::new(p).to_path_buf())
@@ -180,10 +183,68 @@ fn run(args: &[String]) -> Result<Vec<Hit>, String> {
     Ok(hits)
 }
 
+/// Every whole-word hit of a name in `list` over the round's draft, claims.md, candidates/ and
+/// verdicts/: a private repository name reaches a public artifact through the target's own body,
+/// and nothing between the finder and the commit reads the round against the list otherwise.
+fn private_names(round: &Path, list: &str) -> Result<Vec<Hit>, String> {
+    let names: Vec<String> = fs::read_to_string(list)
+        .map_err(|e| format!("{list}: {e}"))?
+        .lines()
+        .map(str::trim)
+        .filter(|l| !l.is_empty())
+        .map(String::from)
+        .collect();
+    let mut files: Vec<std::path::PathBuf> = Vec::new();
+    if let Ok(entries) = fs::read_dir(round) {
+        for e in entries.flatten() {
+            let p = e.path();
+            let name = e.file_name().to_string_lossy().into_owned();
+            if p.is_file() && (name.starts_with("comment_") || name == "claims.md" || name == "findings.md") {
+                files.push(p);
+            } else if p.is_dir() && (name == "candidates" || name == "verdicts") {
+                if let Ok(inner) = fs::read_dir(&p) {
+                    files.extend(inner.flatten().map(|f| f.path()).filter(|f| f.is_file()));
+                }
+            }
+        }
+    }
+    files.sort();
+    let mut hits = Vec::new();
+    for f in files {
+        let text = fs::read_to_string(&f).unwrap_or_default();
+        let short = f
+            .strip_prefix(round)
+            .map(|p| p.to_string_lossy().into_owned())
+            .unwrap_or_else(|_| f.to_string_lossy().into_owned());
+        for (i, line) in text.lines().enumerate() {
+            for name in &names {
+                let re = Regex::new(&format!(r"(?i)(^|[^A-Za-z0-9_-]){}([^A-Za-z0-9_-]|$)", regex::escape(name))).unwrap();
+                if re.is_match(line) {
+                    hits.push(Hit { file: short.clone(), line: i + 1, what: format!("private name: {name}") });
+                }
+            }
+        }
+    }
+    Ok(hits)
+}
+
 #[cfg(test)]
 mod tests {
     use super::super::testutil::tmp;
     use super::*;
+
+    #[test]
+    fn a_private_name_in_a_candidate_is_a_hit() {
+        let round = round_with("check-private", "# Review\n\n## pkg/a.go:10 [gh](https://x/a.go#L10) \u{b7} Warning\nFine.\n", "# S\n\nOk.\n");
+        fs::create_dir_all(round.join("candidates")).unwrap();
+        fs::write(round.join("candidates").join("find-1.json"), "{\"summary\": \"tracked in acme/secret-fixes#12\"}\n").unwrap();
+        let list = round.join("names.txt");
+        fs::write(&list, "secret-fixes\nacme/secret-fixes\n").unwrap();
+        let code = check_cmd(&[round.display().to_string(), "--private".into(), list.display().to_string()]);
+        assert_eq!(code, 1);
+        let table = fs::read_to_string(round.join("check.md")).unwrap();
+        assert!(table.contains("private name: secret-fixes"), "{table}");
+    }
 
     fn round_with(name: &str, draft: &str, overview: &str) -> std::path::PathBuf {
         let slug = tmp(name);

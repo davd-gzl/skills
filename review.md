@@ -49,7 +49,7 @@ The word sets the shape, and the word is how well the user knows the code:
 | Word | For | Shape |
 | --- | --- | --- |
 | `quick review` | the overview of what a change is worth, the fewest tokens and the shortest clock | one finder per bundle carrying the angles that find Warnings, lines, reach, removed and the catalog, the Warning cap whole and the Nit cap 3, each finder running its own Warning checks, no reflector, judges by three at 12 calls and reads by eight, the writer, the text pass past 120 visible words of findings, a 500k ceiling |
-| `review` | any change | one finder per bundle per angle with material, each running its own Warning checks, the reflector, judges by six over the run-shaped candidates and by twelve over the reads, the writer, the text pass, a 1M ceiling |
+| `review` | any change | one finder per bundle per angle with material, or one per bundle carrying every angle past `finder.fold_past_bundles` bundles, each running its own Warning checks, the reflector, judges by six over the run-shaped candidates and by twelve over the reads, the writer, the text pass, a 1M ceiling |
 | `deep review` | code that is complex or unknown | every finder at 60 calls, a hot bundle over the floor split by code file, the Warning cap 16 and the Nit cap 8, judges by three at 30 calls, reads by six, the writer, the text pass, a 2.5M ceiling |
 
 1. Prepare, per *Fetch & understand*, and dispatch the overview agent the moment the head worktree exists.
@@ -101,7 +101,8 @@ the word caps it. Size is one factor and never the trigger.
 
 One finder per bundle per angle the bundle has material for, the bundles from
 `round dispatch`; a bundle under the floor gets one finder carrying every angle it
-has, so the count follows the diff. A hot bundle over the floor is split by code
+has, and past `finder.fold_past_bundles` bundles every bundle does, so the count
+follows the diff by bundle and never by bundle times angle. A hot bundle over the floor is split by code
 file, so two finders of one angle read different material and never the same
 twice; a complex change buys a longer reading, `finder.tools`, not a second one.
 Every bundle is read once whatever its tier.
@@ -113,7 +114,7 @@ A finder returns candidates as data, never prose. One, filled:
  "summary": "a zero TTL never expires an entry",
  "failure_scenario": "Set(key, v, 0) stores with expiry 0; Get compares now > expiry, which is false forever, so the entry outlives every restart of the config",
  "verify_by": "go test ./pkg/store -run TestTTL with a 0 TTL case: expect eviction, observe none",
- "band": "Warning", "checked": true}
+ "band": "Warning", "fix_kind": "code", "checked": true}
 ```
 
 - Read the diff written out at `args.diff_file`, the head worktree and the catalog; run nothing that writes. Reads of at most 500 lines and searches of at most 100 hits, and every command the smallest output that settles the step, a count, a `head`, a `--stat`, a grep: a tool result stays in context for every later turn, so a wide read costs every one of them.
@@ -123,14 +124,14 @@ A finder returns candidates as data, never prose. One, filled:
 - Work the files in the risk table's order, hot first, then warm, then cold: a budget that runs out leaves a cold file unread and never a hot one, and every file is read once whatever its tier.
 - Drop only what the read settles beyond doubt, and return every dropped one under `dropped` with the command and the line that settled it: a claim killed with no row is one nobody can reopen. Unsure is not settled; it goes forward.
 - Write the object you return to `<round dir>/candidates/find-<job>.json` before returning.
-- Return at most `cap_high` candidates banded Critical, Warning or Missing test and at most `cap` banded Nit or Suggestion, each list ordered by how likely a verifier confirms it, since everything past a cap is dropped unread; a Nit never takes a Warning's slot.
+- Return at most `cap_high` candidates banded Critical, Warning or Missing test and at most `cap` banded Nit or Suggestion, each list ordered by how likely a verifier confirms it, since everything past a cap is dropped unread; a Nit never takes a Warning's slot, and `cap` is the round's `finder.small_per_round` shared across its finders, so a wide diff spends those slots on its best.
 - Band on what a user loses when the line runs, never on the size of the fix: a read surface that aborts on ordinary input, a write that cannot be undone and a value another party can move are Warnings whatever their patch size; Nit is polish a maintainer would not block on.
 - **Missing test is a `deep` band and no other round returns one.** An absence costs a finder's
   slot and a judge's read, and the round that is not deep spends both on what the diff does.
   The knob is `finder.missing_test` in `scripts/workflows/review-pipeline.json`, true under the
   `deep` preset alone; a gap worth the author's time at another word is a Warning on the code
   the test would have caught.
-- A candidate whose only fix is a comment's or a doc's wording is never returned: it ships `SKIP` per *Calibration* and costs a verifier; the code a comment misdescribes is the candidate where the code is wrong.
+- A candidate whose only fix is a comment's or a doc's wording, a cosmetic rule no enabled linter enforces, or nothing the author does is never returned outside `deep`: it ships `SKIP` per *Calibration* and costs a verifier, so `fix_kind` says what the fix changes and the runner drops a Nit or Suggestion at `comment` or `none` before a judge reads it, `finder.skip_classes`; the code a comment misdescribes is the candidate where the code is wrong.
 
 | Angle | Walks | Runs when |
 | --- | --- | --- |

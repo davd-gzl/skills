@@ -6,6 +6,6 @@ A package doc's own example is a claim the code makes about itself, and running 
 - The pipeline's own probe built the same value with the package's constructors, which pass, so its "a second caller registers one" candidate confirmed the wrong shape and read as coverage.
 - The claims angle already names each shape the prose calls bounded or harmless; a doc example is one of those shapes, and it needs the run from outside the package, since inside it the construction check does not fire.
 
-Source: the blind single-agent round against the pipeline's round on the same pull request in the gno workspace.
+Source: [gnolang/gno#6187](https://github.com/gnolang/gno/pull/6187), the blind single-agent round's probe package against the pipeline's `candidates/` on the same head.
 
 Changes: the claims angle runs every doc example from outside the package once before crediting the description; a probe package with one exported entry per variant is the artifact.

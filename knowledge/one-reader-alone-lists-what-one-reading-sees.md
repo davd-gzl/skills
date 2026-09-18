@@ -7,6 +7,6 @@ A single strong agent running every stage in sequence reaches the same top of th
 - The 46 rows it lacked came from the angles it never named: fifteen missing tests from mutations, twenty Nits and Suggestions from the refactor pass, two Warnings from the catalog's sub-identity class.
 - It stopped on its own list with 179 calls unspent: a bound is not what ends a single reader's search.
 
-Source: the blind single-agent round on one pull request in the gno workspace, its transcript's tool calls counted, against the pipeline's round on the same head.
+Source: [gnolang/gno#6187](https://github.com/gnolang/gno/pull/6187), the blind single-agent round's transcript with its `tool_use` blocks counted, against `./scripts/review-retro.py` over the pipeline's round on the same head.
 
 Changes: an angle is a fresh context with one question, never a checklist one reader promises to walk; a cheap first pass is one strong reader, and what it returns is the top of the list, not the list.

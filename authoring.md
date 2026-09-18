@@ -10,6 +10,16 @@ by a model with a finite budget for it. A file that holds every rule ever
 written enforces none of them reliably: the reader samples. So a rule earns its
 place against the rules already there, and adding one is a trade.
 
+Every skill has one goal beside its task: the same decision in fewer turns. A
+turn re-sends the whole context, so the turn count times the context is the
+cost, per `skills/knowledge/cost-is-agents-times-turns-times-context.md`, and
+output tokens are the minor term. A rule that cuts words and adds a turn has
+raised the cost; one that batches reads, hands a value the agent would have
+fetched, or settles a step in one call has cut it. The decision stays equal or
+the rule is not an upgrade: the outcome table, the finding set and the reply's
+own numbers say whether it did, never the rule's wording. State the turns a
+rule removes beside its estimate, per *A change to the run's shape*.
+
 Run `./scripts/rules lint <files>` before committing any edit here. It warns and
 never blocks: a rough rule lands, and a later pass fixes it.
 

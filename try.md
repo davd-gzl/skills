@@ -77,3 +77,4 @@ The worktree and the stack survive the turn. On `stop`, kill the processes, remo
 - **Never edit the PR's code**, including the config it ships. A local-only file the boot needs lives in the scratch directory or a gitignored path, never in the diff.
 - Report what did not run. A stack that could not start on this host is not a passing test, and a step skipped for a missing device or key is named in the handover.
 - Findings noticed while driving the app belong in the reply as observations, not in a review file. A finding worth writing down means running the review skill on the target.
+- Run every browser probe headless, and gate a headful run behind an env flag for what a headless browser cannot answer, the browser's own pinch zoom, its picture-in-picture window, exiting fullscreen on Escape: the box is the user's workstation, and a headful chromium under `xvfb-run` disturbs them. Say in the artifact which probe needed headful.

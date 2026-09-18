@@ -19,8 +19,15 @@ pub const REFACTOR_BLOCK: usize = 20;
 
 /// The angles a finder can carry, in the order the skill lists them.
 pub const ANGLES: &[&str] = &[
-    "lines", "removed", "claims", "tests", "reach", "refactor", "catalog",
+    "lines", "removed", "claims", "tests", "reach", "refactor", "rollout", "catalog",
 ];
+
+/// A path whose name says a guarantee may live at boot, in a sweep or in a one-shot job: the
+/// rollout angle's material, two versions of the code running at once.
+static ROLLOUT: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)(migrat|boot|startup|ready|sweep|cron|command|manage|deploy|seed|init|upgrade|install)")
+        .unwrap()
+});
 
 static COMMENT: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^\s*(//|#|/\*|\*|--)").unwrap());
 /// A comment line in a diff keeps its marker and loses its text, as `review-plan.py` blanks it.
@@ -153,6 +160,7 @@ fn angles_for(files: &[&FileFacts], catalog: bool) -> Vec<&'static str> {
     let comments: usize = files.iter().map(|f| f.comments).sum();
     let tests = files.iter().any(|f| f.kind == Kind::Test);
     let block = files.iter().map(|f| f.block_max).max().unwrap_or(0);
+    let rollout = files.iter().any(|f| ROLLOUT.is_match(&f.path));
     let mut out = Vec::new();
     for angle in ANGLES {
         let has = match *angle {
@@ -161,6 +169,7 @@ fn angles_for(files: &[&FileFacts], catalog: bool) -> Vec<&'static str> {
             "claims" => comments > 0,
             "tests" => tests,
             "refactor" => block >= REFACTOR_BLOCK,
+            "rollout" => rollout,
             "catalog" => catalog,
             _ => false,
         };

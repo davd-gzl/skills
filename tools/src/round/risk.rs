@@ -404,8 +404,13 @@ pub fn rank(
             signals.push("prior confirmed".to_string());
             score += weight::PRIOR_CONFIRMED;
         }
+        // A doc whose added lines carry the catalog's words is the claims angle's material, and
+        // the one blocking defect of a round sat in a decision record scored cold by its lines.
         let tier = match kind {
-            Kind::Doc | Kind::Generated | Kind::Test => Tier::Cold,
+            Kind::Generated | Kind::Test => Tier::Cold,
+            Kind::Doc if hits.is_empty() => Tier::Cold,
+            Kind::Doc if score >= weight::HOT => Tier::Hot,
+            Kind::Doc => Tier::Warm,
             Kind::Code | Kind::Config => {
                 if guards > 0 || score >= weight::HOT {
                     Tier::Hot
@@ -677,6 +682,29 @@ mod tests {
             vec!["token", "sign"],
             "whole words, case folded, authorize is not auth"
         );
+    }
+
+    #[test]
+    fn a_doc_carrying_catalog_words_is_not_cold() {
+        let dir = tmp("risk-doc");
+        git(&dir, &["init", "-q"]);
+        write(&dir, "docs/adr.md", "# adr\n");
+        write(&dir, "docs/note.md", "# note\n");
+        write(&dir, "docs/plain.md", "# plain\n");
+        git(&dir, &["add", "."]);
+        git(&dir, &["commit", "-qm", "one"]);
+        let base = git(&dir, &["rev-parse", "HEAD"]);
+        write(&dir, "docs/adr.md", "# adr\nThe chain must verify the owner's permission before a transfer and charge gas.\n");
+        write(&dir, "docs/note.md", "# note\nThe cache is read at boot.\n");
+        write(&dir, "docs/plain.md", "# plain\nA sentence about nothing in the catalog.\n");
+        git(&dir, &["add", "."]);
+        git(&dir, &["commit", "-qm", "two"]);
+        let head = git(&dir, &["rev-parse", "HEAD"]);
+        let words: Vec<String> = KEYWORDS.iter().map(|k| k.to_string()).collect();
+        let files = rank(&dir.to_string_lossy(), &base, &head, &words, &BTreeSet::new()).unwrap();
+        assert_eq!(by_path(&files, "docs/adr.md").tier, Tier::Hot, "{files:?}");
+        assert_eq!(by_path(&files, "docs/note.md").tier, Tier::Warm, "{files:?}");
+        assert_eq!(by_path(&files, "docs/plain.md").tier, Tier::Cold, "{files:?}");
     }
 
     #[test]

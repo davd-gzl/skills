@@ -87,7 +87,7 @@ the word caps it. Size is one factor and never the trigger.
 
 | Class | The change | The round |
 | --- | --- | --- |
-| trivial | no behaviour changes: a doc, a comment, a rename, a version bump, a test-only edit that adds no case | one solo agent finds, runs what it bands Warning, judges and writes; `solo.agents` 2 puts a fresh judge and writer behind a finder |
+| trivial | no behaviour changes and no prose asserting one: a comment, a rename, a version bump, a test-only edit that adds no case; a doc stating what the code does at runtime carries the round's risk in its claims and is normal | one solo agent finds, runs what it bands Warning, judges and writes; `solo.agents` 2 puts a fresh judge and writer behind a finder |
 | simple | one local behaviour change whose blast radius is one function and its direct callers | one finder per bundle carrying every angle, one judge batch, the writer, no reflector, no text pass |
 | normal | a behaviour change with more than one reach, a new invariant, a guard removed, a test that must turn red | the word's shape as configured |
 | complex | **one reading does not hold it**: the mechanism is new here, or two of them interact, or the reader cannot say from the diff alone what the code now does. The subjects that usually fail that test, and never pass it on their own: concurrency, consensus, gas or allocation accounting, funds, permissions or caller identity, cryptography, a state machine, a migration, a hot file with a removed guard | a second round by yield, judges by three, the text pass |

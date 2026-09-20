@@ -135,11 +135,14 @@ fn parent_of(dir: &str) -> String {
     dir_of(dir)
 }
 
-/// Two directories a bundle under the floor may hold together: siblings, or a directory and the
-/// child that follows it. `by_dir` is a `BTreeMap`, so `b` sorts after `a` and `a` is the parent of
-/// the pair whenever either is; the reverse arm cannot fire and is not written.
+/// Two directories a bundle under the floor may hold together: siblings, or a directory and
+/// anything under it, however deep. `by_dir` is a `BTreeMap`, so an ancestor sorts before every
+/// descendant and `a` is the ancestor of the pair whenever either is; the reverse arm cannot fire
+/// and is not written. Descendant rather than child, since a name may sort between a directory and
+/// its own subdirectory: `.` is 0x2E and `/` is 0x2F, so `gno.land` lands between `gno` and `gno/x`.
 fn mergeable(a: &str, b: &str) -> bool {
-    parent_of(a) == parent_of(b) || a == parent_of(b)
+    parent_of(a) == parent_of(b)
+        || (!a.is_empty() && b.len() > a.len() && b.starts_with(a) && b[a.len()..].starts_with('/'))
 }
 
 /// The longest common directory prefix of a set of paths, for a merged bundle's name.
@@ -270,7 +273,7 @@ fn read_risk(path: &str) -> Result<HashMap<String, String>, String> {
 }
 
 /// The bundles of a diff. Code and test files group by directory, small directories merge with
-/// a sibling until the floor, a bundle over the ceiling or a hot bundle over the floor splits by
+/// a sibling or with anything under them until the floor, a bundle over the ceiling or a hot bundle over the floor splits by
 /// code file, each test file beside the code file its name matches; docs and config form one
 /// bundle for the claims angle; generated files are skipped and listed.
 pub(super) fn bundles(
@@ -294,10 +297,7 @@ pub(super) fn bundles(
         let merge = groups.last().map(|(dirs, members)| {
             let lines: usize = members.iter().map(|f| f.lines()).sum();
             lines < FLOOR
-                && dirs
-                    .last()
-                    .map(|d| mergeable(d, &dir))
-                    .unwrap_or(false)
+                && dirs.iter().any(|d| mergeable(d, &dir))
         });
         match (merge, groups.last_mut()) {
             (Some(true), Some((dirs, members))) => {
@@ -824,6 +824,60 @@ mod tests {
             bundles.iter().map(|b| &b.name).collect::<Vec<_>>()
         );
         assert_eq!(bundles[0].files.len(), 2, "{:?}", bundles[0].files);
+    }
+
+    #[test]
+    fn a_name_sorting_between_a_directory_and_its_child_does_not_split_them() {
+        // `.` is 0x2E and `/` is 0x2F, so `gno.land` sorts between `gno` and `gno/x`. Matching only
+        // the group's last directory left `gno/x` its own bundle with a finder of its own.
+        let dir = tmp("dispatch-dotsort");
+        git(&dir, &["init", "-q"]);
+        for path in ["gno/a.go", "gno.land/b.go", "gno/x/c.go"] {
+            write(&dir, path, "package p\n");
+        }
+        git(&dir, &["add", "."]);
+        git(&dir, &["commit", "-qm", "one"]);
+        let base = git(&dir, &["rev-parse", "HEAD"]);
+        for path in ["gno/a.go", "gno.land/b.go", "gno/x/c.go"] {
+            write(&dir, path, "package p\nfunc F() {}\n");
+        }
+        git(&dir, &["add", "."]);
+        git(&dir, &["commit", "-qm", "two"]);
+        let head = git(&dir, &["rev-parse", "HEAD"]);
+        let files = facts(&dir.to_string_lossy(), &base, &head).unwrap();
+        let (bundles, _) = bundles(&files, &HashMap::new(), false);
+        assert_eq!(
+            bundles.len(),
+            1,
+            "three directories under the floor are one bundle: {:?}",
+            bundles.iter().map(|b| &b.name).collect::<Vec<_>>()
+        );
+    }
+
+    #[test]
+    fn a_grandchild_directory_merges_into_its_ancestor_under_the_floor() {
+        let dir = tmp("dispatch-grandchild");
+        git(&dir, &["init", "-q"]);
+        for path in ["web/a.go", "web/deep/nested/b.go"] {
+            write(&dir, path, "package p\n");
+        }
+        git(&dir, &["add", "."]);
+        git(&dir, &["commit", "-qm", "one"]);
+        let base = git(&dir, &["rev-parse", "HEAD"]);
+        for path in ["web/a.go", "web/deep/nested/b.go"] {
+            write(&dir, path, "package p\nfunc F() {}\n");
+        }
+        git(&dir, &["add", "."]);
+        git(&dir, &["commit", "-qm", "two"]);
+        let head = git(&dir, &["rev-parse", "HEAD"]);
+        let files = facts(&dir.to_string_lossy(), &base, &head).unwrap();
+        let (bundles, _) = bundles(&files, &HashMap::new(), false);
+        assert_eq!(
+            bundles.len(),
+            1,
+            "a directory two levels down still joins its ancestor: {:?}",
+            bundles.iter().map(|b| &b.name).collect::<Vec<_>>()
+        );
     }
 
     #[test]

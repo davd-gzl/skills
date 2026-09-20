@@ -135,6 +135,13 @@ fn parent_of(dir: &str) -> String {
     dir_of(dir)
 }
 
+/// Two directories a bundle under the floor may hold together: siblings, or a directory and the
+/// child that follows it. `by_dir` is a `BTreeMap`, so `b` sorts after `a` and `a` is the parent of
+/// the pair whenever either is; the reverse arm cannot fire and is not written.
+fn mergeable(a: &str, b: &str) -> bool {
+    parent_of(a) == parent_of(b) || a == parent_of(b)
+}
+
 /// The longest common directory prefix of a set of paths, for a merged bundle's name.
 fn common_dir(dirs: &[String]) -> String {
     let Some(first) = dirs.first() else {
@@ -281,7 +288,7 @@ pub(super) fn bundles(
             Kind::Code | Kind::Test => by_dir.entry(dir_of(&f.path)).or_default().push(f),
         }
     }
-    // Merge: a directory under the floor joins the next one under the same parent.
+    // Merge: a directory under the floor joins the next one beside it or under it.
     let mut groups: Vec<(Vec<String>, Vec<&FileFacts>)> = Vec::new();
     for (dir, fs_) in by_dir {
         let merge = groups.last().map(|(dirs, members)| {
@@ -289,7 +296,7 @@ pub(super) fn bundles(
             lines < FLOOR
                 && dirs
                     .last()
-                    .map(|d| parent_of(d) == parent_of(&dir))
+                    .map(|d| mergeable(d, &dir))
                     .unwrap_or(false)
         });
         match (merge, groups.last_mut()) {
@@ -784,6 +791,39 @@ mod tests {
             "{}",
             summary(&bundles, &skipped)
         );
+    }
+
+    #[test]
+    fn a_directory_merges_into_its_own_parent_under_the_floor() {
+        let dir = tmp("dispatch-child");
+        git(&dir, &["init", "-q"]);
+        write(&dir, "web/components/layout_test.go", "package components\n");
+        write(&dir, "web/components/layouts/head.html", "<head></head>\n");
+        git(&dir, &["add", "."]);
+        git(&dir, &["commit", "-qm", "one"]);
+        let base = git(&dir, &["rev-parse", "HEAD"]);
+        write(
+            &dir,
+            "web/components/layout_test.go",
+            "package components\nfunc TestHead(t *testing.T) {}\n",
+        );
+        write(
+            &dir,
+            "web/components/layouts/head.html",
+            "<head>\n<title>x</title>\n</head>\n",
+        );
+        git(&dir, &["add", "."]);
+        git(&dir, &["commit", "-qm", "two"]);
+        let head = git(&dir, &["rev-parse", "HEAD"]);
+        let files = facts(&dir.to_string_lossy(), &base, &head).unwrap();
+        let (bundles, _) = bundles(&files, &HashMap::new(), false);
+        assert_eq!(
+            bundles.len(),
+            1,
+            "a template and the test asserting it are one bundle, not two: {:?}",
+            bundles.iter().map(|b| &b.name).collect::<Vec<_>>()
+        );
+        assert_eq!(bundles[0].files.len(), 2, "{:?}", bundles[0].files);
     }
 
     #[test]

@@ -11,25 +11,28 @@ drift back to prose as a session runs. Two marks move it and nothing else:
 `+` lifts to explanation, as does asking for one, and `-` cuts below the
 default to the shortest true answer. Either moves that reply alone and the
 default returns on the next; a question wanting a fact is not a request to
-explain. Every rule of `skills/writing-style.md` holds. The harness measures
-every reply after it goes out, `skills/scripts/reply-check.py`, and puts the
-last reply's numbers into the next prompt. It never blocks, and no reply is
-drafted into a file to measure it first: a block or a draft prints the reply
-twice. A `+` reply is exempt. A comment posted anywhere takes *Posted comments*
+explain. Every rule of `skills/writing-style.md` holds. No count of a reply is
+handed back to the writer: a number in front of the next draft is written
+toward, and deletion is the cheapest way to move it, so the articles go and the
+reader pays a second pass for prose that measures well. The test is a reply that
+reads once, left to right, and no reply is drafted into a file first: a draft
+prints the reply twice. A comment posted anywhere takes *Posted comments*
 in `skills/writing-style.md`, which keeps full sentences.
 
 ## Thinking
 
 The thinking before a reply has one reader, the model, and the user never opens
-it, so the readability rules below stop at its edge: semantics only, content
-words, symbols and numbers in the domain's own terms, no function word, no
-sentence. Length follows the step's difficulty, never
-a count: a fixed cap sits on the same accuracy curve as prose and loses on the
-hard step.
+it, so the readability rules below stop at its edge. Length follows the step's
+difficulty, never a count: each task carries a minimum under which the answer
+fails outright, and no instruction estimates it in advance. What is dropped
+decides the outcome, so a step is shortened by removing what it repeats and
+never by removing the words that say how it is known.
 
-One step, as a draft: `Inv1 → post waits. diff 3 files, private names 0. write, lint, reply`
+One step, as a draft: `Inv1 → post waits. ran git status: 3 files. ran private-names: 0 hits. infer: safe to write`
 
 - Each step, the shortest draft that carries it; a hard step takes the length it needs.
+- **Open each step with how it is known**, `ran <command>:`, `read <file>:`, or `infer:` for anything neither returned. A step with no such opener is an inference in a measurement's words, and it reaches the reply in the same clothes.
+- **A claim the reply will make that no `ran` or `read` step covers gets its own command before the reply ships**, or it goes out named as the inference it is. The gap that costs most is between what a command returned and what the sentence asserts from it.
 - A problem with layers gets its outline first, one draft per layer under it.
 - A step a written recipe covers follows the recipe rather than re-deriving it.
 - Prompt, rules and file text already in context are named, not quoted.

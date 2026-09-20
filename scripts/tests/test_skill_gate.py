@@ -785,7 +785,7 @@ class Prompt(HookCase):
             rc, context = self.run_hook('prompt', json.dumps({'prompt': prompt}))
             self.assertNotIn('skills/try.md', context, prompt)
 
-    def test_a_drifted_last_reply_reaches_the_next_prompt(self):
+    def test_no_register_numbers_reach_the_next_prompt(self):
         transcript = self.root / 't.jsonl'
         drifted = ('The forged heading and the rule die, and the forged line does not, since the renderer '
                    'preserves the inline links by design, so a description can still print a line that reads '
@@ -796,8 +796,8 @@ class Prompt(HookCase):
         transcript.write_text('\n'.join(lines) + '\n')
         rc, context = self.run_hook('prompt', json.dumps({'prompt': 'push', 'transcript_path': str(transcript)}))
         self.assertEqual(rc, 0)
-        self.assertIn('articles per 100', context)
-        self.assertIn('short-form.md', context)
+        self.assertNotIn('articles per 100', context)
+        self.assertNotIn('drifted from the register', context)
 
     def test_the_context_stays_under_the_hook_bound(self):
         rc, context = self.run_hook('prompt', json.dumps({'prompt': 'review fix issue report try skill gno meet'}))

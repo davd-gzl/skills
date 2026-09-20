@@ -4,12 +4,11 @@
 NOT AUDITED — AI-generated tooling. Review before executing in any privileged context.
 
 A reply to the user takes the Short form of skills/short-form.md, and a long
-session drifts back to prose without noticing. This measures the reply instead of
-trusting it, and hands the numbers back for a rewrite.
+session drifts back to prose without noticing. This measures a reply a person hands it.
+No hook calls it: a count put in front of the next draft is written toward.
 
-  ./skills/scripts/reply-check.py                   Claude Code Stop adapter, hook JSON on stdin: the turn's
-                                                    final reply, its numbers on stderr and exit 2 when it has
-                                                    drifted, once per turn
+  ./skills/scripts/reply-check.py                   hook JSON on stdin: the turn's final reply, its numbers on
+                                                    stderr and exit 2 when it has drifted. Wired to nothing.
   ./skills/scripts/reply-check.py <file>            the numbers for a text file; exit 1 when it drifts
   ./skills/scripts/reply-check.py --last <jsonl>    the last reply's numbers when it drifted, one line, for the
                                                     prompt hook to put in the next turn's context; else nothing
@@ -35,10 +34,7 @@ import re
 import statistics
 import sys
 
-ARTICLES = 5.0      # per hundred words; the measured register runs under one
-SENTENCE = 12.0     # words per sentence
 MIN_WORDS = 30
-WORDS = 200         # prose words in one reply; past this the reader skims
 
 ART = re.compile(r"\b(a|an|the)\b", re.I)
 HEDGE = re.compile(r"\b(might|maybe|perhaps|probably|likely|i think|i believe|it seems|could be|possibly)\b", re.I)
@@ -117,13 +113,10 @@ def measure(text):
             j -= 1
         if j < 0 or lines[j].strip() != '---':
             reasons.append('the Did: account with no --- rule above it')
+    # The counts stay in the metrics a reader may look at and are never a reason:
+    # a cap on words, articles or sentence length is a number to write toward, and
+    # the register is a reply that reads once, which no count settles.
     if n >= MIN_WORDS:
-        if n > WORDS:
-            reasons.append(f'{n} prose words, cap {WORDS}')
-        if m['articles'] > ARTICLES:
-            reasons.append(f"{m['articles']} articles per 100 words, cap {ARTICLES:g}")
-        if m['per_sentence'] > SENTENCE:
-            reasons.append(f"{m['per_sentence']} words per sentence, cap {SENTENCE:g}")
         if m['hedges']:
             reasons.append('hedge: ' + ', '.join(f'"{h}"' for h in m['hedges'][:3]))
         if m['pleasantries']:

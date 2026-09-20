@@ -30,7 +30,7 @@ Write prose, broken small.
 - One-line paragraph for each turn in the argument; a skimmer reads only these.
 - No process headers such as Purpose or Testing. The shape's file names the headers it takes; nothing else gets one.
 - No tables, no bullet lists, no bold, no emoji.
-- A diagram wherever a shape is clearer drawn than written; see *Diagrams*.
+- A diagram wherever a shape is clearer drawn than written.
 - A body using role words the reader may not share, an operator against a room owner for one, closes on a collapsed `<details>` block titled Glossary under the last paragraph: one entry per word, a blank line between them so each renders on its own, and the body stays a straight read for whoever already has the words.
 - No code block unless real observed output or a diagram, trimmed to the signal-bearing lines.
 - Symbols in backticks. Delta from `skills/writing-style.md`: an in-repo symbol needs no link, a link anchors on a symbol or a file name and never on a clause, and a body carries only the links a reader needs to check a claim the diff does not show. A paragraph that reads as one hyperlink has failed.

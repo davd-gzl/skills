@@ -29,7 +29,7 @@ Prose follows `skills/writing-style.md`. The title and body are
 in `projects/<repo>/reviews/<slug>/<n>-<sha>/`. Link each tree to the other and
 never repeat what the other states. A change with no review behind it carries
 the same files minus the review links, and the kind of change goes in its
-`README.md`, never in the path. The two trees link each other.
+`README.md`, never in the path.
 
 - `README.md`: the single entry point, linking every other artifact. What is
   broken, what the fix does, status, the create-PR link, what is in the

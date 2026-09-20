@@ -36,8 +36,8 @@ never blocks: a rough rule lands, and a later pass fixes it.
 | One repository: its merge style, its CI, its glossary, its boot recipe | `projects/<repo>/AGENTS.md` |
 | What this machine can do | No file. It is a command, see *Capabilities* |
 | A rule a harness offers to keep in its own memory store | No file it owns. The corpus holds every rule, so it goes to the row above it |
-| A measured fact, a decision, the state of the work, the user's priorities | A knowledge file, the change's `plan.md`, the `TODO.md`, a config doc: files the checkout carries to any device, never a harness store the next machine lacks |
-| A published result, or a rate measured over many runs, that a later session reuses | `skills/knowledge/`, one finding per file: its conditions, a `Source:` line that is the paper, the post or the command that measured it, and a `Changes:` line naming the rule it shaped; the rule itself names none of it |
+| A measured fact, a decision, the state of the work, the user's priorities | The change's `plan.md`, the round's `claims.md`, the `TODO.md`, a config doc: files the checkout carries to any device, never a harness store the next machine lacks. A fact about one repository takes the row above instead |
+| A published result from outside this workspace that a later session reuses | `skills/knowledge/`, one finding per file: its conditions, a `Source:` line that is the paper or the post, and a `Changes:` line naming the rule it shaped; the rule itself names none of it. A number this workspace measured on its own rounds is never one, and neither is anything a reader would reach from the code in a minute: those go in the round's `claims.md` and its retro, where the next round re-measures them |
 
 One home each. A rule worth stating in two files is one rule stated in the
 broader file and linked from the narrower, and the lint reports the copy. A
@@ -75,6 +75,13 @@ otherwise apply it wrongly. What does not belong: the session that produced it,
 the sha it was found on, the date, what was tried first, the knowledge file or
 the paper behind it. That record is the artifact's, a `plan.md`, a `claims.md`,
 a commit message, and the lint rejects a date or a bare sha in a rule line.
+
+**A rule is read by someone with only the rule.** The command that settles it
+stays, since they can run it; the story around it goes, since they cannot reach
+it. A pull request number, a round, a draft that once anchored wrongly, who
+found it and what an earlier version of this entry claimed each send the reader
+somewhere they have no reason to go, and the rule still has to work when they do
+not. Write the trigger, the action and the tell, then the command.
 
 Cut the draft before committing it. A rule arrives carrying the round that
 produced it. Read it back and delete every sentence that is not the trigger, the
@@ -239,9 +246,18 @@ booting beside reviewing, is its own file, read when that moment comes and
 named in the index. A rule leaves only for the reasons above, never for the
 count, since a cut for length cannot tell the fact from the filler.
 
-`./scripts/rules lint` prints every file's word count and its median words per rule,
-and neither is a cap. Past 75 words a rule is carrying the session that found it
-rather than the fact: cut that clause, never the measurement.
+`./scripts/rules lint` prints every file's word count and its median words per
+rule. Neither is a cap and neither says which rule to cut: read the rule instead
+and delete what is not the trigger, the action or the tell, which is usually the
+round that produced it. A rule that is all three and still long stays.
+
+A number in a rule is read by what it counts. A count of words rations them, and
+the only way to meet it is to delete words that carry meaning: a ceiling on a
+rule's words or a reply's goes, and so does a ratio like articles per hundred. A
+count of sentences, lines or items sets the shape of a bounded artifact, where
+meeting it means writing a different thing rather than shaving the same one:
+`1-3 sentences` in a draft's template, two lines for a code comment, three or four
+for a fixture's header and one visible sentence per review section all stay.
 
 ## Contradictions
 
@@ -287,16 +303,22 @@ from it is measured here before it is trusted.
   names that file, never the value. `skills/scripts/scrub.sh` runs from the
   pre-push hook over every line a push adds and refuses the push on a hit;
   `--tree` reads the whole tree the same way.
+- `README.md` is for a person and no agent reads it: it explains the architecture
+  to whoever opens the repository, and every rule an agent follows lives in a
+  skill file. A rule only README states is a rule nothing enforces, and a lint
+  hit pairing README with a skill file is the explainer restating the rule, not a
+  copy to break.
 - Read the whole file before changing a rule in it. A range read against the two
   sections a task seems to need is how a section gets missed.
 - Re-read after `git -C skills log -1` shows a commit that was not there before.
   Another session moves the pin mid-turn.
 - A rule that proved unclear, missing or wrong during use is corrected in its
   file in the same turn, before the work that exposed it continues.
-- A rule resting on a published result or a measured rate gets that finding into
-  `skills/knowledge/` in the same commit, per *Where it goes*. One incident is
-  not a finding: what a rule cost and what was tried first goes in its commit
-  message, which is where a reader looks for it.
+- A rule resting on a published result from outside this workspace gets that
+  finding into `skills/knowledge/` in the same commit, per *Where it goes*. One
+  incident is not a finding, and neither is a rate off this workspace's own
+  rounds: what a rule cost and what was tried first goes in its commit message,
+  which is where a reader looks for it.
 - A knob, a stage or a word that a change renames is grepped across `skills/`,
   `scripts/workflows/` and the README before the commit, since the old shape
   stays stated wherever the grep is not run.

@@ -6,6 +6,8 @@ measurement on the models and benchmarks it names, a claim to test here and
 not a fact; the *Thinking* rule waits on its own before-and-after count.
 
 - Every prompt cap, "be concise", "ten words or less", "no punctuation", sits on one accuracy-versus-length curve; each problem has its own minimum token count, and the gain is adaptive length, short on easy steps, long on hard ones; GSM8K and math sets, no code. Source: [Token complexity](https://arxiv.org/abs/2503.01141).
+- Which step is cut decides the outcome: 80% of low-entropy intermediate steps prune with no significant accuracy loss, while random or high-entropy pruning severely impairs the same models; DeepSeek-R1-7B, 14B and Qwen3-8B. Source: [Step entropy](https://mlanthology.org/iclr/2026/li2026iclr-making/).
+- Telling a model that already reasons internally how to reason buys little: o3-mini +2.9%, o4-mini +3.1%, Gemini Flash 2.5 -3.3%, for 20 to 80% more wall clock. Source: [The decreasing value of chain of thought](https://gail.wharton.upenn.edu/research-and-insights/tech-report-chain-of-thought/).
 - A per-question budget cuts output tokens 67% with under 3% accuracy lost; a tight fixed budget is overrun anyway; GPT-4o-mini over seven math and reasoning sets. Source: [TALE](https://aclanthology.org/2025.findings-acl.1274/).
 - Drafts of a few words per step keep accuracy at 7.6% of chain-of-thought tokens on math and commonsense, GPT-4o and Claude 3.5 Sonnet, visible reasoning and not a thinking block. Source: [Chain of Draft](https://arxiv.org/abs/2502.18600).
 - On SWE-bench the same drafts cost 55% of the tokens and hold over 90% of the quality; the shortest variant fits routine fixes, a hierarchical one multi-layer problems; 300 samples, quality judged and not resolve rate. Source: [Chain of Draft for software engineering](https://arxiv.org/abs/2506.10987).
@@ -18,6 +20,7 @@ not a fact; the *Thinking* rule waits on its own before-and-after count.
 - Prompt-based length control works but is not robust across models, so a wording is measured. Sources: [Stop overthinking](https://arxiv.org/abs/2503.16419), [Concise and adaptive thinking](https://arxiv.org/pdf/2507.09662).
 - Claude's adaptive thinking follows system-prompt guidance, wording-sensitive; effort is the calibrated lever and comes first, and a change is measured on sample traffic. Sources: [Steering thinking](https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost), [Effort](https://platform.claude.com/docs/en/build-with-claude/effort).
 
-Changes: the *Thinking* section of `skills/short-form.md`: drafts over prose,
-length by difficulty and never a count, one pass, a command over a guess,
-nothing already in context restated.
+Changes: the *Thinking* section of `skills/short-form.md`: length by difficulty
+and never a count, no cut by grammar since that removes tokens without reading
+what they carry, each step opening with how it is known, one pass, a command
+over a guess, nothing already in context restated.

@@ -25,8 +25,7 @@ with a warning. Nothing here blocks: a rough draft lands, a later pass fixes it.
                                             or a resume, forgets the session's reads and names them by path
   ./scripts/skill-gate.py prompt            Claude Code UserPromptSubmit adapter: the skills the prompt's
                                             words and the repositories it names call for, named by path
-                                            until read; and the last reply's numbers when reply-check.py
-                                            says it drifted
+                                            until read
 
 Another harness wires its before-write hook to `check` with the path, or to
 `hook-claude` when its payload carries tool_name and tool_input the same way,
@@ -788,18 +787,6 @@ def cmd_prompt(stdin, stdout):
     prompt = str(payload.get('prompt', ''))
     names = [n for n in prompt_reads(prompt) if not is_read(n)]
     extra = []
-    transcript = payload.get('transcript_path')
-    if transcript:
-        # The register check never blocks a reply; its numbers reach the model here, one turn late.
-        try:
-            r = subprocess.run([str(Path(__file__).resolve().parent / 'reply-check.py'), '--last', str(transcript)],
-                               capture_output=True, text=True, timeout=10)
-            if r.stdout.strip():
-                extra.append('The last reply drifted from the register: ' + r.stdout.strip()
-                             + ' This one stays inside the caps, per Short form in skills/short-form.md: '
-                             'lead with the answer, one part per thing asked, the account as plain lines, TL;DR last.')
-        except (OSError, subprocess.TimeoutExpired):
-            pass
     point(names, 'Rules this prompt calls for, unread this session. Read each whole with the Read tool '
                  'before the first command; the read is recorded then.', 'UserPromptSubmit', stdout, extra)
     return 0

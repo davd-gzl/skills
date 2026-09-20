@@ -18,6 +18,8 @@ spec = importlib.util.spec_from_file_location('reply_check', SCRIPT)
 rc = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(rc)
 
+HEDGED = ("Maybe the forged heading dies and the forged line probably does not. "
+          "It seems the renderer preserves inline links by design.")
 DRIFTED = ("On bypassable: you are right, and escaping the description does not fix it. "
            "The forged heading and rule die. The forged line does not: the renderer preserves inline "
            "links by design, so a description can still print a line that reads exactly like the page's. "
@@ -45,10 +47,16 @@ class Prose(unittest.TestCase):
 
 
 class Measure(unittest.TestCase):
-    def test_a_drifted_reply_is_named(self):
-        m = rc.measure(DRIFTED)
-        self.assertGreater(m['articles'], rc.ARTICLES)
-        self.assertTrue(m['reasons'])
+    def test_the_counts_are_measured_correctly_and_are_never_a_reason(self):
+        # The numbers stay pinned so a broken counter is caught; they are reported and never
+        # turned into a verdict, which is the thing a writer optimises against.
+        m, c = rc.measure(DRIFTED), rc.measure(CLIPPED)
+        self.assertEqual(m['words'], 78)
+        self.assertAlmostEqual(m['articles'], 17.9, places=1)
+        self.assertAlmostEqual(m['per_sentence'], 9.8, places=1)
+        self.assertEqual(c['words'], 46)
+        self.assertAlmostEqual(c['articles'], 0.0, places=1)
+        self.assertEqual(m['reasons'], [], 'a long or article-heavy reply is not a drift by itself')
 
     def test_a_clipped_reply_passes(self):
         m = rc.measure(CLIPPED)
@@ -70,12 +78,15 @@ class Measure(unittest.TestCase):
         self.assertIn('the Did: account sits in a code fence, write it as plain lines', m['reasons'])
         self.assertNotIn('a closing block with no Did: account above it', m['reasons'])
 
-    def test_a_long_reply_is_named_and_the_account_does_not_count(self):
+    def test_length_alone_is_no_reason_and_the_account_does_not_count(self):
         long = ' '.join([CLIPPED] * 5)
-        self.assertTrue(any(r.startswith(f'{rc.measure(long)["words"]} prose words') for r in rc.measure(long)['reasons']))
+        body = rc.measure(CLIPPED)['words']
+        self.assertEqual(rc.measure(long)['reasons'], [])
+        self.assertEqual(rc.measure(long)['words'], 5 * body)
         account = '---\n\nDid:\n' + '\n'.join(f'{i}. Step {i}, ' + ' '.join(['done'] * 40) + '.' for i in range(1, 6))
         m = rc.measure(CLIPPED + '\n\n' + account + '\n\n📋 [file](https://x)')
         self.assertEqual(m['reasons'], [])
+        self.assertEqual(m['words'], body, 'the Did: account does not count toward the word total')
 
     def test_a_short_reply_is_not_measured(self):
         self.assertEqual(rc.measure('The fix is in the tree, the tests are green.')['reasons'], [])
@@ -138,10 +149,10 @@ class Hook(Transcript):
         return code, err.getvalue()
 
     def test_a_drifted_reply_blocks_once_with_the_numbers(self):
-        self.write(entry('user', 'why'), entry('assistant', [{'type': 'text', 'text': DRIFTED}]))
+        self.write(entry('user', 'why'), entry('assistant', [{'type': 'text', 'text': CLIPPED + ' ' + HEDGED}]))
         code, err = self.run_hook({'transcript_path': self.path, 'stop_hook_active': False})
         self.assertEqual(code, 2)
-        self.assertIn('articles per 100', err)
+        self.assertIn('hedge', err)
         self.assertIn('cvm', err)
         code, _ = self.run_hook({'transcript_path': self.path, 'stop_hook_active': True})
         self.assertEqual(code, 0)
@@ -164,11 +175,11 @@ class Hook(Transcript):
         self.assertEqual(self.run_hook({'transcript_path': self.path})[0], 0)
 
     def test_last_steps_over_the_prompt_just_typed(self):
-        self.write(entry('user', 'why'), entry('assistant', [{'type': 'text', 'text': DRIFTED}]),
+        self.write(entry('user', 'why'), entry('assistant', [{'type': 'text', 'text': CLIPPED + ' ' + HEDGED}]),
                    entry('user', 'next question'))
         out = io.StringIO()
         self.assertEqual(rc.main(['--last', self.path], stdout=out), 0)
-        self.assertIn('articles per 100', out.getvalue())
+        self.assertIn('hedge', out.getvalue())
         self.write(entry('user', 'why'), entry('assistant', [{'type': 'text', 'text': CLIPPED}]),
                    entry('user', 'next question'))
         out = io.StringIO()

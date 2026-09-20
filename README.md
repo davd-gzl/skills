@@ -49,8 +49,7 @@ Nothing reaches anyone without my word, typed in the current turn: `post`,
 before it goes. A claim carries the run that proves it. A posted comment says
 the problem, its stake and the line it sits on, and stops, so a maintainer who
 did not ask for it reads it once; the depth lives in `claims.md`. Replies
-to me are clipped, measured, rewritten when they drift, and end on an account
-of everything the turn did.
+to me are clipped and end on an account of everything the turn did.
 
 The corpus shrinks on purpose. A rule has one home; it leaves when a script
 enforces it or a broader rule covers it; a wording in doubt is measured against
@@ -217,7 +216,7 @@ own argument and waits for the outcome table to measure it.
 | [`authoring.md`](authoring.md) | a rule is added, edited or removed | where it lives, the shape it takes, what it displaces, the turns it must not add; its sources sit in `knowledge/`, never in the rule |
 | [`archive/`](archive/) | nothing loads it | snapshots of a skill before a change that altered its voice, the advisory shape for a disclosure, and the harness that chose the Short form wording |
 | [`TODO.md`](TODO.md) | skill work I own but have not started | one line per item, newest last |
-| [`knowledge/`](knowledge/) | a design question about the workflow comes up | one measured fact per file: what holds, the numbers, the source, what it changes |
+| [`knowledge/`](knowledge/) | a design question about the workflow comes up | one published result per file, from outside this workspace: what holds, the numbers, the paper or post behind it, what it changes. A round's own measurement stays in that round's `claims.md` |
 | [`scripts/scrub.sh`](scripts/scrub.sh) | a push of this repository, from `scripts/git-hooks/pre-push` | a refusal when a pushed line or a commit message carries a secret shape or a name the consumer's `workspace.json` lists |
 | [`tools/`](tools/) | one Rust crate, two binaries: `round links`, `round prior`, `round risk`, `round dispatch` and `round assemble` for a review round's fixed steps, `rules lint` for this corpus | `links.md` with every link resolved at its sha and its range checked; the earlier rounds' checks re-anchored to the head; the lint below; built by the consumer's sync onto `~/bin` and reached through its `scripts/round` and `scripts/rules` shims, tested by `cargo test --manifest-path tools/Cargo.toml`, a golden fixture under `tools/tests/lint` holding the lint's whole output |
 
@@ -240,11 +239,12 @@ plugin's own benchmark prompts, with a blind judge ranking every answer.
 [`scripts/reply-check.py`](scripts/reply-check.py) is what keeps it: it reads
 the turn's final reply off the transcript, drops fenced code, inline code,
 blockquotes, table rows, link targets, anything between two `---` rules and the
-`Did:` account, and measures what is left. Over 200 prose words, 5 articles per
-hundred, 12 words per sentence, any hedge or pleasantry, an account missing
-above a closing block or sitting in a code fence, and the numbers go into the
-next prompt's context; nothing blocks, no reply is printed twice. A reply under
-30 words of prose, or one answering a `+` prompt, is not measured.
+`Did:` account, and measures what is left. It prints the words, the articles per
+hundred and the words per sentence, and none of the three is a reason; the reasons
+are a hedge, a pleasantry, a path named with no link, and an account missing above
+a closing block or sitting in a code fence. A reply under 30 prose words, or one
+answering a `+` prompt, is not measured. It is a command a person runs over a file
+or a transcript: no hook calls it, and no count reaches the writer of the next reply.
 
 ```bash
 ./skills/scripts/reply-check.py <file>                          # the numbers for a text file
@@ -279,8 +279,10 @@ python3 -m unittest discover -s skills/scripts/tests
 
 The harness adapter lives in the workspace's own settings file, never here:
 its before-write hook on `Write|Edit|MultiEdit|Bash` calls
-`skill-gate.py hook-claude`, its session-start hook `session-start`, its prompt
-hook `prompt`, and its stop hook `reply-check.py`. Another harness wires its
+`skill-gate.py hook-claude`, its session-start hook `session-start`, and its
+prompt hook `prompt`. No stop hook measures a reply: `reply-check.py` stays a
+command a person runs over a file or a transcript, never a number handed to the
+writer of the next reply. Another harness wires its
 before-write hook to `skill-gate.py check <path>` and exports its session id as
 `CLAUDE_CODE_SESSION_ID`; the git hooks hold without any harness.
 

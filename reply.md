@@ -33,7 +33,6 @@ TL;DR: seven findings, one Warning; waits on `post`.
   command in a reply is a dead end.
 - Say what the code does, not what it took to get there. What was tried and
   dropped belongs in the change's `plan.md`.
-- Never announce the reply. The first line is the answer.
 
 ## A draft
 

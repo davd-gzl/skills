@@ -1,6 +1,6 @@
 ---
 name: reply
-description: The shape of every reply to the user: what it opens with, how it handles a draft, the `Did:` block it ends on, its closing block, its links. In context from the session start hook. The words the user types are skills/shortcuts.md and the register is skills/short-form.md.
+description: The shape of every reply to the user: what it opens with, how it handles a draft, the `Did:` block it ends on, its closing block, its links. Read by path at the turn that finishes work, since nothing imports it. The words the user types are skills/shortcuts.md and the register is skills/short-form.md.
 ---
 
 # The shape of a reply

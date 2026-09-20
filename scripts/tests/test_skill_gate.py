@@ -657,8 +657,8 @@ class SessionStart(HookCase):
         rc, context = self.run_hook('session-start', json.dumps({'source': 'compact'}))
         self.assertEqual(rc, 0)
         self.assertNotIn('Sync', context)
-        self.assertIn('skills/review.md', context)
-        self.assertNotIn('skills/shortcuts.md', context)
+        self.assertIn('- review: Read `skills/review.md`', context)
+        self.assertNotIn('- shortcuts: Read', context)
         self.assertFalse(gate.is_read('review'))
         self.assertTrue(gate.is_read('shortcuts'))
 

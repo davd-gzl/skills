@@ -584,8 +584,12 @@ def cmd_pre_push(stdin, cwd):
     return report(check(['git', *sorted(relative(top / p) or str(top / p) for p in paths)]))
 
 
-# In context through CLAUDE.md in every session, so recorded as read when it opens.
-IMPORTED = ['shortcuts', 'short-form', 'reply']
+# In context through CLAUDE.md's own `@` imports in every session, so recorded as read when it
+# opens. `reply.md` is not among them: nothing imports it, it is the parent's own reply shape,
+# and the gate names it for a Read. A hook cannot stand in for an import here, since a hook's
+# context reaches the model as a stub naming a file from 10 KB and these two are 9.1 KB before
+# the sync line.
+IMPORTED = ['shortcuts', 'short-form']
 # A Bash result of 29.4 KB or more reaches the model as a stub naming a file, and a
 # hook's context does so from 10 KB, measured over every transcript of this
 # workspace. Only the Read tool carries a whole file, so this script names paths
@@ -755,9 +759,11 @@ def forget_session():
     save({k: v for k, v in load().items() if not k.startswith(prefix)})
 
 
-INTRO = ('Principles, Invariants, the words, the reply shape and the register are in context from this hook. '
-         'Any other rule is read whole with the Read tool before its first command, and that read is '
-         'what the gate records; ./scripts/skill <name> names its path.')
+INTRO = ('Principles, Invariants, the words the user types and the register are in context through '
+         '`CLAUDE.md`, which imports the workspace `AGENTS.md`, `skills/shortcuts.md` and '
+         '`skills/short-form.md`. Every other rule, `skills/reply.md` included, is read whole with the '
+         'Read tool before its first command, and that read is what the gate records; '
+         './scripts/skill <name> names its path.')
 
 
 def cmd_session_start(stdin, stdout):

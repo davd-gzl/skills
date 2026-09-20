@@ -150,14 +150,16 @@ one pass.
   to the whole file. Split into a second file only where the sections are
   separate documents to whoever edits them. `./scripts/skill <name>` prints the
   path the gate hands over.
-- A skill the session start hook hands the parent whole, `shortcuts.md`,
-  `reply.md` and `short-form.md`, is never cut, whatever its frontmatter says:
-  it is in context as the session opens, every turn runs on it, and a
-  `prompt-sections` line there changes nothing.
+- A skill `CLAUDE.md` imports, `shortcuts.md` and `short-form.md`, is never cut,
+  whatever its frontmatter says: it is in context as the session opens, every
+  turn runs on it, and a `prompt-sections` line there changes nothing. A hook
+  cannot stand in for the import, since a hook's context reaches the model as a
+  stub naming a file from 10 KB and those two are 9.1 KB before the sync line.
 - A subagent gets the skills its own artifact needs and no others. It answers
-  the parent and never the user, so the words the user types, the shape of a
-  reply and the register are dead weight in its context: the adapter imports
-  none of the three and no dispatch prompt names them. A dispatch names the task
+  the parent and never the user, so the words the user types and the register are
+  dead weight in its context, and it inherits them anyway through `CLAUDE.md`,
+  which every agent carries: no dispatch prompt names them on top, and `reply.md`
+  is imported by nothing for that reason. A dispatch names the task
   skill, and `skills/writing-style.md` where the artifact is prose.
 
 ## Capabilities

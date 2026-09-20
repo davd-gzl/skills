@@ -32,7 +32,7 @@ Every word carries its own output ceiling in `review-pipeline.json`, 400k to 2.5
 
 The word is how well I know the code, and the cost climbs with it; the plan a
 round prints before it launches gives the figures for that diff. What each word
-starts is its row in [`shortcuts.md`](https://github.com/davd-gzl/skills/blob/rule/size-from-one-agent/shortcuts.md).
+starts is its row in [`shortcuts.md`](https://github.com/davd-gzl/skills/blob/main/shortcuts.md).
 
 ## The concept
 
@@ -65,12 +65,12 @@ the next sync with no bump, and keeps one measured delta per repository in
 
 ## The words
 
-What I type and what each word starts is the table in [`shortcuts.md`](https://github.com/davd-gzl/skills/blob/rule/size-from-one-agent/shortcuts.md), the one place a word is defined; `push`, `post` and `merge` are the ones that reach anyone.
+What I type and what each word starts is the table in [`shortcuts.md`](https://github.com/davd-gzl/skills/blob/main/shortcuts.md), the one place a word is defined; `push`, `post` and `merge` are the ones that reach anyone.
 
 ## How I work
 
 Everything starts with a review, on a PR, a branch, or a red CI.
-[`review.md`](https://github.com/davd-gzl/skills/blob/rule/size-from-one-agent/review.md) drives it:
+[`review.md`](https://github.com/davd-gzl/skills/blob/main/review.md) drives it:
 
 1. **Fetch and understand.** Sync the checkout, work from a worktree, pull the
    diff, read every comment and past review, then read every changed file in
@@ -104,7 +104,7 @@ Everything starts with a review, on a PR, a branch, or a red CI.
    overview at its sha and checks its range into `links.md`; one agent adds
    whether the landed lines carry each claim, then rewrites every line that
    reads shorter without losing fact, stake or fix.
-9. **Style pass.** The closing Pass of [`writing-style.md`](https://github.com/davd-gzl/skills/blob/rule/size-from-one-agent/writing-style.md),
+9. **Style pass.** The closing Pass of [`writing-style.md`](https://github.com/davd-gzl/skills/blob/main/writing-style.md),
    run against the file and not from memory. Never skipped.
 10. **Commit and push.** The record lands in my workspace, nothing else moves.
 11. **Hand over.** I read the draft and decide.
@@ -202,47 +202,47 @@ own argument and waits for the outcome table to measure it.
 
 | File | Fires when | Produces |
 | --- | --- | --- |
-| [`review.md`](https://github.com/davd-gzl/skills/blob/rule/size-from-one-agent/review.md) | a pull request, a branch or a repository-level failure is reviewed | the review round |
-| [`review-modes.md`](https://github.com/davd-gzl/skills/blob/rule/size-from-one-agent/review-modes.md) | a run covers many targets, or the reviewer authored the target | the deltas of that case |
-| [`review-comment.md`](https://github.com/davd-gzl/skills/blob/rule/size-from-one-agent/review-comment.md) | `comment_<model>.md` is drafted, regenerated or posted | the Body, the inline-comment shape, the final check, the posting gate |
-| [`issue.md`](https://github.com/davd-gzl/skills/blob/rule/size-from-one-agent/issue.md) | a fix needs an upstream issue nobody has filed | `issue.md`, the problem and never the remedy |
-| [`change.md`](https://github.com/davd-gzl/skills/blob/rule/size-from-one-agent/change.md) | an issue or a finding goes to a pull request | `spec.md` and `plan.md` with their numbered open calls, the worktree, the fix, the local CI run, the pull request on my fork |
-| [`pr-body.md`](https://github.com/davd-gzl/skills/blob/rule/size-from-one-agent/pr-body.md) | a change is proposed, before the pull request opens | the title and body, in one of four shapes, looping until a full pass changes nothing |
-| [`pr-body/docs.md`](https://github.com/davd-gzl/skills/blob/rule/size-from-one-agent/pr-body/docs.md) | the change is documentation pages | no headers, the fact the pages had wrong first, a worked example |
-| [`pr-body/one-concern.md`](https://github.com/davd-gzl/skills/blob/rule/size-from-one-agent/pr-body/one-concern.md) | one concern, which is every bug fix | `## Problem` and `## Fix`, four short paragraphs, a worked example |
-| [`pr-body/several-changes.md`](https://github.com/davd-gzl/skills/blob/rule/size-from-one-agent/pr-body/several-changes.md) | several independent changes share one pull request | one `###` section per change, each readable alone, a worked example |
-| [`pr-body/surface.md`](https://github.com/davd-gzl/skills/blob/rule/size-from-one-agent/pr-body/surface.md) | one change with a surface someone sees | `## Problem` with the shot, `## Design` with one `###` per decision, a worked example |
-| [`try.md`](https://github.com/davd-gzl/skills/blob/rule/size-from-one-agent/try.md) | a project is booted at a pull request, a branch or its default branch | a URL, a login, the click path; the clip once the claim is settled |
-| [`report.md`](https://github.com/davd-gzl/skills/blob/rule/size-from-one-agent/report.md) | a periodic status report over a set of repositories | the report, generated only after I have edited its context file |
-| [`git.md`](https://github.com/davd-gzl/skills/blob/rule/size-from-one-agent/git.md) | a turn will commit, push, sync a checkout, or touch a submodule or worktree | the identity every commit takes, where a push goes, the commands that report success and move nothing |
-| [`writing-style.md`](https://github.com/davd-gzl/skills/blob/rule/size-from-one-agent/writing-style.md) | any visible prose, in any project | the rules every other skill defers to, the closing Pass, the chat register, the posted-comment shape |
-| [`shortcuts.md`](https://github.com/davd-gzl/skills/blob/rule/size-from-one-agent/shortcuts.md) | the user types a word | what each word starts, the one place a word is defined |
-| [`reply.md`](https://github.com/davd-gzl/skills/blob/rule/size-from-one-agent/reply.md) | every reply, in any workspace | what it opens with, the `Did:` block, the closing block, its links |
-| [`authoring.md`](https://github.com/davd-gzl/skills/blob/rule/size-from-one-agent/authoring.md) | a rule is added, edited or removed | where it lives, the shape it takes, what it displaces, the turns it must not add; its sources sit in `knowledge/`, never in the rule |
-| [`archive/`](https://github.com/davd-gzl/skills/blob/rule/size-from-one-agent/archive) | nothing loads it | snapshots of a skill before a change that altered its voice, the advisory shape for a disclosure, and the harness that chose the Short form wording |
-| [`TODO.md`](https://github.com/davd-gzl/skills/blob/rule/size-from-one-agent/TODO.md) | skill work I own but have not started | one line per item, newest last |
-| [`knowledge/`](https://github.com/davd-gzl/skills/blob/rule/size-from-one-agent/knowledge) | a design question about the workflow comes up | one published result per file, from outside this workspace: what holds, the numbers, the paper or post behind it, what it changes. A round's own measurement stays in that round's `claims.md` |
-| [`scripts/scrub.sh`](https://github.com/davd-gzl/skills/blob/rule/size-from-one-agent/scripts/scrub.sh) | a push of this repository, from `scripts/git-hooks/pre-push` | a refusal when a pushed line or a commit message carries a secret shape or a name the consumer's `workspace.json` lists |
-| [`tools/`](https://github.com/davd-gzl/skills/blob/rule/size-from-one-agent/tools) | one Rust crate, two binaries: `round links`, `round prior`, `round risk`, `round dispatch` and `round assemble` for a review round's fixed steps, `rules lint` for this corpus | `links.md` with every link resolved at its sha and its range checked; the earlier rounds' checks re-anchored to the head; the lint below; built by the consumer's sync onto `~/bin` and reached through its `scripts/round` and `scripts/rules` shims, tested by `cargo test --manifest-path tools/Cargo.toml`, a golden fixture under `tools/tests/lint` holding the lint's whole output |
+| [`review.md`](https://github.com/davd-gzl/skills/blob/main/review.md) | a pull request, a branch or a repository-level failure is reviewed | the review round |
+| [`review-modes.md`](https://github.com/davd-gzl/skills/blob/main/review-modes.md) | a run covers many targets, or the reviewer authored the target | the deltas of that case |
+| [`review-comment.md`](https://github.com/davd-gzl/skills/blob/main/review-comment.md) | `comment_<model>.md` is drafted, regenerated or posted | the Body, the inline-comment shape, the final check, the posting gate |
+| [`issue.md`](https://github.com/davd-gzl/skills/blob/main/issue.md) | a fix needs an upstream issue nobody has filed | `issue.md`, the problem and never the remedy |
+| [`change.md`](https://github.com/davd-gzl/skills/blob/main/change.md) | an issue or a finding goes to a pull request | `spec.md` and `plan.md` with their numbered open calls, the worktree, the fix, the local CI run, the pull request on my fork |
+| [`pr-body.md`](https://github.com/davd-gzl/skills/blob/main/pr-body.md) | a change is proposed, before the pull request opens | the title and body, in one of four shapes, looping until a full pass changes nothing |
+| [`pr-body/docs.md`](https://github.com/davd-gzl/skills/blob/main/pr-body/docs.md) | the change is documentation pages | no headers, the fact the pages had wrong first, a worked example |
+| [`pr-body/one-concern.md`](https://github.com/davd-gzl/skills/blob/main/pr-body/one-concern.md) | one concern, which is every bug fix | `## Problem` and `## Fix`, four short paragraphs, a worked example |
+| [`pr-body/several-changes.md`](https://github.com/davd-gzl/skills/blob/main/pr-body/several-changes.md) | several independent changes share one pull request | one `###` section per change, each readable alone, a worked example |
+| [`pr-body/surface.md`](https://github.com/davd-gzl/skills/blob/main/pr-body/surface.md) | one change with a surface someone sees | `## Problem` with the shot, `## Design` with one `###` per decision, a worked example |
+| [`try.md`](https://github.com/davd-gzl/skills/blob/main/try.md) | a project is booted at a pull request, a branch or its default branch | a URL, a login, the click path; the clip once the claim is settled |
+| [`report.md`](https://github.com/davd-gzl/skills/blob/main/report.md) | a periodic status report over a set of repositories | the report, generated only after I have edited its context file |
+| [`git.md`](https://github.com/davd-gzl/skills/blob/main/git.md) | a turn will commit, push, sync a checkout, or touch a submodule or worktree | the identity every commit takes, where a push goes, the commands that report success and move nothing |
+| [`writing-style.md`](https://github.com/davd-gzl/skills/blob/main/writing-style.md) | any visible prose, in any project | the rules every other skill defers to, the closing Pass, the chat register, the posted-comment shape |
+| [`shortcuts.md`](https://github.com/davd-gzl/skills/blob/main/shortcuts.md) | the user types a word | what each word starts, the one place a word is defined |
+| [`reply.md`](https://github.com/davd-gzl/skills/blob/main/reply.md) | every reply, in any workspace | what it opens with, the `Did:` block, the closing block, its links |
+| [`authoring.md`](https://github.com/davd-gzl/skills/blob/main/authoring.md) | a rule is added, edited or removed | where it lives, the shape it takes, what it displaces, the turns it must not add; its sources sit in `knowledge/`, never in the rule |
+| [`archive/`](https://github.com/davd-gzl/skills/blob/main/archive) | nothing loads it | snapshots of a skill before a change that altered its voice, the advisory shape for a disclosure, and the harness that chose the Short form wording |
+| [`TODO.md`](https://github.com/davd-gzl/skills/blob/main/TODO.md) | skill work I own but have not started | one line per item, newest last |
+| [`knowledge/`](https://github.com/davd-gzl/skills/blob/main/knowledge) | a design question about the workflow comes up | one published result per file, from outside this workspace: what holds, the numbers, the paper or post behind it, what it changes. A round's own measurement stays in that round's `claims.md` |
+| [`scripts/scrub.sh`](https://github.com/davd-gzl/skills/blob/main/scripts/scrub.sh) | a push of this repository, from `scripts/git-hooks/pre-push` | a refusal when a pushed line or a commit message carries a secret shape or a name the consumer's `workspace.json` lists |
+| [`tools/`](https://github.com/davd-gzl/skills/blob/main/tools) | one Rust crate, two binaries: `round links`, `round prior`, `round risk`, `round dispatch` and `round assemble` for a review round's fixed steps, `rules lint` for this corpus | `links.md` with every link resolved at its sha and its range checked; the earlier rounds' checks re-anchored to the head; the lint below; built by the consumer's sync onto `~/bin` and reached through its `scripts/round` and `scripts/rules` shims, tested by `cargo test --manifest-path tools/Cargo.toml`, a golden fixture under `tools/tests/lint` holding the lint's whole output |
 
 ## The chat register
 
 Short form is the register every chat reply takes, defined in
-[`short-form.md`](https://github.com/davd-gzl/skills/blob/rule/size-from-one-agent/short-form.md), the short form of
-[`writing-style.md`](https://github.com/davd-gzl/skills/blob/rule/size-from-one-agent/writing-style.md). The rules live there and are not
+[`short-form.md`](https://github.com/davd-gzl/skills/blob/main/short-form.md), the short form of
+[`writing-style.md`](https://github.com/davd-gzl/skills/blob/main/writing-style.md). The rules live there and are not
 restated here.
 
 The thinking before a reply takes the same register cut past readability, since
 nobody but the model reads it: the *Thinking* section of `short-form.md`, the
-evidence in [`knowledge/thinking-length-follows-difficulty.md`](https://github.com/davd-gzl/skills/blob/rule/size-from-one-agent/knowledge/thinking-length-follows-difficulty.md).
+evidence in [`knowledge/thinking-length-follows-difficulty.md`](https://github.com/davd-gzl/skills/blob/main/knowledge/thinking-length-follows-difficulty.md).
 `reply-check.py` measures the reply and not the thinking.
 
-[`archive/chat-register/`](https://github.com/davd-gzl/skills/blob/rule/size-from-one-agent/archive/chat-register) is the harness that chose the
-wording, archived with [`results.md`](https://github.com/davd-gzl/skills/blob/rule/size-from-one-agent/archive/chat-register/results.md), its run:
+[`archive/chat-register/`](https://github.com/davd-gzl/skills/blob/main/archive/chat-register) is the harness that chose the
+wording, archived with [`results.md`](https://github.com/davd-gzl/skills/blob/main/archive/chat-register/results.md), its run:
 candidate wordings against no rule and against the caveman plugin on that
 plugin's own benchmark prompts, with a blind judge ranking every answer.
 
-[`scripts/reply-check.py`](https://github.com/davd-gzl/skills/blob/rule/size-from-one-agent/scripts/reply-check.py) is what keeps it: it reads
+[`scripts/reply-check.py`](https://github.com/davd-gzl/skills/blob/main/scripts/reply-check.py) is what keeps it: it reads
 the turn's final reply off the transcript, drops fenced code, inline code,
 blockquotes, table rows, link targets, anything between two `---` rules and the
 `Did:` account, and measures what is left. It prints the words, the articles per
@@ -259,8 +259,8 @@ or a transcript: no hook calls it, and no count reaches the writer of the next r
 
 ## The read gate
 
-[`scripts/skill-gate.py`](https://github.com/davd-gzl/skills/blob/rule/size-from-one-agent/scripts/skill-gate.py) records every read made
-through [`scripts/skill`](https://github.com/davd-gzl/skills/blob/rule/size-from-one-agent/scripts/skill), `./scripts/skill review` for a skill,
+[`scripts/skill-gate.py`](https://github.com/davd-gzl/skills/blob/main/scripts/skill-gate.py) records every read made
+through [`scripts/skill`](https://github.com/davd-gzl/skills/blob/main/scripts/skill), `./scripts/skill review` for a skill,
 `./scripts/skill pr-body/docs` for a shape, `./scripts/skill meet` for a
 project's delta. It puts the skills a write still lacks into the context with a
 warning and lets the write through, and names the rules by path for the Read
@@ -272,9 +272,9 @@ read holds while the file's
 hash matches and the session is the same; a stale read prints only the diff
 since it was made.
 
-[`scripts/git-hooks/`](https://github.com/davd-gzl/skills/blob/rule/size-from-one-agent/scripts/git-hooks) holds the commit, merge-commit and
+[`scripts/git-hooks/`](https://github.com/davd-gzl/skills/blob/main/scripts/git-hooks) holds the commit, merge-commit and
 push hooks, which warn on a mapped artifact whose skill was not read, whatever
-made the commit. [`scripts/tests/`](https://github.com/davd-gzl/skills/blob/rule/size-from-one-agent/scripts/tests) holds the tests of the gate
+made the commit. [`scripts/tests/`](https://github.com/davd-gzl/skills/blob/main/scripts/tests) holds the tests of the gate
 and of the register check.
 
 ```bash
@@ -294,7 +294,7 @@ before-write hook to `skill-gate.py check <path>` and exports its session id as
 
 ## The lint
 
-[`rules lint`](https://github.com/davd-gzl/skills/blob/rule/size-from-one-agent/tools/src/lint.rs) warns and never blocks: a rule that tells the reader to
+[`rules lint`](https://github.com/davd-gzl/skills/blob/main/tools/src/lint.rs) warns and never blocks: a rule that tells the reader to
 stop measuring, a date or a sha inside a rule, an em-dash or a parenthetical in
 prose, a capability asserted without the command that reads it, a pointer at a
 file or a section that does not exist, one sentence living in two files, and a

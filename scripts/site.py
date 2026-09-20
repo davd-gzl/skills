@@ -27,7 +27,18 @@ def repository():
 
 
 OWNER, NAME = repository()
-BRANCH = subprocess.run(['git', '-C', ROOT, 'rev-parse', '--abbrev-ref', 'HEAD'], capture_output=True, text=True).stdout.strip() or 'main'
+
+
+def default_branch():
+    """The branch GitHub serves, read from the remote and never from this checkout's HEAD: a page
+    generated on a working branch links every file at a ref no reader can resolve, and the links
+    404 for everyone while rendering correctly for whoever generated them."""
+    head = subprocess.run(['git', '-C', ROOT, 'rev-parse', '--abbrev-ref', 'origin/HEAD'],
+                          capture_output=True, text=True).stdout.strip()
+    return head.split('/', 1)[1] if head.startswith('origin/') else 'main'
+
+
+BRANCH = default_branch()
 REPO_URL = f'https://github.com/{OWNER}/{NAME}'
 BLOB = f'{REPO_URL}/blob/{BRANCH}/'
 LINK = re.compile(r'\]\((?!https?://|#|mailto:)([^)\s]+)\)')

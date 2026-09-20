@@ -76,7 +76,7 @@ of measuring again.
 - **Name a model with the preset it ran under, every time.** `claude-opus-5, standard review`, in a review's metadata, a posted marker, a handover or a reply; a tier alone names nothing, since a preset sets one per stage. The name alone hides how much thinking the output got. Read the effort, never recall it: `echo $CLAUDE_EFFORT`, plus `modelSettings` in `~/.claude/settings.json`. An agent given no override inherits the session's and carries the same pair.
 - **Mark an opinion as an opinion.** Write "I think" in front of a preference about how the code should look or behave, so a reader tells taste from defect at a glance. Never attach it to something measured, which needs no owner, and never use it to soften a finding: a defect stays flat and unhedged.
 - **A severity is a number out of ten and the word for it**, `6/10, medium`. A pull request body fixing a defect carries it on its own first line, above every heading.
-- Never soften a finding's wording: no "Optional", no "non-blocking".
+- In a review, lead with the verdict only where no separate field carries it, and never soften a finding's wording: no "Optional", no "non-blocking".
 - Scannable, without losing anything. Put anything with repeating structure in a table, findings left out, jobs run, commits, one row each with the consequence in the last column, and keep the reasoning behind a `<details>` block rather than cutting it: completeness lives there, speed lives above it.
 
 ## Pass

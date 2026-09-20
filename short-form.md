@@ -5,7 +5,7 @@ description: The register of every chat reply and of the thinking before it, imp
 
 # Short form
 
-Chat replies and questions to the user, in the register called cvm:
+Chat replies and questions to the user take Short form:
 clipped, cut for a single read and never for length, every reply, with no
 drift back to prose as a session runs. Two marks move it and nothing else:
 `+` lifts to explanation, as does asking for one, and `-` cuts below the

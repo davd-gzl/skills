@@ -222,8 +222,9 @@ own argument and waits for the outcome table to measure it.
 
 ## The chat register
 
-cvm is the register every chat reply takes, defined in `skills/short-form.md`, the Short form
-of [`writing-style.md`](writing-style.md). The rules live there and are not
+Short form is the register every chat reply takes, defined in
+[`short-form.md`](short-form.md), the short form of
+[`writing-style.md`](writing-style.md). The rules live there and are not
 restated here.
 
 The thinking before a reply takes the same register cut past readability, since

@@ -368,7 +368,7 @@ Open every full re-review round with a `Round:` line in the draft's header: `Rou
 
 ### Review the diff
 
-Read every line. Reuse and simplification, a duplicated helper, foldable code, unclear naming, a missing doc comment or an undocumented invariant, are filed as Suggestions or Nits, never blockers.
+Read every line. A reuse or simplification finding, a duplicated helper, foldable code, unclear naming, a missing doc comment or an undocumented invariant, is filed as a Suggestion or a Nit, never a blocker.
 
 - **Refactor pass, over every added block.** Ask whether fewer lines carry the same behaviour: a value computed twice, a guard the caller already applied, memoization that stabilises nothing, an abstraction with one call site. Where they do, post the replacement as a `Refactor:` suggestion the author applies in one click, never prose describing the change, and record both line counts in `claims.md`.
 - **Ask whether each fix sits at the right depth.** A special case added to shared code for one caller, a new root or flag where the cause could be removed, a guard at the call site while the callee stays unsafe for its next caller: each is a Suggestion naming the deeper form and what the shallow one costs to maintain.

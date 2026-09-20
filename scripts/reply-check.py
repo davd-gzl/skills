@@ -10,8 +10,8 @@ No hook calls it: a count put in front of the next draft is written toward.
   ./skills/scripts/reply-check.py                   hook JSON on stdin: the turn's final reply, its numbers on
                                                     stderr and exit 2 when it has drifted. Wired to nothing.
   ./skills/scripts/reply-check.py <file>            the numbers for a text file; exit 1 when it drifts
-  ./skills/scripts/reply-check.py --last <jsonl>    the last reply's numbers when it drifted, one line, for the
-                                                    prompt hook to put in the next turn's context; else nothing
+  ./skills/scripts/reply-check.py --last <jsonl>    the last reply's numbers when it drifted, one line, for a
+                                                    person reading back over a session; else nothing
   ./skills/scripts/reply-check.py --scan <jsonl>... one row per transcript: final replies measured, drifted,
                                                     and the median articles per hundred words;
                                                     --since <date> keeps replies from that day on
@@ -43,7 +43,7 @@ WORD = re.compile(r"[A-Za-z][A-Za-z'’-]*")
 CLOSING = re.compile(r'^\s*[📋▶]')
 DID = re.compile(r'^\s*\**Did:')
 
-REGISTER = ('Rewrite in cvm, the Short form of skills/short-form.md: no filler, no pleasantries, '
+REGISTER = ('Rewrite in Short form, per skills/short-form.md: no filler, no pleasantries, '
             'no hedging, lead with the answer, one idea per paragraph, stop when it lands. Drop an '
             'article only where the sentence still reads in one pass; stacked article-free fragments '
             'are the failure this register prevents, never its target. Sample: "Gitlink moved, push '

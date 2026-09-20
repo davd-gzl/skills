@@ -153,7 +153,7 @@ class Hook(Transcript):
         code, err = self.run_hook({'transcript_path': self.path, 'stop_hook_active': False})
         self.assertEqual(code, 2)
         self.assertIn('hedge', err)
-        self.assertIn('cvm', err)
+        self.assertIn('Short form', err)
         code, _ = self.run_hook({'transcript_path': self.path, 'stop_hook_active': True})
         self.assertEqual(code, 0)
 

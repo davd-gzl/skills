@@ -34,9 +34,10 @@ never blocks: a rough rule lands, and a later pass fixes it.
 | What the user's words start | `skills/shortcuts.md` |
 | The shape of a reply to the user | `skills/reply.md` |
 | One repository: its merge style, its CI, its glossary, its boot recipe | `projects/<repo>/AGENTS.md` |
-| What this machine can do | No file. It is a command, see *Capabilities* |
-| A rule a harness offers to keep in its own memory store | No file it owns. The corpus holds every rule, so it goes to the row above it |
-| A measured fact, a decision, the state of the work, the user's priorities | The change's `plan.md`, the round's `claims.md`, the `TODO.md`, a config doc: files the checkout carries to any device, never a harness store the next machine lacks. A fact about one repository takes the row above instead |
+| How this workspace runs: which skill a task takes, where a finding is logged, what the session start does | `workspace.md` |
+| What this machine can do | No file. It is a command, see *Capabilities* in `workspace.md` |
+| A rule a harness offers to keep in its own memory store | No file it owns. The corpus holds every rule, so it takes whichever row here names its subject |
+| A measured fact, a decision, the state of the work, the user's priorities | The change's `plan.md`, the round's `claims.md`, the `TODO.md`, a config doc: files the checkout carries to any device, never a harness store the next machine lacks. A fact about one repository takes the `projects/<repo>/AGENTS.md` row instead |
 | A published result from outside this workspace that a later session reuses | `skills/knowledge/`, one finding per file: its conditions, a `Source:` line that is the paper or the post, and a `Changes:` line naming the rule it shaped; the rule itself names none of it. A number this workspace measured on its own rounds is never one, and neither is anything a reader would reach from the code in a minute: those go in the round's `claims.md` and its retro, where the next round re-measures them |
 
 One home each. A rule worth stating in two files is one rule stated in the
@@ -375,7 +376,7 @@ marker commit.
   skipped, and a marker whose line did not land leaves in the closing commit.
 - A line about a project, a defect, an issue to file, a target's behaviour, a
   recipe or a catalog, moves as it stands into that project's tree, per
-  *Writing it down* in the workspace `AGENTS.md`, and is named in the closing
+  *Writing it down* in `workspace.md`, and is named in the closing
   list.
 - Each line is read as its critic before any work: does the check it names
   still hold, does the rule it proposes fit the corpus, does what it costs pay.

@@ -36,10 +36,11 @@ a rule it samples. So every artifact has one skill, the skill is put in context
 whole before the first line of the artifact, and a command records that it was.
 The hooks do the putting; the gate warns on anything written unread.
 
-Three principles outrank every rule. Build what the task asks for and nothing
+Four principles outrank every rule. Build what the task asks for and nothing
 speculative. Read the rule before writing the artifact. Measure, never assume:
-a convention, a capability and a count come from a command run this session,
-never from memory or from a file that recorded them once. Every skill has a
+every claim about an artifact comes from a command run this session,
+never from memory or from a file that recorded it once. Read the artifact back
+after editing it, before reporting it done. Every skill has a
 second goal beside its task: the same decision in fewer turns, since a turn
 re-sends the whole context and output tokens are the minor term.
 
@@ -211,7 +212,8 @@ own argument and waits for the outcome table to measure it.
 | [`report.md`](report.md) | a periodic status report over a set of repositories | the report, generated only after I have edited its context file |
 | [`git.md`](git.md) | a turn will commit, push, sync a checkout, or touch a submodule or worktree | the identity every commit takes, where a push goes, the commands that report success and move nothing |
 | [`writing-style.md`](writing-style.md) | any visible prose, in any project | the rules every other skill defers to, the closing Pass, the chat register, the posted-comment shape |
-| [`shortcuts.md`](shortcuts.md) | every reply, in any workspace | the words, the shape of a reply, the account of what a turn did, the closing block |
+| [`shortcuts.md`](shortcuts.md) | the user types a word | what each word starts, the one place a word is defined |
+| [`reply.md`](reply.md) | every reply, in any workspace | what it opens with, the `Did:` block, the closing block, its links |
 | [`authoring.md`](authoring.md) | a rule is added, edited or removed | where it lives, the shape it takes, what it displaces, the turns it must not add; its sources sit in `knowledge/`, never in the rule |
 | [`archive/`](archive/) | nothing loads it | snapshots of a skill before a change that altered its voice, the advisory shape for a disclosure, and the harness that chose the Short form wording |
 | [`TODO.md`](TODO.md) | skill work I own but have not started | one line per item, newest last |
@@ -256,8 +258,9 @@ through [`scripts/skill`](scripts/skill), `./scripts/skill review` for a skill,
 `./scripts/skill pr-body/docs` for a shape, `./scripts/skill meet` for a
 project's delta. It puts the skills a write still lacks into the context with a
 warning and lets the write through, and names the rules by path for the Read
-tool: the two `CLAUDE.md` imports as the session opens, `shortcuts` and
-`short-form`, recorded as read; the task's and the repository's on the prompt
+tool: the three files the session start hook hands whole as the session opens,
+`shortcuts`, `reply` and `short-form`, recorded as read; the task's and the
+repository's on the prompt
 that names them; everything the session had read, again after a compaction. A
 read holds while the file's
 hash matches and the session is the same; a stale read prints only the diff

@@ -586,7 +586,7 @@ def cmd_pre_push(stdin, cwd):
 
 
 # In context through CLAUDE.md in every session, so recorded as read when it opens.
-IMPORTED = ['shortcuts', 'short-form']
+IMPORTED = ['shortcuts', 'short-form', 'reply']
 # A Bash result of 29.4 KB or more reaches the model as a stub naming a file, and a
 # hook's context does so from 10 KB, measured over every transcript of this
 # workspace. Only the Read tool carries a whole file, so this script names paths
@@ -756,24 +756,9 @@ def forget_session():
     save({k: v for k, v in load().items() if not k.startswith(prefix)})
 
 
-INTRO = ('Principles, Invariants, the words and the register are in context through CLAUDE.md. '
+INTRO = ('Principles, Invariants, the words, the reply shape and the register are in context from this hook. '
          'Any other rule is read whole with the Read tool before its first command, and that read is '
          'what the gate records; ./scripts/skill <name> names its path.')
-
-
-def unimported():
-    """The always-loaded skill files the root CLAUDE.md does not import, read from its `@` lines, so the
-    session-start line reports the graph and never asserts it."""
-    try:
-        text = (root() / 'CLAUDE.md').read_text()
-    except OSError:
-        return []      # no adapter here, nothing to check against
-    imports = set()
-    for line in text.splitlines():
-        line = line.strip()
-        if line.startswith('@'):
-            imports.add(line[1:].strip())
-    return [f'skills/{n}.md' for n in IMPORTED if f'skills/{n}.md' not in imports]
 
 
 def cmd_session_start(stdin, stdout):
@@ -793,9 +778,6 @@ def cmd_session_start(stdin, stdout):
     for name in IMPORTED:
         record_read(name)
     extra.append(INTRO)
-    missing = unimported()
-    if missing:
-        extra.append('Warning: CLAUDE.md imports none of ' + ', '.join(missing) + ', so the register and the words reach nobody; per AGENTS.md the root CLAUDE.md imports AGENTS.md and both.')
     point(names, 'Read again, since the compaction dropped them from context:', 'SessionStart', stdout, extra)
     return 0
 

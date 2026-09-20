@@ -242,7 +242,7 @@ The handover repeats the retro in three lines.
 
 Name the cost first: agents, minutes and tokens per stage from the task
 notifications. The draft and the overview go in the closing links every reply
-ends on, per *The shape of a reply* in `skills/shortcuts.md`, never
+ends on, per `skills/reply.md`, never
 mid-reply. Add a "Decisions needed" list, one line each, a borderline verdict
 or a PLAUSIBLE worth a decision, and omit it when empty; never list an APPROVE
 as needing confirmation. Post only on the literal word `post`. Acting on the

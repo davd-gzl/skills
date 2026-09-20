@@ -41,10 +41,11 @@ a rule it samples. So every artifact has one skill, the skill is put in context
 whole before the first line of the artifact, and a command records that it was.
 The hooks do the putting; the gate warns on anything written unread.
 
-Three principles outrank every rule. Build what the task asks for and nothing
+Four principles outrank every rule. Build what the task asks for and nothing
 speculative. Read the rule before writing the artifact. Measure, never assume:
-a convention, a capability and a count come from a command run this session,
-never from memory or from a file that recorded them once.
+every claim about an artifact comes from a command run this session,
+never from memory or from a file that recorded it once. Read the artifact back
+after editing it, before reporting it done.
 
 Nothing reaches anyone without my word, typed in the current turn: `post`,
 `push`, `merge`. `go`, `ok` and `yes` authorise nothing, and every draft is shown

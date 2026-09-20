@@ -31,12 +31,13 @@ never blocks: a rough rule lands, and a later pass fixes it.
 | What waits for a word, and which repo a push may reach | The workspace `AGENTS.md` |
 | One task, whatever the repository: reviewing, drafting a body, filing an issue | The matching `skills/<task>.md` |
 | Visible prose of any kind | `skills/writing-style.md`, which every other skill defers to |
-| What the user's words start, and the shape of a reply | `skills/shortcuts.md` |
+| What the user's words start | `skills/shortcuts.md` |
+| The shape of a reply to the user | `skills/reply.md` |
 | One repository: its merge style, its CI, its glossary, its boot recipe | `projects/<repo>/AGENTS.md` |
 | What this machine can do | No file. It is a command, see *Capabilities* |
 | A rule a harness offers to keep in its own memory store | No file it owns. The corpus holds every rule, so it goes to the row above it |
 | A measured fact, a decision, the state of the work, the user's priorities | A knowledge file, the change's `plan.md`, the `TODO.md`, a config doc: files the checkout carries to any device, never a harness store the next machine lacks |
-| Why a rule is built the way it is, and the source behind it | `skills/knowledge/`, one measured fact per file: its conditions, a `Source:` line that is a link or the command that measured it, never a description of where it came from, and a `Changes:` line naming the rule it shaped, written in the commit that lands or changes the rule; the rule itself names none of it |
+| A published result, or a rate measured over many runs, that a later session reuses | `skills/knowledge/`, one finding per file: its conditions, a `Source:` line that is the paper, the post or the command that measured it, and a `Changes:` line naming the rule it shaped; the rule itself names none of it |
 
 One home each. A rule worth stating in two files is one rule stated in the
 broader file and linked from the narrower, and the lint reports the copy. A
@@ -122,11 +123,14 @@ one pass.
   file from that line alone and leans toward not picking, so a situation the
   description leaves out never reaches the file; the body never restates when
   to use it.
-- One example before the rule, wherever a worked line, a command or a shape
-  lands it in one read, and never a list of them: a second example is read as
-  the rule's whole range, and past a few they cost more than they teach.
+- One worked example before the rules it governs, at the head of the file and
+  of every section showing a part the head one does not. Never two for the same
+  rule: a second is read as the rule's whole range.
   `skills/pr-body/one-concern.md` opens on the shape and closes on the body it
   came from.
+- The prose under an example carries only what the example cannot show, and
+  semantics come first: the shape, the command, the values. A sentence restating
+  what the block above already displays is the one to cut.
 - A table of contents at the head of a file a reader opens for one section,
   `skills/review.md` for one: one line per section naming the moment it is read.
 - A word the user types is defined in `skills/shortcuts.md` and nowhere
@@ -139,9 +143,15 @@ one pass.
   to the whole file. Split into a second file only where the sections are
   separate documents to whoever edits them. `./scripts/skill <name>` prints the
   path the gate hands over.
-- A skill the root `CLAUDE.md` imports is never cut, whatever its frontmatter
-  says: the harness loads it whole as the session opens, and every turn runs on
-  it. The gate hands the file and a `prompt-sections` line there changes nothing.
+- A skill the session start hook hands the parent whole, `shortcuts.md`,
+  `reply.md` and `short-form.md`, is never cut, whatever its frontmatter says:
+  it is in context as the session opens, every turn runs on it, and a
+  `prompt-sections` line there changes nothing.
+- A subagent gets the skills its own artifact needs and no others. It answers
+  the parent and never the user, so the words the user types, the shape of a
+  reply and the register are dead weight in its context: the adapter imports
+  none of the three and no dispatch prompt names them. A dispatch names the task
+  skill, and `skills/writing-style.md` where the artifact is prose.
 
 ## Capabilities
 
@@ -283,9 +293,10 @@ from it is measured here before it is trusted.
   Another session moves the pin mid-turn.
 - A rule that proved unclear, missing or wrong during use is corrected in its
   file in the same turn, before the work that exposed it continues.
-- A rule that lands or changes gets its why and its source into `skills/knowledge/`
-  in the same commit, per *Where it goes*: a rule with no knowledge line is one
-  nobody can re-derive or re-measure.
+- A rule resting on a published result or a measured rate gets that finding into
+  `skills/knowledge/` in the same commit, per *Where it goes*. One incident is
+  not a finding: what a rule cost and what was tried first goes in its commit
+  message, which is where a reader looks for it.
 - A knob, a stage or a word that a change renames is grepped across `skills/`,
   `scripts/workflows/` and the README before the commit, since the old shape
   stays stated wherever the grep is not run.

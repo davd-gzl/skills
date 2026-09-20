@@ -1,6 +1,6 @@
 ---
 name: short-form
-description: The register of every chat reply and of the thinking before it, in context through CLAUDE.md in every session. The rules of skills/writing-style.md all hold under it; this file adds the shape of the thinking and of the reply.
+description: The register of every chat reply and of the thinking before it, in context from the session start hook in every session. The rules of skills/writing-style.md all hold under it; this file adds the shape of the thinking and of the reply.
 ---
 
 # Short form

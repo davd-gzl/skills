@@ -96,7 +96,9 @@ This job runs on a schedule only, and GitHub disables those after 60 days.
 - **Group them one table column per target**, or per category where the work had
   no target, the links running inline inside each cell. A row per file turns four
   artifacts into a screen the reader scrolls past.
-- The target is a link in the first reply that touches it.
+- The target is a link every time it is written, a table header included. A
+  bare `#42` autolinks against whichever repository renders the reply, which
+  is the workspace and not the target, so it resolves to an issue nobody opened.
 - **A reply reporting a publish opens with one line per commit that went out**,
   before any of it: `[acme/app/3f680fa](<url>)`, then about five words saying
   what the commit holds.

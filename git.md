@@ -134,11 +134,18 @@ A submodule sits on a detached HEAD, and every failure here follows from that.
 
 ## Commands that lie
 
-- Quote every `<sha>:<path>` argument. Under zsh `git show $c:review.md`
-  expands as `${c:r}` plus `eview.md`, so the command fails on an unknown
-  revision while the loop around it keeps going and reports clean for every
-  commit. Write `git show "${c}:review.md"`.
+- Brace every `<sha>:` argument, a push refspec as much as a `git show` path.
+  Under zsh `git show $c:review.md` expands as `${c:r}` plus `eview.md`, and
+  `git push origin "$sha:refs/heads/$b"` goes out as `<sha>efs/heads/<b>`, so
+  the command fails on an unknown revision or an unmatched refspec while the
+  loop around it keeps going and reports clean for every commit. Write
+  `"${c}:review.md"` and `"${sha}:refs/heads/${b}"`.
   `./scripts/env-check.sh shell` names the shell in play.
+- Read a push's own exit status, never a line printed beside it. A `git push`
+  piped into `sed` or `tee` under `set -e` hands the shell the pipe's status, so
+  a refused push prints its error and the script's next line still reports the
+  push as done. Push every refspec of one remote in a single `git push --atomic`
+  and let its status stand.
 - `gh pr edit` reports a scope failure as success. It resolves reviewers and
   assignees over GraphQL before it patches, so a token without `read:org`
   prints `Your token has not been granted the required scopes`, sends no edit,

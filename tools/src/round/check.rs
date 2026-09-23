@@ -80,14 +80,16 @@ fn check_text(name: &str, text: &str, draft: bool) -> Vec<Hit> {
             in_body = content.trim_end() == "## Body";
         }
         let t = content.trim_start();
-        if t.starts_with("<details") {
-            details += 1;
-        } else if t.starts_with("</details") {
-            details -= 1;
+        // A fold opened and closed on one line leaves the depth where it was.
+        let opens = t.matches("<details").count() as i32;
+        let closes = t.matches("</details").count() as i32;
+        if opens > 0 || closes > 0 {
+            details = (details + opens - closes).max(0);
         } else if draft && in_body && details == 0 && !t.is_empty() && !content.starts_with("## ")
             && !t.starts_with(['<', '>', '!', '['])
         {
-            if !(content.starts_with("- ") || content.starts_with("* ") || content.starts_with(' ')) {
+            let numbered = content.split_once(". ").is_some_and(|(n, _)| !n.is_empty() && n.chars().all(|c| c.is_ascii_digit()));
+            if !(content.starts_with("- ") || content.starts_with("* ") || numbered || content.starts_with(' ')) {
                 plain += 1;
                 if plain > 1 {
                     hit(&mut hits, line, "a second Body line outside a bullet");
@@ -383,6 +385,14 @@ mod tests {
             assert!(table.contains(what), "{what} missing in\n{table}");
         }
         assert!(table.contains("| overview.md | 3 |"), "{table}");
+    }
+
+    #[test]
+    fn a_numbered_body_list_is_bullets_and_a_one_line_fold_closes() {
+        let numbered = check_text("comment_x.md", "# Review\n\n## Body\nOne sentence.\n1. [f](https://x) is dead.\n2. [g](https://x) is dead.\n", true);
+        assert!(numbered.is_empty(), "{:?}", numbered.iter().map(|h| &h.what).collect::<Vec<_>>());
+        let folded = check_text("comment_x.md", "# Review\n\n## Body\n<details><summary>s</summary>x</details>\nFirst.\nSecond.\n", true);
+        assert_eq!(folded.iter().map(|h| (h.line, h.what.as_str())).collect::<Vec<_>>(), vec![(6, "a second Body line outside a bullet")]);
     }
 
     #[test]

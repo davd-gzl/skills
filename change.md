@@ -140,7 +140,11 @@ gh repo fork <owner>/<repo> --remote-only --remote-name fork
    changes, a linter now walking new files or a suppression that moved, is
    proved by breaking what it covers, watching it fire, and restoring it. For a
    behaviour-preserving refactor of a pure function, ship an equivalence proof
-   over a large input set.
+   over a large input set. A suite left running in the background pins the tree
+   it reads until it returns: run any mutation meanwhile, this step's or step
+   8's, in a copy, `git worktree add --detach <scratch>/mut HEAD` then
+   `git diff | git -C <scratch>/mut apply`, never in the tree the suite compiles,
+   which reports on whichever version the scheduler reached.
 8. **Loop over the whole diff, green, until a pass adds nothing.** Read it as a
    reviewer who did not write it, with the *Verification discipline* and
    severity model of `skills/review.md`. Apply each, re-run the checks, read
@@ -157,7 +161,10 @@ gh repo fork <owner>/<repo> --remote-only --remote-name fork
    `skills/review-comment.md`.
 9. **Simplify, last.** Once the loop closes, run the harness simplification
    pass, `/simplify`, over the whole final diff: reuse, fewer lines for the
-   same behaviour, a value computed once. Apply what holds, re-run the checks,
+   same behaviour, a value computed once. Its agents may edit the tree to test a
+   finding, so save `git diff > <scratch>/pre-simplify.patch` before it and
+   read every hunk after: one that no applied finding names is a probe left
+   behind, and is reverted. Apply what holds, re-run the checks,
    and read the diff once more; a pass that changes anything reopens step 8,
    and the empty one is recorded in the plan's Iterations. It runs unasked, and
    its trigger is every fix handed back rather than a change's end alone: a turn

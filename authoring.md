@@ -373,8 +373,9 @@ word `push`, per *Consent* in the workspace `AGENTS.md`.
 - Before any line's work, the lines the session takes get `Taken: <the
   session's start sha>` at their end, in one commit made first and named in the
   first reply as the push to ask for, since another session reads the list only
-  from the remote; a line another session marked is skipped, and a marker whose
-  line did not land leaves in the closing commit.
+  from the remote; until that push lands the marker guards nothing, so one
+  `upgrade skills` runs at a time. A line another session marked is skipped, and
+  a marker whose line did not land leaves in the closing commit.
 - A line about a project, a defect, an issue to file, a target's behaviour, a
   recipe or a catalog, moves as it stands into that project's tree, per
   *Writing it down* in `workspace.md`, and is named in the closing

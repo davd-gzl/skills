@@ -1,6 +1,16 @@
 # deepseek-v4.1-flash
 DeepSeek's DeepSeek-V4.1-Flash, released 2026-09-10, open-weight (MIT) multimodal MoE, 552B backbone, 8B active on prefill and 16B on decode, the small tier of a new Causal Encoder-Decoder family; `deepseek-v4.1-flash` is the OpenCode (Zen and Go) id, DeepSeek's own API id is `deepseek-flash`. Source: [DeepSeek-V4.1-Flash release note](https://api-docs.deepseek.com/news/news260910/).
 
+## Inference for review stages, not measured here
+
+Read first; a measurement in `scripts/workflows/review-pipeline.json` outranks every line of it.
+
+- Finder diff size: no MRCR for this model; AA-LCR 84% and DeepSeek's own flag on sparse long-context retrieval suggest keeping one finder's context near the 128K band where the V4 family's MRCR held flat, roughly 1,500 changed lines with context per finder.
+- Judge batch: about 89k output tokens per agentic task at max (AA) and 1.6–1.8x longer trajectories at max; 5–8 candidates per judge context at `high`, fewer if each reruns a test suite.
+- Effort: finder `high` (75, the 60–80 band recovers most accuracy), judge `high`, `max` only for a candidate that stays unresolved; writer `low`; triage `low`. Vals ran `high` and still placed #2 open-weight on Terminal-Bench 2.1.
+
+## Sources
+
 Identity and limits
 - DeepSeek API: model name `deepseek-flash`, version DeepSeek-V4.1-Flash, context 1M, max output 384K, thinking on by default, tool calls, JSON output, vision, Responses API and Anthropic API; legacy `deepseek-v4-flash` and `deepseek-v4-flash-vision-exp` now served by V4.1-Flash. Source: [Models & Pricing](https://api-docs.deepseek.com/quick_start/pricing).
 - Tech report: 45T-token multimodal pretraining, sparse attention trained at 64K and extended to 1M at 34T tokens; submitted to arXiv 2026-09-17. Source: [DeepSeek-V4.1-Flash: Pushing the Limits of KV Cache Compression](https://arxiv.org/abs/2609.19969).
@@ -43,10 +53,5 @@ Price per 1M tokens
 - OpenCode Zen `deepseek-v4.1-flash`: input $0.30, output $1.20, cached read $0.006, cached write none. Source: [OpenCode Zen](https://opencode.ai/docs/zen/).
 - OpenCode Go `deepseek-v4.1-flash`: input $0.15–$0.30, output $0.60–$1.20, cached read $0.003–$0.006 (off-peak/peak), monthly limit $60 under a 4x promo. Source: [OpenCode Go](https://opencode.ai/docs/go/).
 - OpenCode usage data: #1 by OpenCode usage last week, 13% token share, 97% of input tokens cached, Jul 30–Sep 23 2026. Source: [OpenCode Data: DeepSeek V4.1 Flash](https://opencode.ai/data/deepseek/deepseek-v4.1-flash).
-
-Inference for review stages (not measured here):
-- Finder diff size: no MRCR for this model; AA-LCR 84% and DeepSeek's own flag on sparse long-context retrieval suggest keeping one finder's context near the 128K band where the V4 family's MRCR held flat, roughly 1,500 changed lines with context per finder.
-- Judge batch: about 89k output tokens per agentic task at max (AA) and 1.6–1.8x longer trajectories at max; 5–8 candidates per judge context at `high`, fewer if each reruns a test suite.
-- Effort: finder `high` (75, the 60–80 band recovers most accuracy), judge `high`, `max` only for a candidate that stays unresolved; writer `low`; triage `low`. Vals ran `high` and still placed #2 open-weight on Terminal-Bench 2.1.
 
 Changes: the reading the triage plans for a round on this model, *Triage* in `skills/review.md`: finder groups, judge batches and each stage's effort, read here through `./scripts/review-setup.sh --model`.

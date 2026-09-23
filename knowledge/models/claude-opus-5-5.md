@@ -1,5 +1,16 @@
 # claude-opus-5-5
 Claude Opus 5.5, Anthropic's current Opus-tier model (the docs' default recommendation "for most workloads"), released 2026-09-22; API ID `claude-opus-5-5`, Bedrock `anthropic.claude-opus-5-5`. Source: [Claude Opus 5.5 overview](https://platform.claude.com/docs/en/models/opus-5-5/overview).
+
+## Inference for review stages, not measured here
+
+Read first; a measurement in `scripts/workflows/review-pipeline.json` outranks every line of it.
+
+- Finder diff size: no measurement links recall to diff size. Inference: keep a finder at or below about 1,000 changed lines with context, so its input stays near the ~60k-token review size CodeRabbit measured on Opus 5 ([CodeRabbit Opus 5](https://www.coderabbit.ai/blog/opus-5-model-review)). ProgramBench at up to 1M says long context holds for coding, not for bug recall.
+- Judge batch: no data. Inference: 3-5 candidates per context, each tracked as a checklist item, because the model tends to end a turn with a text report while items are still open ([Prompting Claude Opus 5.5](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5-5)).
+- Effort: finder `medium` (CodeRabbit's lower-effort pipeline had recall 63.8% against 62.5% for the higher one, and FrontierCode peaks at medium), with `high` for a second pass on hard code (Max caught 10/13 hard cases, Standard 8/13). Judge rerunning a check: `medium`, since the default already matches Opus 5 at `high`. Writer: `low`. Triage: `low`. Avoid `xhigh`/`max` without a measured gain: they think more per turn than Opus 5 did.
+
+## Sources
+
 - Context window 1M tokens; max output 128K tokens synchronous, 300K on the Message Batches API with beta header `output-300k-2026-03-24`. Source: [Claude Opus 5.5 overview](https://platform.claude.com/docs/en/models/opus-5-5/overview).
 - Thinking: adaptive, always on; `thinking: {"type": "disabled"}` or a manual `budget_tokens` returns a 400. Source: [What's new in Claude Opus 5.5](https://platform.claude.com/docs/en/models/opus-5-5/whats-new-opus-5-5).
 - Effort levels `low`, `medium`, `high`, `xhigh`, `max` (set via `output_config.effort`); default `medium`, the only current model whose default is not `high`. Source: [Effort](https://platform.claude.com/docs/en/build-with-claude/effort).
@@ -38,9 +49,5 @@ Claude Opus 5.5, Anthropic's current Opus-tier model (the docs' default recommen
 - Anthropic docs: unattended loops stop early because the model ends turns with a text-only progress report (`end_turn`); fix with a checklist plus 2-3 automatic continuations. Source: [Prompting Claude Opus 5.5](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5-5).
 - Anthropic docs: "tends to get to work quickly" and can miss context the task did not point to, unless told to explore first. Source: [Prompting Claude Opus 5.5](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5-5).
 - Hallucination: AA-Omniscience net score 0.58, ahead of every other Claude model. Source: [Claude Opus 5.5 System Card](https://www-cdn.anthropic.com/fc1b44717c85dc068bc6ba5024219938094694bd/Claude%20Opus%205.5%20System%20Card.pdf).
-Inference for review stages (not measured here):
-- Finder diff size: no measurement links recall to diff size. Inference: keep a finder at or below about 1,000 changed lines with context, so its input stays near the ~60k-token review size CodeRabbit measured on Opus 5 ([CodeRabbit Opus 5](https://www.coderabbit.ai/blog/opus-5-model-review)). ProgramBench at up to 1M says long context holds for coding, not for bug recall.
-- Judge batch: no data. Inference: 3-5 candidates per context, each tracked as a checklist item, because the model tends to end a turn with a text report while items are still open ([Prompting Claude Opus 5.5](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-opus-5-5)).
-- Effort: finder `medium` (CodeRabbit's lower-effort pipeline had recall 63.8% against 62.5% for the higher one, and FrontierCode peaks at medium), with `high` for a second pass on hard code (Max caught 10/13 hard cases, Standard 8/13). Judge rerunning a check: `medium`, since the default already matches Opus 5 at `high`. Writer: `low`. Triage: `low`. Avoid `xhigh`/`max` without a measured gain: they think more per turn than Opus 5 did.
 
 Changes: the reading the triage plans for a round on this model, *Triage* in `skills/review.md`: finder groups, judge batches and each stage's effort, read here through `./scripts/review-setup.sh --model`.

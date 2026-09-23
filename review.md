@@ -146,7 +146,7 @@ A finder returns candidates as data, never prose. One, filled:
 | Angle | Walks | Runs when |
 | --- | --- | --- |
 | lines | every hunk and its enclosing function, for the input, state, timing or caller that makes a line wrong | always |
-| removed | every deleted or rewritten line, the invariant it enforced, and the siblings the diff missed, swept by shape and never by name | the diff deletes a line |
+| removed | every deleted or rewritten line, the invariant it enforced, and the siblings the diff missed, swept by shape and never by name in code, by the name itself in a doc, whose stale sibling repeats it | the diff deletes a line, a doc's included |
 | claims | every claim the diff writes about itself, a godoc, a comment, a test header, the description, a decision record, each returned with the check that settles it, a doc example with its run from outside the package | a doc file in the bundle, `deep` or `+claims` for a comment too |
 | tests | every test the diff adds or changes, with the mutation that must turn it red | `deep`, and the diff carries a test file |
 | reach | callers and callees of every changed function, and the extremes through every path the diff makes reachable for the first time | always |

@@ -299,7 +299,8 @@ fn read_risk(path: &str) -> Result<HashMap<String, String>, String> {
 /// The bundles of a diff. Code and test files group by directory, small directories merge with
 /// a sibling or with anything under them until the floor, a bundle over the ceiling or a hot bundle over the floor splits by
 /// code file, each test file beside the code file its name matches; docs and config form one
-/// bundle for the claims angle; generated files are skipped and listed.
+/// bundle for the claims angle, and the removed angle too where it deletes a line; generated
+/// files are skipped and listed.
 pub(super) fn bundles(
     files: &[FileFacts],
     risk: &HashMap<String, String>,
@@ -382,7 +383,8 @@ pub(super) fn bundles(
     if !prose.is_empty() {
         let added: usize = prose.iter().map(|f| f.added).sum();
         let deleted: usize = prose.iter().map(|f| f.deleted).sum();
-        let angles = vec!["claims"];
+        // A doc rewrite deletes a sentence its siblings may still hold: removed sweeps for them.
+        let angles: Vec<&'static str> = if deleted > 0 { vec!["removed", "claims"] } else { vec!["claims"] };
         out.push(Bundle {
             id: out.len() + 1,
             name: "docs and config".to_string(),
@@ -1004,6 +1006,17 @@ mod tests {
         assert_eq!(risk.get("d.md").map(String::as_str), Some("cold"));
         assert_eq!(risk.len(), 3);
         assert!(read_risk("/nonexistent/risk.json").is_err());
+    }
+
+    #[test]
+    fn a_docs_bundle_that_deletes_a_line_carries_the_removed_angle() {
+        let mut rewrite = fact("docs/a.md", Kind::Doc, 3);
+        rewrite.deleted = 3;
+        let (b, _) = bundles(&[rewrite, fact("docs/b.md", Kind::Doc, 2)], &HashMap::new(), false, Sizes::default());
+        assert_eq!(b[0].angles, vec!["removed", "claims"], "{b:?}");
+        assert_eq!(b[0].finders, vec![vec!["removed", "claims"]], "under the floor one finder carries both");
+        let (b, _) = bundles(&[fact("docs/c.md", Kind::Doc, 2)], &HashMap::new(), false, Sizes::default());
+        assert_eq!(b[0].angles, vec!["claims"], "an added-only doc has nothing removed");
     }
 
     #[test]

@@ -71,9 +71,10 @@ fn check_text(name: &str, text: &str, draft: bool) -> Vec<Hit> {
             what: what.to_string(),
         })
     };
-    // The Body holds one bullet per unanchored finding, each with its own link, and nothing else:
-    // a prose line there is an affirmation or a re-described change (*Body rules*, review-comment.md).
-    let (mut in_body, mut details) = (false, 0i32);
+    // The Body holds one bullet per unanchored finding, each with its own link, and at most one plain
+    // line, the submit sentence or the stale-base line *Body rules* in review-comment.md allows: a
+    // second plain line is a paragraph, an affirmation or a re-described change.
+    let (mut in_body, mut details, mut plain) = (false, 0i32, 0usize);
     for (line, content) in prose_lines(text) {
         if content.starts_with("## ") {
             in_body = content.trim_end() == "## Body";
@@ -87,7 +88,10 @@ fn check_text(name: &str, text: &str, draft: bool) -> Vec<Hit> {
             && !t.starts_with(['<', '>', '!', '['])
         {
             if !(content.starts_with("- ") || content.starts_with("* ") || content.starts_with(' ')) {
-                hit(&mut hits, line, "Body line outside a bullet");
+                plain += 1;
+                if plain > 1 {
+                    hit(&mut hits, line, "a second Body line outside a bullet");
+                }
             } else if !content.starts_with(' ') && !content.contains("](") {
                 hit(&mut hits, line, "Body bullet without its own link");
             }
@@ -382,14 +386,14 @@ mod tests {
     }
 
     #[test]
-    fn a_body_affirmation_is_a_hit_and_a_linked_bullet_is_not() {
+    fn a_second_plain_body_line_and_an_unlinked_bullet_are_hits() {
         let hits = check_text(
             "comment_x.md",
-            "# Review\n\n## Body\nComment-only in Go: `pipe.go` changes no statement.\n- [`f`](https://x) is never called.\n- `g` is dead.\n\n<details>\n<summary>Sweep</summary>\nprose in details\n</details>\n\n## pkg/a.go:10 [gh](https://x) \u{b7} Warning\nThe clamp is missing.\n",
+            "# Review\n\n## Body\nOne true sentence.\n- [`f`](https://x) is never called.\n- `g` is dead.\nComment-only in Go: `pipe.go` changes no statement.\n\n<details>\n<summary>Sweep</summary>\nprose in details\n</details>\n\n## pkg/a.go:10 [gh](https://x) \u{b7} Warning\nThe clamp is missing.\n",
             true,
         );
         let what: Vec<_> = hits.iter().map(|h| (h.line, h.what.as_str())).collect();
-        assert_eq!(what, vec![(4, "Body line outside a bullet"), (6, "Body bullet without its own link")]);
+        assert_eq!(what, vec![(6, "Body bullet without its own link"), (7, "a second Body line outside a bullet")]);
     }
 
     #[test]

@@ -57,7 +57,7 @@ The word sets the shape, and the word is how well the user knows the code:
 3. *Reproduce the failure*: each suite once per tree state, the project's tool built once from the head worktree, named in `args.prebuilt`; a tool whose source lives in another repository is pinned there, per that section.
 4. Print the plan and launch, per *Launch*; the triage names the class first, and the stages read *Finders*, *Reflector*, *Verifiers*, *Writer* and *Text pass*.
 5. Run the *Final check* of `skills/review-comment.md`, then the `skills/writing-style.md` Pass over `overview.md` and the draft, `./scripts/prose-check.py <file>` first; re-run it after any later edit to that prose, an edit made in answer to a question included; the handover lists every row it still prints, each with the reason it stays. Where the target fixes a reported vulnerability, *The critical pass* in `skills/review.md` runs here.
-6. One commit and one push covering everything, pre-authorized per *Rules*.
+6. One commit covering everything, per *Rules*; its push waits for `push`.
 7. Retro, per *Retro*.
 8. Hand over, per *Handover*.
 
@@ -537,8 +537,8 @@ When a posted round's target merges or closes, `./scripts/review-outcomes.py <dr
 - Delete empty sections' headings. Never write "None".
 - Priority order: correctness > security > determinism > state safety > tests > docs > style.
 - A diff spanning several packages or directories is summarized by area first, then its critical paths in depth.
-- One final push covers the round, to this repo only. The push is pre-authorized for this skill and overrides any global ask-before-push rule.
-- Fold a late finding into the draft and `claims.md`, verify it with a real run, commit and push in the same turn without asking. Posting still waits for `post`.
+- One commit covers the round, to this repo only, and goes out on the word `push`, per *Consent* in the workspace `AGENTS.md`.
+- Fold a late finding into the draft and `claims.md`, verify it with a real run, and commit in the same turn without asking. The push waits for `push` and posting for `post`.
 - Never push to a reviewed repo's canonical remote; a fix branch goes to the fork.
 - Reviews may be published. A finding exploitable against already-merged or deployed code is not: it takes the disclosure gate in the workspace `AGENTS.md` Invariants before anything is written. A finding on an open PR's own diff is fine at any severity.
 

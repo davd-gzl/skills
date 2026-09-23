@@ -21,7 +21,7 @@ Use when `$ARGUMENTS` contains more than one target.
 3. Runs proceed concurrently, never sequenced.
    Corrections to a dispatched agent go in one message, sent once every QA result is in: a resumed agent replays its whole transcript, so each message costs the round again. Prose edits are the parent's own; an agent is resumed only for a run.
 4. The parent runs the *Final check* in `skills/review-comment.md` over every returned draft, before the commit. A subagent's own pass never stands in for it.
-5. After all return, the parent makes a single commit and push covering all reviews, its subject naming every target.
+5. After all return, the parent makes a single commit covering all reviews, its subject naming every target; its push waits for `push`.
 6. Reconcile before handing over. When agents on coupled targets disagree, re-derive the answer from the source, name the constraint both sides must satisfy, and write the same conclusion into every affected draft. Never ship contradicting drafts, and never settle it by taking one agent's summary.
 
 A batch target set, "review all": every open non-draft target absent from the review directory, minus bot-authored, WIP-titled, reviewer-authored, and already-reviewed ones. Check the forge itself per target, not only the review directory, and drop on any hit. Confirm the final list with the user before reviewing more than one target, naming what was dropped and why.
@@ -69,5 +69,5 @@ Check with `gh pr view <number> --json author`. Findings land as commits on the 
 - Write `overview.md`, which the next round on the target reads.
 - Apply every mechanical fix in the checkout the review uses: comments, docs, tests, naming, dead code. Then *Fix* step 7 in `skills/change.md`, the local CI run, until green.
 - Never apply without asking: observable behavior changes, fixes to defects predating the branch, anything a maintainer would treat as a design decision. Present each as a named decision.
-- One commit per finding class, conventional subject. Push to the PR's head repository, never upstream.
+- One commit per finding class, conventional subject, for the PR's head repository and never upstream; its push waits for `push`.
 - Hand over the branch and shas, then what was left unapplied and the decision each needs.

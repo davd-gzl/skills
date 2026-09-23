@@ -101,7 +101,7 @@ Everything starts with a review, on a PR, a branch, or a red CI.
    reads shorter without losing fact, stake or fix.
 9. **Style pass.** The closing Pass of [`writing-style.md`](writing-style.md),
    run against the file and not from memory. Never skipped.
-10. **Commit and push.** The record lands in my workspace, nothing else moves.
+10. **Commit.** The record lands in my workspace on the word `push`, nothing else moves.
 11. **Hand over.** I read the draft and decide.
 
 ## The architecture
@@ -164,7 +164,7 @@ What the round carries in:
 - **Parallel dispatch**: one workflow per target, launched together; a security fix leaves the batch and runs alone first.
 - **A target I authored**: no draft, no posting; `claims.md` and `overview.md` still written.
 
-What leaves: nothing without `post`. The commit and push of the record are pre-authorised; a public destination gets the whole diff read as an adversary first.
+What leaves: nothing without `post`. The commit of the record is automatic and its push waits for `push`; a public destination gets the whole diff read as an adversary first.
 
 ## Why each piece
 

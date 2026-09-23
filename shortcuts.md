@@ -15,7 +15,7 @@ as the skill defines it; ask when the reading changes what gets built.
 
 | Word | What it starts | Rule |
 | --- | --- | --- |
-| `review <target>` | one review round: the overview, the comment draft, the claim table and its tests, pushed, nothing posted | `skills/review.md` |
+| `review <target>` | one review round: the overview, the comment draft, the claim table and its tests, committed, nothing pushed or posted | `skills/review.md` |
 | `quick review <target>`, `deep review <target>` | the same round on a preset: `quick` for the overview of what a change is worth, one finder per bundle on the Warning-finding angles, each running its own Warning checks, judges in short parallel batches, no reflector, the text pass past its word floor; `deep` where the code is complex or unknown, finders at 60 calls over hot bundles split by code file, judges by three, the ceiling. Each word names an output ceiling that binds only with `+<n>` on the word, which sets it, and `+<angle>` runs that angle whatever the word, `+claims` for one. |
 | `plan review <target>` | the round's steps 1 to 3, then three to five questions about the target in one reply, each answer a topic and one finder, the run launching on `go` | *Modes*, `skills/review.md` |
 | `review all` | every open target not yet reviewed, the scope written down first | `skills/review-modes.md` |

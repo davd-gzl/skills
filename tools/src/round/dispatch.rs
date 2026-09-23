@@ -14,30 +14,6 @@ use std::sync::LazyLock;
 pub const FLOOR: usize = 100;
 /// Over this many changed lines a bundle of several files splits, one bundle per file.
 pub const CEILING: usize = 400;
-
-/// The floor and the ceiling one round cuts by: the constants above times `--scale`, the finder
-/// model's `bundle_scale` from the `models` table of the review config, since a model that
-/// holds more of a diff in one reading takes a wider bundle and a weaker one a narrower.
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub struct Sizes {
-    pub floor: usize,
-    pub ceiling: usize,
-}
-
-impl Default for Sizes {
-    fn default() -> Self {
-        Sizes { floor: FLOOR, ceiling: CEILING }
-    }
-}
-
-impl Sizes {
-    /// The defaults times `k`, rounded, never under one line.
-    pub fn scaled(k: f64) -> Self {
-        let at = |n: usize| ((n as f64 * k).round() as usize).max(1);
-        Sizes { floor: at(FLOOR), ceiling: at(CEILING) }
-    }
-}
-
 /// The added block that gives the refactor angle material, as the review skill states it.
 pub const REFACTOR_BLOCK: usize = 20;
 
@@ -215,11 +191,11 @@ fn angles_for(files: &[&FileFacts], catalog: bool) -> Vec<&'static str> {
 }
 
 /// One finder carrying every angle under the floor, else one finder per angle.
-fn finders_for(angles: &[&'static str], lines: usize, floor: usize) -> Vec<Vec<&'static str>> {
+fn finders_for(angles: &[&'static str], lines: usize) -> Vec<Vec<&'static str>> {
     if angles.is_empty() {
         return Vec::new();
     }
-    if lines < floor {
+    if lines < FLOOR {
         vec![angles.to_vec()]
     } else {
         angles.iter().map(|a| vec![*a]).collect()
@@ -305,7 +281,6 @@ pub(super) fn bundles(
     files: &[FileFacts],
     risk: &HashMap<String, String>,
     catalog: bool,
-    sizes: Sizes,
 ) -> (Vec<Bundle>, Vec<String>) {
     let mut by_dir: BTreeMap<String, Vec<&FileFacts>> = BTreeMap::new();
     let mut prose: Vec<&FileFacts> = Vec::new();
@@ -322,7 +297,7 @@ pub(super) fn bundles(
     for (dir, fs_) in by_dir {
         let merge = groups.last().map(|(dirs, members)| {
             let lines: usize = members.iter().map(|f| f.lines()).sum();
-            lines < sizes.floor
+            lines < FLOOR
                 && dirs.iter().any(|d| mergeable(d, &dir))
         });
         match (merge, groups.last_mut()) {
@@ -343,7 +318,7 @@ pub(super) fn bundles(
         let hot = members
             .iter()
             .any(|f| risk.get(&f.path).map(String::as_str) == Some("hot"));
-        if code_files > 1 && (lines > sizes.ceiling || (hot && lines >= sizes.floor)) {
+        if code_files > 1 && (lines > CEILING || (hot && lines >= FLOOR)) {
             units.extend(split_by_code_file(&members));
         } else {
             let name = if dirs.len() == 1 {
@@ -366,7 +341,7 @@ pub(super) fn bundles(
         let added: usize = members.iter().map(|f| f.added).sum();
         let deleted: usize = members.iter().map(|f| f.deleted).sum();
         let angles = angles_for(&members, catalog);
-        let finders = finders_for(&angles, added + deleted, sizes.floor);
+        let finders = finders_for(&angles, added + deleted);
         out.push(Bundle {
             id: out.len() + 1,
             name,
@@ -392,7 +367,7 @@ pub(super) fn bundles(
             added,
             deleted,
             tier: tier_for(&prose, risk),
-            finders: finders_for(&angles, added + deleted, sizes.floor),
+            finders: finders_for(&angles, added + deleted),
             angles,
             diff_file: String::new(),
             diff_file_blank: String::new(),
@@ -516,7 +491,7 @@ pub fn summary(bundles: &[Bundle], skipped: &[String]) -> String {
     s + "."
 }
 
-pub fn to_json(bundles: &[Bundle], skipped: &[String], sizes: Sizes) -> String {
+pub fn to_json(bundles: &[Bundle], skipped: &[String]) -> String {
     let list = |items: &[&str]| {
         items
             .iter()
@@ -547,12 +522,10 @@ pub fn to_json(bundles: &[Bundle], skipped: &[String], sizes: Sizes) -> String {
     let skipped_refs: Vec<&str> = skipped.iter().map(String::as_str).collect();
     let finders: usize = bundles.iter().map(|b| b.finders.len()).sum();
     format!(
-        "{{\"bundles\": [{}], \"skipped\": [{}], \"finders\": {}, \"floor\": {}, \"ceiling\": {}}}",
+        "{{\"bundles\": [{}], \"skipped\": [{}], \"finders\": {}}}",
         items.join(", "),
         list(&skipped_refs),
-        finders,
-        sizes.floor,
-        sizes.ceiling
+        finders
     )
 }
 
@@ -590,15 +563,7 @@ pub fn dispatch_cmd(args: &[String]) -> i32 {
             return 2;
         }
     };
-    let sizes = match opts.get("scale").map(|v| v.parse::<f64>()) {
-        None => Sizes::default(),
-        Some(Ok(k)) if k > 0.0 => Sizes::scaled(k),
-        Some(_) => {
-            eprintln!("--scale takes a positive factor on the floor and the ceiling\n{USAGE}");
-            return 2;
-        }
-    };
-    let (mut bundles, skipped) = bundles(&files, &risk, catalog, sizes);
+    let (mut bundles, skipped) = bundles(&files, &risk, catalog);
     if let Some(dir) = opts.get("diff-dir") {
         if let Err(e) = write_diffs(repo, base, head, dir, &mut bundles) {
             eprintln!("{e}");
@@ -606,7 +571,7 @@ pub fn dispatch_cmd(args: &[String]) -> i32 {
         }
     }
     if let Some(path) = opts.get("json") {
-        if let Err(e) = fs::write(path, to_json(&bundles, &skipped, sizes) + "\n") {
+        if let Err(e) = fs::write(path, to_json(&bundles, &skipped) + "\n") {
             eprintln!("{path}: {e}");
             return 2;
         }
@@ -731,12 +696,12 @@ mod tests {
             vec!["lines", "removed", "claims", "tests", "reach", "refactor", "catalog"]
         );
         assert_eq!(
-            finders_for(&angles, 172, FLOOR).len(),
+            finders_for(&angles, 172).len(),
             7,
             "one finder per angle over the floor"
         );
         assert_eq!(
-            finders_for(&angles, 72, FLOOR).len(),
+            finders_for(&angles, 72).len(),
             1,
             "one finder carrying all seven under the floor"
         );
@@ -751,11 +716,11 @@ mod tests {
         let angles = angles_for(&[&tiny], false);
         assert_eq!(angles, vec!["lines", "reach"]);
         assert_eq!(
-            finders_for(&angles, 3, FLOOR),
+            finders_for(&angles, 3),
             vec![vec!["lines", "reach"]],
             "one finder carrying both under the floor"
         );
-        assert!(finders_for(&[], 3, FLOOR).is_empty());
+        assert!(finders_for(&[], 3).is_empty());
     }
 
     fn fact(path: &str, kind: Kind, added: usize) -> FileFacts {
@@ -769,11 +734,11 @@ mod tests {
             fact("pkg/y.go", Kind::Code, 60),
             fact("pkg/y_test.go", Kind::Test, 10),
         ];
-        let (cold, _) = bundles(&files, &HashMap::new(), false, Sizes::default());
+        let (cold, _) = bundles(&files, &HashMap::new(), false);
         assert_eq!(cold.len(), 1, "under the ceiling and not hot, one bundle: {cold:?}");
         assert_eq!(cold[0].files, vec!["pkg/x.go", "pkg/y.go", "pkg/y_test.go"]);
         let risk = HashMap::from([("pkg/x.go".to_string(), "hot".to_string())]);
-        let (hot, _) = bundles(&files, &risk, false, Sizes::default());
+        let (hot, _) = bundles(&files, &risk, false);
         assert_eq!(hot.len(), 2, "{hot:?}");
         assert_eq!(hot[0].files, vec!["pkg/x.go"]);
         assert_eq!(hot[1].files, vec!["pkg/y.go", "pkg/y_test.go"], "the test rides with its code file");
@@ -784,24 +749,10 @@ mod tests {
     }
 
     #[test]
-    fn the_sizes_move_the_cut() {
-        let files = vec![fact("pkg/x.go", Kind::Code, 150), fact("pkg/y.go", Kind::Code, 150)];
-        let (wide, _) = bundles(&files, &HashMap::new(), false, Sizes::default());
-        assert_eq!(wide.len(), 1, "300 lines sit under the default ceiling: {wide:?}");
-        let narrow = Sizes::scaled(0.5);
-        assert_eq!(narrow, Sizes { floor: 50, ceiling: 200 });
-        let (split, _) = bundles(&files, &HashMap::new(), false, narrow);
-        assert_eq!(split.len(), 2, "a narrower ceiling splits by code file: {split:?}");
-        let small = vec![fact("pkg/z.go", Kind::Code, 150)];
-        let (under, _) = bundles(&small, &HashMap::new(), false, Sizes { floor: 200, ceiling: 800 });
-        assert_eq!(under[0].finders.len(), 1, "under a raised floor one finder carries every angle");
-    }
-
-    #[test]
     fn bundles_merge_split_and_skip() {
         let (dir, base, head) = fixture("dispatch");
         let files = facts(&dir.to_string_lossy(), &base, &head).unwrap();
-        let (bundles, skipped) = bundles(&files, &HashMap::new(), false, Sizes::default());
+        let (bundles, skipped) = bundles(&files, &HashMap::new(), false);
         assert_eq!(skipped, vec!["gen/x.pb.go"]);
         let a = named(&bundles, "pkg/a");
         assert_eq!(a.files, vec!["pkg/a/a.go", "pkg/a/a_test.go"]);
@@ -867,7 +818,7 @@ mod tests {
         git(&dir, &["commit", "-qm", "two"]);
         let head = git(&dir, &["rev-parse", "HEAD"]);
         let files = facts(&dir.to_string_lossy(), &base, &head).unwrap();
-        let (bundles, _) = bundles(&files, &HashMap::new(), false, Sizes::default());
+        let (bundles, _) = bundles(&files, &HashMap::new(), false);
         assert_eq!(
             bundles.len(),
             1,
@@ -896,7 +847,7 @@ mod tests {
         git(&dir, &["commit", "-qm", "two"]);
         let head = git(&dir, &["rev-parse", "HEAD"]);
         let files = facts(&dir.to_string_lossy(), &base, &head).unwrap();
-        let (bundles, _) = bundles(&files, &HashMap::new(), false, Sizes::default());
+        let (bundles, _) = bundles(&files, &HashMap::new(), false);
         assert_eq!(
             bundles.len(),
             1,
@@ -922,7 +873,7 @@ mod tests {
         git(&dir, &["commit", "-qm", "two"]);
         let head = git(&dir, &["rev-parse", "HEAD"]);
         let files = facts(&dir.to_string_lossy(), &base, &head).unwrap();
-        let (bundles, _) = bundles(&files, &HashMap::new(), false, Sizes::default());
+        let (bundles, _) = bundles(&files, &HashMap::new(), false);
         assert_eq!(
             bundles.len(),
             1,
@@ -970,7 +921,7 @@ mod tests {
             "{json}"
         );
         assert!(
-            json.ends_with("\"skipped\": [\"gen/x.pb.go\"], \"finders\": 14, \"floor\": 100, \"ceiling\": 400}\n"),
+            json.ends_with("\"skipped\": [\"gen/x.pb.go\"], \"finders\": 14}\n"),
             "{json}"
         );
         let plain = fs::read_to_string(diffs.join("bundle-1.md")).unwrap();
@@ -1012,10 +963,10 @@ mod tests {
     fn a_docs_bundle_that_deletes_a_line_carries_the_removed_angle() {
         let mut rewrite = fact("docs/a.md", Kind::Doc, 3);
         rewrite.deleted = 3;
-        let (b, _) = bundles(&[rewrite, fact("docs/b.md", Kind::Doc, 2)], &HashMap::new(), false, Sizes::default());
+        let (b, _) = bundles(&[rewrite, fact("docs/b.md", Kind::Doc, 2)], &HashMap::new(), false);
         assert_eq!(b[0].angles, vec!["removed", "claims"], "{b:?}");
         assert_eq!(b[0].finders, vec![vec!["removed", "claims"]], "under the floor one finder carries both");
-        let (b, _) = bundles(&[fact("docs/c.md", Kind::Doc, 2)], &HashMap::new(), false, Sizes::default());
+        let (b, _) = bundles(&[fact("docs/c.md", Kind::Doc, 2)], &HashMap::new(), false);
         assert_eq!(b[0].angles, vec!["claims"], "an added-only doc has nothing removed");
     }
 

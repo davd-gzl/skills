@@ -56,7 +56,7 @@ The word sets the shape, and the word is how well the user knows the code:
 2. Run the *Re-review rounds* gate when a prior round exists.
 3. *Reproduce the failure*: each suite once per tree state, the project's tool built once from the head worktree, named in `args.prebuilt`; a tool whose source lives in another repository is pinned there, per that section.
 4. Print the plan and launch, per *Launch*; the triage names the class first, and the stages read *Finders*, *Reflector*, *Verifiers*, *Writer* and *Text pass*.
-5. Run the *Final check* of `skills/review-comment.md`, then the `skills/writing-style.md` Pass over `overview.md` and the draft, `./scripts/prose-check.py <file>` first; re-run it after any later edit to that prose, an edit made in answer to a question included, and state which passes ran. Where the target fixes a reported vulnerability, *The critical pass* in `skills/review.md` runs here.
+5. Run the *Final check* of `skills/review-comment.md`, then the `skills/writing-style.md` Pass over `overview.md` and the draft, `./scripts/prose-check.py <file>` first; re-run it after any later edit to that prose, an edit made in answer to a question included; the handover lists every row it still prints, each with the reason it stays. Where the target fixes a reported vulnerability, *The critical pass* in `skills/review.md` runs here.
 6. One commit and one push covering everything, pre-authorized per *Rules*.
 7. Retro, per *Retro*.
 8. Hand over, per *Handover*.

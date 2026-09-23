@@ -15,7 +15,9 @@ Commit with the consumer's own verb, `./scripts/commit -m <message> <path>...`,
 the handle from there and sets all four identity variables. Two handles, by
 visibility: the user's own for a public destination, and for a private one a
 machine handle tied to no account, so the commit counts toward nobody's graph.
-`--show` prints the handle it would use and commits nothing.
+A private destination going public takes the user's handle from now, named in
+`identities.overrides` of the consumer's config, since its history goes public
+with it. `--show` prints the handle it would use and commits nothing.
 
 Pin the identity in every checkout's own git config, `./scripts/identity --write`.
 The verb above sets the four variables for its own call and reaches nothing else, so `git rebase`,

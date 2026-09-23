@@ -327,11 +327,11 @@ mod tests {
     fn a_scratch_path_in_a_test_artifact_is_a_hit_and_a_repro_path_is_not() {
         let round = round_with("check-tests", "# Review\n\n## pkg/a.go:10 [gh](https://x/a.go#L10) \u{b7} Warning\nFine.\n", "# S\n\nOk.\n");
         fs::create_dir_all(round.join("tests")).unwrap();
-        fs::write(round.join("tests").join("judge-1-x.patch"), "--- a/pkg/a.go\n+++ /tmp/claude-1000/s/work/judge-1/pkg/a.go\n").unwrap();
+        fs::write(round.join("tests").join("judge-1-x.patch"), "--- a/pkg/a.go\n+++ /tmp/agent-workspace/s/work/judge-1/pkg/a.go\n").unwrap();
         fs::write(round.join("tests").join("find-2-y.sh"), "go build -o /tmp/gnopreview .\n").unwrap();
         assert_eq!(check_cmd(&[round.display().to_string()]), 1);
         let table = fs::read_to_string(round.join("check.md")).unwrap();
-        assert!(table.contains("tests/judge-1-x.patch | 2 | absolute path: /tmp/claude-1000"), "{table}");
+        assert!(table.contains("tests/judge-1-x.patch | 2 | absolute path: /tmp/agent-workspace/s"), "{table}");
         assert!(!table.contains("find-2-y.sh"), "a repro's own /tmp output is not a hit: {table}");
     }
 

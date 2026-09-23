@@ -71,7 +71,27 @@ fn check_text(name: &str, text: &str, draft: bool) -> Vec<Hit> {
             what: what.to_string(),
         })
     };
+    // The Body holds one bullet per unanchored finding, each with its own link, and nothing else:
+    // a prose line there is an affirmation or a re-described change (*Body rules*, review-comment.md).
+    let (mut in_body, mut details) = (false, 0i32);
     for (line, content) in prose_lines(text) {
+        if content.starts_with("## ") {
+            in_body = content.trim_end() == "## Body";
+        }
+        let t = content.trim_start();
+        if t.starts_with("<details") {
+            details += 1;
+        } else if t.starts_with("</details") {
+            details -= 1;
+        } else if draft && in_body && details == 0 && !t.is_empty() && !content.starts_with("## ")
+            && !t.starts_with(['<', '>', '!', '['])
+        {
+            if !(content.starts_with("- ") || content.starts_with("* ") || content.starts_with(' ')) {
+                hit(&mut hits, line, "Body line outside a bullet");
+            } else if !content.starts_with(' ') && !content.contains("](") {
+                hit(&mut hits, line, "Body bullet without its own link");
+            }
+        }
         if content.is_empty() {
             continue;
         }
@@ -359,6 +379,17 @@ mod tests {
             assert!(table.contains(what), "{what} missing in\n{table}");
         }
         assert!(table.contains("| overview.md | 3 |"), "{table}");
+    }
+
+    #[test]
+    fn a_body_affirmation_is_a_hit_and_a_linked_bullet_is_not() {
+        let hits = check_text(
+            "comment_x.md",
+            "# Review\n\n## Body\nComment-only in Go: `pipe.go` changes no statement.\n- [`f`](https://x) is never called.\n- `g` is dead.\n\n<details>\n<summary>Sweep</summary>\nprose in details\n</details>\n\n## pkg/a.go:10 [gh](https://x) \u{b7} Warning\nThe clamp is missing.\n",
+            true,
+        );
+        let what: Vec<_> = hits.iter().map(|h| (h.line, h.what.as_str())).collect();
+        assert_eq!(what, vec![(4, "Body line outside a bullet"), (6, "Body bullet without its own link")]);
     }
 
     #[test]

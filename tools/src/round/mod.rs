@@ -46,7 +46,7 @@ pub const USAGE: &str = "round <subcommand> ...
       history, its size, a finding an earlier round confirmed in it. Docs, tests and
       generated files are cold. The table to --out, else to stdout; JSON to --json.
 
-  dispatch <repo> <base> <head> [--risk <risk.json>] [--catalog 1] [--diff-dir <dir>] [--json <file>] [--out <file>]
+  dispatch <repo> <base> <head> [--risk <risk.json>] [--catalog 1] [--scale <factor>] [--diff-dir <dir>] [--json <file>] [--out <file>]
       The changed files cut into bundles by category: code and tests by directory, small
       directories merged with a sibling, a bundle over the ceiling split by file, docs and
       config in one bundle, generated files skipped. Each bundle lists the angles it has

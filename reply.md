@@ -103,6 +103,15 @@ This job runs on a schedule only, and GitHub disables those after 60 days.
   before any of it: `[acme/app/3f680fa](<url>)`, then about five words saying
   what the commit holds.
 
+## A status table
+
+- **When the user asks for a table, give each row what it takes to understand
+  it without opening anything else**: the target as a link, one plain line on
+  what it fixes or does, its overview linked where one exists, what changed
+  since the last report, what the user decides or does next, and the one risk
+  worth knowing. A row that sends the reader to three files to learn what it
+  means has not saved them the reading.
+
 ## Numbers
 
 `12 agents, 329k output, 15.2M cache read, $21.80` beats `about twenty dollars`.

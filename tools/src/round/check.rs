@@ -3,7 +3,9 @@
 //! question mark, a finding header without its `[gh]` link, a phrase that points at the page
 //! instead of the code, a `Full review:` line, and, over the draft, `claims.md`, `findings.md`,
 //! `candidates/` and `verdicts/`, an absolute path outside the reviewed repo, which a judge
-//! quoting its own command line carries in. One row per hit into `<round dir>/check.md`,
+//! quoting its own command line carries in. A draft with no `Event:` line, posted text naming
+//! CI, a flake or a rebase, and a verdict or a sha in `overview.md` are hits too. One row per hit
+//! into `<round dir>/check.md`,
 //! exit 1 when any hit.
 
 use std::fs;
@@ -63,6 +65,10 @@ fn check_text(name: &str, text: &str, draft: bool) -> Vec<Hit> {
     // section is invisible to every selection flag and posting means editing the draft by hand.
     let band = Regex::new(r"(·|\|)\s*(Critical|Warning|Missing test|Nit|Suggestion|Test)\s*$").unwrap();
     let question = Regex::new(r"\?\s*$").unwrap();
+    // What the author reads never names CI, a flake or a rebase: the red job speaks for itself and
+    // the base is the author's to merge, per *Body rules* in review-comment.md.
+    let ci = Regex::new(r"\bCI\b|(?i)\b(flak(e|y|iness)|rebas(e|ed|ing))\b").unwrap();
+    let (mut posted, mut skip) = (false, false);
     let mut hits = Vec::new();
     let hit = |hits: &mut Vec<Hit>, line: usize, what: &str| {
         hits.push(Hit {
@@ -78,6 +84,8 @@ fn check_text(name: &str, text: &str, draft: bool) -> Vec<Hit> {
     for (line, content) in prose_lines(text) {
         if content.starts_with("## ") {
             in_body = content.trim_end() == "## Body";
+            posted = true;
+            skip = content.starts_with("## SKIP ");
         }
         let t = content.trim_start();
         // A fold opened and closed on one line leaves the depth where it was.
@@ -132,6 +140,9 @@ fn check_text(name: &str, text: &str, draft: bool) -> Vec<Hit> {
             }
             if content.starts_with("Full review:") {
                 hit(&mut hits, line, "a Full review: line");
+            }
+            if posted && !skip && details == 0 && !content.starts_with("## ") && ci.is_match(&content) {
+                hit(&mut hits, line, "posted text names CI, a flake or a rebase");
             }
         }
     }
@@ -190,6 +201,9 @@ fn run(args: &[String]) -> Result<Vec<Hit>, String> {
             drafts += 1;
             let text = fs::read_to_string(round.join(&name)).map_err(|e| format!("{name}: {e}"))?;
             hits.extend(check_text(&name, &text, true));
+            if !text.lines().take_while(|l| !l.starts_with("## ")).any(|l| l.starts_with("Event:")) {
+                hits.push(Hit { file: name.clone(), line: 1, what: "draft header without its Event: line".into() });
+            }
         }
     }
     if drafts == 0 {
@@ -201,6 +215,7 @@ fn run(args: &[String]) -> Result<Vec<Hit>, String> {
     };
     if let Ok(text) = fs::read_to_string(&overview) {
         hits.extend(check_text("overview.md", &text, false));
+        hits.extend(overview_state(&text));
     }
     if let Some(list) = opts.get("private") {
         hits.extend(private_names(round, list)?);
@@ -220,6 +235,28 @@ fn run(args: &[String]) -> Result<Vec<Hit>, String> {
         .unwrap_or_else(|| round.join("check.md"));
     fs::write(&out, table(&hits)).map_err(|e| format!("{}: {e}", out.display()))?;
     Ok(hits)
+}
+
+/// Review state in the overview, which explains the subject and never the round: a verdict line or
+/// word, and a commit sha, a word of seven to forty hex digits holding a digit and a letter.
+fn overview_state(text: &str) -> Vec<Hit> {
+    static VERDICT: LazyLock<Regex> =
+        LazyLock::new(|| Regex::new(r"(?i)^verdict:|\brequest(ed)? changes\b|\bapproved?\b").unwrap());
+    static SHA: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\b[0-9a-f]{7,40}\b").unwrap());
+    let mut hits = Vec::new();
+    for (line, content) in prose_lines(text) {
+        if VERDICT.is_match(&content) {
+            hits.push(Hit { file: "overview.md".into(), line, what: "review state in the overview: a verdict".into() });
+        }
+        let sha = SHA.find_iter(&content).any(|m| {
+            let w = m.as_str();
+            w.bytes().any(|b| b.is_ascii_digit()) && w.bytes().any(|b| b.is_ascii_alphabetic())
+        });
+        if sha {
+            hits.push(Hit { file: "overview.md".into(), line, what: "review state in the overview: a sha".into() });
+        }
+    }
+    hits
 }
 
 /// Every whole-word hit of a name in `list` over the round's draft, claims.md, candidates/ and
@@ -327,7 +364,7 @@ mod tests {
 
     #[test]
     fn a_bare_number_reference_is_a_hit_and_a_qualified_or_linked_one_is_not() {
-        let round = round_with("check-bare", "# Review: [#160](https://github.com/o/r/pull/160)\n\n## pkg/a.go:10 [gh](https://x/a.go#L10) \u{b7} Warning\nPR #160's bound, posted where it resolves.\n", "# S\n\n[Issue #159](https://x) and o/r#12 and `#9`.\n");
+        let round = round_with("check-bare", "# Review: [#160](https://github.com/o/r/pull/160)\nEvent: COMMENT\n\n## pkg/a.go:10 [gh](https://x/a.go#L10) \u{b7} Warning\nPR #160's bound, posted where it resolves.\n", "# S\n\n[Issue #159](https://x) and o/r#12 and `#9`.\n");
         fs::write(round.join("claims.md"), "# Claims: #160 round 1\n").unwrap();
         let code = check_cmd(&[round.display().to_string()]);
         assert_eq!(code, 1);
@@ -387,7 +424,7 @@ mod tests {
     fn a_clean_draft_has_no_hits() {
         let round = round_with(
             "check-clean",
-            "# Review\n\n## pkg/a.go:10 [gh](https://x/a.go#L10) \u{b7} Warning\nThe clamp is missing.\n\n```go\n// a — dash in code is fine?\n```\n",
+            "# Review\nEvent: COMMENT\n\n## pkg/a.go:10 [gh](https://x/a.go#L10) \u{b7} Warning\nThe clamp is missing.\n\n```go\n// a — dash in code is fine?\n```\n",
             "# Subject\n\nWhat it is for.\n",
         );
         assert_eq!(check_cmd(&[round.display().to_string()]), 0);
@@ -441,6 +478,26 @@ mod tests {
         );
         let what: Vec<_> = hits.iter().map(|h| (h.line, h.what.as_str())).collect();
         assert_eq!(what, vec![(6, "Body bullet without its own link"), (7, "a second Body line outside a bullet")]);
+    }
+
+    #[test]
+    fn a_missing_event_ci_words_and_overview_state_are_hits() {
+        let round = round_with(
+            "check-state",
+            "# Review\nVerdict: CI is red.\n\n## pkg/a.go:10 [gh](https://x) \u{b7} Warning\nMerged with develop the job fails; rebase onto it.\n\n<details><summary>repro</summary>\n\nthe CI log\n</details>\n\n## SKIP pkg/b.go:4 [gh](https://x) \u{b7} Nit\nA flaky test.\n",
+            "# Subject\n\nVerdict: approve at 3f680fa12.\n",
+        );
+        assert_eq!(check_cmd(&[round.display().to_string()]), 1);
+        let table = fs::read_to_string(round.join("check.md")).unwrap();
+        for what in [
+            "| comment_x.md | 1 | draft header without its Event: line |",
+            "| comment_x.md | 5 | posted text names CI, a flake or a rebase |",
+            "| overview.md | 3 | review state in the overview: a verdict |",
+            "| overview.md | 3 | review state in the overview: a sha |",
+        ] {
+            assert!(table.contains(what), "{what} missing in\n{table}");
+        }
+        assert_eq!(table.matches("names CI").count(), 1, "the header, the fold and the SKIP section never count: {table}");
     }
 
     #[test]

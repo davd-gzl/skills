@@ -199,7 +199,7 @@ and let empty stages skip themselves.
 
 ## The words, on measured constants
 
-| Word | Shape | PR 6187, 1,200 lines | PR gno-fixes 104, 7 lines |
+| Word | Shape | PR 6187, 1,200 lines | a private fix PR, 7 lines |
 | --- | --- | --- | --- |
 | `quick review` | the triage capped at simple: one finder per bundle on the Warning-finding angles, each running its own Warning checks, judges in short parallel batches, the writer | 7 agents, ~260k output, about 28 minutes | 5 agents, ~80k, about 17 minutes |
 | `review` | the triage's class; at normal, one finder per bundle per angle, the reflector, judges by six and by twelve, the writer, the text pass | 24 agents, ~1.1M, ~61M cache, about $73 | 7 agents, ~113k, about 25 minutes |

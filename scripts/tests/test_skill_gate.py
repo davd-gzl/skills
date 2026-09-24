@@ -727,7 +727,7 @@ class Prompt(HookCase):
         self.assertEqual((rc, context), (0, ''))
 
     def test_a_family_word_names_every_project_sharing_it(self):
-        rc, context = self.run_hook('prompt', json.dumps({'prompt': 'fix gnolang/gno-fixes 64'}))
+        rc, context = self.run_hook('prompt', json.dumps({'prompt': 'fix gnolang/gno-sandbox 64'}))
         for piece in ('skills/change.md', 'skills/pr-body.md', 'skills/issue.md', 'projects/gno/AGENTS.md', 'projects/gno-agent-workspace/AGENTS.md'):
             self.assertIn(piece, context)
         self.assertNotIn('projects/meet', context)

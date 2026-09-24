@@ -62,8 +62,8 @@ Inside the word, the reach of one reading sets how many agents run:
 1. Prepare, per *Fetch & understand*, and dispatch the overview agent the moment the head worktree exists.
 2. Run the *Re-review rounds* gate when a prior round exists.
 3. *Reproduce the failure*: each suite once per tree state, the project's tool built once from the head worktree, named in `args.prebuilt`; a tool whose source lives in another repository is pinned there, per that section.
-4. Print the plan and launch, per *Launch*; the parent names the class, the triage only where the parent has not read the diff whole, and the stages read *Finders*, *Reflector*, *Verifiers*, *Writer* and *Text pass*.
-5. Run the *Final check* of `skills/review-comment.md`, then the `skills/writing-style.md` Pass over `overview.md` and the draft, `./scripts/prose-check.py <file>` first; re-run it after any later edit to that prose, an edit made in answer to a question included; the handover lists every row it still prints, each with the reason it stays. Where the target fixes a reported vulnerability, *The critical pass* in `skills/review.md` runs here.
+4. Print the plan and launch, per *Launch*; the parent names the class, the triage only where the parent has not read the diff whole, and the stages read *Finders*, *Reflector*, *Verifiers*, *Writer* and *Text pass*. A target fixing a reported vulnerability launches with its bounds as `args.topics`, per *The critical pass*.
+5. Run the *Final check* of `skills/review-comment.md`, then the `skills/writing-style.md` Pass over `overview.md` and the draft, `./scripts/prose-check.py <file>` first; re-run it after any later edit to that prose, an edit made in answer to a question included; the handover lists every row it still prints, each with the reason it stays.
 6. One commit covering everything, per *Rules*; its push waits for `push`.
 7. Retro, per *Retro*.
 8. Hand over, per *Handover*.
@@ -266,10 +266,14 @@ findings is `skills/change.md`; they stay here.
 
 ## The critical pass
 
-**A round whose target fixes a reported vulnerability closes on one pass per
-bound the fix claims to hold.** The fix's own description names the bounds.
+**A round whose target fixes a reported vulnerability carries one topic per
+bound the fix claims to hold, in the launch itself and never offered after it.**
+The parent writes each bound from the description and the guard's own code: what
+it promises on every call shape reaching the guarded value, every case it
+exempts, and every consumer the change reaches across the trees it ships to.
 
-- Each bound is an entry of `args.topics`, one finder each, under the `critical` preset of `scripts/workflows/review-pipeline.json`: no general angle, no text pass.
+- A solo round carries the topics in its finder, `args.topics` beside the class, so the pass costs no agent.
+- A pipeline round runs one finder per topic under the `critical` preset of `scripts/workflows/review-pipeline.json`: no general angle, no text pass.
 - The writer appends its verdicts to the round's `claims.md` under `## Critical pass <n>` rather than writing a round.
 - Pass the round's own `prior_checks`, so no check runs twice, and print the cost first with `./scripts/review-plan.py --preset critical --topics <n>`.
 - **Run another pass while the last one returned a candidate the verifiers banded above Nit.** Stop at two whatever the second returns, and name in the round note which bound is left standing on one pass.

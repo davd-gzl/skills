@@ -157,7 +157,7 @@ each. A bare sha outside a link renders as plain text on another repository.
 
 Verify each line before handing over:
 
-1. The header carries `Verdict:`, `Model:`, `Commit:` and `Overview:`, and the overview link resolves.
+1. The header carries `Verdict:`, `Model:`, `Commit:` and `Overview:`, and the overview link resolves. `Model:` names the models and efforts `./scripts/review-retro.py <workflow-dir> --served` prints, since the config names what was asked for and not what ran.
 2. The Body names at most three checks, each runtime-only, none CI-visible, none recapping anchored findings.
 3. No repro block has a passing run as its only output.
 4. Every non-Warning inline comment opens with its band; Warnings open with the TL;DR. Every comment asks for a fix, a decision, or an answer, and carries no fix sentence its problem statement already implies.

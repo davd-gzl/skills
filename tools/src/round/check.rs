@@ -206,6 +206,14 @@ fn run(args: &[String]) -> Result<Vec<Hit>, String> {
         hits.extend(private_names(round, list)?);
     }
     hits.extend(absolute_paths(round, &overview));
+    for file in round.read_dir().into_iter().flatten().flatten().map(|e| e.path()).chain([overview.clone()]) {
+        let name = file.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default();
+        // The draft posts to the target, where a bare number resolves; these two render only here.
+        let wanted = name == "claims.md" || name == "overview.md";
+        if let (true, Ok(text)) = (wanted, fs::read_to_string(&file)) {
+            hits.extend(bare_refs(&name, &text));
+        }
+    }
     let out = opts
         .get("out")
         .map(|p| Path::new(p).to_path_buf())
@@ -243,6 +251,24 @@ fn private_names(round: &Path, list: &str) -> Result<Vec<Hit>, String> {
 
 /// A local path a verifier quoted from its own command line: a home directory, the scratch
 /// directory, a worktree. The reviewed repo's own paths are relative and never match.
+/// A `#<number>` with nothing before it but a space, a bracket's opening or punctuation: GitHub
+/// links it to the repository the file renders in, the workspace, never the target.
+static BARE_REF: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(^|[\s(,;:])#\d+\b").unwrap());
+static CODE_SPAN: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"`[^`]*`|\[[^\]]*\]\([^)]*\)").unwrap());
+
+/// Every bare `#<number>` in prose, outside fences, code spans and links.
+fn bare_refs(name: &str, text: &str) -> Vec<Hit> {
+    prose_lines(text)
+        .into_iter()
+        .filter(|(_, content)| BARE_REF.is_match(&CODE_SPAN.replace_all(content, "")))
+        .map(|(line, _)| Hit {
+            file: name.to_string(),
+            line,
+            what: "bare #<number>: it links to the repository the file renders in; write <owner>/<repo>#<number> or a link".to_string(),
+        })
+        .collect()
+}
+
 static LOCAL_PATH: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r#"(^|[^A-Za-z0-9_./-])((/home/|/Users/|/root/|/tmp/claude|/tmp/agent-workspace|(/[^\s"'`)]*)?/\.worktrees/)[^\s"'`)]*)"#).unwrap()
 });
@@ -298,6 +324,17 @@ fn record_files(round: &Path) -> Vec<std::path::PathBuf> {
 mod tests {
     use super::super::testutil::tmp;
     use super::*;
+
+    #[test]
+    fn a_bare_number_reference_is_a_hit_and_a_qualified_or_linked_one_is_not() {
+        let round = round_with("check-bare", "# Review: [#160](https://github.com/o/r/pull/160)\n\n## pkg/a.go:10 [gh](https://x/a.go#L10) \u{b7} Warning\nPR #160's bound, posted where it resolves.\n", "# S\n\n[Issue #159](https://x) and o/r#12 and `#9`.\n");
+        fs::write(round.join("claims.md"), "# Claims: #160 round 1\n").unwrap();
+        let code = check_cmd(&[round.display().to_string()]);
+        assert_eq!(code, 1);
+        let table = fs::read_to_string(round.join("check.md")).unwrap();
+        assert!(table.contains("claims.md") && table.contains("bare #<number>"), "{table}");
+        assert!(!table.contains("comment_x.md") && !table.contains("overview.md"), "a draft, a link, a qualified or a code-span number is not a hit: {table}");
+    }
 
     #[test]
     fn a_private_name_in_a_candidate_is_a_hit() {

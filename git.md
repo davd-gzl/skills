@@ -143,6 +143,10 @@ A submodule sits on a detached HEAD, and every failure here follows from that.
   loop around it keeps going and reports clean for every commit. Write
   `"${c}:review.md"` and `"${sha}:refs/heads/${b}"`.
   `./scripts/env-check.sh shell` names the shell in play.
+- Loop over a literal list or an array, never an unquoted `$VAR` holding
+  several words. zsh does not split it, so `for n in $N` runs once on the whole
+  string and the command inside fails on `"a b c"` as one argument. Write
+  the words out, or run the loop under `bash -c`.
 - Read a push's own exit status, never a line printed beside it. A `git push`
   piped into `sed` or `tee` under `set -e` hands the shell the pipe's status, so
   a refused push prints its error and the script's next line still reports the

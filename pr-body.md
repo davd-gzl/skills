@@ -51,12 +51,13 @@ The reader has the diff: give only the defect, the consequence, and the context 
 - When the defect has a severe consequence and a mild one, lead with whichever is unambiguous. A severe example that looks like obvious garbage reads as correct rejection and hides the defect; the plainly wrong case that gets accepted lands.
 - Example values must be plausible. A version one step past the build shows the defect with nothing granted, where a version far past it invites "that should fail anyway". Quote the real string, and paste the actual error rather than describing it.
 - Explain why the existing guard failed only after the reader has watched it fail. When the defect is a disagreement between two builds, two nodes or two versions, say the disagreement is the defect and neither answer is.
-- State what is there, never how it got there: neither the problem's history, why the mechanism was built, when it landed, which change left it behind, nor the branch's, what an earlier round carried or what this one drops. Both histories go in `plan.md`.
+- A body fixing a defect states where it came from and what the fix leaves standing, even where an ADR or `plan.md` records the same: the change that introduced it, linked, and the assumption it broke; the deeper cause the fix does not remove, and what removing it would take; each stricter fix rejected, with its reason. A reviewer judges the fix against those, and an ADR is the file they open last.
+- Leave out the branch's own history, what an earlier round carried or what this one drops. That goes in `plan.md`.
 - Name a rider commit in one line and never offer to split it. The maintainer asks when they want that.
 
 Hyperlink everything per `skills/writing-style.md`, to the blob at the reviewed sha or upstream documentation.
 
-State what the change does not achieve, up front: "This does not turn the check green. It clears one condition of three." Say what was deliberately not fixed, and why, whenever a reader would wonder.
+State what the change does not achieve, up front: "This does not turn the check green. It clears one condition of three."
 
 ## Title
 

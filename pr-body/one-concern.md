@@ -8,8 +8,8 @@ description: The pull request body for one concern, which is every bug fix, what
 Four short paragraphs, about 200 words, under `## Problem` and `## Fix`. A target, not a minimum, and the count never settles a sentence.
 
 - The first line is the severity, `6/10, medium`, per `skills/writing-style.md`, above `Fixes #n` and every heading.
-- `## Problem`, one or two paragraphs: the symptom first, in the reader's terms, under the condition that triggers it, then the mechanism named by symbol with a link into the code on the branch.
-- `## Fix`: the new code's property in a clause, never a narration of the edit. Then the riders in one paragraph, each with its own why. Then the one runtime check no job shows, stated as a claim, and where the decisions are recorded.
+- `## Problem`, one or two paragraphs: the symptom first, in the reader's terms, under the condition that triggers it, then the mechanism named by symbol with a link into the code on the branch, then the change that introduced it.
+- `## Fix`: the new code's property in a clause, never a narration of the edit. Then the riders in one paragraph, each with its own why. Then the stricter fixes rejected and the deeper cause left standing, per `skills/pr-body.md`. Then the one runtime check no job shows, stated as a claim, and where the decisions are recorded.
 - No `## Design`, whatever the number of decisions behind the fix: a decision a reviewer could have made differently is a clause of the fix paragraph, with what it costs.
 
 Why: a reviewer of a fix wants the defect and the property that removes it, and opens the diff for everything else.

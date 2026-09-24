@@ -355,6 +355,31 @@ pub(super) fn bundles(
             diff_file_blank: String::new(),
         });
     }
+    // Cold: every cold bundle folds into one, one finder carrying every angle, since a finder per
+    // cold directory reads a few lines of test each and costs a whole agent's context for them.
+    let (cold, mut out): (Vec<Bundle>, Vec<Bundle>) = out.into_iter().partition(|b| b.tier == "cold");
+    if cold.len() > 1 {
+        let mut angles: Vec<&'static str> = Vec::new();
+        for a in cold.iter().flat_map(|b| b.angles.iter()) {
+            if !angles.contains(a) {
+                angles.push(*a);
+            }
+        }
+        out.push(Bundle {
+            id: 0,
+            name: "cold files".to_string(),
+            files: cold.iter().flat_map(|b| b.files.iter().cloned()).collect(),
+            added: cold.iter().map(|b| b.added).sum(),
+            deleted: cold.iter().map(|b| b.deleted).sum(),
+            tier: "cold".to_string(),
+            finders: if angles.is_empty() { Vec::new() } else { vec![angles.clone()] },
+            angles,
+            diff_file: String::new(),
+            diff_file_blank: String::new(),
+        });
+    } else {
+        out.extend(cold);
+    }
     if !prose.is_empty() {
         let added: usize = prose.iter().map(|f| f.added).sum();
         let deleted: usize = prose.iter().map(|f| f.deleted).sum();
@@ -793,6 +818,35 @@ mod tests {
             "{}",
             summary(&bundles, &skipped)
         );
+    }
+
+    #[test]
+    fn every_cold_bundle_folds_into_one_finder() {
+        let (dir, base, head) = fixture("dispatch-cold");
+        let files = facts(&dir.to_string_lossy(), &base, &head).unwrap();
+        let risk: HashMap<String, String> = [
+            ("pkg/a/a.go", "hot"),
+            ("pkg/a/a_test.go", "hot"),
+            ("pkg/b/b.go", "cold"),
+            ("pkg/c/c.go", "cold"),
+            ("big/one.go", "cold"),
+            ("big/two.go", "cold"),
+        ]
+        .into_iter()
+        .map(|(p, t)| (p.to_string(), t.to_string()))
+        .collect();
+        let (bundles, skipped) = bundles(&files, &risk, false);
+        assert_eq!(named(&bundles, "pkg/a").finders.len(), 6, "a hot bundle keeps a finder per angle");
+        let cold = named(&bundles, "cold files");
+        assert_eq!(
+            cold.files,
+            vec!["big/one.go", "big/two.go", "pkg/b/b.go", "pkg/c/c.go"],
+            "{}",
+            table(&bundles, &skipped)
+        );
+        assert_eq!(cold.finders.len(), 1, "one finder carries every cold angle");
+        assert_eq!(bundles.iter().filter(|b| b.tier == "cold").count(), 1);
+        assert_eq!(bundles.first().map(|b| b.tier.as_str()), Some("hot"));
     }
 
     #[test]

@@ -52,10 +52,17 @@ The word sets the shape, and the word is how well the user knows the code:
 | `review` | any change | one finder per bundle per angle with material, or one per bundle carrying every angle past `finder.fold_past_bundles` bundles, the defect angles, lines, reach, removed, the catalog and rollout, plus claims on a bundle carrying a doc, each running its own Warning checks, the Warning cap 12 and the Nit cap 3 under a round-wide 24, the reflector, judges by six over the run-shaped candidates and by twelve over the reads, the writer, the text pass, a 1M ceiling |
 | `deep review` | code that is complex or unknown | every finder at 60 calls, the claims, tests and refactor angles on top of the defect ones, a hot bundle over the floor split by code file, the Warning cap 16 and the Nit cap 8, judges by three at 30 calls, reads by six, the writer, the text pass, a 2.5M ceiling |
 
+Inside the word, the reach of one reading sets how many agents run:
+
+| Shape | When | Stages |
+| --- | --- | --- |
+| solo | the diff and its callers fit one careful read on the session's model, per its note under `skills/knowledge/models/` | a finder, then one fresh agent that judges, runs every Critical and Warning, and writes the draft, `claims.md` and the overview: `args.solo` true, `solo.agents` 2 |
+| pipeline | they do not | the triage where no class is named, the finders, the reflector, the judges, the writer, the text pass and the overview, each as the word configures it |
+
 1. Prepare, per *Fetch & understand*, and dispatch the overview agent the moment the head worktree exists.
 2. Run the *Re-review rounds* gate when a prior round exists.
 3. *Reproduce the failure*: each suite once per tree state, the project's tool built once from the head worktree, named in `args.prebuilt`; a tool whose source lives in another repository is pinned there, per that section.
-4. Print the plan and launch, per *Launch*; the triage names the class first, and the stages read *Finders*, *Reflector*, *Verifiers*, *Writer* and *Text pass*.
+4. Print the plan and launch, per *Launch*; the parent names the class, the triage only where the parent has not read the diff whole, and the stages read *Finders*, *Reflector*, *Verifiers*, *Writer* and *Text pass*.
 5. Run the *Final check* of `skills/review-comment.md`, then the `skills/writing-style.md` Pass over `overview.md` and the draft, `./scripts/prose-check.py <file>` first; re-run it after any later edit to that prose, an edit made in answer to a question included; the handover lists every row it still prints, each with the reason it stays. Where the target fixes a reported vulnerability, *The critical pass* in `skills/review.md` runs here.
 6. One commit covering everything, per *Rules*; its push waits for `push`.
 7. Retro, per *Retro*.
@@ -67,7 +74,7 @@ What the parent hands the runner, and what every stage gets from it.
 
 - `./scripts/review-setup.sh <head worktree> <base worktree> <scratch> --repo <owner/name> --target <text> --round-dir <dir> --catalog <file> --delta <project review.md> --prebuilt <tool>` does the fixed part of the launch in one command: the blanked copy of the head, the risk table, the bundles with their diffs, the rule files per stage, the diff and its material, and `args.json` for the workflow; the parent adds the threads or the blind flag and the notes. What it wraps, for a launch by hand:
 - Print the plan first: `./scripts/review-plan.py --rules-out <scratch>/rules`, with `--preset` for `quick review` or `deep review`, and `--extra <stage>=<path>#<Heading>` for each section of the project delta a stage needs. Paste its table and projection in the reply that launches the run, so what is about to run and cost is on screen before it does.
-- Name each target's class in the reply that launches the run, from the *Triage* table: the class, the line that earns it, where a Warning would sit, what that class makes the round, and what `./scripts/review-plan.py --shape <class>` costs it. The triage stage names its own class in the round note; `deep` skips that stage, so there the reply's class is the only one.
+- Name each target's class in the reply that launches the run, from the *Triage* table, and pass it as `args.shape`: the class, the line that earns it, where a Warning would sit, what that class makes the round, and what `./scripts/review-plan.py --shape <class>` costs it. A parent that has not read the whole diff, callers included, leaves `args.shape` empty, and the triage names the class in the round note.
 - Then call the Workflow tool: `scripts/workflows/review-pipeline.js` as `scriptPath`, the prepared values as `args`, the preset as `args.preset`, the rules directory as `args.rules_dir`. The `review` word is the opt-in the harness's gate asks for, per *Consent* in the workspace `AGENTS.md`, and this sentence is the skill instruction it accepts.
 - `args.risk_json` is what `round risk --json` wrote and `args.blob_url` the head repository's blob base at the sha, `https://github.com/<owner>/<repo>/blob/<sha>`: `round assemble` puts the tier on every row and the `[gh]` link on every header from them.
 - `args.bundles` is what `round dispatch` wrote, and its table goes in the launch reply beside the plan's: the finder count is read off it, one per bundle per angle with material, or one carrying every angle for a bundle under the floor.
@@ -91,9 +98,10 @@ What the parent hands the runner, and what every stage gets from it.
 
 ### Triage
 
-One short agent before any stage is sized, reading the diff, the risk table
-and the material, and naming the change's class; the class sets the shape and
-the word caps it. Size is one factor and never the trigger.
+The change's class sets the shape and the word caps it. The parent names it in
+`args.shape` when it has read the diff whole, callers included; otherwise one
+short agent reads the diff, the risk table and the material before any stage is
+sized and names it. Size is one factor and never the trigger.
 
 | Class | The change | The round |
 | --- | --- | --- |
@@ -105,7 +113,7 @@ the word caps it. Size is one factor and never the trigger.
 - **The class measures one reading by the finder's model, never the change's subject.** The Inference section of `args.model_notes` says what that model holds in one pass, read before a class is named, so the same diff takes a lower class on a stronger model; where no note exists, the triage's own reading stands in. What the code is about and what is at stake set the bands, never the class.
 - Name what a second reading buys before naming a class, and copy the changed line one reading cannot settle into `quote`, verbatim with its file. A reason taken from the file list or the subject is not one: the runner takes a complex with no quote as normal.
 - **Plan the reading, bounded.** From `round dispatch`'s default cut and the finder and judge models the prompt names, return in `finders` the file groups one finder each reads, a test with the code it asserts, a caller with the callee whose contract changed, a doc with the code it describes, a bundle one reading cannot hold split, each with whether one finder walks every angle; `batch` and `read_batch`, the candidates one judge holds; and each stage's effort from `triage.efforts`: every choice sized to the model's note and to how tangled the change is, the best accuracy without overkill. The runner holds the plan to the config's `triage` bounds, every file in one group, a group's changed lines, the finder count against the default cut's, both batches, and a plan past one runs the default cut, the log naming the bound. Leave `finders` empty where the default cut already reads right.
-- `quick` caps the class at simple; `deep` takes complex and `args.shape` names a class outright, the triage then planning the reading alone; a round with topics, the critical pass, is never triaged.
+- `quick` caps the class at simple; `args.shape` names a class outright and no triage runs; `deep` takes complex, its triage planning the reading alone; a round with topics, the critical pass, is never triaged.
 - A round that finds nothing runs no judge, no reflector and no text pass: the writer ships the header, the verdict and one true sentence, and `claims.md` the empty table.
 
 ### Finders
@@ -113,7 +121,8 @@ the word caps it. Size is one factor and never the trigger.
 One finder per bundle per angle the bundle has material for, the bundles from
 `round dispatch` as the triage regrouped them; a bundle under the floor gets one finder carrying every angle it
 has, and past `finder.fold_past_bundles` bundles every bundle does, so the count
-follows the diff by bundle and never by bundle times angle. A hot bundle over the floor is split by code
+follows the diff by bundle and never by bundle times angle. Every cold bundle
+folds into one, read by one finder carrying every angle. A hot bundle over the floor is split by code
 file, so two finders of one angle read different material and never the same
 twice; a complex change buys a longer reading, `finder.tools`, not a second one.
 Every bundle is read once whatever its tier.

@@ -7,7 +7,7 @@ My skills: the instruction sets my agents load before working on my projects.
 | Word | For | Cost, projected today |
 | --- | --- | --- |
 | `quick review <target>` | the overview of what a change is worth: one finder per bundle on the Warning-finding angles, each running its own Warning checks, judges in short parallel batches, no reflector, the text pass past 120 visible words of findings | about 8 agents, 360k output, 45 minutes, estimate |
-| `review <target>` | any change; a triage names the class first and a simple change runs one finder per bundle, one judge and the writer, a trivial one a single agent; the normal round: one finder per bundle per angle, or one per bundle past six bundles, each running its own Warning checks, the reflector, judges by six over the run-shaped candidates and by twelve over the reads, the writer, the text pass | about 24 agents, 1.1M output, 60 minutes |
+| `review <target>` | any change; the parent names the class, a triage only where the parent has not read the diff whole; a diff one read holds runs solo, a finder then one agent that judges and writes; a simple change runs one finder per bundle, one judge and the writer; every cold bundle folds into one finder; the normal round: one finder per bundle per angle, or one per bundle past six bundles, each running its own Warning checks, the reflector, judges by six over the run-shaped candidates and by twelve over the reads, the writer, the text pass | about 24 agents, 1.1M output, 60 minutes |
 | `deep review <target>` | code that is complex or unknown: finders at 60 calls, hot bundles split by code file, judges by three, the ceiling | about 28 agents, 1.1M output, 70 minutes |
 
 ### The shape follows the change

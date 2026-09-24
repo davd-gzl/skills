@@ -247,7 +247,8 @@ The handover repeats the retro in three lines.
 ### Handover
 
 Name the cost first: agents, minutes and tokens per stage from the task
-notifications. The draft and the overview go in the closing links every reply
+notifications, and the dollars on the `Measured cost:` line of
+`./scripts/review-retro.py`. The draft and the overview go in the closing links every reply
 ends on, per `skills/reply.md`, never
 mid-reply. Add a "Decisions needed" list, one line each, a borderline verdict
 or a PLAUSIBLE worth a decision, and omit it when empty; never list an APPROVE

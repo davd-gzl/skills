@@ -260,8 +260,9 @@ Name the cost first: agents, minutes and tokens per stage from the task
 notifications, and the dollars on the `Measured cost:` line of
 `./scripts/review-retro.py`. The draft and the overview go in the closing links every reply
 ends on, per `skills/reply.md`, never
-mid-reply. Add a "Decisions needed" list, one line each, a borderline verdict
-or a PLAUSIBLE worth a decision, and omit it when empty; never list an APPROVE
+mid-reply. Add a "Decisions needed" list, one line each, a borderline verdict,
+a PLAUSIBLE worth a decision, and every CONFIRMED finding the merge base shares
+with the issue or disclosure it takes per *Calibration*, and omit it when empty; never list an APPROVE
 as needing confirmation. Post only on the literal word `post`. Acting on the
 findings is `skills/change.md`; they stay here.
 

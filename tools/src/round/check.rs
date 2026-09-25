@@ -4,7 +4,8 @@
 //! instead of the code, a `Full review:` line, and, over the draft, `claims.md`, `findings.md`,
 //! `candidates/` and `verdicts/`, an absolute path outside the reviewed repo, which a judge
 //! quoting its own command line carries in. A draft with no `Event:` line, posted text naming
-//! CI, a flake or a rebase, and a verdict or a sha in `overview.md` are hits too. One row per hit
+//! CI, a flake or a rebase, a verdict or a sha in `overview.md`, and an `overview.md` without its
+//! `## TLDR` section are hits too. One row per hit
 //! into `<round dir>/check.md`,
 //! exit 1 when any hit.
 

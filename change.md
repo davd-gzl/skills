@@ -78,12 +78,17 @@ An open call is a decision the document made that a human could reasonably
 make differently. A document listing none is hiding them, so list every one. The human meets each call three times:
 
 1. `spec.md` and `plan.md` open with `## Decisions for a human`, right after
-   the summary: a table, one row per call, with the identifier, the call, what
-   the document chose, the defensible alternative, what turns on it, and whether
-   it needs review or is simply unanswered. Number `S1` upward in the spec and
-   `P1` upward in the plan, so "S3 alternative" is a complete instruction.
+   the summary: one line naming the head it describes, how many calls are
+   open, and what is settled, then one `###` section per open call, never a
+   table and never one block. The heading is the action, numbered `S1` upward
+   in the spec and `P1` upward in the plan so "P3 other way" is a complete
+   instruction. Under it, three short paragraphs: `Now:` what the code does and
+   what it costs, `Other way:` and what that costs, `Pick:` the author's
+   choice, in numbers, so a reader who has read the overview and the pull
+   request decides without opening anything else. A settled call leaves its
+   section for the opening line.
 2. Where the call takes effect, a one-line blockquote names it and links back
-   to the table.
+   to its section.
 3. The change `README.md` gathers every call from both documents under
    `## Waiting on a human`, naming the one or two to weigh first.
 

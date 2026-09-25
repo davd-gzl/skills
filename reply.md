@@ -108,9 +108,20 @@ This job runs on a schedule only, and GitHub disables those after 60 days.
 - **When the user asks for a table, give each row what it takes to understand
   it without opening anything else**: the target as a link, one plain line on
   what it fixes or does, its overview linked where one exists, what changed
-  since the last report, what the user decides or does next, and the one risk
-  worth knowing. A row that sends the reader to three files to learn what it
+  since the last report, what the user decides or does next, and what it leaves
+  open. A row that sends the reader to three files to learn what it
   means has not saved them the reading.
+- **When the user asks for a table of their pull requests, list every draft,
+  one row each, with every link they need to open it**: the pull request, its
+  overview, its plan and design record where they exist, its findings, and what
+  is still to fix, linked to what shows it. A cell with nothing reads `—` and
+  the column stays, so the table reads the same every time. Still to fix is a
+  finding no commit closed, a finding held for a decision, or a limit of the
+  fix, never what the bug does while the fix waits.
+- **Order those rows by impact for the review time**: severity band first,
+  critical down to none, then the shorter review first within a band, both
+  shown in their own column, so the first row is the most security the reader
+  buys per hour.
 
 ## Numbers
 

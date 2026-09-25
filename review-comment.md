@@ -156,7 +156,7 @@ Verify each line before handing over:
 2. The Body names at most three checks, each runtime-only, none CI-visible, none recapping anchored findings.
 3. No repro block has a passing run as its only output.
 4. Every non-Warning inline comment opens with its band; Warnings open with the TL;DR. Every comment asks for a fix, a decision, or an answer, and carries no fix sentence its problem statement already implies.
-5. `./scripts/prose-check.py <draft>` counts the sentences per section and the Body's lines; one section per distinct action. Count the `<details>` blocks too, and delete the one attached to a merge conflict or to anything the author confirms by opening the app.
+5. `./scripts/prose-check.py <draft>` counts the sentences per section and the Body's lines. Each section carries one distinct action. Count the `<details>` blocks too, and delete the one attached to a merge conflict or to anything the author confirms by opening the app.
 6. No verdict restating the `Event:` line, no bold, no imported emphasis caps, every `skills/writing-style.md` rule holds.
 7. Every `Suggestion:` was applied in a worktree and run both ways, the case the finding is about and the case the current code already handles. Run the path carrying no user action, the page load, the reconnect, the re-render: a guard exists for that path, the finding is about the path with a click in it, and dropping the guard is how a fix becomes the bug it was written against. Name every result in `claims.md`.
 8. Every finding names the set it holds for, and the band follows the size of that set. One example value standing in for the set understates both: "a French browser" where every non-English browser fails is a Critical wearing a Warning's clothes.

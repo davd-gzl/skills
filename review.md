@@ -57,7 +57,7 @@ Inside the word, whether one careful read holds the diff sets how many agents ru
 | Shape | When | Stages |
 | --- | --- | --- |
 | solo | the lines a finder must reason about, callers included, fit one careful read on the session's model, per its note under `skills/knowledge/models/`; a run of generated data, a regenerated golden or a fixture table, counts once | a finder, then one fresh agent that answers the *Reflector*'s completeness question, judges, runs every Critical and Warning, and writes the draft and `claims.md`, and the overview where step 1 dispatched no overview agent: `args.solo` true, and no triage |
-| solo, wider | as solo, where the diff spans several code files, tests aside, or changes what a consensus, gas, funds or permission path computes, charges or accepts; touching such a path without changing its result is plain solo | `solo.finders` N ahead of that same judge, run side by side, each finder dealt at most two of the angles the word runs; `./scripts/review-plan.py --solo --set solo.finders=<N>` prints the cost |
+| solo, wider | as solo, where the diff spans several code files, tests aside, or changes what a consensus, gas, funds or permission path computes, charges or accepts; touching such a path without changing its result is plain solo | `solo.finders` 2 ahead of that same judge, run side by side, the word's angles dealt between them; a third finder only where the parent names what it reads that two do not; `./scripts/review-plan.py --solo --set solo.finders=<N>` prints the cost |
 | pipeline | one read does not hold it | the triage where no class is named, the finders, the reflector, the judges, the writer, the text pass and the overview, each as the word configures it |
 
 1. Prepare, per *Fetch & understand*, and dispatch the overview agent the moment the head worktree exists.
@@ -65,7 +65,7 @@ Inside the word, whether one careful read holds the diff sets how many agents ru
 3. *Reproduce the failure*: each suite once per tree state, the project's tool built once from the head worktree, named in `args.prebuilt`; a tool whose source lives in another repository is pinned there, per that section.
 4. Print the plan and launch, per *Launch*; the parent names the class, the triage only where the parent has not read the diff whole, and the stages read *Finders*, *Reflector*, *Verifiers*, *Writer* and *Text pass*. A target fixing a reported vulnerability launches with its bounds as `args.topics`, per *The critical pass*.
 5. Run the *Final check* of `skills/review-comment.md`, then the `skills/writing-style.md` Pass over `overview.md` and the draft, `./scripts/prose-check.py <file>` first; re-run it after any later edit to that prose, an edit made in answer to a question included; the handover lists every row it still prints, each with the reason it stays.
-6. One commit covering everything, to the repository holding the round directory alone; it is pushed as *Consent* in the workspace `AGENTS.md` says for that repository.
+6. One commit covering everything, to the repository holding the round directory, plus the workspace commit recording its gitlink where that repository is a submodule; it is pushed as *Consent* in the workspace `AGENTS.md` says for that repository.
 7. Retro, per *Retro*.
 8. Hand over, per *Handover*.
 
@@ -85,7 +85,7 @@ What the parent hands the runner, and what every stage gets from it.
 - **Size the round by what the target is worth, and print what it costs before it runs.** Developer tooling, a docs page and a CI script take `quick` unless the user names another word; the triage class raises the shape inside a word and never the word itself. `./scripts/review-plan.py` prints the projection in dollars from the rates in `workspace.json`, the launch reply carries that figure, and a round costing more than the project's `CONTEXT.md` lets a round spend unasked waits for the user to say go; where the file names no figure, every round waits.
 - **Ask what one agent would miss before taking the plan's agent count.** The preset's table sizes the stages and never the target: a diff one read holds whole, callers included, runs solo, and the class sizes a pipeline alone. The plan projects a shape; it does not choose one.
 - To spend less where a round keeps a finder stage, cut the finder count, the caps or the angles rather than the finder's effort, each of which drops reading the round chose to skip rather than reading it did badly.
-- Each stage runs at the `effort` its entry in `scripts/workflows/review-pipeline.json` sets. No stage moves off the config's value on a model note's inference until a round on the session model measures the difference; the triage's per-stage effort is the exception, never below the finder's.
+- Each stage runs at the `effort` its entry in `scripts/workflows/review-pipeline.json` sets. No stage moves off the config's value on a model note's inference until a round on the session model measures the difference; the triage's per-stage effort is the exception, the finder's never below its configured value.
 - **A stage `./scripts/review-retro.py` names as moved onto another model re-runs at `max` on that model**, after the input is shrunk per *Repro rules*, since a smaller repro that keeps the session's model is the better fix. Resume the run, `resumeFromRunId`, with that stage's `model` and `effort` set in `args.stages`, which re-runs every agent of the stage.
 - `./scripts/review-setup.sh --model <id>` names the session's model, so the triage reads the published note on it, `skills/knowledge/models/<id>.md`.
 - **An angle the user names in the launch turn runs, whatever the word.** The parent adds it to `args.stages.finder.angles` and clears `claims_docs_only` where claims is the one named, so `review <target> +claims` buys the deep angle without the deep round.
@@ -103,9 +103,9 @@ What the parent hands the runner, and what every stage gets from it.
 The change's class sizes a pipeline, and the word caps it; a diff one read holds runs solo per *The round*, whatever its class. The parent names it in
 `args.shape` when it has read the diff whole, callers included; otherwise one
 short agent reads the diff, the risk table and the material before any stage is
-sized and names it. Size is one factor and never the trigger. Name the changed
-line a second reading buys before naming a class; one taken from the file list
-or the subject is not one.
+sized and names it. Size is one factor and never the trigger. Name what a second
+reading buys before naming a class, nothing to name being normal; a reason taken
+from the file list or the subject is not one.
 
 | Class | The change | The round |
 | --- | --- | --- |
@@ -550,5 +550,5 @@ When a posted round's target merges or closes, `./scripts/review-outcomes.py <dr
 ## GitHub review draft (`comment_<model>.md`)
 
 The writer's artifact, step 4 of the workflow. The draft, its body rules, the shape of each inline
-comment, the final check and the posting gate are in `skills/review-comment.md`.
+comment, the final check and posting are in `skills/review-comment.md`.
 Draft it whether or not anything will be posted.

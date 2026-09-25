@@ -904,9 +904,11 @@ def turn_text(transcript):
         if not line:
             continue
         try:
-            rows.append(json.loads(line))
+            row = json.loads(line)
         except ValueError:
             continue
+        if isinstance(row, dict):
+            rows.append(row)
     start = None
     for i, e in enumerate(rows):
         if e.get('type') == 'user' and not e.get('isMeta') and not e.get('isCompactSummary'):
@@ -968,7 +970,7 @@ def _strip_heredocs(cmd):
     return '\n'.join(out)
 
 
-def _split(cmd):
+def _split(cmd, ops=False):
     lex = shlex.shlex(cmd, posix=True, punctuation_chars=';&|\n()')
     lex.whitespace = ' \t\r'
     lex.whitespace_split = True
@@ -979,6 +981,10 @@ def _split(cmd):
                 if seg:
                     yield seg
                 seg = []
+                if ops:
+                    for ch in tok:
+                        if ch in '()':
+                            yield ['\x00' + ch]
             else:
                 seg.append(tok)
     except ValueError:
@@ -991,10 +997,13 @@ def _split(cmd):
         yield seg
 
 
-def _segments(cmd, depth=0):
+def _segments(cmd, depth=0, ops=False):
     """The simple commands of a shell line: heredoc bodies dropped, split outside quotes, a leading
     keyword, environment assignment or $( stripped, and a `bash -c` string read as its own line."""
-    for t in _split(_strip_heredocs(cmd)):
+    for t in _split(_strip_heredocs(cmd), ops):
+        if t and t[0].startswith('\x00'):
+            yield t
+            continue
         t = [x.rstrip('$').lstrip('`') for x in t]
         t = [x for x in t if x]
         while t:
@@ -1014,8 +1023,8 @@ def _segments(cmd, depth=0):
         if t[0] == 'eval' and depth < 3:
             yield from _segments(' '.join(t[1:]), depth + 1)
             continue
-        if os.path.basename(t[0]) in RUNNERS and len(t) > 2 and t[1] == '-c' and depth < 3:
-            yield from _segments(t[2], depth + 1)
+        if os.path.basename(t[0]) in RUNNERS and len(t) > 2 and re.match(r'^-[a-z]*c[a-z]*$', t[1]) and depth < 3:
+            yield from _segments(t[2], depth + 1, ops)
             continue
         if os.path.basename(t[0]) in RUNNERS and len(t) > 1 and not t[1].startswith('-'):
             t = t[1:]
@@ -1068,9 +1077,17 @@ def _read_at(value):
     return value
 
 
+def every_change_repos():
+    try:
+        return set(json.loads((root() / 'workspace.json').read_text()).get('word_for_every_change', []))
+    except (OSError, ValueError):
+        return set()
+
+
 def publish_words(cmd):
     """Each set is one publish on the line, satisfied by any of its words; every set needs its own."""
     needs = []
+    strict = every_change_repos()
     for t in _segments(cmd):
         name = os.path.basename(t[0])
         if name in ('post-review.sh', 'post-fix.sh', 'post-pr-review.py') and not _dry(t):
@@ -1093,6 +1110,10 @@ def publish_words(cmd):
             needs.append({'close'})
         elif r[1] == 'delete':
             needs.append({'delete'})
+        elif verb == ('repo', 'sync') and '--force' in t:
+            needs.append({'force'})
+        elif verb == ('pr', 'edit') and next((t[i + 1] for i, x in enumerate(t[:-1]) if x in ('-R', '--repo')), '') in strict:
+            needs.append({'post'})
         elif r[0] == 'api':
             method = None
             for i, x in enumerate(t):
@@ -1104,7 +1125,9 @@ def publish_words(cmd):
                     method = x[2:].upper()
             fields = _field_values(t)
             has_input = '--input' in t
-            path = next((x for x in r[1:] if not x.startswith('-') and ('/' in x or x == 'graphql')), '')
+            path = next((x for x in r[1:] if not x.startswith('-') and ('/' in x or x in ('graphql', 'markdown'))), '')
+            if path == 'markdown':
+                continue
             if path == 'graphql':
                 query = ' '.join(_read_at(v.split('=', 1)[1]) for v in fields if v.startswith('query='))
                 if has_input:
@@ -1117,7 +1140,15 @@ def publish_words(cmd):
                 continue
             # An open pull request's own body or title edit goes up unasked, per Consent in AGENTS.md.
             keys = {v.split('=', 1)[0] for v in fields}
-            if method == 'PATCH' and re.search(r'/pulls/\d+/?$', path) and keys and keys <= {'body', 'title'}:
+            repo = '/'.join(path.lstrip('/').split('/')[1:3]) if path.lstrip('/').startswith('repos/') else ''
+            if method == 'PATCH' and re.search(r'/pulls/\d+/?$', path) and keys and keys <= {'body', 'title'} \
+                    and repo not in strict:
+                continue
+            if method == 'PUT' and '/contents/' in path:
+                # A file written to a repository's branch is a push: free on a standing repository.
+                if repo in standing_push():
+                    continue
+                needs.append({'upload', 'push'})
                 continue
             needs.append({'delete'} if method == 'DELETE' else {'post'})
     return needs
@@ -1162,7 +1193,15 @@ def push_targets(cmd, cwd):
         for _ in range(4):  # a name defined through another name, R=...; C=$R/x
             v = re.sub(r'\$\{?([A-Za-z_][A-Za-z0-9_]*)\}?', lambda m: names.get(m.group(1), os.environ.get(m.group(1), m.group(0))), v)
         return os.path.expanduser(v.strip('"\''))
-    for t in _segments(cmd):
+    stack = []
+    made_here = bool(re.search(r'\bgit\s+(init|clone)\b|\bmktemp\b', cmd)) and 'github.com' not in cmd
+    for t in _segments(cmd, ops=True):
+        if t == ['\x00(']:
+            stack.append(here)
+            continue
+        if t == ['\x00)']:
+            here = stack.pop() if stack else here
+            continue
         if len(t) >= 2 and t[0] in ('cd', 'pushd'):
             here = os.path.join(here, fill(t[1]))
             continue
@@ -1195,11 +1234,14 @@ def push_targets(cmd, cwd):
         url = subprocess.run(['git', '-C', where, 'remote', 'get-url', remote], capture_output=True, text=True).stdout.strip()
         if not url and ('/' in remote or ':' in remote):
             url = remote
-        # A push to a path on this machine publishes nothing.
-        if url.startswith(('file://', '/', './', '../')) or (url and os.path.isdir(os.path.join(where, url))):
+        # A push to a path on this machine publishes nothing, and neither does one to a repository
+        # this same line creates with no GitHub URL on it.
+        if url.startswith(('file://', '/', './', '../')) or (url and os.path.isdir(os.path.join(where, url))) \
+                or (not url and made_here):
             continue
+        deleted = '--delete' in rest or '-d' in rest or any(x.startswith(':') for x in args[1:])
         m = re.search(r'github\.com[:/]([^/\s]+)/([^/\s]+?)(?:\.git)?/?$', url)
-        out.append((f'{m.group(1)}/{m.group(2)}' if m else None, forced))
+        out.append((f'{m.group(1)}/{m.group(2)}' if m else None, forced, deleted))
     return out
 
 
@@ -1218,7 +1260,7 @@ def refusal(cmd, payload):
                     'no "Assisted by AI", per Invariant 7 of the workspace AGENTS.md.')
     needs = publish_words(cmd)
     standing = standing_push()
-    pushes = [(r, f) for r, f in push_targets(cmd, payload.get('cwd')) if f or r not in standing]
+    pushes = [(r, f, d) for r, f, d in push_targets(cmd, payload.get('cwd')) if f or d or r not in standing]
     if not needs and not pushes:
         return None
     text = turn_text(payload.get('transcript_path') or '')
@@ -1228,7 +1270,9 @@ def refusal(cmd, payload):
         if not any(has_word(text, w) for w in need):
             return (f'a publish waiting for its word, {" or ".join(sorted(need))}, which this turn does not carry, '
                     'per Invariants 1 and 2 of the workspace AGENTS.md. Show the draft and name the word.')
-    for repo, forced in pushes:
+    for repo, forced, deleted in pushes:
+        if deleted and not has_word(text, 'delete'):
+            return 'a branch delete, which waits for its word, delete, per Invariant 1 of the workspace AGENTS.md.'
         if forced and not has_word(text, 'force'):
             return 'a forced push, which waits for approval in the turn, per Invariant 8 of the workspace AGENTS.md.'
         if repo not in standing and not has_word(text, 'push'):

@@ -6,7 +6,7 @@ effort-set: [claude-opus-5*, claude-fable-5*, claude-mythos-5*, claude-sonnet-5*
 
 # Thinking
 
-Every model reads this file, and it binds every model but one kind. Where the
+Every model the user talks to reads this file, and it binds every such model but one kind. Where the
 session's context says the running model's thinking depth is set by effort,
 none of it applies and effort is the control. The gate prints that line only
 when the harness told it the model and the model matches `effort-set` above; a

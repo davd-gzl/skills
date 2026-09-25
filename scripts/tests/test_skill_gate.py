@@ -613,6 +613,51 @@ class PublishWordsRoundThree(PublishWords):
         self.assertIn('post this', gate.turn_text(str(path)))
 
 
+class PublishWordsRoundFour(PublishWordsRoundThree):
+    """What the fourth check round found."""
+
+    def test_a_scratch_repo_made_on_the_same_line_can_take_a_push(self):
+        cmd = 'S=$(mktemp -d); git init -q --bare $S/r.git; git clone -q $S/r.git $S/w; git -C $S/w push origin HEAD:main'
+        self.assertEqual(self.hook(cmd)[0], 0)
+
+    def test_a_subshell_cd_ends_at_its_parenthesis(self):
+        mine = self.standing()
+        self.assertEqual(self.hook(f'cd {mine} && (cd /tmp && true); git push origin main')[0], 0)
+        (self.root / 'other').mkdir()
+        other = self.root / 'other'
+        subprocess.run(['git', 'init', '-q', str(other)], check=True)
+        subprocess.run(['git', '-C', str(other), 'remote', 'add', 'origin', 'https://github.com/me/public.git'], check=True)
+        self.assertEqual(self.hook(f'cd {other} && (cd {mine} && git status); git push origin main')[0], 2)
+
+    def test_a_contents_upload_is_free_on_a_standing_repo_only(self):
+        self.standing()
+        self.assertEqual(self.hook('gh api -X PUT repos/me/private/contents/a.png -f content=x -f message=m')[0], 0)
+        self.assertEqual(self.hook('gh api -X PUT repos/me/public/contents/a.png -f content=x -f message=m')[0], 2)
+        self.assertEqual(self.hook('gh api -X PUT repos/me/public/contents/a.png -f content=x', prompt='upload')[0], 0)
+
+    def test_a_branch_delete_waits_for_delete(self):
+        mine = self.standing()
+        self.assertEqual(self.hook(f'git -C {mine} push origin --delete old')[0], 2)
+        self.assertEqual(self.hook(f'git -C {mine} push origin :old')[0], 2)
+        self.assertEqual(self.hook(f'git -C {mine} push origin :old', prompt='delete old')[0], 0)
+
+    def test_a_repo_where_every_change_takes_the_word(self):
+        (self.root / 'workspace.json').write_text(json.dumps({'word_for_every_change': ['up/strict']}))
+        self.assertEqual(self.hook('gh api -X PATCH repos/up/strict/pulls/5 -f body=x')[0], 2)
+        self.assertEqual(self.hook('gh api -X PATCH repos/up/loose/pulls/5 -f body=x')[0], 0)
+        self.assertEqual(self.hook('gh pr edit 5 -R up/strict --body x')[0], 2)
+
+    def test_login_shells_force_sync_and_rendering(self):
+        self.assertEqual(self.hook("bash -lc 'gh pr comment 5 -b x'")[0], 2)
+        self.assertEqual(self.hook('gh repo sync me/fork --force')[0], 2)
+        self.assertEqual(self.hook('gh api markdown -f text=hi')[0], 0)
+
+    def test_a_malformed_transcript_row_is_skipped(self):
+        path = self.root / 'bad.jsonl'
+        path.write_text('[1, 2]\n"a string"\n' + json.dumps({'type': 'user', 'message': {'role': 'user', 'content': 'post'}}) + '\n')
+        self.assertIn('post', gate.turn_text(str(path)))
+
+
 class HookRead(GateCase):
     def read(self, payload):
         return gate.main(['hook-read'], stdin=io.StringIO(json.dumps(payload)))

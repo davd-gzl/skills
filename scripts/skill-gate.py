@@ -20,8 +20,8 @@ with a warning. Nothing here blocks: a rough draft lands, a later pass fixes it.
   ./scripts/skill-gate.py hook-read         Claude Code PreToolUse adapter on the Read tool: a whole read of a
                                             skill, a shape, a delta or a root file is recorded; a partial one is not
   ./scripts/skill-gate.py session-start     Claude Code SessionStart adapter, hook JSON on stdin: runs
-                                            scripts/sync.sh on a new session and records the CLAUDE.md
-                                            imports, shortcuts and short-form, as read; after a compaction
+                                            scripts/sync.sh on a new session and records the files the
+                                            session opens with, shortcuts, short-form and thinking, as read; after a compaction
                                             or a resume, forgets the session's reads and names them by path
   ./scripts/skill-gate.py prompt            Claude Code UserPromptSubmit adapter: the skills the prompt's
                                             words and the repositories it names call for, named by path
@@ -127,7 +127,7 @@ def session_key():
 
 def always_whole():
     """The skills every turn runs on, which are never cut however they are declared: the register and the words the
-    root CLAUDE.md imports, so the harness already carries them whole and the gate must record the same bytes."""
+    session opens with, so the harness already carries them whole and the gate must record the same bytes."""
     names = set(IMPORTED)
     try:
         text = (root() / 'CLAUDE.md').read_text()
@@ -585,11 +585,12 @@ def cmd_pre_push(stdin, cwd):
     return report(check(['git', *sorted(relative(top / p) or str(top / p) for p in paths)]))
 
 
-# In context through CLAUDE.md's own `@` imports in every session, so recorded as read when it
-# opens. `reply.md` is not among them: nothing imports it, it is the parent's own reply shape,
-# and the gate names it for a Read. A hook cannot stand in for an import here, since a hook's
-# context reaches the model as a stub naming a file from 10 KB and these three are past it on
-# their own.
+# In context as every session opens, so recorded as read then: short-form through a CLAUDE.md
+# import, which subagents carry too since its Claims bind every model, and shortcuts and thinking
+# through one SessionStart hook each, which reaches the parent's chat and no subagent. A hook's
+# text arrives whole at 9 KB, measured, and each of these files is under half that.
+# `reply.md` is not among them: nothing loads it, it is the parent's own reply shape, and the
+# gate names it for a Read.
 IMPORTED = ['shortcuts', 'short-form', 'thinking']
 # A Bash result of 29.4 KB or more reaches the model as a stub naming a file, and a
 # hook's context does so from 10 KB, measured over every transcript of this
@@ -840,9 +841,10 @@ def forget_session():
     save({k: v for k, v in load().items() if not k.startswith(prefix)})
 
 
-INTRO = ('Principles, Invariants, the words the user types and the register are in context through '
-         '`CLAUDE.md`, which imports the workspace `AGENTS.md`, `skills/shortcuts.md`, '
-         '`skills/short-form.md` and `skills/thinking.md`. Every other rule, `skills/reply.md` included, is read whole with the '
+INTRO = ('Principles, Invariants and the register are in context through `CLAUDE.md`, which imports '
+         'the workspace `AGENTS.md` and `skills/short-form.md`; the words the user types, `skills/shortcuts.md`, '
+         'and `skills/thinking.md` come whole through SessionStart hooks, which reach this session and no '
+         'subagent. Every other rule, `skills/reply.md` included, is read whole with the '
          'Read tool before its first command, and that read is what the gate records; '
          './scripts/skill <name> names its path.')
 

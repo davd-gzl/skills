@@ -263,8 +263,8 @@ through [`scripts/skill`](scripts/skill), `./scripts/skill review` for a skill,
 `./scripts/skill pr-body/docs` for a shape, `./scripts/skill meet` for a
 project's delta. It puts the skills a write still lacks into the context with a
 warning and lets the write through, and names the rules by path for the Read
-tool: the files `CLAUDE.md` imports as the session opens, `shortcuts`,
-`short-form` and `thinking`, recorded as read; the task's and the
+tool: the files the session opens with, `shortcuts`, `short-form` and
+`thinking`, recorded as read; the task's and the
 repository's on the prompt
 that names them; everything the session had read, again after a compaction. A
 read holds while the file's

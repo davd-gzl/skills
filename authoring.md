@@ -144,12 +144,13 @@ one pass.
   to the whole file. Split into a second file only where the sections are
   separate documents to whoever edits them. `./scripts/skill <name>` prints the
   path the gate hands over.
-- A skill `CLAUDE.md` imports, `shortcuts.md`, `short-form.md` and `thinking.md`, is never cut,
-  whatever its frontmatter says: it is in context as the session opens, every
-  turn runs on it, and a `prompt-sections` line there changes nothing. A hook
-  cannot stand in for the import, since a hook's context reaches the model as a
-  stub naming a file from 10 KB and those three are past it on their own,
-  `wc -c` printing the size.
+- A skill the session opens with, `shortcuts.md`, `short-form.md` and
+  `thinking.md`, is never cut, whatever its frontmatter says: every turn runs on
+  it, and a `prompt-sections` line there changes nothing. A subagent carries
+  every `CLAUDE.md` import on every call, so only a file whose rules bind every
+  agent is imported, `short-form.md` for its *Claims*; a file only the user's
+  chat needs comes whole through a SessionStart hook, which reaches that session
+  and no subagent.
 - A subagent gets the skills its own artifact needs and no others. It answers
   the parent and never the user, so the words the user types and the register are
   dead weight in its context, and it inherits them anyway through `CLAUDE.md`,

@@ -1,11 +1,11 @@
 ---
 name: shortcuts
-description: The words the user types and what each one starts, in any workspace. Imported through CLAUDE.md. The shape of a reply is skills/reply.md and the register is skills/short-form.md.
+description: The words the user types and what each one starts, in any workspace. In context as the session opens. The shape of a reply is skills/reply.md and the register is skills/short-form.md.
 ---
 
 # Shortcuts
 
-Imported through `CLAUDE.md`. The register is `skills/short-form.md`
+In context as the session opens, through a SessionStart hook. The register is `skills/short-form.md`
 and the shape of a reply is `skills/reply.md`.
 
 ## The words

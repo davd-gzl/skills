@@ -39,6 +39,7 @@ A read holds while the hash still matches the file and the session is the same.
 """
 
 import difflib
+import fnmatch
 import hashlib
 import json
 import os
@@ -587,9 +588,9 @@ def cmd_pre_push(stdin, cwd):
 # In context through CLAUDE.md's own `@` imports in every session, so recorded as read when it
 # opens. `reply.md` is not among them: nothing imports it, it is the parent's own reply shape,
 # and the gate names it for a Read. A hook cannot stand in for an import here, since a hook's
-# context reaches the model as a stub naming a file from 10 KB and these two are 9.1 KB before
-# the sync line.
-IMPORTED = ['shortcuts', 'short-form']
+# context reaches the model as a stub naming a file from 10 KB and these three are past it on
+# their own.
+IMPORTED = ['shortcuts', 'short-form', 'thinking']
 # A Bash result of 29.4 KB or more reaches the model as a stub naming a file, and a
 # hook's context does so from 10 KB, measured over every transcript of this
 # workspace. Only the Read tool carries a whole file, so this script names paths
@@ -753,6 +754,86 @@ def point(names, header, event, stdout, extra=()):
     return [name for name in names if resolve(name) is not None]
 
 
+FRONT_EFFORT = re.compile(r'^effort-set:\s*\[(.*?)\]\s*$', re.M)
+TRANSCRIPT_TAIL = 262144
+
+
+def effort_set():
+    """The model patterns `effort-set` lists in skills/thinking.md's frontmatter: models whose thinking depth effort sets."""
+    try:
+        text = (root() / 'skills' / 'thinking.md').read_text()
+    except OSError:
+        return []
+    m = FRONT_EFFORT.search(text.split('---', 2)[1]) if text.startswith('---') else None
+    return [p.strip().strip('\'"') for p in m.group(1).split(',') if p.strip()] if m else []
+
+
+def model_id(raw):
+    """A harness's model string as a bare API id: `us.anthropic.claude-opus-5-5-v1:0[1m]` reads `claude-opus-5-5`,
+    a provider path or prefix, a version and a context suffix dropped."""
+    m = str(raw).strip().lower().split('/')[-1]
+    m = re.sub(r'\[[^\]]*\]$', '', m)
+    m = re.sub(r'^(?:[a-z]{2,4}\.)?anthropic\.', '', m)
+    m = re.sub(r'-v\d+(?::\d+)?$', '', m)
+    return m.split('@')[0]
+
+
+def session_model(payload):
+    """The running model as the harness reports it: the SessionStart payload's `model`, which Claude Code does not always
+    send, else the model of the transcript's last assistant entry; None when neither names one."""
+    m = payload.get('model')
+    if isinstance(m, dict):
+        m = m.get('id')
+    if isinstance(m, str) and m.strip():
+        return model_id(m)
+    path = payload.get('transcript_path')
+    if not path:
+        return None
+    try:
+        with open(path, 'rb') as f:
+            f.seek(0, 2)
+            f.seek(max(0, f.tell() - TRANSCRIPT_TAIL))
+            lines = f.read().decode('utf-8', 'replace').splitlines()
+    except OSError:
+        return None
+    for line in reversed(lines):
+        try:
+            entry = json.loads(line)
+        except ValueError:
+            continue
+        if not isinstance(entry, dict) or entry.get('type') != 'assistant' or entry.get('isSidechain'):
+            continue
+        m = (entry.get('message') or {}).get('model')
+        if isinstance(m, str) and m and not m.startswith('<'):
+            return model_id(m)
+    return None
+
+
+def is_effort_set(model):
+    return any(fnmatch.fnmatchcase(model, p) for p in effort_set())
+
+
+def model_note(payload):
+    """The line lifting skills/thinking.md, printed once per session and model, when the harness names an effort-set
+    model, and its reversal when the session moves off one. A model the gate cannot name gets no line: the rules hold."""
+    model = session_model(payload)
+    if not model:
+        return None
+    key = f'{session_key()}:model'
+    record = load()
+    prev = (record.get(key) or {}).get('model')
+    if prev == model:
+        return None
+    record[key] = {'model': model, 'at': time.time()}
+    save(record)
+    if is_effort_set(model):
+        return (f'This session runs on `{model}`, whose thinking depth effort sets: `skills/thinking.md` does not apply '
+                'to it.')
+    if prev and is_effort_set(prev):
+        return f'This session now runs on `{model}`: `skills/thinking.md` applies again.'
+    return None
+
+
 def forget_session():
     """Drop every read this session recorded; a compaction took them out of context."""
     prefix = f'{session_key()}:'
@@ -760,15 +841,16 @@ def forget_session():
 
 
 INTRO = ('Principles, Invariants, the words the user types and the register are in context through '
-         '`CLAUDE.md`, which imports the workspace `AGENTS.md`, `skills/shortcuts.md` and '
-         '`skills/short-form.md`. Every other rule, `skills/reply.md` included, is read whole with the '
+         '`CLAUDE.md`, which imports the workspace `AGENTS.md`, `skills/shortcuts.md`, '
+         '`skills/short-form.md` and `skills/thinking.md`. Every other rule, `skills/reply.md` included, is read whole with the '
          'Read tool before its first command, and that read is what the gate records; '
          './scripts/skill <name> names its path.')
 
 
 def cmd_session_start(stdin, stdout):
     """Sync on startup and clear, and record the CLAUDE.md imports as read; after a compaction or a resume, forget the session's reads and name them for re-reading."""
-    source = _payload(stdin).get('source', 'startup')
+    payload = _payload(stdin)
+    source = payload.get('source', 'startup')
     extra = []
     names = []
     if source in ('startup', 'clear'):
@@ -783,6 +865,9 @@ def cmd_session_start(stdin, stdout):
     for name in IMPORTED:
         record_read(name)
     extra.append(INTRO)
+    note = model_note(payload)
+    if note:
+        extra.append(note)
     point(names, 'Read again, since the compaction dropped them from context:', 'SessionStart', stdout, extra)
     return 0
 
@@ -792,7 +877,8 @@ def cmd_prompt(stdin, stdout):
     payload = _payload(stdin)
     prompt = str(payload.get('prompt', ''))
     names = [n for n in prompt_reads(prompt) if not is_read(n)]
-    extra = []
+    note = model_note(payload)
+    extra = [note] if note else []
     point(names, 'Rules this prompt calls for, unread this session. Read each whole with the Read tool '
                  'before the first command; the read is recorded then.', 'UserPromptSubmit', stdout, extra)
     return 0

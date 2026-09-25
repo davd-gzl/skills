@@ -913,3 +913,54 @@ class IdentityRefusal(unittest.TestCase):
 
     def test_a_message_quoting_the_words_passes(self):
         self.assertEqual(self.run_hook('./scripts/commit -m "gate: a commit that sets user.name or --author is refused" a.md'), 0)
+
+
+class ModelNote(GateCase):
+    def setUp(self):
+        super().setUp()
+        (self.root / 'skills' / 'thinking.md').write_text(
+            '---\nname: thinking\neffort-set: [claude-opus-5*, claude-fable-5*]\n---\n\n# Thinking\n')
+
+    def transcript(self, *models):
+        path = self.root / 'transcript.jsonl'
+        rows = [{'type': 'user', 'message': {'content': 'hi'}}]
+        rows += [{'type': 'assistant', 'message': {'model': m}} for m in models]
+        path.write_text('\n'.join(json.dumps(r) for r in rows) + '\n')
+        return {'transcript_path': str(path)}
+
+    def test_model_id_drops_provider_version_and_context_suffix(self):
+        self.assertEqual(gate.model_id('us.anthropic.claude-opus-5-5-v1:0'), 'claude-opus-5-5')
+        self.assertEqual(gate.model_id('claude-opus-5-5[1m]'), 'claude-opus-5-5')
+        self.assertEqual(gate.model_id('deepseek/deepseek-reasoner'), 'deepseek-reasoner')
+        self.assertEqual(gate.model_id('claude-opus-4-5@20251101'), 'claude-opus-4-5')
+
+    def test_payload_model_lifts_the_rules_once(self):
+        note = gate.model_note({'model': 'claude-opus-5-5'})
+        self.assertIn('does not apply', note)
+        self.assertIsNone(gate.model_note({'model': 'claude-opus-5-5'}))
+
+    def test_transcript_names_the_model_when_the_payload_does_not(self):
+        self.assertIn('claude-fable-5-1', gate.model_note(self.transcript('deepseek-chat', 'claude-fable-5-1')))
+
+    def test_synthetic_and_sidechain_entries_are_skipped(self):
+        payload = self.transcript('claude-opus-5-5', '<synthetic>')
+        with open(payload['transcript_path'], 'a') as f:
+            f.write(json.dumps({'type': 'assistant', 'isSidechain': True, 'message': {'model': 'deepseek-chat'}}) + '\n')
+        self.assertEqual(gate.session_model(payload), 'claude-opus-5-5')
+
+    def test_a_model_outside_the_set_gets_no_line(self):
+        self.assertIsNone(gate.model_note({'model': 'deepseek-reasoner'}))
+        self.assertIsNone(gate.model_note({'model': 'claude-haiku-4-5'}))
+
+    def test_moving_off_an_effort_set_model_restores_the_rules(self):
+        gate.model_note({'model': 'claude-opus-5'})
+        self.assertIn('applies again', gate.model_note({'model': 'deepseek-reasoner'}))
+
+    def test_an_unnamed_model_keeps_the_rules(self):
+        self.assertIsNone(gate.model_note({}))
+        self.assertIsNone(gate.model_note({'transcript_path': str(self.root / 'missing.jsonl')}))
+
+    def test_prompt_hook_prints_the_line(self):
+        out = io.StringIO()
+        gate.cmd_prompt(io.StringIO(json.dumps({'prompt': 'hello', **self.transcript('claude-opus-5-5')})), out)
+        self.assertIn('does not apply', json.loads(out.getvalue())['hookSpecificOutput']['additionalContext'])

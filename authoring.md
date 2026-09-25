@@ -32,6 +32,7 @@ never blocks: a rough rule lands, and a later pass fixes it.
 | One task, whatever the repository: reviewing, drafting a body, filing an issue | The matching `skills/<task>.md` |
 | Visible prose of any kind | `skills/writing-style.md`, which every other skill defers to |
 | What the user's words start | `skills/shortcuts.md` |
+| How the thinking before a reply is written, which a model whose thinking effort sets skips | `skills/thinking.md`, its `effort-set` patterns naming the models the gate lifts it for |
 | The shape of a reply to the user | `skills/reply.md` |
 | One repository: its merge style, its CI, its glossary, its boot recipe | `projects/<repo>/AGENTS.md` |
 | How this workspace runs: which skill a task takes, where a finding is logged, what the session start does | `workspace.md` |
@@ -151,11 +152,12 @@ one pass.
   to the whole file. Split into a second file only where the sections are
   separate documents to whoever edits them. `./scripts/skill <name>` prints the
   path the gate hands over.
-- A skill `CLAUDE.md` imports, `shortcuts.md` and `short-form.md`, is never cut,
+- A skill `CLAUDE.md` imports, `shortcuts.md`, `short-form.md` and `thinking.md`, is never cut,
   whatever its frontmatter says: it is in context as the session opens, every
   turn runs on it, and a `prompt-sections` line there changes nothing. A hook
   cannot stand in for the import, since a hook's context reaches the model as a
-  stub naming a file from 10 KB and those two are 9.1 KB before the sync line.
+  stub naming a file from 10 KB and those three are past it on their own,
+  `wc -c` printing the size.
 - A subagent gets the skills its own artifact needs and no others. It answers
   the parent and never the user, so the words the user types and the register are
   dead weight in its context, and it inherits them anyway through `CLAUDE.md`,

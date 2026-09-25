@@ -19,6 +19,7 @@ here and not a fact.
 - Prompt-based length control works but is not robust across models, so a wording is measured. Sources: [Stop overthinking](https://arxiv.org/abs/2503.16419), [Concise and adaptive thinking](https://arxiv.org/pdf/2507.09662).
 - Claude's adaptive thinking follows system-prompt guidance, wording-sensitive; effort is the calibrated lever and comes first, and a change is measured on sample traffic. Sources: [Steering thinking](https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost), [Effort](https://platform.claude.com/docs/en/build-with-claude/effort).
 
-Changes: *Claims* in `skills/short-form.md`: no prose shapes the thinking,
-since on a model whose thinking is always on effort is the one control, and a
-claim in the reply rests on a command.
+Changes: `skills/thinking.md`: length by difficulty and never a count, each
+step opening with how it is known, one pass, nothing already in context
+restated, lifted where effort sets the model's thinking; *Claims* in
+`skills/short-form.md`: a claim in the reply rests on a command.

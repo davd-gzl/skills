@@ -211,6 +211,7 @@ own argument and waits for the outcome table to measure it.
 | [`report.md`](report.md) | a periodic status report over a set of repositories | the report, generated only after I have edited its context file |
 | [`git.md`](git.md) | a turn will commit, push, sync a checkout, or touch a submodule or worktree | the identity every commit takes, where a push goes, the commands that report success and move nothing |
 | [`writing-style.md`](writing-style.md) | any visible prose, in any project | the rules every other skill defers to, the closing Pass, the chat register, the posted-comment shape |
+| [`thinking.md`](thinking.md) | every reply on a model no effort setting controls | how the thinking before it is written |
 | [`shortcuts.md`](shortcuts.md) | the user types a word | what each word starts, the one place a word is defined |
 | [`reply.md`](reply.md) | every reply, in any workspace | what it opens with, the `Did:` block, the closing block, its links |
 | [`authoring.md`](authoring.md) | a rule is added, edited or removed | where it lives, the shape it takes, what it displaces, the turns it must not add; its sources sit in `knowledge/`, never in the rule |
@@ -227,8 +228,12 @@ Short form is the register every chat reply takes, defined in
 [`writing-style.md`](writing-style.md). The rules live there and are not
 restated here.
 
-No rule shapes the thinking before a reply: its depth is `effort`, the
-evidence in [`knowledge/thinking-length-follows-difficulty.md`](knowledge/thinking-length-follows-difficulty.md).
+How the thinking before a reply is written is [`thinking.md`](thinking.md),
+imported for every model. The gate reads the running model from the harness,
+the `SessionStart` payload or the transcript's last assistant entry, and on a
+model its `effort-set` patterns match prints one line lifting it, since effort
+sets that model's thinking; a model it cannot name keeps the rules. The
+evidence is in [`knowledge/thinking-length-follows-difficulty.md`](knowledge/thinking-length-follows-difficulty.md).
 `reply-check.py` measures the reply and not the thinking.
 
 [`archive/chat-register/`](archive/chat-register/) is the harness that chose the
@@ -258,8 +263,8 @@ through [`scripts/skill`](scripts/skill), `./scripts/skill review` for a skill,
 `./scripts/skill pr-body/docs` for a shape, `./scripts/skill meet` for a
 project's delta. It puts the skills a write still lacks into the context with a
 warning and lets the write through, and names the rules by path for the Read
-tool: the two files `CLAUDE.md` imports as the session opens, `shortcuts` and
-`short-form`, recorded as read; the task's and the
+tool: the files `CLAUDE.md` imports as the session opens, `shortcuts`,
+`short-form` and `thinking`, recorded as read; the task's and the
 repository's on the prompt
 that names them; everything the session had read, again after a compaction. A
 read holds while the file's

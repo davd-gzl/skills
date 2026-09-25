@@ -21,8 +21,8 @@ in `skills/writing-style.md`, which keeps full sentences.
 
 ## Claims
 
-How long the model thinks is `effort`'s, set per stage and per session, and no
-rule here shapes the thinking.
+These bind every model. How the thinking is written is `skills/thinking.md`,
+which the gate lifts for a model whose thinking depth effort sets.
 
 - **A claim the reply makes rests on a command run this session**, or goes out named as the inference it is. The gap that costs most is between what a command returned and what the sentence asserts from it.
 - An unknown fact gets its command before anything builds on it, and the command returns the smallest output that settles it: a count, a `head`, a `--stat`, a grep, since every tool result stays in context for every later turn and the reply does not.

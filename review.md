@@ -56,7 +56,8 @@ Inside the word, the reach of one reading sets how many agents run:
 
 | Shape | When | Stages |
 | --- | --- | --- |
-| solo | the diff and its callers fit one careful read on the session's model, per its note under `skills/knowledge/models/` | a finder, then one fresh agent that answers the *Reflector*'s completeness question, judges, runs every Critical and Warning, and writes the draft, `claims.md` and the overview: `args.solo` true, `solo.agents` 2 |
+| solo | the diff and its callers fit one careful read on the session's model, per its note under `skills/knowledge/models/` | a finder, then one fresh agent that answers the *Reflector*'s completeness question, judges, runs every Critical and Warning, and writes the draft, `claims.md` and the overview: `args.solo` true, `solo.agents` 2, and no triage |
+| solo, wider | as solo, where one pass over every angle would come back thin: the diff spans several code files, or it moves a consensus, gas, funds or permission path | `solo.finders` N ahead of that same judge, run side by side, the angles dealt round-robin so each reads the whole diff through fewer questions; `./scripts/review-plan.py --solo --set solo.finders=<N>` prints the cost |
 | pipeline | they do not | the triage where no class is named, the finders, the reflector, the judges, the writer, the text pass and the overview, each as the word configures it |
 
 1. Prepare, per *Fetch & understand*, and dispatch the overview agent the moment the head worktree exists.

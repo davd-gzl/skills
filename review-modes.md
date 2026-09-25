@@ -65,7 +65,8 @@ unchanged; an estimate until a blind round measures it.
 
 Check with `gh pr view <number> --json author`. Findings land as commits on the branch, never as a review to post.
 
-- Draft nothing for a reader: no `comment_<model>.md`, no `claims.md`, no `pr-body.md`, no text pass, and post nothing. The round ends at `findings.md` and the fixes come off it in the same turn.
+- Draft nothing for a reader: no `comment_<model>.md`, no `pr-body.md`, no text pass, and post nothing. `claims.md` is the record `round assemble` writes, never drafted by hand. The round ends at `findings.md` and the fixes come off it in the same turn.
+- Launch with `args.own_pr` true, and print its cost with `./scripts/review-plan.py --own-pr`: the runner then stops at `findings.md` in a solo round and a pipeline round alike, and returns one line per CONFIRMED finding saying whether its fix is mechanical or a decision.
 - Write `overview.md`, which the next round on the target reads.
 - Apply every mechanical fix in the checkout the review uses: comments, docs, tests, naming, dead code. Then *Fix* step 7 in `skills/change.md`, the local CI run, until green.
 - Never apply without asking: observable behavior changes, fixes to defects predating the branch, anything a maintainer would treat as a design decision. Present each as a named decision.

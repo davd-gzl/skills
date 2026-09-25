@@ -21,7 +21,7 @@ Use when `$ARGUMENTS` contains more than one target.
 3. Runs proceed concurrently, never sequenced.
    Corrections to a dispatched agent go in one message, sent once every QA result is in: a resumed agent replays its whole transcript, so each message costs the round again. Prose edits are the parent's own; an agent is resumed only for a run.
 4. The parent runs the *Final check* in `skills/review-comment.md` over every returned draft, before the commit. A subagent's own pass never stands in for it.
-5. After all return, the parent makes a single commit covering all reviews, its subject naming every target; its push waits for `push`.
+5. After all return, the parent makes a single commit covering all reviews, its subject naming every target, pushed as *Consent* in the workspace `AGENTS.md` says for its repository.
 6. Reconcile before handing over. When agents on coupled targets disagree, re-derive the answer from the source, name the constraint both sides must satisfy, and write the same conclusion into every affected draft. Never ship contradicting drafts, and never settle it by taking one agent's summary.
 
 A batch target set, "review all": every open non-draft target absent from the review directory, minus bot-authored, WIP-titled, reviewer-authored, and already-reviewed ones. Check the forge itself per target, not only the review directory, and drop on any hit. Confirm the final list with the user before reviewing more than one target, naming what was dropped and why.

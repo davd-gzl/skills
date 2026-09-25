@@ -64,7 +64,7 @@ Inside the word, the reach of one reading sets how many agents run:
 3. *Reproduce the failure*: each suite once per tree state, the project's tool built once from the head worktree, named in `args.prebuilt`; a tool whose source lives in another repository is pinned there, per that section.
 4. Print the plan and launch, per *Launch*; the parent names the class, the triage only where the parent has not read the diff whole, and the stages read *Finders*, *Reflector*, *Verifiers*, *Writer* and *Text pass*. A target fixing a reported vulnerability launches with its bounds as `args.topics`, per *The critical pass*.
 5. Run the *Final check* of `skills/review-comment.md`, then the `skills/writing-style.md` Pass over `overview.md` and the draft, `./scripts/prose-check.py <file>` first; re-run it after any later edit to that prose, an edit made in answer to a question included; the handover lists every row it still prints, each with the reason it stays.
-6. One commit covering everything, per *Rules*; its push waits for `push`.
+6. One commit covering everything, per *Rules*; it is pushed as *Consent* in the workspace `AGENTS.md` says for its repository.
 7. Retro, per *Retro*.
 8. Hand over, per *Handover*.
 
@@ -557,8 +557,8 @@ When a posted round's target merges or closes, `./scripts/review-outcomes.py <dr
 - Delete empty sections' headings. Never write "None".
 - Priority order: correctness > security > determinism > state safety > tests > docs > style.
 - A diff spanning several packages or directories is summarized by area first, then its critical paths in depth.
-- One commit covers the round, to this repo only, and goes out on the word `push`, per *Consent* in the workspace `AGENTS.md`.
-- Fold a late finding into the draft and `claims.md`, verify it with a real run, and commit in the same turn without asking. The push waits for `push` and posting for `post`.
+- One commit covers the round, to this repo only, pushed as *Consent* in the workspace `AGENTS.md` says for this repo.
+- Fold a late finding into the draft and `claims.md`, verify it with a real run, and commit in the same turn without asking. The push follows *Consent* in the workspace `AGENTS.md`, and posting waits for `post`.
 - Never push to a reviewed repo's canonical remote; a fix branch goes to the fork.
 - Reviews may be published. A finding exploitable against already-merged or deployed code is not: it takes the disclosure gate in the workspace `AGENTS.md` Invariants before anything is written. A finding on an open PR's own diff is fine at any severity.
 

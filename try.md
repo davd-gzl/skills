@@ -65,8 +65,6 @@ Stills and a scripted walkthrough come from `./scripts/capture-web.mjs`, headles
 
 Playwright's bundled ffmpeg writes webm only, and a `.gif` or `.mp4` output fails with `Error initializing the muxer`, which reads as a bad filter string and is not one. `./scripts/setup-browser-recording.sh` installs a static ffmpeg and the shared libraries Chromium needs, without root; convert with `fps=10,scale=640:-1` plus `palettegen` and `paletteuse`. What this machine can do is `./scripts/env-check.sh capture`, never a fact written down here.
 
-A private workspace cannot embed the GIF in a comment on someone else's repo: say so rather than shipping a link that renders broken.
-
 ## Teardown
 
 The worktree and the stack survive the turn. On `stop`, kill the processes, remove the worktree, and leave the checkout as it was found.

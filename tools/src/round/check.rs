@@ -216,6 +216,7 @@ fn run(args: &[String]) -> Result<Vec<Hit>, String> {
     if let Ok(text) = fs::read_to_string(&overview) {
         hits.extend(check_text("overview.md", &text, false));
         hits.extend(overview_state(&text));
+        hits.extend(overview_tldr(&text));
     }
     if let Some(list) = opts.get("private") {
         hits.extend(private_names(round, list)?);
@@ -257,6 +258,15 @@ fn overview_state(text: &str) -> Vec<Hit> {
         }
     }
     hits
+}
+
+/// The overview's `## TLDR` section, which the skeleton in *Overview* of review.md opens on: a reader
+/// who stops there has the whole answer, and a writer sizing the file to a short change drops it.
+fn overview_tldr(text: &str) -> Vec<Hit> {
+    if prose_lines(text).iter().any(|(_, l)| l.trim_end() == "## TLDR") {
+        return Vec::new();
+    }
+    vec![Hit { file: "overview.md".into(), line: 1, what: "overview without its ## TLDR section".into() }]
 }
 
 /// Every whole-word hit of a name in `list` over the round's draft, claims.md, candidates/ and
@@ -364,7 +374,7 @@ mod tests {
 
     #[test]
     fn a_bare_number_reference_is_a_hit_and_a_qualified_or_linked_one_is_not() {
-        let round = round_with("check-bare", "# Review: [#160](https://github.com/o/r/pull/160)\nEvent: COMMENT\n\n## pkg/a.go:10 [gh](https://x/a.go#L10) \u{b7} Warning\nPR #160's bound, posted where it resolves.\n", "# S\n\n[Issue #159](https://x) and o/r#12 and `#9`.\n");
+        let round = round_with("check-bare", "# Review: [#160](https://github.com/o/r/pull/160)\nEvent: COMMENT\n\n## pkg/a.go:10 [gh](https://x/a.go#L10) \u{b7} Warning\nPR #160's bound, posted where it resolves.\n", "# S\n\n[Issue #159](https://x) and o/r#12 and `#9`.\n\n## TLDR\n");
         fs::write(round.join("claims.md"), "# Claims: #160 round 1\n").unwrap();
         let code = check_cmd(&[round.display().to_string()]);
         assert_eq!(code, 1);
@@ -375,7 +385,7 @@ mod tests {
 
     #[test]
     fn a_private_name_in_a_candidate_is_a_hit() {
-        let round = round_with("check-private", "# Review\n\n## pkg/a.go:10 [gh](https://x/a.go#L10) \u{b7} Warning\nFine.\n", "# S\n\nOk.\n");
+        let round = round_with("check-private", "# Review\n\n## pkg/a.go:10 [gh](https://x/a.go#L10) \u{b7} Warning\nFine.\n", "# S\n\nOk.\n\n## TLDR\n");
         fs::create_dir_all(round.join("candidates")).unwrap();
         fs::write(round.join("candidates").join("find-1.json"), "{\"summary\": \"tracked in acme/secret-fixes#12\"}\n").unwrap();
         let list = round.join("names.txt");
@@ -388,7 +398,7 @@ mod tests {
 
     #[test]
     fn an_absolute_path_in_the_record_is_a_hit_and_a_repo_path_is_not() {
-        let round = round_with("check-abs", "# Review\n\n## pkg/a.go:10 [gh](https://x/a.go#L10) \u{b7} Warning\nRun `go test ./pkg` from the clone.\n", "# S\n\nOk.\n");
+        let round = round_with("check-abs", "# Review\n\n## pkg/a.go:10 [gh](https://x/a.go#L10) \u{b7} Warning\nRun `go test ./pkg` from the clone.\n", "# S\n\nOk.\n\n## TLDR\n");
         fs::create_dir_all(round.join("verdicts")).unwrap();
         fs::write(round.join("verdicts").join("judge-1.json"), "{\"evidence\": \"grep -n Foo /home/someone/work/.worktrees/repo-1/pkg/a.go: 12\"}\n").unwrap();
         fs::write(round.join("claims.md"), "| 1 | CONFIRMED | Warning | pkg/a.go:10 | grep -n Foo pkg/a.go | 12 | | hot |\n").unwrap();
@@ -401,7 +411,7 @@ mod tests {
 
     #[test]
     fn a_scratch_path_in_a_test_artifact_is_a_hit_and_a_repro_path_is_not() {
-        let round = round_with("check-tests", "# Review\n\n## pkg/a.go:10 [gh](https://x/a.go#L10) \u{b7} Warning\nFine.\n", "# S\n\nOk.\n");
+        let round = round_with("check-tests", "# Review\n\n## pkg/a.go:10 [gh](https://x/a.go#L10) \u{b7} Warning\nFine.\n", "# S\n\nOk.\n\n## TLDR\n");
         fs::create_dir_all(round.join("tests")).unwrap();
         fs::write(round.join("tests").join("judge-1-x.patch"), "--- a/pkg/a.go\n+++ /tmp/agent-workspace/s/work/judge-1/pkg/a.go\n").unwrap();
         fs::write(round.join("tests").join("find-2-y.sh"), "go build -o /tmp/gnopreview .\n").unwrap();
@@ -425,7 +435,7 @@ mod tests {
         let round = round_with(
             "check-clean",
             "# Review\nEvent: COMMENT\n\n## pkg/a.go:10 [gh](https://x/a.go#L10) \u{b7} Warning\nThe clamp is missing.\n\n```go\n// a — dash in code is fine?\n```\n",
-            "# Subject\n\nWhat it is for.\n",
+            "# Subject\n\nWhat it is for.\n\n## TLDR\n",
         );
         assert_eq!(check_cmd(&[round.display().to_string()]), 0);
         assert_eq!(
@@ -442,7 +452,7 @@ mod tests {
         let round = round_with(
             "check-dirty",
             "# Review\n\n## SKIP pkg/a.go:10\nIs the clamp missing?\nFull review: elsewhere\n\n## pkg/b.go:4-6 [gh](https://x)\nSee below — the guard.\n",
-            "# Subject\n\nAs mentioned, the tree — see above.\n",
+            "# Subject\n\nAs mentioned, the tree — see above.\n\n## TLDR\n",
         );
         assert_eq!(check_cmd(&[round.display().to_string()]), 1);
         let table = fs::read_to_string(round.join("check.md")).unwrap();
@@ -485,7 +495,7 @@ mod tests {
         let round = round_with(
             "check-state",
             "# Review\nVerdict: CI is red.\n\n## pkg/a.go:10 [gh](https://x) \u{b7} Warning\nMerged with develop the job fails; rebase onto it.\n\n<details><summary>repro</summary>\n\nthe CI log\n</details>\n\n## SKIP pkg/b.go:4 [gh](https://x) \u{b7} Nit\nA flaky test.\n",
-            "# Subject\n\nVerdict: approve at 3f680fa12.\n",
+            "# Subject\n\nVerdict: approve at 3f680fa12.\n\n## TLDR\n",
         );
         assert_eq!(check_cmd(&[round.display().to_string()]), 1);
         let table = fs::read_to_string(round.join("check.md")).unwrap();
@@ -498,6 +508,14 @@ mod tests {
             assert!(table.contains(what), "{what} missing in\n{table}");
         }
         assert_eq!(table.matches("names CI").count(), 1, "the header, the fold and the SKIP section never count: {table}");
+    }
+
+    #[test]
+    fn an_overview_without_its_tldr_is_a_hit() {
+        let round = round_with("check-tldr", "# Review\nEvent: COMMENT\n\n## pkg/a.go:10 [gh](https://x/a.go#L10) \u{b7} Warning\nThe clamp is missing.\n", "# Subject\n\n## What it is for\nIt caches.\n");
+        assert_eq!(check_cmd(&[round.display().to_string()]), 1);
+        let table = fs::read_to_string(round.join("check.md")).unwrap();
+        assert!(table.contains("| overview.md | 1 | overview without its ## TLDR section |"), "{table}");
     }
 
     #[test]

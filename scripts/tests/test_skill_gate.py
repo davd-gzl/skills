@@ -776,6 +776,30 @@ class PublishWordsRoundNine(PublishWordsRoundEight):
             self.assertEqual(self.hook(cmd)[0], 0, cmd)
 
 
+class PublishWordsRoundTen(PublishWordsRoundNine):
+    """What the tenth check round found."""
+
+    def test_a_script_file_or_heredoc_run_by_a_shell_is_read(self):
+        other = self.repo('https://github.com/me/public.git')
+        (self.root / 'p.sh').write_text(f'cd {other}\ngit push origin HEAD:x\n')
+        self.assertEqual(self.hook(f'bash {self.root}/p.sh')[0], 2)
+        self.assertEqual(self.hook(f"cat > {self.root}/q.sh <<'SH'\ncd {other}\ngit push origin HEAD:x\nSH\nbash {self.root}/q.sh")[0], 2)
+        self.assertEqual(self.hook(f"bash <<'EOF'\ncd {other}\ngit push origin fix-x\nEOF")[0], 2)
+        (self.root / 'ok.sh').write_text('echo hello\n')
+        self.assertEqual(self.hook(f'bash {self.root}/ok.sh')[0], 0)
+        self.assertEqual(self.hook(f'bash -n {self.root}/p.sh')[0], 0, 'a syntax check runs nothing')
+        (self.root / 'scripts').mkdir(exist_ok=True)
+        (self.root / 'scripts' / 'verb.sh').write_text(f'cd {other}\ngit push origin HEAD:x\n')
+        self.assertEqual(self.hook(f'bash {self.root}/scripts/verb.sh')[0], 0, "the workspace's own tooling is not read")
+        py = f"python3 - <<'PY'\nimport os\nos.system('git push')\nPY\nbash -n {self.root}/p.sh"
+        self.assertEqual(self.hook(py)[0], 0, 'a python heredoc is not a shell script')
+
+    def test_a_repository_in_a_variable_is_filled(self):
+        (self.root / 'workspace.json').write_text(json.dumps({'word_for_every_change': ['up/strict']}))
+        self.assertEqual(self.hook('R=up/strict; gh api -X PATCH repos/$R/pulls/6 -F body=@b.md')[0], 2)
+        self.assertEqual(self.hook('R=up/strict; gh pr edit 6 -R "$R" --body-file b.md')[0], 2)
+
+
 class HookRead(GateCase):
     def read(self, payload):
         return gate.main(['hook-read'], stdin=io.StringIO(json.dumps(payload)))

@@ -957,6 +957,47 @@ WRAPPERS = {'timeout': ({'-s', '--signal', '-k', '--kill-after'}, 1), 'nice': ({
             'stdbuf': ({'-i', '-o', '-e'}, 0), 'nohup': (set(), 0), 'exec': ({'-a'}, 0), 'command': (set(), 0)}
 
 
+SHELLS = {'bash', 'sh', 'zsh', 'fish', 'dash'}
+POST_SCRIPTS = {'post', 'post-review.sh', 'post-fix.sh', 'post-pr-review.py', 'pr-body-apply'}
+
+
+def _heredoc_bodies(cmd):
+    return [m.group(3) for m in re.finditer(r'<<-?\s*([\'"]?)(\w+)\1.*?\n(.*?)\n\s*\2\b', cmd, re.S)]
+
+
+def _names(cmd):
+    """The shell variables a line assigns, NAME=value, for filling a path or a repository."""
+    return dict(re.findall(r'(?:^|[\s;&|(])([A-Za-z_][A-Za-z0-9_]*)=["\']?([^\s;&|()"\']+)', cmd))
+
+
+def _fill(v, names):
+    for _ in range(4):
+        v = re.sub(r'\$\{?([A-Za-z_][A-Za-z0-9_]*)\}?', lambda m: names.get(m.group(1), os.environ.get(m.group(1), m.group(0))), v)
+    return os.path.expanduser(v.strip('"\''))
+
+
+def _shell_script(cmd, path):
+    """What a shell runs from a file or from stdin: the file, the heredoc this line writes into it,
+    or the heredoc fed straight to the shell. The workspace's own scripts/ are its tooling, governed
+    by their own words, and are not read."""
+    names = _names(cmd)
+    if path:
+        full = os.path.realpath(_fill(path, names))
+        tooling = [str(root() / 'scripts'), str(root() / 'skills' / 'scripts')]
+        if any(full.startswith(d + os.sep) for d in tooling):
+            return None
+        try:
+            return open(full, encoding='utf-8', errors='replace').read()
+        except OSError:
+            pass
+        for m in re.finditer(r'>\s*(\S+)\s*<<-?\s*([\'"]?)(\w+)\2.*?\n(.*?)\n\s*\3\b', cmd, re.S):
+            if os.path.realpath(_fill(m.group(1), names)) == full:
+                return m.group(4)
+        return None
+    bodies = [m.group(4) for m in re.finditer(r'\b(bash|sh|zsh|dash)\b[^\n]*?<<-?\s*([\'"]?)(\w+)\2.*?\n(.*?)\n\s*\3\b', cmd, re.S)]
+    return '\n'.join(bodies) or None
+
+
 def _strip_heredocs(cmd):
     out, lines, i = [], cmd.split('\n'), 0
     while i < len(lines):
@@ -1031,6 +1072,18 @@ def _segments(cmd, depth=0, ops=False):
                 kept.append(x)
         t = kept
         if not t:
+            continue
+        files = [x for x in t[1:] if not x.startswith('-')]
+        if os.path.basename(t[0]) in SHELLS and any(re.match(r'^-[A-Za-z]*n[A-Za-z]*$', x) for x in t[1:]):
+            continue  # -n reads a script for syntax and runs nothing
+        if os.path.basename(t[0]) in SHELLS and files and os.path.basename(files[0]) in POST_SCRIPTS:
+            t = t[t.index(files[0]):]
+        elif os.path.basename(t[0]) in SHELLS and depth < 3 and not any(re.match(r'^-[A-Za-z]*c[A-Za-z]*$', x) for x in t[1:]):
+            if any(re.match(r'^-[A-Za-z]*n[A-Za-z]*$', x) for x in t[1:]):
+                continue  # -n reads the script for syntax and runs nothing
+            script = _shell_script(cmd, files[0] if files else None)
+            if script:
+                yield from _segments(script, depth + 1, ops)
             continue
         if t[0] == 'eval' and depth < 3:
             yield from _segments(' '.join(t[1:]), depth + 1)
@@ -1152,12 +1205,14 @@ def publish_words(cmd, cwd=None):
     """Each set is one publish on the line, satisfied by any of its words; every set needs its own."""
     needs = []
     strict = every_change_repos()
+    names = _names(cmd)
     for t in _segments(cmd):
+        t = [_fill(x, names) if '$' in x and not x.startswith('$(') else x for x in t]
         if len(t) >= 2 and t[0] in ('cd', 'pushd'):
             cwd = os.path.join(cwd or os.getcwd(), os.path.expanduser(t[1].strip('"\'')))
             continue
         name = os.path.basename(t[0])
-        if name in ('post', 'post-review.sh', 'post-fix.sh', 'post-pr-review.py') and not _dry(t):
+        if name in POST_SCRIPTS - {'pr-body-apply'} and not _dry(t):
             needs.append({'post', 'upload'})
         if name == 'pr-body-apply' and not _dry(t):
             for arg in t[1:]:

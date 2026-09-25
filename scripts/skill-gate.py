@@ -1023,9 +1023,19 @@ def _segments(cmd, depth=0, ops=False):
         if t[0] == 'eval' and depth < 3:
             yield from _segments(' '.join(t[1:]), depth + 1)
             continue
-        if os.path.basename(t[0]) in RUNNERS and len(t) > 2 and re.match(r'^-[a-z]*c[a-z]*$', t[1]) and depth < 3:
-            yield from _segments(t[2], depth + 1, ops)
-            continue
+        if os.path.basename(t[0]) in RUNNERS and depth < 3:
+            i, script = 1, None
+            while i < len(t) and t[i].startswith('-'):
+                if t[i] in ('-o', '+o', '-O', '+O'):
+                    i += 2
+                    continue
+                if re.match(r'^-[A-Za-z]*c[A-Za-z]*$', t[i]) and i + 1 < len(t):
+                    script = t[i + 1]
+                    break
+                i += 1
+            if script is not None:
+                yield from _segments(script, depth + 1, ops)
+                continue
         if os.path.basename(t[0]) in RUNNERS and len(t) > 1 and not t[1].startswith('-'):
             t = t[1:]
         t[0] = os.path.basename(t[0]) if t[0].endswith(('/gh', '/git')) else t[0]
@@ -1084,11 +1094,30 @@ def every_change_repos():
         return set()
 
 
-def publish_words(cmd):
+def _gh_repos(t, cwd):
+    out = set()
+    for i, x in enumerate(t):
+        if x in ('-R', '--repo') and i + 1 < len(t):
+            out.add(t[i + 1])
+        elif x.startswith('--repo='):
+            out.add(x.split('=', 1)[1])
+        m = re.match(r'https://github\.com/([^/\s]+/[^/\s]+)/pull/\d+', x)
+        if m:
+            out.add(m.group(1))
+    if not out and cwd:
+        remotes = subprocess.run(['git', '-C', cwd, 'remote', '-v'], capture_output=True, text=True).stdout
+        out |= {f'{a}/{b}' for a, b in re.findall(r'github\.com[:/]([^/\s]+)/([^/\s]+?)(?:\.git)?\s', remotes)}
+    return out
+
+
+def publish_words(cmd, cwd=None):
     """Each set is one publish on the line, satisfied by any of its words; every set needs its own."""
     needs = []
     strict = every_change_repos()
     for t in _segments(cmd):
+        if len(t) >= 2 and t[0] in ('cd', 'pushd'):
+            cwd = os.path.join(cwd or os.getcwd(), os.path.expanduser(t[1].strip('"\'')))
+            continue
         name = os.path.basename(t[0])
         if name in ('post-review.sh', 'post-fix.sh', 'post-pr-review.py') and not _dry(t):
             needs.append({'post', 'upload'})
@@ -1110,9 +1139,11 @@ def publish_words(cmd):
             needs.append({'close'})
         elif r[1] == 'delete':
             needs.append({'delete'})
-        elif verb == ('repo', 'sync') and '--force' in t:
-            needs.append({'force'})
-        elif verb == ('pr', 'edit') and next((t[i + 1] for i, x in enumerate(t[:-1]) if x in ('-R', '--repo')), '') in strict:
+        elif verb == ('repo', 'sync'):
+            # A sync writes a branch of the user's repository: a push, and with --force a reset,
+            # which Invariant 8 never allows.
+            needs.append({'\x00never'} if '--force' in t else {'push'})
+        elif verb == ('pr', 'edit') and _gh_repos(t, cwd) & strict:
             needs.append({'post'})
         elif r[0] == 'api':
             method = None
@@ -1126,7 +1157,7 @@ def publish_words(cmd):
             fields = _field_values(t)
             has_input = '--input' in t
             path = next((x for x in r[1:] if not x.startswith('-') and ('/' in x or x in ('graphql', 'markdown'))), '')
-            if path == 'markdown':
+            if path.split('/')[0] == 'markdown':
                 continue
             if path == 'graphql':
                 query = ' '.join(_read_at(v.split('=', 1)[1]) for v in fields if v.startswith('query='))
@@ -1187,6 +1218,7 @@ def push_targets(cmd, cwd):
     """(repository, forced) for each git push on the line; repository is owner/name or None."""
     out = []
     here = cwd or os.getcwd()
+    here_raw = ''
     names = dict(re.findall(r'(?:^|[\s;&|(])([A-Za-z_][A-Za-z0-9_]*)=([^\s;&|()]+)', cmd))
 
     def fill(v):
@@ -1194,28 +1226,39 @@ def push_targets(cmd, cwd):
             v = re.sub(r'\$\{?([A-Za-z_][A-Za-z0-9_]*)\}?', lambda m: names.get(m.group(1), os.environ.get(m.group(1), m.group(0))), v)
         return os.path.expanduser(v.strip('"\''))
     stack = []
-    made_here = bool(re.search(r'\bgit\s+(init|clone)\b|\bmktemp\b', cmd)) and 'github.com' not in cmd
+    temp_names = set(re.findall(r'([A-Za-z_][A-Za-z0-9_]*)=["\']?\$\(mktemp\b', cmd))
+    made = set()
+    for t in _segments(cmd):
+        if t[0] == 'git' and _git_sub(t)[0] in ('init', 'clone'):
+            dests = [x for x in t[_git_sub(t)[1] + 1:] if not x.startswith('-')]
+            if dests:
+                made.add(dests[-1].rstrip('/'))
+
+    def scratch(raw):
+        raw = raw.strip('"\'').rstrip('/')
+        head = re.match(r'^\$\{?([A-Za-z_][A-Za-z0-9_]*)\}?', raw)
+        return bool(head and head.group(1) in temp_names) or any(raw == d or raw.startswith(d + '/') for d in made)
     for t in _segments(cmd, ops=True):
         if t == ['\x00(']:
-            stack.append(here)
+            stack.append((here, here_raw))
             continue
         if t == ['\x00)']:
-            here = stack.pop() if stack else here
+            here, here_raw = stack.pop() if stack else (here, here_raw)
             continue
         if len(t) >= 2 and t[0] in ('cd', 'pushd'):
-            here = os.path.join(here, fill(t[1]))
+            here, here_raw = os.path.join(here, fill(t[1])), t[1]
             continue
         if t[0] != 'git':
             continue
         sub, at = _git_sub(t)
         if sub != 'push':
             continue
-        where = here
+        where, raw = here, here_raw
         for i, x in enumerate(t[:at]):
             if x == '-C' and i + 1 < len(t):
-                where = os.path.join(here, fill(t[i + 1]))
+                where, raw = os.path.join(here, fill(t[i + 1])), t[i + 1]
             elif x.startswith('-C') and len(x) > 2:
-                where = os.path.join(here, fill(x[2:]))
+                where, raw = os.path.join(here, fill(x[2:])), x[2:]
         rest = t[at + 1:]
         if '--dry-run' in rest or '-n' in rest:
             continue
@@ -1237,7 +1280,7 @@ def push_targets(cmd, cwd):
         # A push to a path on this machine publishes nothing, and neither does one to a repository
         # this same line creates with no GitHub URL on it.
         if url.startswith(('file://', '/', './', '../')) or (url and os.path.isdir(os.path.join(where, url))) \
-                or (not url and made_here):
+                or (not url and scratch(raw)):
             continue
         deleted = '--delete' in rest or '-d' in rest or any(x.startswith(':') for x in args[1:])
         m = re.search(r'github\.com[:/]([^/\s]+)/([^/\s]+?)(?:\.git)?/?$', url)
@@ -1258,7 +1301,9 @@ def refusal(cmd, payload):
         if MARKER.search(msg):
             return ('an AI-authorship marker in a commit or post message: no Co-Authored-By, no "Generated with", '
                     'no "Assisted by AI", per Invariant 7 of the workspace AGENTS.md.')
-    needs = publish_words(cmd)
+    needs = publish_words(cmd, payload.get('cwd'))
+    if {'\x00never'} in needs:
+        return 'a forced sync resets a remote branch, which Invariant 8 of the workspace AGENTS.md never allows.'
     standing = standing_push()
     pushes = [(r, f, d) for r, f, d in push_targets(cmd, payload.get('cwd')) if f or d or r not in standing]
     if not needs and not pushes:

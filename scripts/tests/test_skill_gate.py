@@ -658,6 +658,36 @@ class PublishWordsRoundFour(PublishWordsRoundThree):
         self.assertIn('post', gate.turn_text(str(path)))
 
 
+class PublishWordsRoundFive(PublishWordsRoundFour):
+    """What the fifth check round found."""
+
+    def test_an_unreadable_remote_is_refused_unless_this_line_made_it(self):
+        for cmd in ('T=$(mktemp -d); D=$(ls -d nowhere); git -C "$D" push origin x',
+                    'git init -q /tmp/x-probe && git -C "$(pwd)/nowhere" push origin x',
+                    'git -C "$(pwd)/nowhere" push origin x; mktemp'):
+            self.assertEqual(self.hook(cmd)[0], 2, cmd)
+        self.assertEqual(self.hook('S=$(mktemp -d); git init -q $S/w; git -C $S/w push origin main')[0], 0)
+        self.assertEqual(self.hook('git clone -q /tmp/src /tmp/dst-probe && git -C /tmp/dst-probe/sub push origin main')[0], 0)
+
+    def test_bash_options_before_c(self):
+        for cmd in ("bash -e -c 'gh pr comment 5 -b x'", "bash -o pipefail -c 'gh pr comment 5 -b x'",
+                    "bash --login -c 'gh pr comment 5 -b x'"):
+            self.assertEqual(self.hook(cmd)[0], 2, cmd)
+
+    def test_every_form_of_a_strict_repository(self):
+        (self.root / 'workspace.json').write_text(json.dumps({'word_for_every_change': ['up/strict']}))
+        self.assertEqual(self.hook('gh pr edit 5 --repo=up/strict --body x')[0], 2)
+        self.assertEqual(self.hook('gh pr edit https://github.com/up/strict/pull/5 --body x')[0], 2)
+        co = self.repo('https://github.com/up/strict.git')
+        self.assertEqual(self.hook(f'cd {co} && gh pr edit 5 --body x')[0], 2)
+
+    def test_a_sync_is_a_push_and_a_forced_sync_is_never_allowed(self):
+        self.assertEqual(self.hook('gh repo sync me/fork')[0], 2)
+        self.assertEqual(self.hook('gh repo sync me/fork', prompt='push')[0], 0)
+        self.assertEqual(self.hook('gh repo sync me/fork --force', prompt='push, force it')[0], 2)
+        self.assertEqual(self.hook('gh api markdown/raw --input f.md')[0], 0)
+
+
 class HookRead(GateCase):
     def read(self, payload):
         return gate.main(['hook-read'], stdin=io.StringIO(json.dumps(payload)))

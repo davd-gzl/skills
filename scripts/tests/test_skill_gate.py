@@ -736,6 +736,28 @@ class PublishWordsRoundSeven(PublishWordsRoundSix):
         self.assertEqual(self.hook('test -d .git; and gh pr comment 5 -b x')[0], 2)
 
 
+class PublishWordsRoundEight(PublishWordsRoundSeven):
+    """What the eighth check round found."""
+
+    def test_a_mutation_the_gate_cannot_read_ahead_waits(self):
+        for cmd in ("cat > /tmp/q-probe.json <<'J'\n{\"query\":\"mutation{submitPullRequestReview}\"}\nJ\ngh api graphql --input /tmp/q-probe-missing.json",
+                    'Q=$(cat m.graphql); gh api graphql -f query="$Q"', 'gh api graphql -F query=@nowhere.graphql',
+                    'gh api graphql --input nowhere.json'):
+            self.assertEqual(self.hook(cmd)[0], 2, cmd)
+        (self.root / 'q.graphql').write_text('query { viewer { login } }')
+        self.assertEqual(self.hook(f'cd {self.root} && gh api graphql -F query=@q.graphql')[0], 0)
+
+    def test_a_pr_edit_beyond_its_body_waits(self):
+        self.assertEqual(self.hook('gh pr edit 5 -R o/r --body x')[0], 0)
+        self.assertEqual(self.hook("gh pr edit 5 -R o/r --body-file - <<'MD'\nbody\nMD")[0], 0)
+        for cmd in ('gh pr edit 5 -R o/r --title t', 'gh pr edit 5 -R o/r --add-label l', 'gh pr edit 5 --add-reviewer me'):
+            self.assertEqual(self.hook(cmd)[0], 2, cmd)
+
+    def test_a_redirect_is_never_an_argument(self):
+        cmd = 'git init -q --bare /tmp/rp.git && git clone -q /tmp/rp.git /tmp/rp-w 2>/dev/null && git -C /tmp/rp-w push origin HEAD'
+        self.assertEqual(self.hook(cmd)[0], 0)
+
+
 class HookRead(GateCase):
     def read(self, payload):
         return gate.main(['hook-read'], stdin=io.StringIO(json.dumps(payload)))

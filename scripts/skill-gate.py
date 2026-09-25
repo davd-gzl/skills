@@ -1018,6 +1018,15 @@ def _segments(cmd, depth=0, ops=False):
                 t = t[i + bare:]
             else:
                 break
+        kept, drop = [], False
+        for i, x in enumerate(t):
+            if drop:
+                drop = False
+            elif i and x in ('>', '>>', '<', '2>', '1>', '&>', '2>>', '<<<'):
+                drop = True
+            elif not (i and re.match(r'^\d*[<>]', x)):
+                kept.append(x)
+        t = kept
         if not t:
             continue
         if t[0] == 'eval' and depth < 3:
@@ -1122,6 +1131,20 @@ def _remote_repos(cwd):
     return {norm_repo(f'{a}/{b}') for a, b in re.findall(r'github\.com[:/]([^/\s]+)/([^/\s]+?)(?:\.git)?\s', remotes)}
 
 
+def _edits_beyond_body(t):
+    """Whether a gh pr edit sets anything but the body: a flag's value, `-` for stdin among them, is skipped."""
+    free, i = ('--body', '-b', '--body-file', '-F', '-R', '--repo'), 3
+    while i < len(t):
+        x = t[i]
+        if x.split('=')[0] in free:
+            i += 1 if '=' in x else 2
+            continue
+        if x.startswith('-') and x != '-':
+            return True
+        i += 1
+    return False
+
+
 def publish_words(cmd, cwd=None):
     """Each set is one publish on the line, satisfied by any of its words; every set needs its own."""
     needs = []
@@ -1161,7 +1184,9 @@ def publish_words(cmd, cwd=None):
             # A sync writes a branch of the user's repository: a push, and with --force a reset,
             # which Invariant 8 never allows.
             needs.append({'\x00never'} if '--force' in t else {'push'})
-        elif verb == ('pr', 'edit') and _gh_repos(t, cwd, cmd) & strict:
+        elif verb == ('pr', 'edit') and (_gh_repos(t, cwd, cmd) & strict or _edits_beyond_body(t)):
+            # Consent lets an open pull request's body go up unasked; a title, a label, a reviewer or a
+            # base on it, and any change where every change takes the word, wait for post.
             needs.append({'post'})
         elif r[0] == 'api':
             method = None
@@ -1178,10 +1203,24 @@ def publish_words(cmd, cwd=None):
             if path.lstrip('/').split('/')[0] == 'markdown':
                 continue
             if path == 'graphql':
-                query = ' '.join(_read_at(v.split('=', 1)[1]) for v in fields if v.startswith('query='))
-                if has_input:
-                    query += _read_at('@' + t[t.index('--input') + 1]) if t.index('--input') + 1 < len(t) else ''
-                if re.search(r'\bmutation\b', query):
+                base = cwd or os.getcwd()
+                sources = [v.split('=', 1)[1] for v in fields if v.startswith('query=')]
+                if has_input and t.index('--input') + 1 < len(t):
+                    sources.append('@' + t[t.index('--input') + 1])
+                query, unreadable = '', False
+                for src in sources:
+                    if '$' in src or '`' in src:
+                        unreadable = True
+                    elif src.startswith('@'):
+                        path_ = os.path.join(base, os.path.expanduser(src[1:]))
+                        if os.path.isfile(path_):
+                            query += _read_at('@' + path_)
+                        else:
+                            unreadable = True
+                    else:
+                        query += src
+                bodies = ' '.join(m.group(3) for m in re.finditer(r'<<-?\s*([\'"]?)(\w+)\1.*?\n(.*?)\n\s*\2\b', cmd, re.S))
+                if unreadable or re.search(r'\bmutation\b', query) or re.search(r'\bmutation\b', bodies):
                     needs.append({'post'})
                 continue
             method = method or ('POST' if fields or has_input else 'GET')

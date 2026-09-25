@@ -889,6 +889,11 @@ def cmd_prompt(stdin, stdout):
 # What the user typed this turn: the prompt that opened it and every message queued into it
 # while it ran. A publish, a push outside the standing list and a forced push each wait for
 # their word there, per Invariants 1, 2, 3 and 8 of the workspace AGENTS.md.
+#
+# This is a net for an honest agent's slip, read from the command's text, and never a sandbox: a
+# shell can send a push in more forms than a reading can follow, a script generated at run time
+# for one. Where the reading cannot place a push it asks for the word; the words themselves, in
+# AGENTS.md, stay the control.
 NOT_TYPED = ('<task-notification', '<command-', '<local-command-', '<system-reminder', '[SYSTEM NOTIFICATION')
 
 
@@ -976,26 +981,33 @@ def _fill(v, names):
     return os.path.expanduser(v.strip('"\''))
 
 
-def _shell_script(cmd, path):
+def _shell_script(cmd, path, cwd=None):
     """What a shell runs from a file or from stdin: the file, the heredoc this line writes into it,
     or the heredoc fed straight to the shell. The workspace's own scripts/ are its tooling, governed
     by their own words, and are not read."""
     names = _names(cmd)
     if path:
-        full = os.path.realpath(_fill(path, names))
+        full = os.path.realpath(os.path.join(cwd or os.getcwd(), _fill(path, names)))
         tooling = [str(root() / 'scripts'), str(root() / 'skills' / 'scripts')]
         if any(full.startswith(d + os.sep) for d in tooling):
             return None
         try:
-            return open(full, encoding='utf-8', errors='replace').read()
-        except OSError:
+            if os.path.isfile(full):
+                return _to_exit(open(full, encoding='utf-8', errors='replace').read())
+        except (OSError, ValueError):
             pass
         for m in re.finditer(r'>\s*(\S+)\s*<<-?\s*([\'"]?)(\w+)\2.*?\n(.*?)\n\s*\3\b', cmd, re.S):
-            if os.path.realpath(_fill(m.group(1), names)) == full:
-                return m.group(4)
+            if os.path.realpath(os.path.join(cwd or os.getcwd(), _fill(m.group(1), names))) == full:
+                return _to_exit(m.group(4))
         return None
     bodies = [m.group(4) for m in re.finditer(r'\b(bash|sh|zsh|dash)\b[^\n]*?<<-?\s*([\'"]?)(\w+)\2.*?\n(.*?)\n\s*\3\b', cmd, re.S)]
     return '\n'.join(bodies) or None
+
+
+def _to_exit(script):
+    """A script up to its first top-level exit: what follows it never runs as shell."""
+    m = re.search(r'^exit\b.*$', script, re.M)
+    return script[:m.start()] if m else script
 
 
 def _strip_heredocs(cmd):
@@ -1038,13 +1050,30 @@ def _split(cmd, ops=False):
         yield seg
 
 
-def _segments(cmd, depth=0, ops=False):
+def _shell_files(t):
+    """A shell's operands past its options: -o, -O, +o and +O take a value, and so does a cluster ending in o or O."""
+    out, i = [], 1
+    while i < len(t):
+        x = t[i]
+        if x in ('-o', '+o', '-O', '+O') or re.match(r'^[-+][A-Za-z]*[oO]$', x):
+            i += 2
+            continue
+        if not x.startswith(('-', '+')):
+            out.append(x)
+        i += 1
+    return out
+
+
+def _segments(cmd, depth=0, ops=False, cwd=None, collect=None):
     """The simple commands of a shell line: heredoc bodies dropped, split outside quotes, a leading
     keyword, environment assignment or $( stripped, and a `bash -c` string read as its own line."""
+    here = cwd
     for t in _split(_strip_heredocs(cmd), ops):
         if t and t[0].startswith('\x00'):
             yield t
             continue
+        if len(t) >= 2 and t[0] in ('cd', 'pushd') and here:
+            here = os.path.join(here, _fill(t[1], _names(cmd)))
         t = [x.rstrip('$').lstrip('`') for x in t]
         t = [x for x in t if x]
         while t:
@@ -1073,7 +1102,7 @@ def _segments(cmd, depth=0, ops=False):
         t = kept
         if not t:
             continue
-        files = [x for x in t[1:] if not x.startswith('-')]
+        files = _shell_files(t) if os.path.basename(t[0]) in SHELLS else [x for x in t[1:] if not x.startswith('-')]
         if os.path.basename(t[0]) in SHELLS and any(re.match(r'^-[A-Za-z]*n[A-Za-z]*$', x) for x in t[1:]):
             continue  # -n reads a script for syntax and runs nothing
         if os.path.basename(t[0]) in SHELLS and files and os.path.basename(files[0]) in POST_SCRIPTS:
@@ -1081,17 +1110,24 @@ def _segments(cmd, depth=0, ops=False):
         elif os.path.basename(t[0]) in SHELLS and depth < 3 and not any(re.match(r'^-[A-Za-z]*c[A-Za-z]*$', x) for x in t[1:]):
             if any(re.match(r'^-[A-Za-z]*n[A-Za-z]*$', x) for x in t[1:]):
                 continue  # -n reads the script for syntax and runs nothing
-            script = _shell_script(cmd, files[0] if files else None)
+            script = _shell_script(cmd, files[0] if files else None, here)
             if script:
-                yield from _segments(script, depth + 1, ops)
+                if collect is not None:
+                    collect.append(script)
+                # A script runs in a shell of its own: its cd ends with it.
+                if ops:
+                    yield ['\x00(']
+                yield from _segments(script, depth + 1, ops, here, collect)
+                if ops:
+                    yield ['\x00)']
             continue
         if t[0] == 'eval' and depth < 3:
             yield from _segments(' '.join(t[1:]), depth + 1)
             continue
         if os.path.basename(t[0]) in RUNNERS and depth < 3:
             i, script = 1, None
-            while i < len(t) and t[i].startswith('-'):
-                if t[i] in ('-o', '+o', '-O', '+O'):
+            while i < len(t) and t[i].startswith(('-', '+')):
+                if t[i] in ('-o', '+o', '-O', '+O') or re.match(r'^[-+][A-Za-z]*[oO]$', t[i]):
                     i += 2
                     continue
                 if re.match(r'^-[A-Za-z]*c[A-Za-z]*$', t[i]) and i + 1 < len(t):
@@ -1205,8 +1241,10 @@ def publish_words(cmd, cwd=None):
     """Each set is one publish on the line, satisfied by any of its words; every set needs its own."""
     needs = []
     strict = every_change_repos()
-    names = _names(cmd)
-    for t in _segments(cmd):
+    read = []
+    list(_segments(cmd, cwd=cwd, collect=read))
+    names = _names('\n'.join([cmd] + read))
+    for t in _segments(cmd, cwd=cwd):
         t = [_fill(x, names) if '$' in x and not x.startswith('$(') else x for x in t]
         if len(t) >= 2 and t[0] in ('cd', 'pushd'):
             cwd = os.path.join(cwd or os.getcwd(), os.path.expanduser(t[1].strip('"\'')))
@@ -1337,7 +1375,10 @@ def push_targets(cmd, cwd):
     out = []
     here = cwd or os.getcwd()
     here_raw = ''
-    names = dict(re.findall(r'(?:^|[\s;&|(])([A-Za-z_][A-Za-z0-9_]*)=([^\s;&|()]+)', cmd))
+    read = []
+    list(_segments(cmd, cwd=here, collect=read))
+    cmd_all = '\n'.join([cmd] + read)
+    names = dict(re.findall(r'(?:^|[\s;&|(])([A-Za-z_][A-Za-z0-9_]*)=["\']?([^\s;&|()"\']+)', cmd_all))
 
     def fill(v):
         for _ in range(4):  # a name defined through another name, R=...; C=$R/x
@@ -1375,7 +1416,7 @@ def push_targets(cmd, cwd):
             return False
         head = re.match(r'^\$\{?([A-Za-z_][A-Za-z0-9_]*)\}?', raw)
         return bool(head and head.group(1) in temp_names) or any(raw == d or raw.startswith(d + '/') for d in made)
-    for t in _segments(cmd, ops=True):
+    for t in _segments(cmd, ops=True, cwd=cwd or os.getcwd()):
         if t == ['\x00(']:
             stack.append((here, here_raw))
             continue
@@ -1497,7 +1538,11 @@ def cmd_hook_claude(stdin, stdout):
             print('Refused: a git commit that sets user.name, user.email or --author by hand. The identity is the '
                   'checkout\'s pin and the verb: ./scripts/commit -m <message> <path>..., per Commit identity in skills/git.md.', file=sys.stderr)
             return 2
-        why = refusal(cmd, payload)
+        try:
+            why = refusal(cmd, payload)
+        except Exception as e:  # a parse the gate cannot finish: refuse what may publish, pass the rest
+            why = (f'the gate could not read this command ({type(e).__name__}); it may publish or push, so name the word.'
+                   if re.search(r'\b(push|gh|post|merge|curl)\b', cmd) else None)
         if why:
             print(f'Refused: {why}', file=sys.stderr)
             return 2

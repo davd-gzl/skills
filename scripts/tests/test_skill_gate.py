@@ -800,6 +800,42 @@ class PublishWordsRoundTen(PublishWordsRoundNine):
         self.assertEqual(self.hook('R=up/strict; gh pr edit 6 -R "$R" --body-file b.md')[0], 2)
 
 
+class PublishWordsRoundEleven(PublishWordsRoundTen):
+    """What the eleventh check round found."""
+
+    def test_shell_option_values_are_not_the_script(self):
+        other = self.repo('https://github.com/me/public.git')
+        (self.root / 'p.sh').write_text(f'cd {other}\ngit push origin HEAD:x\n')
+        for cmd in (f'bash -euo pipefail {self.root}/p.sh', f'bash -O extglob {self.root}/p.sh',
+                    f"bash -euo pipefail <<'EOF'\ncd {other}\ngit push origin x\nEOF",
+                    f"bash -eo pipefail -c 'cd {other} && git push origin fix-x'"):
+            self.assertEqual(self.hook(cmd)[0], 2, cmd)
+
+    def test_a_relative_script_resolves_where_the_line_stands(self):
+        other = self.repo('https://github.com/me/public.git')
+        (self.root / 'sub').mkdir()
+        (self.root / 'sub' / 'p.sh').write_text(f'cd {other}\ngit push origin HEAD:x\n')
+        self.assertEqual(self.hook(f'cd {self.root}/sub && bash ./p.sh', cwd='/')[0], 2)
+
+    def test_text_after_exit_is_not_shell(self):
+        (self.root / 't.sh').write_text("echo ok\nexit 0\npost = read_post(readme)\ngh pr comment 5 -b x\n")
+        self.assertEqual(self.hook(f'sh {self.root}/t.sh')[0], 0)
+
+    def test_a_script_cd_ends_with_the_script(self):
+        mine = self.standing()
+        other = self.root / 'o2'
+        subprocess.run(['git', 'init', '-q', str(other)], check=True)
+        subprocess.run(['git', '-C', str(other), 'remote', 'add', 'origin', 'https://github.com/me/public.git'], check=True)
+        (self.root / 'cdws.sh').write_text(f'cd {mine}\n')
+        self.assertEqual(self.hook(f'cd {other} && bash {self.root}/cdws.sh && git push origin fix-x')[0], 2)
+
+    def test_an_unreadable_path_neither_hangs_nor_crashes(self):
+        fifo = self.root / 'fifo'
+        os.mkfifo(fifo)
+        self.assertEqual(self.hook(f'bash {fifo}')[0], 0)
+        self.assertIn(self.hook('bash /tmp/a\x00b.sh; git push origin x')[0], (0, 2))
+
+
 class HookRead(GateCase):
     def read(self, payload):
         return gate.main(['hook-read'], stdin=io.StringIO(json.dumps(payload)))

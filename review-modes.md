@@ -58,12 +58,9 @@ still resolves.
    threads, the round directories, the dump and history.
 3. The round note and the draft's `Round:` line say `Blind round`.
 
-Cost against an ordinary round: two shallow fetches, about a minute, tokens
-unchanged; an estimate until a blind round measures it.
-
 ### Own PR (the reviewer authored it)
 
-Check with `gh pr view <number> --json author`. Findings land as commits on the branch, never as a review to post.
+Findings land as commits on the branch, never as a review to post.
 
 - Draft nothing for a reader: no `comment_<model>.md`, no `pr-body.md`, no text pass, and post nothing. `claims.md` is the record `round assemble` writes, never drafted by hand. The round ends at `findings.md` and the fixes come off it in the same turn.
 - Launch with `args.own_pr` true, which `./scripts/review-setup.sh` sets from the pull request's author and `--own-pr yes|no` overrides, and print its cost with `./scripts/review-plan.py --own-pr`: the runner then stops at `findings.md` in a solo round and a pipeline round alike, and returns one line per CONFIRMED finding saying whether its fix is mechanical or a decision.

@@ -135,7 +135,8 @@ fn parent_of(dir: &str) -> String {
     dir_of(dir)
 }
 
-/// Two directories a bundle under the floor may hold together: siblings, or a directory and
+/// Two directories a bundle under the floor may hold together: any two sharing a directory, the
+/// nearest by path first since `by_dir` sorts them side by side; siblings, or a directory and
 /// anything under it, however deep. `by_dir` is a `BTreeMap`, so an ancestor sorts before every
 /// descendant and `a` is the ancestor of the pair whenever either is; the reverse arm cannot fire
 /// and is not written. Descendant rather than child, since a name may sort between a directory and
@@ -143,6 +144,28 @@ fn parent_of(dir: &str) -> String {
 fn mergeable(a: &str, b: &str) -> bool {
     parent_of(a) == parent_of(b)
         || (!a.is_empty() && b.len() > a.len() && b.starts_with(a) && b[a.len()..].starts_with('/'))
+        || !common_dir(&[a.to_string(), b.to_string()]).is_empty()
+}
+
+/// Split units under the floor rejoin the unit beside them, so a one-line file never earns
+/// finders of its own: the split keeps apart only what is each big enough to read alone.
+fn merge_small<'a>(units: Vec<(String, Vec<&'a FileFacts>)>) -> Vec<(String, Vec<&'a FileFacts>)> {
+    let mut out: Vec<(String, Vec<&'a FileFacts>)> = Vec::new();
+    for (name, members) in units {
+        let small = out
+            .last()
+            .map(|(_, m)| m.iter().map(|f| f.lines()).sum::<usize>() < FLOOR)
+            .unwrap_or(false);
+        let alone = members.iter().map(|f| f.lines()).sum::<usize>() < FLOOR;
+        match out.last_mut() {
+            Some((prev, m)) if small || alone => {
+                *prev = common_dir(&[prev.clone(), name]);
+                m.extend(members);
+            }
+            _ => out.push((name, members)),
+        }
+    }
+    out
 }
 
 /// The longest common directory prefix of a set of paths, for a merged bundle's name.
@@ -319,7 +342,7 @@ pub(super) fn bundles(
             .iter()
             .any(|f| risk.get(&f.path).map(String::as_str) == Some("hot"));
         if code_files > 1 && (lines > CEILING || (hot && lines >= FLOOR)) {
-            units.extend(split_by_code_file(&members));
+            units.extend(merge_small(split_by_code_file(&members)));
         } else {
             let name = if dirs.len() == 1 {
                 dirs[0].clone()
@@ -755,8 +778,8 @@ mod tests {
     #[test]
     fn a_hot_bundle_over_the_floor_splits_by_code_file() {
         let files = vec![
-            fact("pkg/x.go", Kind::Code, 80),
-            fact("pkg/y.go", Kind::Code, 60),
+            fact("pkg/x.go", Kind::Code, 120),
+            fact("pkg/y.go", Kind::Code, 100),
             fact("pkg/y_test.go", Kind::Test, 10),
         ];
         let (cold, _) = bundles(&files, &HashMap::new(), false);
@@ -771,6 +794,29 @@ mod tests {
         assert_eq!(test_stem("pkg/test_a.py"), "pkg/a");
         assert_eq!(test_stem("src/a.spec.ts"), "src/a");
         assert_eq!(test_stem("r/x/x_filetest.gno"), "r/x/x");
+    }
+
+    #[test]
+    fn split_files_under_the_floor_rejoin_and_cousin_directories_merge() {
+        let risk = HashMap::from([("app/api/views.py".to_string(), "hot".to_string())]);
+        let files = vec![
+            fact("app/api/perms.py", Kind::Code, 2),
+            fact("app/api/views.py", Kind::Code, 150),
+            fact("app/api/init.py", Kind::Code, 1),
+            fact("web/features/sdk/routes/a.ts", Kind::Code, 3),
+            fact("web/features/settings/tabs/b.ts", Kind::Code, 4),
+        ];
+        let (b, _) = bundles(&files, &risk, false);
+        let names: Vec<&str> = b.iter().map(|x| x.name.as_str()).collect();
+        assert_eq!(b.len(), 2, "one-line files never stand alone: {names:?}");
+        assert_eq!(b[0].files, vec!["app/api/perms.py", "app/api/views.py", "app/api/init.py"]);
+        assert_eq!(b[1].name, "web/features", "cousins under the floor merge at their shared directory");
+        let (big, _) = bundles(
+            &[fact("p/x.go", Kind::Code, 120), fact("p/y.go", Kind::Code, 110)],
+            &HashMap::from([("p/x.go".to_string(), "hot".to_string())]),
+            false,
+        );
+        assert_eq!(big.len(), 2, "each file big enough to read alone still splits");
     }
 
     #[test]

@@ -11,7 +11,7 @@ and instruction shapes it names, a claim to test here and not a fact.
 
 - A source named inside a rule is context every turn loads for a reader who never opens it, so the rule states the action and this directory keeps the why.
 
-Measure: `wc -w` over the files `CLAUDE.md` imports for the loaded set, and
+Measure: `wc -w` over the files a session opens with for the loaded set, and
 `grep -cE '^\s*[-0-9]' <file>` for its rule lines.
 
 Changes: the thinking section sits first in `skills/short-form.md`; a rule

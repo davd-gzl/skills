@@ -909,20 +909,29 @@ def turn_text(transcript):
             continue
     start = None
     for i, e in enumerate(rows):
-        m = e.get('message') or {}
-        c = m.get('content')
-        if e.get('type') == 'user' and not e.get('isMeta') and not e.get('isCompactSummary') \
-                and isinstance(c, str) and not c.lstrip().startswith(NOT_TYPED):
-            start = i
+        if e.get('type') == 'user' and not e.get('isMeta') and not e.get('isCompactSummary'):
+            typed = _typed(e)
+            if typed is not None and not typed.lstrip().startswith(NOT_TYPED):
+                start, first = i, typed
     if start is None:
         return ''
-    parts = [rows[start]['message']['content']]
+    parts = [first]
     for e in rows[start + 1:]:
         a = e.get('attachment') or {}
         if e.get('type') == 'attachment' and a.get('type') == 'queued_command' \
                 and (a.get('origin') or {}).get('kind') == 'human':
             parts.append(str(a.get('prompt', '')))
     return '\n'.join(parts)
+
+
+def _typed(e):
+    """A user entry's typed text: a string, or the text blocks of a list holding no tool result."""
+    c = (e.get('message') or {}).get('content')
+    if isinstance(c, str):
+        return c
+    if isinstance(c, list) and c and not any(isinstance(b, dict) and b.get('type') == 'tool_result' for b in c):
+        return '\n'.join(b.get('text', '') for b in c if isinstance(b, dict) and b.get('type') == 'text')
+    return None
 
 
 NEGATION = re.compile(r"(?i)\b(don'?t|do not|never|no|not|without)\W+(\w+\W+){0,2}$")
@@ -937,9 +946,13 @@ def has_word(text, word):
 
 
 MARKER = re.compile(r'(?i)co-authored-by:|generated with \[?claude|assisted by ai|\U0001F916')
-SHELL_LEAD = {'do', 'then', 'else', 'elif', 'if', 'while', 'until', '{', '(', '!', 'time', 'command', 'env', 'exec',
-              'nohup', 'sudo', 'xargs'}
-RUNNERS = {'bash', 'sh', 'zsh', 'python', 'python3'}
+SHELL_LEAD = {'do', 'then', 'else', 'elif', 'if', 'while', 'until', '{', '(', '!'}
+RUNNERS = {'bash', 'sh', 'zsh', 'fish', 'python', 'python3'}
+# A wrapper and the options it takes a value for; its first bare word after them may be its own argument.
+WRAPPERS = {'timeout': ({'-s', '--signal', '-k', '--kill-after'}, 1), 'nice': ({'-n', '--adjustment'}, 0),
+            'sudo': ({'-u', '-g', '-C', '-h', '-p', '-U'}, 0), 'env': ({'-u', '--unset', '-C', '--chdir'}, 0),
+            'xargs': ({'-I', '-L', '-n', '-P', '-d', '-E', '-s', '-a'}, 0), 'time': ({'-f', '-o'}, 0),
+            'stdbuf': ({'-i', '-o', '-e'}, 0), 'nohup': (set(), 0), 'exec': ({'-a'}, 0), 'command': (set(), 0)}
 
 
 def _strip_heredocs(cmd):
@@ -956,13 +969,13 @@ def _strip_heredocs(cmd):
 
 
 def _split(cmd):
-    lex = shlex.shlex(cmd, posix=True, punctuation_chars=';&|\n')
+    lex = shlex.shlex(cmd, posix=True, punctuation_chars=';&|\n()')
     lex.whitespace = ' \t\r'
     lex.whitespace_split = True
     seg = []
     try:
         for tok in lex:
-            if tok and set(tok) <= set(';&|\n'):
+            if tok and set(tok) <= set(';&|\n()'):
                 if seg:
                     yield seg
                 seg = []
@@ -970,7 +983,7 @@ def _split(cmd):
                 seg.append(tok)
     except ValueError:
         for line in cmd.split('\n'):
-            for part in re.split(r'&&|\|\||;|\|', line):
+            for part in re.split(r'&&|\|\||;|\||\(|\)', line):
                 if part.split():
                     yield part.split()
         return
@@ -982,15 +995,26 @@ def _segments(cmd, depth=0):
     """The simple commands of a shell line: heredoc bodies dropped, split outside quotes, a leading
     keyword, environment assignment or $( stripped, and a `bash -c` string read as its own line."""
     for t in _split(_strip_heredocs(cmd)):
-        t = [x[2:] if x.startswith('$(') else x.lstrip('`') for x in t]
-        while t and (t[0] in SHELL_LEAD or re.match(r'^[A-Za-z_][A-Za-z0-9_]*=', t[0])):
-            if '$(' in t[0]:
-                t[0] = t[0].split('$(', 1)[1]
+        t = [x.rstrip('$').lstrip('`') for x in t]
+        t = [x for x in t if x]
+        while t:
+            head = os.path.basename(t[0])
+            if t[0] in SHELL_LEAD or re.match(r'^[A-Za-z_][A-Za-z0-9_]*=', t[0]):
+                t = t[1:]
+            elif head in WRAPPERS:
+                takes, bare = WRAPPERS[head]
+                i = 1
+                while i < len(t) and (t[i].startswith('-') or re.match(r'^[A-Za-z_][A-Za-z0-9_]*=', t[i])):
+                    i += 2 if t[i] in takes else 1
+                t = t[i + bare:]
+            else:
                 break
-            t = t[1:]
         if not t:
             continue
-        if t[0] in RUNNERS and len(t) > 2 and t[1] == '-c' and depth < 2:
+        if t[0] == 'eval' and depth < 3:
+            yield from _segments(' '.join(t[1:]), depth + 1)
+            continue
+        if os.path.basename(t[0]) in RUNNERS and len(t) > 2 and t[1] == '-c' and depth < 3:
             yield from _segments(t[2], depth + 1)
             continue
         if os.path.basename(t[0]) in RUNNERS and len(t) > 1 and not t[1].startswith('-'):
@@ -1058,7 +1082,8 @@ def publish_words(cmd):
             continue
         verb = (r[0], r[1])
         if verb in {('pr', 'create'), ('pr', 'comment'), ('pr', 'review'), ('pr', 'reopen'), ('issue', 'create'),
-                    ('issue', 'comment'), ('issue', 'reopen'), ('release', 'create')}:
+                    ('issue', 'comment'), ('issue', 'reopen'), ('issue', 'edit'), ('issue', 'lock'), ('issue', 'transfer'),
+                    ('release', 'create'), ('release', 'upload'), ('gist', 'create'), ('repo', 'create'), ('repo', 'edit')}:
             needs.append({'post'})
         elif verb == ('pr', 'ready'):
             needs.append({'post', 'ready'})
@@ -1112,8 +1137,18 @@ def commit_messages(cmd):
                 out.append(x.split('=', 1)[1])
             elif x.startswith('-m') and len(x) > 2 and not x.startswith('--'):
                 out.append(x[2:])
-            elif x in ('--body-file', '-F') and i + 1 < len(t) and t[0] == 'gh':
+            elif x in ('--body-file', '-F', '--file') and i + 1 < len(t) and t[i + 1] != '-':
                 out.append(_read_at('@' + t[i + 1]))
+            elif x.startswith(('--file=', '--body-file=')):
+                out.append(_read_at('@' + x.split('=', 1)[1]))
+    for t in _segments(cmd):
+        commits = t and (t[0].endswith('scripts/commit') or (t[0] == 'git' and _git_sub(t)[0] == 'commit'))
+        from_heredoc = any('<<' in x or x == 'cat' for x in t) or any(
+            x in ('-F', '--file') and i + 1 < len(t) and t[i + 1] == '-' for i, x in enumerate(t))
+        if commits and from_heredoc:
+            # A message written through $(cat <<EOF ...) or -F - <<EOF lives in the heredoc body the
+            # segmenter drops, so the bodies on this line are read for the marker.
+            out.extend(m.group(0) for m in re.finditer(r'<<-?\s*([\'"]?)(\w+)\1.*?\n(.*?)\n\s*\2\b', cmd, re.S))
     return out
 
 
@@ -1121,9 +1156,15 @@ def push_targets(cmd, cwd):
     """(repository, forced) for each git push on the line; repository is owner/name or None."""
     out = []
     here = cwd or os.getcwd()
+    names = dict(re.findall(r'(?:^|[\s;&|(])([A-Za-z_][A-Za-z0-9_]*)=([^\s;&|()]+)', cmd))
+
+    def fill(v):
+        for _ in range(4):  # a name defined through another name, R=...; C=$R/x
+            v = re.sub(r'\$\{?([A-Za-z_][A-Za-z0-9_]*)\}?', lambda m: names.get(m.group(1), os.environ.get(m.group(1), m.group(0))), v)
+        return os.path.expanduser(v.strip('"\''))
     for t in _segments(cmd):
-        if len(t) >= 2 and t[0] == 'cd':
-            here = os.path.join(here, os.path.expanduser(t[1]))
+        if len(t) >= 2 and t[0] in ('cd', 'pushd'):
+            here = os.path.join(here, fill(t[1]))
             continue
         if t[0] != 'git':
             continue
@@ -1133,18 +1174,30 @@ def push_targets(cmd, cwd):
         where = here
         for i, x in enumerate(t[:at]):
             if x == '-C' and i + 1 < len(t):
-                where = os.path.join(here, os.path.expanduser(t[i + 1]))
+                where = os.path.join(here, fill(t[i + 1]))
+            elif x.startswith('-C') and len(x) > 2:
+                where = os.path.join(here, fill(x[2:]))
         rest = t[at + 1:]
         if '--dry-run' in rest or '-n' in rest:
             continue
         forced = any(x in ('--force', '--mirror') or x.startswith(('--force-with-lease', '--force-if-includes'))
                      or (x.startswith('-') and not x.startswith('--') and 'f' in x[1:]) for x in rest) \
             or any(x.startswith('+') for x in rest if not x.startswith('-'))
-        args = [x for x in rest if not x.startswith('-')]
-        remote = args[0] if args else 'origin'
+        args, skip = [], False
+        for x in rest:
+            if skip:
+                skip = False
+            elif x in ('-o', '--push-option', '--repo', '--receive-pack', '--exec'):
+                skip = True
+            elif not x.startswith('-'):
+                args.append(x)
+        remote = fill(args[0]) if args else 'origin'
         url = subprocess.run(['git', '-C', where, 'remote', 'get-url', remote], capture_output=True, text=True).stdout.strip()
         if not url and ('/' in remote or ':' in remote):
             url = remote
+        # A push to a path on this machine publishes nothing.
+        if url.startswith(('file://', '/', './', '../')) or (url and os.path.isdir(os.path.join(where, url))):
+            continue
         m = re.search(r'github\.com[:/]([^/\s]+)/([^/\s]+?)(?:\.git)?/?$', url)
         out.append((f'{m.group(1)}/{m.group(2)}' if m else None, forced))
     return out

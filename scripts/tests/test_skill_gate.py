@@ -570,6 +570,49 @@ class PublishWordsEdges(PublishWords):
             self.assertEqual(self.hook(cmd, prompt='post push')[0], 2, cmd)
 
 
+class PublishWordsRoundThree(PublishWords):
+    """What replaying every recorded command through the gate turned up."""
+
+    def standing(self):
+        (self.root / 'workspace.json').write_text(json.dumps({'standing_push': ['me/private']}))
+        return self.repo('https://github.com/me/private.git')
+
+    def test_a_directory_in_a_shell_variable_resolves(self):
+        mine = self.standing()
+        self.assertEqual(self.hook(f'G={mine}; git -C $G push origin main')[0], 0)
+        self.assertEqual(self.hook(f'R={self.root}; C=$R/r; git -C "$C" push -q origin main')[0], 0)
+        self.assertEqual(self.hook(f'W={mine}; cd $W && git push origin main')[0], 0)
+        self.assertEqual(self.hook(f'git -C{mine} push origin main')[0], 0)
+
+    def test_a_push_to_a_path_on_this_machine_publishes_nothing(self):
+        bare = self.root / 'bare.git'
+        subprocess.run(['git', 'init', '-q', '--bare', str(bare)], check=True)
+        repo = self.repo(str(bare))
+        self.assertEqual(self.hook(f'git -C {repo} push origin main')[0], 0)
+
+    def test_a_push_option_value_is_not_the_remote(self):
+        mine = self.standing()
+        self.assertEqual(self.hook(f'git -C {mine} push -o ci.skip origin main')[0], 0)
+
+    def test_subshells_wrappers_and_eval_are_seen(self):
+        for cmd in ('(gh pr comment 5 -b x)', 'timeout 30 gh pr comment 5 -b x', 'nice -n 5 gh pr comment 5 -b x',
+                    'sudo -u me gh pr comment 5 -b x', 'eval gh pr comment 5 -b x', "fish -c 'gh pr comment 5 -b x'",
+                    'gh issue edit 5 -b x', 'gh gist create --public f.md', 'gh release upload v1 f.tgz'):
+            self.assertEqual(self.hook(cmd)[0], 2, cmd)
+
+    def test_a_marker_in_a_heredoc_commit_message_is_caught_and_a_mention_elsewhere_is_not(self):
+        heredoc = 'git commit -m "$(cat <<\'EOF\'\nfix\n\nCo-Authored-By: someone\nEOF\n)"'
+        self.assertEqual(self.hook(heredoc, prompt='push')[0], 2)
+        elsewhere = './scripts/todo add "refuse Co-Authored-By: lines" && ./scripts/commit -m "TODO: a line" TODO.md'
+        self.assertEqual(self.hook(elsewhere)[0], 0)
+
+    def test_a_prompt_carrying_an_image_still_opens_the_turn(self):
+        path = self.root / 'img.jsonl'
+        path.write_text(json.dumps({'type': 'user', 'message': {'role': 'user', 'content': [
+            {'type': 'image', 'source': {}}, {'type': 'text', 'text': 'post this'}]}}) + '\n')
+        self.assertIn('post this', gate.turn_text(str(path)))
+
+
 class HookRead(GateCase):
     def read(self, payload):
         return gate.main(['hook-read'], stdin=io.StringIO(json.dumps(payload)))
@@ -983,7 +1026,7 @@ class PromptSections(GateCase):
 
 class AlwaysWhole(PromptSections):
     """The skills every turn runs on are never cut, however they are declared: the harness carries them whole
-    through CLAUDE.md, so a cut would record bytes the session never loaded."""
+    as the session opens, so a cut would record bytes the session never loaded."""
 
     def test_an_imported_skill_is_never_cut(self):
         (self.root / 'skills' / 'short-form.md').write_text(self.FILE)

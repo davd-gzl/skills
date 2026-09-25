@@ -152,9 +152,9 @@ one pass.
   chat needs comes whole through a SessionStart hook, which reaches that session
   and no subagent.
 - A subagent gets the skills its own artifact needs and no others. It answers
-  the parent and never the user, so the words the user types and the register are
-  dead weight in its context, and it inherits them anyway through `CLAUDE.md`,
-  which every agent carries: no dispatch prompt names them on top, and `reply.md`
+  the parent and never the user, so the words the user types never reach it, and
+  the register it inherits through `CLAUDE.md` holds only for the *Claims* that
+  bind every agent: no dispatch prompt names either on top, and `reply.md`
   is imported by nothing for that reason. A dispatch names the task
   skill, and `skills/writing-style.md` where the artifact is prose.
 

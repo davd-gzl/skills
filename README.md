@@ -229,7 +229,7 @@ Short form is the register every chat reply takes, defined in
 restated here.
 
 How the thinking before a reply is written is [`thinking.md`](thinking.md),
-imported for every model. The gate reads the running model from the harness,
+loaded as every session opens. The gate reads the running model from the harness,
 the `SessionStart` payload or the transcript's last assistant entry, and on a
 model its `effort-set` patterns match prints one line lifting it, since effort
 sets that model's thinking; a model it cannot name keeps the rules. The

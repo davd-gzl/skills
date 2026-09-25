@@ -515,6 +515,61 @@ class PublishWords(GateCase):
         self.assertEqual(self.hook(f'git -C {mine} push --force origin HEAD:main', prompt='push, force it')[0], 0)
 
 
+class PublishWordsEdges(PublishWords):
+    """The cases a checker found: none of these may block ordinary work, and none may slip a publish through."""
+
+    def test_ordinary_work_is_never_refused(self):
+        for cmd in ('git stash push -q -u -m wip', 'git stash push -m "a push note"',
+                    "cat > n.md <<'X'\ngh pr close 5 --comment x\nX", 'git push --dry-run origin HEAD:main',
+                    'gh api --method=GET repos/o/r/pulls -f state=open', "gh api graphql -f query='query{x}' --jq '.mutation'",
+                    'echo "the merge-base looks off"'):
+            self.assertEqual(self.hook(cmd)[0], 0, cmd)
+
+    def test_nul_lines_and_notifications_do_not_lose_the_word(self):
+        path = self.root / 't.jsonl'
+        path.write_text('\n'.join([
+            json.dumps({'type': 'user', 'message': {'role': 'user', 'content': 'post it'}}),
+            '\x00\x00\x00',
+            json.dumps({'type': 'user', 'message': {'role': 'user', 'content': '<task-notification>ready to go</task-notification>'}}),
+            json.dumps({'type': 'user', 'isCompactSummary': True, 'message': {'role': 'user', 'content': 'summary: merge'}}),
+        ]) + '\n')
+        self.assertIn('post it', gate.turn_text(str(path)))
+        self.assertNotIn('merge', gate.turn_text(str(path)))
+
+    def test_a_standing_push_needs_no_transcript(self):
+        (self.root / 'workspace.json').write_text(json.dumps({'standing_push': ['me/private']}))
+        mine = self.repo('https://github.com/me/private.git')
+        err = io.StringIO()
+        payload = {'tool_name': 'Bash', 'tool_input': {'command': f'git -C {mine} push origin HEAD:main'}, 'cwd': str(self.root)}
+        with redirect_stderr(err), redirect_stdout(io.StringIO()):
+            rc = gate.main(['hook-claude'], stdin=io.StringIO(json.dumps(payload)), stdout=io.StringIO())
+        self.assertEqual(rc, 0, err.getvalue())
+
+    def test_wrapped_and_flagged_publishes_are_seen(self):
+        for cmd in ('gh -R o/r pr comment 5 -b x', 'env GH_REPO=o/r gh pr comment 5 -b x', 'GH_REPO=o/r gh pr comment 5 -b x',
+                    'command gh pr comment 5 -b x', '/usr/bin/gh pr comment 5 -b x', "bash -c 'gh pr comment 5 -b x'",
+                    'for n in 1 2; do gh pr comment $n -b x; done', 'x=$(gh pr merge 5)', 'bash scripts/post-review.sh d.md',
+                    'python3 scripts/post-pr-review.py 5 d.md', 'gh api -X PATCH repos/o/r/pulls/5 -f state=closed'):
+            self.assertEqual(self.hook(cmd)[0], 2, cmd)
+
+    def test_every_publish_on_the_line_needs_its_own_word(self):
+        both = 'gh pr comment 5 -b x && gh pr merge 5'
+        self.assertEqual(self.hook(both, prompt='post')[0], 2)
+        self.assertEqual(self.hook(both, prompt='post and merge')[0], 0)
+        self.assertEqual(self.hook('gh pr comment 5 -b x', prompt="don't post anything yet")[0], 2)
+
+    def test_combined_force_flags_and_mirror_are_forced(self):
+        (self.root / 'workspace.json').write_text(json.dumps({'standing_push': ['me/private']}))
+        mine = self.repo('https://github.com/me/private.git')
+        for flag in ('-fu', '-uf', '--mirror'):
+            self.assertEqual(self.hook(f'git -C {mine} push {flag} origin HEAD:main', prompt='push')[0], 2, flag)
+
+    def test_marker_forms_are_all_caught(self):
+        for cmd in ('git commit --message="x\n\nCo-Authored-By: a"', 'git commit -m"Co-Authored-By: a"',
+                    'git commit -am "Co-Authored-By: a"', 'git commit -m x --trailer "Co-authored-by: a"'):
+            self.assertEqual(self.hook(cmd, prompt='post push')[0], 2, cmd)
+
+
 class HookRead(GateCase):
     def read(self, payload):
         return gate.main(['hook-read'], stdin=io.StringIO(json.dumps(payload)))

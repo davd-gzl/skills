@@ -887,15 +887,30 @@ def cmd_prompt(stdin, stdout):
 # What the user typed this turn: the prompt that opened it and every message queued into it
 # while it ran. A publish, a push outside the standing list and a forced push each wait for
 # their word there, per Invariants 1, 2, 3 and 8 of the workspace AGENTS.md.
+NOT_TYPED = ('<task-notification', '<command-', '<local-command-', '<system-reminder', '[SYSTEM NOTIFICATION')
+
+
 def turn_text(transcript):
+    """The user's typed text this turn, or None when the transcript cannot be read."""
     try:
-        rows = [json.loads(l) for l in open(transcript, encoding='utf-8') if l.strip()]
-    except (OSError, ValueError):
+        lines = open(transcript, encoding='utf-8', errors='replace').read().split('\n')
+    except (OSError, TypeError):
         return None
+    rows = []
+    for line in lines:
+        line = line.strip().strip('\x00')
+        if not line:
+            continue
+        try:
+            rows.append(json.loads(line))
+        except ValueError:
+            continue
     start = None
     for i, e in enumerate(rows):
         m = e.get('message') or {}
-        if e.get('type') == 'user' and not e.get('isMeta') and isinstance(m.get('content'), str):
+        c = m.get('content')
+        if e.get('type') == 'user' and not e.get('isMeta') and not e.get('isCompactSummary') \
+                and isinstance(c, str) and not c.lstrip().startswith(NOT_TYPED):
             start = i
     if start is None:
         return ''
@@ -908,15 +923,37 @@ def turn_text(transcript):
     return '\n'.join(parts)
 
 
-def has_word(text, words):
-    return any(re.search(rf'\b{w}\b', text, re.I) for w in words)
+NEGATION = re.compile(r"(?i)\b(don'?t|do not|never|no|not|without)\W+(\w+\W+){0,2}$")
+
+
+def has_word(text, word):
+    """The word typed as a word, a hyphenated compound or a negation aside: `merge-base` is not merge."""
+    for m in re.finditer(rf'(?i)(?<![\w-]){word}(?![\w-])', text):
+        if not NEGATION.search(text[max(0, m.start() - 40):m.start()]):
+            return True
+    return False
 
 
 MARKER = re.compile(r'(?i)co-authored-by:|generated with \[?claude|assisted by ai|\U0001F916')
+SHELL_LEAD = {'do', 'then', 'else', 'elif', 'if', 'while', 'until', '{', '(', '!', 'time', 'command', 'env', 'exec',
+              'nohup', 'sudo', 'xargs'}
+RUNNERS = {'bash', 'sh', 'zsh', 'python', 'python3'}
 
 
-def _segments(cmd):
-    """The simple commands of a shell line, split on ;, &, | and newlines outside quotes."""
+def _strip_heredocs(cmd):
+    out, lines, i = [], cmd.split('\n'), 0
+    while i < len(lines):
+        out.append(lines[i])
+        m = HEREDOC.search(lines[i])
+        i += 1
+        if m:
+            while i < len(lines) and lines[i].strip() != m.group(2):
+                i += 1
+            i += 1
+    return '\n'.join(out)
+
+
+def _split(cmd):
     lex = shlex.shlex(cmd, posix=True, punctuation_chars=';&|\n')
     lex.whitespace = ' \t\r'
     lex.whitespace_split = True
@@ -930,7 +967,6 @@ def _segments(cmd):
             else:
                 seg.append(tok)
     except ValueError:
-        # An unbalanced quote, a heredoc body with an apostrophe: read line by line instead.
         for line in cmd.split('\n'):
             for part in re.split(r'&&|\|\||;|\|', line):
                 if part.split():
@@ -940,82 +976,172 @@ def _segments(cmd):
         yield seg
 
 
+def _segments(cmd, depth=0):
+    """The simple commands of a shell line: heredoc bodies dropped, split outside quotes, a leading
+    keyword, environment assignment or $( stripped, and a `bash -c` string read as its own line."""
+    for t in _split(_strip_heredocs(cmd)):
+        t = [x[2:] if x.startswith('$(') else x.lstrip('`') for x in t]
+        while t and (t[0] in SHELL_LEAD or re.match(r'^[A-Za-z_][A-Za-z0-9_]*=', t[0])):
+            if '$(' in t[0]:
+                t[0] = t[0].split('$(', 1)[1]
+                break
+            t = t[1:]
+        if not t:
+            continue
+        if t[0] in RUNNERS and len(t) > 2 and t[1] == '-c' and depth < 2:
+            yield from _segments(t[2], depth + 1)
+            continue
+        if os.path.basename(t[0]) in RUNNERS and len(t) > 1 and not t[1].startswith('-'):
+            t = t[1:]
+        t[0] = os.path.basename(t[0]) if t[0].endswith(('/gh', '/git')) else t[0]
+        yield t
+
+
 def _dry(tokens):
     return '--dry-run' in tokens
 
 
-def publish_words(cmd):
-    """The words one of which this command waits for, or an empty set when it publishes nothing."""
-    need = set()
-    for t in _segments(cmd):
-        if not t:
+def _git_sub(t):
+    """git's subcommand, past -C <dir>, -c <k=v> and other global options."""
+    i = 1
+    while i < len(t) and t[i].startswith('-'):
+        i += 2 if t[i] in ('-C', '-c', '--git-dir', '--work-tree', '--namespace') else 1
+    return (t[i], i) if i < len(t) else (None, i)
+
+
+def _gh_verb(t):
+    """gh's two-word verb past -R <repo> and other global flags."""
+    rest, i = [], 1
+    while i < len(t):
+        if t[i] in ('-R', '--repo', '--hostname'):
+            i += 2
             continue
+        rest.append(t[i])
+        i += 1
+    return rest
+
+
+def _field_values(t):
+    out = []
+    for i, x in enumerate(t):
+        if x in ('-f', '-F', '--field', '--raw-field') and i + 1 < len(t):
+            out.append(t[i + 1])
+        elif x.startswith(('-f', '-F')) and len(x) > 2 and not x.startswith('--'):
+            out.append(x[2:])
+        elif x.startswith(('--field=', '--raw-field=')):
+            out.append(x.split('=', 1)[1])
+    return out
+
+
+def _read_at(value):
+    if value.startswith('@'):
+        try:
+            return open(os.path.expanduser(value[1:]), encoding='utf-8', errors='replace').read()
+        except OSError:
+            return value
+    return value
+
+
+def publish_words(cmd):
+    """Each set is one publish on the line, satisfied by any of its words; every set needs its own."""
+    needs = []
+    for t in _segments(cmd):
         name = os.path.basename(t[0])
         if name in ('post-review.sh', 'post-fix.sh', 'post-pr-review.py') and not _dry(t):
-            need |= {'post', 'upload'}
-        if t[0] != 'gh' or len(t) < 3:
+            needs.append({'post', 'upload'})
+        if t[0] != 'gh':
             continue
-        verb = (t[1], t[2])
-        if verb in {('pr', 'create'), ('pr', 'comment'), ('pr', 'review'), ('pr', 'ready'), ('pr', 'reopen'),
-                    ('issue', 'create'), ('issue', 'comment'), ('issue', 'reopen'), ('release', 'create')}:
-            need |= {'post', 'ready'} if verb == ('pr', 'ready') else {'post'}
-        elif verb in {('pr', 'merge')}:
-            need |= {'merge'}
+        r = _gh_verb(t)
+        if len(r) < 2:
+            continue
+        verb = (r[0], r[1])
+        if verb in {('pr', 'create'), ('pr', 'comment'), ('pr', 'review'), ('pr', 'reopen'), ('issue', 'create'),
+                    ('issue', 'comment'), ('issue', 'reopen'), ('release', 'create')}:
+            needs.append({'post'})
+        elif verb == ('pr', 'ready'):
+            needs.append({'post', 'ready'})
+        elif verb == ('pr', 'merge'):
+            needs.append({'merge'})
         elif verb in {('pr', 'close'), ('issue', 'close')}:
-            need |= {'close'}
-        elif t[2] == 'delete':
-            need |= {'delete'}
-        elif t[1] == 'api':
-            method = next((t[i + 1].upper() for i, x in enumerate(t[:-1]) if x in ('-X', '--method')), None)
-            fields = any(x in ('-f', '-F', '--field', '--raw-field', '--input') or x.startswith(('-f', '-F')) for x in t[2:])
-            path = next((x for x in t[2:] if not x.startswith('-') and '/' in x or x == 'graphql'), '')
+            needs.append({'close'})
+        elif r[1] == 'delete':
+            needs.append({'delete'})
+        elif r[0] == 'api':
+            method = None
+            for i, x in enumerate(t):
+                if x in ('-X', '--method') and i + 1 < len(t):
+                    method = t[i + 1].upper()
+                elif x.startswith('--method='):
+                    method = x.split('=', 1)[1].upper()
+                elif x.startswith('-X') and len(x) > 2:
+                    method = x[2:].upper()
+            fields = _field_values(t)
+            has_input = '--input' in t
+            path = next((x for x in r[1:] if not x.startswith('-') and ('/' in x or x == 'graphql')), '')
             if path == 'graphql':
-                if re.search(r'\bmutation\b', ' '.join(t)):
-                    need |= {'post'}
+                query = ' '.join(_read_at(v.split('=', 1)[1]) for v in fields if v.startswith('query='))
+                if has_input:
+                    query += _read_at('@' + t[t.index('--input') + 1]) if t.index('--input') + 1 < len(t) else ''
+                if re.search(r'\bmutation\b', query):
+                    needs.append({'post'})
                 continue
-            method = method or ('POST' if fields else 'GET')
+            method = method or ('POST' if fields or has_input else 'GET')
             if method == 'GET':
                 continue
             # An open pull request's own body or title edit goes up unasked, per Consent in AGENTS.md.
-            if method == 'PATCH' and re.search(r'/pulls/\d+/?$', path):
+            keys = {v.split('=', 1)[0] for v in fields}
+            if method == 'PATCH' and re.search(r'/pulls/\d+/?$', path) and keys and keys <= {'body', 'title'}:
                 continue
-            need |= {'delete'} if method == 'DELETE' else {'post'}
-    return need
+            needs.append({'delete'} if method == 'DELETE' else {'post'})
+    return needs
 
 
 def commit_messages(cmd):
     out = []
     for t in _segments(cmd):
-        if not t or not (t[0].endswith('scripts/commit') or (t[0] == 'git' and 'commit' in t)
-                         or (t[0] == 'gh' and len(t) > 2 and t[2] in ('create', 'comment', 'review'))):
+        is_git_commit = t[0] == 'git' and _git_sub(t)[0] == 'commit'
+        is_gh_write = t[0] == 'gh' and len(_gh_verb(t)) > 1 and _gh_verb(t)[1] in ('create', 'comment', 'review', 'edit')
+        if not (t[0].endswith('scripts/commit') or is_git_commit or is_gh_write):
             continue
-        for i, x in enumerate(t[:-1]):
-            if x in ('-m', '--message', '--body', '-b', '--title', '-t'):
+        for i, x in enumerate(t):
+            if x in ('-m', '--message', '--body', '-b', '--title', '-t', '--trailer', '-am') and i + 1 < len(t):
                 out.append(t[i + 1])
+            elif x.startswith(('--message=', '--body=', '--title=', '--trailer=')):
+                out.append(x.split('=', 1)[1])
+            elif x.startswith('-m') and len(x) > 2 and not x.startswith('--'):
+                out.append(x[2:])
+            elif x in ('--body-file', '-F') and i + 1 < len(t) and t[0] == 'gh':
+                out.append(_read_at('@' + t[i + 1]))
     return out
 
 
 def push_targets(cmd, cwd):
-    """(repository, forced) for each git push on the command line; repository is owner/name or None."""
+    """(repository, forced) for each git push on the line; repository is owner/name or None."""
     out = []
     here = cwd or os.getcwd()
     for t in _segments(cmd):
         if len(t) >= 2 and t[0] == 'cd':
             here = os.path.join(here, os.path.expanduser(t[1]))
             continue
-        if not t or t[0] != 'git' or 'push' not in t:
+        if t[0] != 'git':
+            continue
+        sub, at = _git_sub(t)
+        if sub != 'push':
             continue
         where = here
-        for i, x in enumerate(t[:-1]):
-            if x == '-C':
+        for i, x in enumerate(t[:at]):
+            if x == '-C' and i + 1 < len(t):
                 where = os.path.join(here, os.path.expanduser(t[i + 1]))
-        rest = t[t.index('push') + 1:]
-        forced = any(x in ('-f', '--force') or x.startswith('--force-with-lease') or x.startswith('--force-if-includes')
-                     for x in rest) or any(x.startswith('+') for x in rest if not x.startswith('-'))
+        rest = t[at + 1:]
+        if '--dry-run' in rest or '-n' in rest:
+            continue
+        forced = any(x in ('--force', '--mirror') or x.startswith(('--force-with-lease', '--force-if-includes'))
+                     or (x.startswith('-') and not x.startswith('--') and 'f' in x[1:]) for x in rest) \
+            or any(x.startswith('+') for x in rest if not x.startswith('-'))
         args = [x for x in rest if not x.startswith('-')]
         remote = args[0] if args else 'origin'
         url = subprocess.run(['git', '-C', where, 'remote', 'get-url', remote], capture_output=True, text=True).stdout.strip()
-        if not url and '/' in remote:
+        if not url and ('/' in remote or ':' in remote):
             url = remote
         m = re.search(r'github\.com[:/]([^/\s]+)/([^/\s]+?)(?:\.git)?/?$', url)
         out.append((f'{m.group(1)}/{m.group(2)}' if m else None, forced))
@@ -1035,21 +1161,22 @@ def refusal(cmd, payload):
         if MARKER.search(msg):
             return ('an AI-authorship marker in a commit or post message: no Co-Authored-By, no "Generated with", '
                     'no "Assisted by AI", per Invariant 7 of the workspace AGENTS.md.')
-    need = publish_words(cmd)
-    pushes = push_targets(cmd, payload.get('cwd'))
-    if not need and not pushes:
+    needs = publish_words(cmd)
+    standing = standing_push()
+    pushes = [(r, f) for r, f in push_targets(cmd, payload.get('cwd')) if f or r not in standing]
+    if not needs and not pushes:
         return None
     text = turn_text(payload.get('transcript_path') or '')
     if text is None:
         return 'the transcript is unreadable, so the word this command waits for cannot be confirmed.'
-    if need and not has_word(text, need):
-        return (f'a publish waiting for its word, {" or ".join(sorted(need))}, which this turn does not carry, '
-                'per Invariants 1 and 2 of the workspace AGENTS.md. Show the draft and name the word.')
-    standing = standing_push()
+    for need in needs:
+        if not any(has_word(text, w) for w in need):
+            return (f'a publish waiting for its word, {" or ".join(sorted(need))}, which this turn does not carry, '
+                    'per Invariants 1 and 2 of the workspace AGENTS.md. Show the draft and name the word.')
     for repo, forced in pushes:
-        if forced and not has_word(text, {'force'}):
+        if forced and not has_word(text, 'force'):
             return 'a forced push, which waits for approval in the turn, per Invariant 8 of the workspace AGENTS.md.'
-        if repo not in standing and not has_word(text, {'push'}):
+        if repo not in standing and not has_word(text, 'push'):
             return (f'a push to {repo or "a repository it cannot resolve"}, which no standing word covers and this '
                     'turn does not name with push, per Consent in the workspace AGENTS.md.')
     return None

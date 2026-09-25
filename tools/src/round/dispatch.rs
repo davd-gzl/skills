@@ -156,10 +156,17 @@ fn merge_small<'a>(units: Vec<(String, Vec<&'a FileFacts>)>) -> Vec<(String, Vec
             .last()
             .map(|(_, m)| m.iter().map(|f| f.lines()).sum::<usize>() < FLOOR)
             .unwrap_or(false);
-        let alone = members.iter().map(|f| f.lines()).sum::<usize>() < FLOOR;
+        let lines = members.iter().map(|f| f.lines()).sum::<usize>();
+        let alone = lines < FLOOR;
+        // Never past the ceiling: a split made for size stays split.
+        let fits = out
+            .last()
+            .map(|(_, m)| m.iter().map(|f| f.lines()).sum::<usize>() + lines <= CEILING)
+            .unwrap_or(false);
         match out.last_mut() {
-            Some((prev, m)) if small || alone => {
-                *prev = common_dir(&[prev.clone(), name]);
+            Some((prev, m)) if (small || alone) && fits => {
+                let dir = common_dir(&[prev.clone(), name]);
+                *prev = if dir.is_empty() { "root".to_string() } else { dir };
                 m.extend(members);
             }
             _ => out.push((name, members)),
@@ -817,6 +824,12 @@ mod tests {
             false,
         );
         assert_eq!(big.len(), 2, "each file big enough to read alone still splits");
+        let (ceil, _) = bundles(
+            &[fact("q/a.go", Kind::Code, CEILING - 20), fact("q/b.go", Kind::Code, 99), fact("q/c.go", Kind::Code, 99)],
+            &HashMap::from([("q/a.go".to_string(), "hot".to_string())]),
+            false,
+        );
+        assert!(ceil.iter().all(|b| b.added + b.deleted <= CEILING), "a rejoin never passes the ceiling: {ceil:?}");
     }
 
     #[test]

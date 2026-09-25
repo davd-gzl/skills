@@ -173,10 +173,10 @@ fn merge_into(prev: &mut Candidate, next: &Candidate) {
     if !next.angle.is_empty() && !prev.angle.contains(next.angle.as_str()) {
         prev.angle = format!("{} + {}", prev.angle, next.angle);
     }
-    if !next.summary.is_empty() {
+    if !next.summary.is_empty() && !prev.summary.split(" | ").any(|x| x == next.summary) {
         prev.summary = format!("{} | {}", prev.summary, next.summary);
     }
-    if !next.verify_by.is_empty() {
+    if !next.verify_by.is_empty() && !prev.verify_by.split(" | ").any(|x| x == next.verify_by) {
         prev.verify_by = format!("{} | {}", prev.verify_by, next.verify_by);
     }
     if band_rank(&next.band) < band_rank(&prev.band) {
@@ -431,6 +431,81 @@ fn claims_md(
     out
 }
 
+/// A markdown file cut at its `## ` headings: the text before the first, then each heading with
+/// its body.
+fn sections(text: &str) -> (String, Vec<(String, String)>) {
+    let mut head = String::new();
+    let mut out: Vec<(String, String)> = Vec::new();
+    for line in text.split_inclusive('\n') {
+        if line.starts_with("## ") {
+            out.push((line.trim_end().to_string(), String::new()));
+        } else if let Some(last) = out.last_mut() {
+            last.1.push_str(line);
+        } else {
+            head.push_str(line);
+        }
+    }
+    (head, out)
+}
+
+/// `claims.md` rebuilt, keeping what was written into the old one: a filled Completeness section,
+/// and every section assemble does not write, a Retro or an Outcomes table.
+fn keep_written_claims(new: &str, old: &str) -> String {
+    if old.is_empty() {
+        return new.to_string();
+    }
+    let (head, mut fresh) = sections(new);
+    let (_, kept) = sections(old);
+    for (heading, body) in &kept {
+        match fresh.iter_mut().find(|(h, _)| h == heading) {
+            Some((h, b)) if h == "## Completeness" && !body.contains("(the writer's answers)") && !body.trim().is_empty() => {
+                *b = body.clone();
+            }
+            Some(_) => {}
+            None => fresh.push((heading.clone(), body.clone())),
+        }
+    }
+    let mut out = head;
+    for (h, b) in fresh {
+        out.push_str(&h);
+        out.push('\n');
+        out.push_str(&b);
+    }
+    out
+}
+
+/// `findings.md` rebuilt, keeping every `Fix:` line written under a finding, matched by its
+/// `file:line`.
+fn keep_fix_lines(new: &str, old: &str) -> String {
+    let anchor = |h: &str| h.trim_start_matches("## ").trim_start_matches("SKIP ").split([' ', '\t']).next().unwrap_or("").to_string();
+    let (_, old_secs) = sections(old);
+    let (head, mut fresh) = sections(new);
+    for (heading, body) in &old_secs {
+        let fixes: Vec<&str> = body.lines().filter(|l| l.starts_with("Fix:")).collect();
+        if fixes.is_empty() {
+            continue;
+        }
+        if let Some((_, b)) = fresh.iter_mut().find(|(h, _)| anchor(h) == anchor(heading)) {
+            for f in fixes {
+                if !b.lines().any(|l| l == f) {
+                    if !b.ends_with('\n') && !b.is_empty() {
+                        b.push('\n');
+                    }
+                    b.push_str(f);
+                    b.push('\n');
+                }
+            }
+        }
+    }
+    let mut out = head;
+    for (h, b) in fresh {
+        out.push_str(&h);
+        out.push('\n');
+        out.push_str(&b);
+    }
+    out
+}
+
 /// The hit rate per tier: confirmed rows over rows, over the files the tier holds.
 fn hit_rate(rows: &[Row], tiers: &HashMap<String, String>) -> String {
     let parts: Vec<String> = ["hot", "warm", "cold"]
@@ -678,6 +753,10 @@ fn run(args: &[String]) -> Result<(String, Vec<String>, Option<String>), String>
         &tiers,
     );
     let findings = findings_md(&rows, opts.get("url").unwrap_or(&empty), &misses);
+    let old_claims = fs::read_to_string(round.join("claims.md")).unwrap_or_default();
+    let old_findings = fs::read_to_string(round.join("findings.md")).unwrap_or_default();
+    let claims = keep_written_claims(&claims, &old_claims);
+    let findings = keep_fix_lines(&findings, &old_findings);
     fs::write(round.join("claims.md"), claims).map_err(|e| format!("claims.md: {e}"))?;
     fs::write(round.join("findings.md"), findings).map_err(|e| format!("findings.md: {e}"))?;
     Ok((
@@ -778,6 +857,33 @@ mod tests {
         assert_eq!(strip_local("cd /w/head && go test ./pkg", "/w/head"), "cd . && go test ./pkg");
         assert_eq!(strip_local("go test /tmp/claude/x/judge-3/pkg/... and /tmp/claude/x/find-b1-lines/pkg/a.go", "/w/head"), "go test pkg/... and pkg/a.go");
         assert_eq!(strip_local("pkg/a.go:10 holds", "/w/head"), "pkg/a.go:10 holds");
+    }
+
+    #[test]
+    fn a_rerun_keeps_the_completeness_answers_the_later_sections_and_every_fix_line() {
+        let (round, _) = fixture("rerun");
+        let (code, claims, findings) = run_on(&round, &[]);
+        assert_eq!(code, 0);
+        let answered = claims.replace("(the writer's answers)", "Every changed line was read; the callers of Set were mapped.")
+            + "\n## Retro\n\nThe finder held.\n";
+        fs::write(round.join("claims.md"), answered).unwrap();
+        let header = findings.lines().find(|l| l.starts_with("## ") && l.contains("pkg/a.go")).unwrap().to_string();
+        fs::write(round.join("findings.md"), findings.replacen(&header, &format!("{header}\nFix: clamp the TTL at the setter."), 1)).unwrap();
+        let (code, claims, findings) = run_on(&round, &[]);
+        assert_eq!(code, 0);
+        assert!(claims.contains("the callers of Set were mapped"), "{claims}");
+        assert!(!claims.contains("(the writer's answers)"), "{claims}");
+        assert!(claims.contains("## Retro\n\nThe finder held."), "{claims}");
+        assert_eq!(findings.matches("Fix: clamp the TTL at the setter.").count(), 1, "{findings}");
+    }
+
+    #[test]
+    fn a_candidate_copied_beside_its_finder_keeps_one_check() {
+        let mut a = Candidate { file: "f".into(), line: 1, angle: "lines".into(), summary: "s".into(), verify_by: "go test".into(), band: "Warning".into() };
+        let b = a.clone();
+        merge_into(&mut a, &b);
+        assert_eq!(a.verify_by, "go test");
+        assert_eq!(a.summary, "s");
     }
 
     #[test]

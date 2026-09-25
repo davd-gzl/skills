@@ -971,7 +971,7 @@ def _strip_heredocs(cmd):
 
 
 def _split(cmd, ops=False):
-    lex = shlex.shlex(cmd, posix=True, punctuation_chars=';&|\n()')
+    lex = shlex.shlex(cmd, posix=True, punctuation_chars=';&|\n()<>')
     lex.whitespace = ' \t\r'
     lex.whitespace_split = True
     seg = []
@@ -1019,12 +1019,15 @@ def _segments(cmd, depth=0, ops=False):
             else:
                 break
         kept, drop = [], False
-        for i, x in enumerate(t):
+        for x in t:
             if drop:
                 drop = False
-            elif i and x in ('>', '>>', '<', '2>', '1>', '&>', '2>>', '<<<'):
+            elif x and set(x) <= set('<>&-') and ('<' in x or '>' in x):
+                # A redirection: the operator, its target and a file-descriptor number before it.
+                if kept and kept[-1].isdigit():
+                    kept.pop()
                 drop = True
-            elif not (i and re.match(r'^\d*[<>]', x)):
+            else:
                 kept.append(x)
         t = kept
         if not t:
@@ -1052,7 +1055,7 @@ def _segments(cmd, depth=0, ops=False):
 
 
 def _dry(tokens):
-    return '--dry-run' in tokens
+    return any(x in ('--dry-run', '--help', '-h', '--list') for x in tokens)
 
 
 def _git_sub(t):
@@ -1232,7 +1235,7 @@ def publish_words(cmd, cwd=None):
             if '{owner}' in path or '{repo}' in path:
                 here_repos = _remote_repos(cwd) if cwd else set()
                 repo = next(iter(here_repos & strict), next(iter(here_repos), ''))
-            if method == 'PATCH' and re.search(r'/pulls/\d+/?$', path) and keys and keys <= {'body', 'title'} \
+            if method == 'PATCH' and re.search(r'/pulls/(\d+|\$\{?\w+\}?)/?$', path) and keys and keys <= {'body'} \
                     and repo not in strict:
                 continue
             if method == 'PUT' and '/contents/' in path:

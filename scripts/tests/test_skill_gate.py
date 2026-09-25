@@ -758,6 +758,24 @@ class PublishWordsRoundEight(PublishWordsRoundSeven):
         self.assertEqual(self.hook(cmd)[0], 0)
 
 
+class PublishWordsRoundNine(PublishWordsRoundEight):
+    """What the ninth check round found."""
+
+    def test_a_quoted_body_starting_with_an_angle_keeps_its_place(self):
+        for cmd in ('gh pr edit 5 -R o/r --body "<!-- template -->" --title "fix: y"', 'gh pr edit 5 -R o/r --body "> q" --base main',
+                    'gh pr edit 5 -R o/r -b "<details>x</details>" --add-reviewer me'):
+            self.assertEqual(self.hook(cmd)[0], 2, cmd)
+        self.assertEqual(self.hook('gh pr edit 5 -R o/r --body "<!-- template -->"')[0], 0)
+
+    def test_the_rest_path_frees_the_body_alone(self):
+        self.assertEqual(self.hook('gh api -X PATCH repos/o/r/pulls/68 -f title="fix: y"')[0], 2)
+        self.assertEqual(self.hook('for n in 67 68; do gh api --method PATCH repos/o/r/pulls/$n -F body=@new_$n.md; done')[0], 0)
+
+    def test_help_publishes_nothing(self):
+        for cmd in ('./scripts/post-pr-review.py --help', './scripts/post-review.sh -h', './scripts/post --help'):
+            self.assertEqual(self.hook(cmd)[0], 0, cmd)
+
+
 class HookRead(GateCase):
     def read(self, payload):
         return gate.main(['hook-read'], stdin=io.StringIO(json.dumps(payload)))

@@ -364,32 +364,34 @@ estimate is a change nobody can judge.
 
 ## Upgrading from the TODO
 
-`upgrade skills` runs on the strongest model available and takes the
-workspace's `TODO.md` line by line, newest first. Nothing is pushed without the
-word `push`, per *Consent* in the workspace `AGENTS.md`.
+`upgrade skills` runs on the strongest model available and runs to the end: it
+takes the workspace's `TODO.md` line by line, newest first, and stops only when
+no line is left that the session can act on and a round of checkers finds
+nothing. It never stops mid-pass to ask. Its commits push under the standing
+words of *Consent* in the workspace `AGENTS.md`; a public tree none covers
+waits for `push`.
 
 - Before any line's work, the lines the session takes get `Taken: <the
-  session's start sha>` at their end, in one commit made first and named in the
-  first reply as the push to ask for, since another session reads the list only
-  from the remote; until that push lands the marker guards nothing, so one
-  `upgrade skills` runs at a time. A line another session marked is skipped, and
-  a marker whose line did not land leaves in the closing commit.
+  session's start sha>` at their end, in one commit pushed first, since another
+  session reads the list only from the remote. A line another session marked is
+  skipped, and a marker whose line did not land leaves in the closing commit.
 - A line about a project, a defect, an issue to file, a target's behaviour, a
   recipe or a catalog, moves as it stands into that project's tree, per
-  *Writing it down* in `workspace.md`, and is named in the closing
-  list.
+  *Writing it down* in `workspace.md`.
 - Each line is read as its critic before any work: does the check it names
   still hold, does the rule it proposes fit the corpus, does what it costs pay.
 - A line that passes becomes a rule, per *Where it goes* and *The shape*, with
-  what it displaces named, or a script where a command can enforce it; one
-  commit per line, its message the line's substance and its estimate per *A
-  change to the run's shape*, the line struck in that commit.
+  what it displaces named, or a script where a command can enforce it, proved
+  by a test that fails without the change; one commit per line, its message the
+  line's substance and its estimate per *A change to the run's shape*, the line
+  struck in that commit.
 - A line that fails the read, whose check fails when run, or that a rule
-  already covers goes to the user as one question, the line and the objection,
-  and waits for the word; the session's own judgement never strikes it.
-- A line whose work is a run or a capability not yet there stays, with `Waits:`
-  and what it waits on.
-- The session ends on what landed, what was asked and what was struck, then a
-  verdict on every line that stays, `Waits:` and project lines included: keep,
-  strike, move or fold, each with its reason in one clause; the user's word
-  strikes, never the verdict.
+  already covers is struck with its reason, which the closing list names.
+- A line whose work is a run, a capability not yet there or the user's word
+  stays, with `Waits:` and what it waits on.
+- Once every line that can land has landed, independent checkers read the
+  pass's whole diff, each trying to prove a change wrong: a rule lost, a
+  reference left dangling, a claim the code contradicts. What they find is
+  fixed and the checkers run again over the fixes, until a round finds nothing.
+- The session ends on one list: what landed, what was struck and why, and every
+  line still waiting with what it waits on, the user's word first.

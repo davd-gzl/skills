@@ -19,27 +19,14 @@ reads once, left to right, and no reply is drafted into a file first: a draft
 prints the reply twice. A comment posted anywhere takes *Posted comments*
 in `skills/writing-style.md`, which keeps full sentences.
 
-## Thinking
+## Claims
 
-The thinking before a reply has one reader, the model, and the user never opens
-it, so the readability rules below stop at its edge. Length follows the step's
-difficulty, never a count: each task carries a minimum under which the answer
-fails outright, and no instruction estimates it in advance. What is dropped
-decides the outcome, so a step is shortened by removing what it repeats and
-never by removing the words that say how it is known.
+How long the model thinks is `effort`'s, set per stage and per session, and no
+rule here shapes the thinking.
 
-One step, as a draft: `Inv1 → post waits. ran git status: 3 files. ran private-names: 0 hits. infer: safe to write`
-
-- Each step, the shortest draft that carries it; a hard step takes the length it needs.
-- **Open each step with how it is known**, `ran <command>:`, `read <file>:`, or `infer:` for anything neither returned. A step with no such opener is an inference in a measurement's words, and it reaches the reply in the same clothes.
-- **A claim the reply will make that no `ran` or `read` step covers gets its own command before the reply ships**, or it goes out named as the inference it is. The gap that costs most is between what a command returned and what the sentence asserts from it.
-- A problem with layers gets its outline first, one draft per layer under it.
+- **A claim the reply makes rests on a command run this session**, or goes out named as the inference it is. The gap that costs most is between what a command returned and what the sentence asserts from it.
+- An unknown fact gets its command before anything builds on it, and the command returns the smallest output that settles it: a count, a `head`, a `--stat`, a grep, since every tool result stays in context for every later turn and the reply does not.
 - A step a written recipe covers follows the recipe rather than re-deriving it.
-- Prompt, rules and file text already in context are named, not quoted.
-- An unknown fact gets its command before any draft builds on it, and the command returns the smallest output that settles the step: a count, a `head`, a `--stat`, a grep, since every tool result stays in context for every later turn and the reply does not.
-- Only the option taken is written; a path the reply will not take is dropped before it is reasoned through.
-- One pass; a re-check fires only on a tool result that contradicts a step.
-- A fact, a status line or a path is answered with no draft.
 
 ## The reply
 

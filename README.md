@@ -227,8 +227,7 @@ Short form is the register every chat reply takes, defined in
 [`writing-style.md`](writing-style.md). The rules live there and are not
 restated here.
 
-The thinking before a reply takes the same register cut past readability, since
-nobody but the model reads it: the *Thinking* section of `short-form.md`, the
+No rule shapes the thinking before a reply: its depth is `effort`, the
 evidence in [`knowledge/thinking-length-follows-difficulty.md`](knowledge/thinking-length-follows-difficulty.md).
 `reply-check.py` measures the reply and not the thinking.
 

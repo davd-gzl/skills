@@ -1,9 +1,8 @@
 # Thinking length follows difficulty
 
-What research says about cutting the reasoning before a reply, read for the
-*Thinking* section of `skills/short-form.md`. Each line is one paper's
-measurement on the models and benchmarks it names, a claim to test here and
-not a fact; the *Thinking* rule waits on its own before-and-after count.
+What research says about cutting the reasoning before a reply. Each line is
+one paper's measurement on the models and benchmarks it names, a claim to test
+here and not a fact.
 
 - Every prompt cap, "be concise", "ten words or less", "no punctuation", sits on one accuracy-versus-length curve; each problem has its own minimum token count, and the gain is adaptive length, short on easy steps, long on hard ones; GSM8K and math sets, no code. Source: [Token complexity](https://arxiv.org/abs/2503.01141).
 - Which step is cut decides the outcome: 80% of low-entropy intermediate steps prune with no significant accuracy loss, while random or high-entropy pruning severely impairs the same models; DeepSeek-R1-7B, 14B and Qwen3-8B. Source: [Step entropy](https://mlanthology.org/iclr/2026/li2026iclr-making/).
@@ -20,7 +19,6 @@ not a fact; the *Thinking* rule waits on its own before-and-after count.
 - Prompt-based length control works but is not robust across models, so a wording is measured. Sources: [Stop overthinking](https://arxiv.org/abs/2503.16419), [Concise and adaptive thinking](https://arxiv.org/pdf/2507.09662).
 - Claude's adaptive thinking follows system-prompt guidance, wording-sensitive; effort is the calibrated lever and comes first, and a change is measured on sample traffic. Sources: [Steering thinking](https://platform.claude.com/docs/en/build-with-claude/thinking-steering-and-cost), [Effort](https://platform.claude.com/docs/en/build-with-claude/effort).
 
-Changes: the *Thinking* section of `skills/short-form.md`: length by difficulty
-and never a count, no cut by grammar since that removes tokens without reading
-what they carry, each step opening with how it is known, one pass, a command
-over a guess, nothing already in context restated.
+Changes: *Claims* in `skills/short-form.md`: no prose shapes the thinking,
+since on a model whose thinking is always on effort is the one control, and a
+claim in the reply rests on a command.

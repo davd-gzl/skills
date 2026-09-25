@@ -20,9 +20,6 @@ the rule is not an upgrade: the outcome table, the finding set and the reply's
 own numbers say whether it did, never the rule's wording. State the turns a
 rule removes beside its estimate, per *A change to the run's shape*.
 
-Run `./scripts/rules lint <files>` before committing any edit here. It warns and
-never blocks: a rough rule lands, and a later pass fixes it.
-
 ## Where it goes
 
 | The rule is about | It lives in |
@@ -76,7 +73,7 @@ State it, then stop. The reason belongs in the rule only where the reader would
 otherwise apply it wrongly. What does not belong: the session that produced it,
 the sha it was found on, the date, what was tried first, the knowledge file or
 the paper behind it. That record is the artifact's, a `plan.md`, a `claims.md`,
-a commit message, and the lint rejects a date or a bare sha in a rule line.
+a commit message.
 
 **A rule is read by someone with only the rule.** The command that settles it
 stays, since they can run it; the story around it goes, since they cannot reach
@@ -84,11 +81,6 @@ it. A pull request number, a round, a draft that once anchored wrongly, who
 found it and what an earlier version of this entry claimed each send the reader
 somewhere they have no reason to go, and the rule still has to work when they do
 not. Write the trigger, the action and the tell, then the command.
-
-Cut the draft before committing it. A rule arrives carrying the round that
-produced it. Read it back and delete every sentence that is not the trigger, the
-action or the tell; what it cost and what was tried first go in the commit
-message. A rule is cut once, here, at the length it keeps.
 
 Read a new rule against the mistake that earned it, and keep it only if it
 forbids what you did. A rule drafted in the turn it was earned comes out shaped
@@ -170,8 +162,8 @@ one pass.
 What the machine can do is measured, never written down: `./scripts/env-check.sh`,
 per *Capabilities* in `workspace.md`, which carries why a recorded capability goes
 stale. A rule needing one of those facts names the command and lets the reader
-read the answer. The lint blocks the clause that records one instead, `stop
-re-deriving` and its neighbours, and warns wherever a capability is named with no
+read the answer. The lint warns on the clause that records one instead, `stop
+re-deriving` and its neighbours, and wherever a capability is named with no
 command beside it.
 
 What does get written down is what a command cannot show: which recipe worked,
@@ -252,9 +244,8 @@ named in the index. A rule leaves only for the reasons above, never for the
 count, since a cut for length cannot tell the fact from the filler.
 
 `./scripts/rules lint` prints every file's word count and its median words per
-rule. Neither is a cap and neither says which rule to cut: read the rule instead
-and delete what is not the trigger, the action or the tell, which is usually the
-round that produced it. A rule that is all three and still long stays.
+rule. Neither is a cap: a rule that is all trigger, action and tell stays
+however long.
 
 A number in a rule is read by what it counts. A count of words rations them, and
 the only way to meet it is to delete words that carry meaning: a ceiling on a
@@ -289,8 +280,7 @@ designed before the first call: isolation flags first, `--tools ""
 plugin hook or a skill injection contaminates every answer and `--bare` drops
 OAuth; every variant in one run at effort `medium`; one blind judge pass, labels
 hidden and order shuffled, on single-pass readability and substance kept.
-`skills/archive/chat-register/` is the harness that measured *Short form*, kept
-as the record of that run.
+`skills/archive/chat-register/` holds a harness for such a run.
 
 A published result is one measurement on its own models, benchmarks and date:
 the knowledge line carries those conditions beside its number, and a rule drawn
@@ -320,15 +310,13 @@ from it is measured here before it is trusted.
 - A rule that proved unclear, missing or wrong during use is corrected in its
   file in the same turn, before the work that exposed it continues.
 - A rule resting on a published result from outside this workspace gets that
-  finding into `skills/knowledge/` in the same commit, per *Where it goes*. One
-  incident is not a finding, and neither is a rate off this workspace's own
-  rounds: what a rule cost and what was tried first goes in its commit message,
-  which is where a reader looks for it.
+  finding into `skills/knowledge/` in the same commit, per *Where it goes*.
 - A knob, a stage or a word that a change renames is grepped across `skills/`,
   `scripts/workflows/` and the README before the commit, since the old shape
   stays stated wherever the grep is not run.
 - Run `./scripts/rules lint` over every file the edit touched, plus the workspace
   root `AGENTS.md`, and fix what it reports rather than narrowing what it reads.
+  It warns and never blocks: a rough rule lands, and a later pass fixes it.
 
 ## A deterministic step is a tool
 

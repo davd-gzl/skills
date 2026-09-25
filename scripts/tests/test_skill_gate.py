@@ -445,6 +445,76 @@ class ClaudeHook(GateCase):
         self.assertEqual(rc, 0)
 
 
+class PublishWords(GateCase):
+    """A publish, a push outside the standing list, a forced push and an AI marker wait for their word."""
+
+    def turn(self, prompt, queued=()):
+        path = self.root / 'transcript.jsonl'
+        rows = [{'type': 'user', 'message': {'role': 'user', 'content': 'an earlier turn: post'}},
+                {'type': 'assistant', 'message': {'role': 'assistant', 'content': []}},
+                {'type': 'user', 'message': {'role': 'user', 'content': prompt}},
+                {'type': 'user', 'message': {'role': 'user', 'content': [{'type': 'tool_result', 'content': 'post'}]}}]
+        rows += [{'type': 'attachment', 'attachment': {'type': 'queued_command', 'prompt': q, 'origin': {'kind': 'human'}}}
+                 for q in queued]
+        path.write_text('\n'.join(json.dumps(r) for r in rows) + '\n')
+        return str(path)
+
+    def hook(self, command, prompt='fix it', queued=(), cwd=None):
+        err = io.StringIO()
+        payload = {'tool_name': 'Bash', 'tool_input': {'command': command},
+                   'transcript_path': self.turn(prompt, queued), 'cwd': cwd or str(self.root)}
+        with redirect_stderr(err), redirect_stdout(io.StringIO()):
+            rc = gate.main(['hook-claude'], stdin=io.StringIO(json.dumps(payload)), stdout=io.StringIO())
+        return rc, err.getvalue()
+
+    def repo(self, url):
+        repo = self.root / 'r'
+        subprocess.run(['git', 'init', '-q', str(repo)], check=True)
+        subprocess.run(['git', '-C', str(repo), 'remote', 'add', 'origin', url], check=True)
+        return str(repo)
+
+    def test_a_post_waits_for_the_word_in_this_turn_only(self):
+        post = 'gh pr comment 5 -R o/r -b hi'
+        self.assertEqual(self.hook(post)[0], 2, 'the word in an earlier turn or in a tool result is not the word')
+        self.assertEqual(self.hook(post, prompt='post it')[0], 0)
+        self.assertEqual(self.hook(post, queued=['post'])[0], 0, 'a message queued into the turn carries it')
+        self.assertEqual(self.hook(post, prompt='ok go')[0], 2, 'a vague yes authorises nothing')
+
+    def test_reads_dry_runs_and_an_open_pr_body_edit_pass(self):
+        for cmd in ('gh pr view 5 -R o/r', 'gh api repos/o/r/pulls/5/comments --paginate',
+                    "gh api graphql -f query='query{viewer{login}}'", 'gh api -X PATCH repos/o/r/pulls/5 -F body=@b.md',
+                    './scripts/post-review.sh d.md --dry-run', 'git commit -m "quote gh pr comment | x"'):
+            self.assertEqual(self.hook(cmd)[0], 0, cmd)
+
+    def test_writes_through_the_api_and_the_post_scripts_wait(self):
+        for cmd in ('gh api repos/o/r/issues/1/comments -f body=x', "gh api graphql -f query='mutation{x}'",
+                    './scripts/post-review.sh d.md', 'gh issue create -R o/r -t t -b b'):
+            self.assertEqual(self.hook(cmd)[0], 2, cmd)
+        self.assertEqual(self.hook('gh pr merge 5', prompt='post')[0], 2, 'a merge takes merge, not post')
+        self.assertEqual(self.hook('gh pr merge 5', prompt='merge 5')[0], 0)
+
+    def test_an_ai_marker_is_refused_whatever_the_turn_says(self):
+        rc, err = self.hook('git commit -m "fix\n\nCo-Authored-By: someone"', prompt='post push')
+        self.assertEqual(rc, 2)
+        self.assertIn('Invariant 7', err)
+
+    def test_a_push_outside_the_standing_list_waits_for_push(self):
+        (self.root / 'workspace.json').write_text(json.dumps({'standing_push': ['me/private']}))
+        mine, other = self.repo('https://github.com/me/private.git'), None
+        self.assertEqual(self.hook(f'git -C {mine} push origin HEAD:main')[0], 0)
+        shutil.rmtree(self.root / 'r')
+        other = self.repo('https://github.com/me/public.git')
+        self.assertEqual(self.hook(f'git -C {other} push origin HEAD:main')[0], 2)
+        self.assertEqual(self.hook(f'git -C {other} push origin HEAD:main', prompt='push')[0], 0)
+
+    def test_a_forced_push_waits_for_force_even_on_a_standing_repo(self):
+        (self.root / 'workspace.json').write_text(json.dumps({'standing_push': ['me/private']}))
+        mine = self.repo('https://github.com/me/private.git')
+        self.assertEqual(self.hook(f'git -C {mine} push --force origin HEAD:main', prompt='push')[0], 2)
+        self.assertEqual(self.hook(f'git -C {mine} push origin +HEAD:main', prompt='push')[0], 2)
+        self.assertEqual(self.hook(f'git -C {mine} push --force origin HEAD:main', prompt='push, force it')[0], 0)
+
+
 class HookRead(GateCase):
     def read(self, payload):
         return gate.main(['hook-read'], stdin=io.StringIO(json.dumps(payload)))

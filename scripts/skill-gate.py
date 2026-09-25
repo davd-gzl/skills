@@ -884,6 +884,177 @@ def cmd_prompt(stdin, stdout):
     return 0
 
 
+# What the user typed this turn: the prompt that opened it and every message queued into it
+# while it ran. A publish, a push outside the standing list and a forced push each wait for
+# their word there, per Invariants 1, 2, 3 and 8 of the workspace AGENTS.md.
+def turn_text(transcript):
+    try:
+        rows = [json.loads(l) for l in open(transcript, encoding='utf-8') if l.strip()]
+    except (OSError, ValueError):
+        return None
+    start = None
+    for i, e in enumerate(rows):
+        m = e.get('message') or {}
+        if e.get('type') == 'user' and not e.get('isMeta') and isinstance(m.get('content'), str):
+            start = i
+    if start is None:
+        return ''
+    parts = [rows[start]['message']['content']]
+    for e in rows[start + 1:]:
+        a = e.get('attachment') or {}
+        if e.get('type') == 'attachment' and a.get('type') == 'queued_command' \
+                and (a.get('origin') or {}).get('kind') == 'human':
+            parts.append(str(a.get('prompt', '')))
+    return '\n'.join(parts)
+
+
+def has_word(text, words):
+    return any(re.search(rf'\b{w}\b', text, re.I) for w in words)
+
+
+MARKER = re.compile(r'(?i)co-authored-by:|generated with \[?claude|assisted by ai|\U0001F916')
+
+
+def _segments(cmd):
+    """The simple commands of a shell line, split on ;, &, | and newlines outside quotes."""
+    lex = shlex.shlex(cmd, posix=True, punctuation_chars=';&|\n')
+    lex.whitespace = ' \t\r'
+    lex.whitespace_split = True
+    seg = []
+    try:
+        for tok in lex:
+            if tok and set(tok) <= set(';&|\n'):
+                if seg:
+                    yield seg
+                seg = []
+            else:
+                seg.append(tok)
+    except ValueError:
+        # An unbalanced quote, a heredoc body with an apostrophe: read line by line instead.
+        for line in cmd.split('\n'):
+            for part in re.split(r'&&|\|\||;|\|', line):
+                if part.split():
+                    yield part.split()
+        return
+    if seg:
+        yield seg
+
+
+def _dry(tokens):
+    return '--dry-run' in tokens
+
+
+def publish_words(cmd):
+    """The words one of which this command waits for, or an empty set when it publishes nothing."""
+    need = set()
+    for t in _segments(cmd):
+        if not t:
+            continue
+        name = os.path.basename(t[0])
+        if name in ('post-review.sh', 'post-fix.sh', 'post-pr-review.py') and not _dry(t):
+            need |= {'post', 'upload'}
+        if t[0] != 'gh' or len(t) < 3:
+            continue
+        verb = (t[1], t[2])
+        if verb in {('pr', 'create'), ('pr', 'comment'), ('pr', 'review'), ('pr', 'ready'), ('pr', 'reopen'),
+                    ('issue', 'create'), ('issue', 'comment'), ('issue', 'reopen'), ('release', 'create')}:
+            need |= {'post', 'ready'} if verb == ('pr', 'ready') else {'post'}
+        elif verb in {('pr', 'merge')}:
+            need |= {'merge'}
+        elif verb in {('pr', 'close'), ('issue', 'close')}:
+            need |= {'close'}
+        elif t[2] == 'delete':
+            need |= {'delete'}
+        elif t[1] == 'api':
+            method = next((t[i + 1].upper() for i, x in enumerate(t[:-1]) if x in ('-X', '--method')), None)
+            fields = any(x in ('-f', '-F', '--field', '--raw-field', '--input') or x.startswith(('-f', '-F')) for x in t[2:])
+            path = next((x for x in t[2:] if not x.startswith('-') and '/' in x or x == 'graphql'), '')
+            if path == 'graphql':
+                if re.search(r'\bmutation\b', ' '.join(t)):
+                    need |= {'post'}
+                continue
+            method = method or ('POST' if fields else 'GET')
+            if method == 'GET':
+                continue
+            # An open pull request's own body or title edit goes up unasked, per Consent in AGENTS.md.
+            if method == 'PATCH' and re.search(r'/pulls/\d+/?$', path):
+                continue
+            need |= {'delete'} if method == 'DELETE' else {'post'}
+    return need
+
+
+def commit_messages(cmd):
+    out = []
+    for t in _segments(cmd):
+        if not t or not (t[0].endswith('scripts/commit') or (t[0] == 'git' and 'commit' in t)
+                         or (t[0] == 'gh' and len(t) > 2 and t[2] in ('create', 'comment', 'review'))):
+            continue
+        for i, x in enumerate(t[:-1]):
+            if x in ('-m', '--message', '--body', '-b', '--title', '-t'):
+                out.append(t[i + 1])
+    return out
+
+
+def push_targets(cmd, cwd):
+    """(repository, forced) for each git push on the command line; repository is owner/name or None."""
+    out = []
+    here = cwd or os.getcwd()
+    for t in _segments(cmd):
+        if len(t) >= 2 and t[0] == 'cd':
+            here = os.path.join(here, os.path.expanduser(t[1]))
+            continue
+        if not t or t[0] != 'git' or 'push' not in t:
+            continue
+        where = here
+        for i, x in enumerate(t[:-1]):
+            if x == '-C':
+                where = os.path.join(here, os.path.expanduser(t[i + 1]))
+        rest = t[t.index('push') + 1:]
+        forced = any(x in ('-f', '--force') or x.startswith('--force-with-lease') or x.startswith('--force-if-includes')
+                     for x in rest) or any(x.startswith('+') for x in rest if not x.startswith('-'))
+        args = [x for x in rest if not x.startswith('-')]
+        remote = args[0] if args else 'origin'
+        url = subprocess.run(['git', '-C', where, 'remote', 'get-url', remote], capture_output=True, text=True).stdout.strip()
+        if not url and '/' in remote:
+            url = remote
+        m = re.search(r'github\.com[:/]([^/\s]+)/([^/\s]+?)(?:\.git)?/?$', url)
+        out.append((f'{m.group(1)}/{m.group(2)}' if m else None, forced))
+    return out
+
+
+def standing_push():
+    try:
+        return set(json.loads((root() / 'workspace.json').read_text()).get('standing_push', []))
+    except (OSError, ValueError):
+        return set()
+
+
+def refusal(cmd, payload):
+    """Why this command waits for a word the turn does not carry, or None."""
+    for msg in commit_messages(cmd):
+        if MARKER.search(msg):
+            return ('an AI-authorship marker in a commit or post message: no Co-Authored-By, no "Generated with", '
+                    'no "Assisted by AI", per Invariant 7 of the workspace AGENTS.md.')
+    need = publish_words(cmd)
+    pushes = push_targets(cmd, payload.get('cwd'))
+    if not need and not pushes:
+        return None
+    text = turn_text(payload.get('transcript_path') or '')
+    if text is None:
+        return 'the transcript is unreadable, so the word this command waits for cannot be confirmed.'
+    if need and not has_word(text, need):
+        return (f'a publish waiting for its word, {" or ".join(sorted(need))}, which this turn does not carry, '
+                'per Invariants 1 and 2 of the workspace AGENTS.md. Show the draft and name the word.')
+    standing = standing_push()
+    for repo, forced in pushes:
+        if forced and not has_word(text, {'force'}):
+            return 'a forced push, which waits for approval in the turn, per Invariant 8 of the workspace AGENTS.md.'
+        if repo not in standing and not has_word(text, {'push'}):
+            return (f'a push to {repo or "a repository it cannot resolve"}, which no standing word covers and this '
+                    'turn does not name with push, per Consent in the workspace AGENTS.md.')
+    return None
+
+
 def cmd_hook_claude(stdin, stdout):
     """The skills a write still lacks are named by path, and the write proceeds."""
     payload = json.load(stdin)
@@ -900,6 +1071,10 @@ def cmd_hook_claude(stdin, stdout):
                 or re.search(r'\bgit\b[^\n|;&]*\bcommit\b[^\n|;&]*\s--author[= ]', cmd)):
             print('Refused: a git commit that sets user.name, user.email or --author by hand. The identity is the '
                   'checkout\'s pin and the verb: ./scripts/commit -m <message> <path>..., per Commit identity in skills/git.md.', file=sys.stderr)
+            return 2
+        why = refusal(cmd, payload)
+        if why:
+            print(f'Refused: {why}', file=sys.stderr)
             return 2
         paths = sorted(bash_targets(cmd))
     else:

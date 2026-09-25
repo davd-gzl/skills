@@ -237,6 +237,12 @@ A rule leaves when any of these holds:
   believing it: `git grep` the name.
 - It restates what the tool already refuses to do.
 
+A mistake a rule already forbids gets a check, never more words. Before writing
+a rule for a correction, grep the corpus for the rule it breaks. Where one
+exists, the fix is a script, a hook or a lint that fires on the miss, or
+nothing: a rule that was missed is sampled out, and a longer one is sampled out
+sooner.
+
 A file splits on its trigger, never on its size. A section that fires at a
 different moment from the rest of its file, a reply beside repository rules,
 booting beside reviewing, is its own file, read when that moment comes and
@@ -307,8 +313,10 @@ from it is measured here before it is trusted.
   sections a task seems to need is how a section gets missed.
 - Re-read after `git -C skills log -1` shows a commit that was not there before.
   Another session moves the pin mid-turn.
-- A rule that proved unclear, missing or wrong during use is corrected in its
-  file in the same turn, before the work that exposed it continues.
+- A rule that proves unclear, missing or wrong during other work becomes one line
+  of the workspace's `TODO.md`, `./scripts/todo add`, and the work continues. The
+  rule's file changes under `upgrade skills` or when the user names that rule,
+  never in the middle of a task.
 - A rule resting on a published result from outside this workspace gets that
   finding into `skills/knowledge/` in the same commit, per *Where it goes*.
 - A knob, a stage or a word that a change renames is grepped across `skills/`,

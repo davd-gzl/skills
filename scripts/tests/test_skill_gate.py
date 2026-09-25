@@ -688,6 +688,28 @@ class PublishWordsRoundFive(PublishWordsRoundFour):
         self.assertEqual(self.hook('gh api markdown/raw --input f.md')[0], 0)
 
 
+class PublishWordsRoundSix(PublishWordsRoundFive):
+    """A push the gate cannot place waits for the word: what the sixth check round tried."""
+
+    def test_every_way_to_point_a_push_elsewhere_waits(self):
+        for cmd in ('git clone https://github.com/me/public y; cd y; git push origin HEAD:x',
+                    'T=$(mktemp -d); cd $T; git init; git remote add origin https://github.com/me/public; git push origin HEAD',
+                    'T=$(mktemp -d); git -C $T/../../etc push origin HEAD', 'git init x; git -C x/../elsewhere push origin HEAD',
+                    'T=$(mktemp -d); git -C $T push --repo=https://github.com/me/public',
+                    'git --git-dir=/elsewhere/.git push origin HEAD', 'GIT_DIR=/elsewhere/.git git push origin HEAD',
+                    'T=$(mktemp -d); pushd $T; popd; git push origin HEAD', 'f(){ cd /elsewhere; }; cd /tmp; f; git push origin HEAD',
+                    'git subtree push --prefix d origin main'):
+            self.assertEqual(self.hook(cmd)[0], 2, cmd)
+
+    def test_a_strict_repository_in_any_spelling(self):
+        (self.root / 'workspace.json').write_text(json.dumps({'word_for_every_change': ['up/strict']}))
+        for cmd in ('gh pr edit 5 --repo github.com/up/strict --body x', 'gh pr edit 5 --repo https://github.com/up/strict --body x',
+                    'gh pr edit 5 -Rup/strict --body x', 'GH_REPO=up/strict gh pr edit 5 --body x',
+                    'gh pr edit 5 --repo Up/Strict --body x', 'gh api -X PATCH repos/UP/strict/pulls/5 -f body=x'):
+            self.assertEqual(self.hook(cmd)[0], 2, cmd)
+        self.assertEqual(self.hook('gh api /markdown -f text=hi')[0], 0)
+
+
 class HookRead(GateCase):
     def read(self, payload):
         return gate.main(['hook-read'], stdin=io.StringIO(json.dumps(payload)))

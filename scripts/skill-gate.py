@@ -1089,25 +1089,37 @@ def _read_at(value):
 
 def every_change_repos():
     try:
-        return set(json.loads((root() / 'workspace.json').read_text()).get('word_for_every_change', []))
+        return {norm_repo(r) for r in json.loads((root() / 'workspace.json').read_text()).get('word_for_every_change', [])}
     except (OSError, ValueError):
         return set()
 
 
-def _gh_repos(t, cwd):
-    out = set()
+def norm_repo(x):
+    x = re.sub(r'^(https?://)?(www\.)?github\.com[:/]', '', x.strip().strip('"\'')).rstrip('/')
+    x = re.sub(r'\.git$', '', x)
+    return '/'.join(x.split('/')[:2]).lower()
+
+
+def _gh_repos(t, cwd, line=''):
+    out = {norm_repo(v) for v in re.findall(r'\bGH_REPO=(\S+)', line)}
     for i, x in enumerate(t):
         if x in ('-R', '--repo') and i + 1 < len(t):
-            out.add(t[i + 1])
+            out.add(norm_repo(t[i + 1]))
         elif x.startswith('--repo='):
-            out.add(x.split('=', 1)[1])
+            out.add(norm_repo(x.split('=', 1)[1]))
+        elif x.startswith('-R') and len(x) > 2:
+            out.add(norm_repo(x[2:]))
         m = re.match(r'https://github\.com/([^/\s]+/[^/\s]+)/pull/\d+', x)
         if m:
-            out.add(m.group(1))
+            out.add(norm_repo(m.group(1)))
     if not out and cwd:
-        remotes = subprocess.run(['git', '-C', cwd, 'remote', '-v'], capture_output=True, text=True).stdout
-        out |= {f'{a}/{b}' for a, b in re.findall(r'github\.com[:/]([^/\s]+)/([^/\s]+?)(?:\.git)?\s', remotes)}
+        out |= _remote_repos(cwd)
     return out
+
+
+def _remote_repos(cwd):
+    remotes = subprocess.run(['git', '-C', cwd, 'remote', '-v'], capture_output=True, text=True).stdout
+    return {norm_repo(f'{a}/{b}') for a, b in re.findall(r'github\.com[:/]([^/\s]+)/([^/\s]+?)(?:\.git)?\s', remotes)}
 
 
 def publish_words(cmd, cwd=None):
@@ -1143,7 +1155,7 @@ def publish_words(cmd, cwd=None):
             # A sync writes a branch of the user's repository: a push, and with --force a reset,
             # which Invariant 8 never allows.
             needs.append({'\x00never'} if '--force' in t else {'push'})
-        elif verb == ('pr', 'edit') and _gh_repos(t, cwd) & strict:
+        elif verb == ('pr', 'edit') and _gh_repos(t, cwd, cmd) & strict:
             needs.append({'post'})
         elif r[0] == 'api':
             method = None
@@ -1157,7 +1169,7 @@ def publish_words(cmd, cwd=None):
             fields = _field_values(t)
             has_input = '--input' in t
             path = next((x for x in r[1:] if not x.startswith('-') and ('/' in x or x in ('graphql', 'markdown'))), '')
-            if path.split('/')[0] == 'markdown':
+            if path.lstrip('/').split('/')[0] == 'markdown':
                 continue
             if path == 'graphql':
                 query = ' '.join(_read_at(v.split('=', 1)[1]) for v in fields if v.startswith('query='))
@@ -1171,13 +1183,16 @@ def publish_words(cmd, cwd=None):
                 continue
             # An open pull request's own body or title edit goes up unasked, per Consent in AGENTS.md.
             keys = {v.split('=', 1)[0] for v in fields}
-            repo = '/'.join(path.lstrip('/').split('/')[1:3]) if path.lstrip('/').startswith('repos/') else ''
+            repo = norm_repo('/'.join(path.lstrip('/').split('/')[1:3])) if path.lstrip('/').startswith('repos/') else ''
+            if '{owner}' in path or '{repo}' in path:
+                here_repos = _remote_repos(cwd) if cwd else set()
+                repo = next(iter(here_repos & strict), next(iter(here_repos), ''))
             if method == 'PATCH' and re.search(r'/pulls/\d+/?$', path) and keys and keys <= {'body', 'title'} \
                     and repo not in strict:
                 continue
             if method == 'PUT' and '/contents/' in path:
                 # A file written to a repository's branch is a push: free on a standing repository.
-                if repo in standing_push():
+                if repo in {norm_repo(x) for x in standing_push()}:
                     continue
                 needs.append({'upload', 'push'})
                 continue
@@ -1234,8 +1249,22 @@ def push_targets(cmd, cwd):
             if dests:
                 made.add(dests[-1].rstrip('/'))
 
+    # A line that points a remote, a git dir or a repository somewhere, runs a function or pops a
+    # directory can send a push anywhere: every push on it waits for the word.
+    # Read outside quotes and heredoc bodies, so an email address or a sentence never counts.
+    bare = re.sub(r"'[^']*'|\"(?:\\.|[^\"\\])*\"", ' ', _strip_heredocs(cmd))
+    unsure = bool(re.search(r'\bremote\s+(add|set-url)\b|\bgit\b[^;&|\n]*\bconfig\b|--git-dir|\bGIT_DIR=|'
+                            r'\bGIT_WORK_TREE=|\bpopd\b|\(\)\s*\{|(^|[;&|\n])\s*function\s+\w', bare))
+    for t in _segments(cmd):
+        if t[0] == 'git' and _git_sub(t)[0] == 'clone':
+            src = [x for x in t[_git_sub(t)[1] + 1:] if not x.startswith('-')]
+            if src and re.match(r'^(https?://|ssh://|git@|[\w.-]+@[\w.-]+:)', src[0]):
+                unsure = True
+
     def scratch(raw):
         raw = raw.strip('"\'').rstrip('/')
+        if unsure or '..' in raw.split('/'):
+            return False
         head = re.match(r'^\$\{?([A-Za-z_][A-Za-z0-9_]*)\}?', raw)
         return bool(head and head.group(1) in temp_names) or any(raw == d or raw.startswith(d + '/') for d in made)
     for t in _segments(cmd, ops=True):
@@ -1265,15 +1294,19 @@ def push_targets(cmd, cwd):
         forced = any(x in ('--force', '--mirror') or x.startswith(('--force-with-lease', '--force-if-includes'))
                      or (x.startswith('-') and not x.startswith('--') and 'f' in x[1:]) for x in rest) \
             or any(x.startswith('+') for x in rest if not x.startswith('-'))
-        args, skip = [], False
+        args, skip, repo_flag = [], None, None
         for x in rest:
             if skip:
-                skip = False
+                if skip == '--repo':
+                    repo_flag = x
+                skip = None
             elif x in ('-o', '--push-option', '--repo', '--receive-pack', '--exec'):
-                skip = True
+                skip = x
+            elif x.startswith('--repo='):
+                repo_flag = x.split('=', 1)[1]
             elif not x.startswith('-'):
                 args.append(x)
-        remote = fill(args[0]) if args else 'origin'
+        remote = fill(repo_flag or (args[0] if args else 'origin'))
         url = subprocess.run(['git', '-C', where, 'remote', 'get-url', remote], capture_output=True, text=True).stdout.strip()
         if not url and ('/' in remote or ':' in remote):
             url = remote
@@ -1284,7 +1317,11 @@ def push_targets(cmd, cwd):
             continue
         deleted = '--delete' in rest or '-d' in rest or any(x.startswith(':') for x in args[1:])
         m = re.search(r'github\.com[:/]([^/\s]+)/([^/\s]+?)(?:\.git)?/?$', url)
-        out.append((f'{m.group(1)}/{m.group(2)}' if m else None, forced, deleted))
+        out.append((None if unsure or not m else norm_repo(f'{m.group(1)}/{m.group(2)}'), forced, deleted))
+    for t in _segments(cmd):
+        # git subtree push, and a git alias defined on the line, push where the gate cannot read.
+        if t[0] == 'git' and _git_sub(t)[0] == 'subtree' and 'push' in t:
+            out.append((None, False, False))
     return out
 
 
@@ -1304,7 +1341,7 @@ def refusal(cmd, payload):
     needs = publish_words(cmd, payload.get('cwd'))
     if {'\x00never'} in needs:
         return 'a forced sync resets a remote branch, which Invariant 8 of the workspace AGENTS.md never allows.'
-    standing = standing_push()
+    standing = {norm_repo(x) for x in standing_push()}
     pushes = [(r, f, d) for r, f, d in push_targets(cmd, payload.get('cwd')) if f or d or r not in standing]
     if not needs and not pushes:
         return None

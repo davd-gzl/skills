@@ -56,8 +56,8 @@ Inside the word, whether one careful read holds the diff sets how many agents ru
 
 | Shape | When | Stages |
 | --- | --- | --- |
-| solo | the lines a finder must reason about, callers included, fit one careful read on the session's model, per its note under `skills/knowledge/models/`; a run of generated data, a regenerated golden or a fixture table, counts once | a finder, then one fresh agent that answers the *Reflector*'s completeness question, judges, runs every Critical and Warning, and writes the draft, `claims.md` and the overview: `args.solo` true, and no triage |
-| solo, wider | as solo, where the diff spans several code files, or changes what a consensus, gas, funds or permission path computes, charges or accepts; touching such a path without changing its result is plain solo | `solo.finders` N ahead of that same judge, run side by side, each finder dealt at most two of the angles the word runs; `./scripts/review-plan.py --solo --set solo.finders=<N>` prints the cost |
+| solo | the lines a finder must reason about, callers included, fit one careful read on the session's model, per its note under `skills/knowledge/models/`; a run of generated data, a regenerated golden or a fixture table, counts once | a finder, then one fresh agent that answers the *Reflector*'s completeness question, judges, runs every Critical and Warning, and writes the draft and `claims.md`, and the overview where step 1 dispatched no overview agent: `args.solo` true, and no triage |
+| solo, wider | as solo, where the diff spans several code files, tests aside, or changes what a consensus, gas, funds or permission path computes, charges or accepts; touching such a path without changing its result is plain solo | `solo.finders` N ahead of that same judge, run side by side, each finder dealt at most two of the angles the word runs; `./scripts/review-plan.py --solo --set solo.finders=<N>` prints the cost |
 | pipeline | one read does not hold it | the triage where no class is named, the finders, the reflector, the judges, the writer, the text pass and the overview, each as the word configures it |
 
 1. Prepare, per *Fetch & understand*, and dispatch the overview agent the moment the head worktree exists.
@@ -111,12 +111,12 @@ sized and names it. Size is one factor and never the trigger.
 | trivial | no behaviour changes and no prose asserting one: a comment, a rename, a version bump, a test-only edit that adds no case; a doc stating what the code does at runtime carries the round's risk in its claims and is normal | one solo agent finds, runs what it bands Warning, judges and writes; `solo.agents` 2 puts a fresh judge and writer behind a finder |
 | simple | one local behaviour change whose blast radius is one function and its direct callers | one finder per bundle carrying every angle, one judge batch, the writer, no reflector, no text pass |
 | normal | a behaviour change with more than one reach, a new invariant, a guard removed, a test that must turn red | the word's shape as configured |
-| complex | **one reading does not hold it**: the mechanism is new here, or two of them interact, or the reader cannot say from the diff alone what the code now does | finders at 60 calls, hot bundles split by code file, judges by three, the text pass |
+| complex | **a changed line one finder's reading cannot settle**: the mechanism is new here, or two of them interact, or the reader cannot say from the diff alone what the code now does | finders at 60 calls, hot bundles split by code file, judges by three, the text pass |
 
 - **The class measures one reading by the finder's model, never the change's subject.** The Inference section of `args.model_notes` says what that model holds in one pass, read before a class is named, so the same diff takes a lower class on a stronger model; where no note exists, the triage's own reading stands in. What the code is about and what is at stake set the bands, never the class.
 - Name what a second reading buys before naming a class, and copy the changed line one reading cannot settle into `quote`, verbatim with its file. A reason taken from the file list or the subject is not one: the runner takes a complex with no quote as normal.
 - **Plan the reading, bounded.** From `round dispatch`'s default cut and the finder and judge models the prompt names, return in `finders` the file groups one finder each reads, a test with the code it asserts, a caller with the callee whose contract changed, a doc with the code it describes, a bundle one reading cannot hold split, each with whether one finder walks every angle; `batch` and `read_batch`, the candidates one judge holds; and each stage's effort from `triage.efforts`: every choice sized to the model's note and to how tangled the change is, the best accuracy without overkill. The runner holds the plan to the config's `triage` bounds, every file in one group, a group's changed lines, the finder count against the default cut's, both batches, and a plan past one runs the default cut, the log naming the bound. Leave `finders` empty where the default cut already reads right.
-- `quick` caps the class at simple; `args.shape` names a class outright and no triage runs; `deep` takes complex, its triage planning the reading alone; a round with topics, the critical pass, is never triaged.
+- `quick` caps the class at simple; `args.shape` names a class outright and no triage runs; `deep` takes complex for a pipeline, its triage planning the reading alone, while a solo round under `deep` names its own class for the round note; a round with topics, the critical pass, is never triaged.
 - A round that finds nothing runs no judge, no reflector and no text pass: the writer ships the header, the verdict and one true sentence, and `claims.md` the empty table.
 
 ### Finders
@@ -280,8 +280,8 @@ own code: what
 it promises on every call shape reaching the guarded value, every case it
 exempts, and every consumer the change reaches across the trees it ships to.
 
-- A solo round carries the topics in its finder, `args.topics` beside the class, so the pass costs no agent.
-- A pipeline round runs one finder per topic under the `critical` preset of `scripts/workflows/review-pipeline.json`: no general angle, no text pass.
+- A solo round carries the topics in its finders, `args.topics` beside the class, dealt out with the angles, so the pass costs no agent.
+- A pipeline round runs the pass as its own run after the round closes, one finder per topic under the `critical` preset of `scripts/workflows/review-pipeline.json`: no general angle, no text pass.
 - The pass records itself in `critical-<n>/` inside the round it closes, `args.critical_pass` numbering it, and its writer appends the verdicts to the round's `claims.md` under `## Critical pass <n>` and the kept findings to the round's draft, rewriting neither.
 - Pass the round's own `prior_checks`, so no check runs twice, and print the cost first with `./scripts/review-plan.py --preset critical --topics <n>`.
 - **Run another pass while the last one returned a candidate the verifiers banded above Nit.** Stop at two whatever the second returns, and name in the round note which bound is left standing on one pass.

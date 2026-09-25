@@ -52,13 +52,13 @@ The word sets the shape, and the word is how well the user knows the code:
 | `review` | any change | one finder per bundle per angle with material, or one per bundle carrying every angle past `finder.fold_past_bundles` bundles, the defect angles, lines, reach, removed, the catalog and rollout, plus claims on a bundle carrying a doc, each running its own Warning checks, the Warning cap 12 and the Nit cap 3 under a round-wide 24, the reflector, judges by six over the run-shaped candidates and by twelve over the reads, the writer, the text pass, a 1M ceiling |
 | `deep review` | code that is complex or unknown | every finder at 60 calls, the claims, tests and refactor angles on top of the defect ones, a hot bundle over the floor split by code file, the Warning cap 16 and the Nit cap 8, judges by three at 30 calls, reads by six, the writer, the text pass, a 2.5M ceiling |
 
-Inside the word, the reach of one reading sets how many agents run:
+Inside the word, whether one careful read holds the diff sets how many agents run. It is decided before the class: a diff one read holds runs solo whatever its class, the class then naming the round note and no stage. `./scripts/review-plan.py --diff` prints a suggested shape from the diff, and the parent confirms it or overrides it with the reason.
 
 | Shape | When | Stages |
 | --- | --- | --- |
-| solo | the diff and its callers fit one careful read on the session's model, per its note under `skills/knowledge/models/` | a finder, then one fresh agent that answers the *Reflector*'s completeness question, judges, runs every Critical and Warning, and writes the draft, `claims.md` and the overview: `args.solo` true, `solo.agents` 2, and no triage |
-| solo, wider | as solo, where one pass over every angle would come back thin: the diff spans several code files, or it moves a consensus, gas, funds or permission path | `solo.finders` N ahead of that same judge, run side by side, the angles dealt round-robin so each reads the whole diff through fewer questions; `./scripts/review-plan.py --solo --set solo.finders=<N>` prints the cost |
-| pipeline | they do not | the triage where no class is named, the finders, the reflector, the judges, the writer, the text pass and the overview, each as the word configures it |
+| solo | the lines a finder must reason about, callers included, fit one careful read on the session's model, per its note under `skills/knowledge/models/`; a run of generated data, a regenerated golden or a fixture table, counts once | a finder, then one fresh agent that answers the *Reflector*'s completeness question, judges, runs every Critical and Warning, and writes the draft, `claims.md` and the overview: `args.solo` true, and no triage |
+| solo, wider | as solo, where the diff spans several code files, or changes what a consensus, gas, funds or permission path computes, charges or accepts; touching such a path without changing its result is plain solo | `solo.finders` N ahead of that same judge, run side by side, each finder dealt at most two of the angles the word runs; `./scripts/review-plan.py --solo --set solo.finders=<N>` prints the cost |
+| pipeline | one read does not hold it | the triage where no class is named, the finders, the reflector, the judges, the writer, the text pass and the overview, each as the word configures it |
 
 1. Prepare, per *Fetch & understand*, and dispatch the overview agent the moment the head worktree exists.
 2. Run the *Re-review rounds* gate when a prior round exists.
@@ -73,17 +73,19 @@ Inside the word, the reach of one reading sets how many agents run:
 
 What the parent hands the runner, and what every stage gets from it.
 
-- `./scripts/review-setup.sh <head worktree> <base worktree> <scratch> --repo <owner/name> --target <text> --round-dir <dir> --catalog <file> --delta <project review.md> --prebuilt <tool>` does the fixed part of the launch in one command: the blanked copy of the head, the risk table, the bundles with their diffs, the rule files per stage, the diff and its material, and `args.json` for the workflow; the parent adds the threads or the blind flag and the notes. What it wraps, for a launch by hand:
+- `./scripts/review-setup.sh <head worktree> <base worktree> <scratch> --repo <owner/name> --target <text> --round-dir <dir> --catalog <file> --delta <project review.md> --prebuilt <tool>` does the fixed part of the launch in one command: the blanked copy of the head, the risk table, the bundles with their diffs, the rule files per stage, the diff and its material, the suggested shape, and `args.json` for the workflow; `--solo` and `--finders <n>` set the solo shape, and it sets `args.own_pr` itself where the pull request's author is the account `gh` is signed in as. The parent adds the threads or the blind flag and the notes. What it wraps, for a launch by hand:
 - Print the plan first: `./scripts/review-plan.py --rules-out <scratch>/rules`, with `--preset` for `quick review` or `deep review`, and `--extra <stage>=<path>#<Heading>` for each section of the project delta a stage needs. Paste its table and projection in the reply that launches the run, so what is about to run and cost is on screen before it does, and the whole table in every reply before the launch: every column and every stage the round runs, the triage included, with an Expected column beside the plan's count saying what this target will actually run.
-- Name each target's class in the reply that launches the run, from the *Triage* table, and pass it as `args.shape`: the class, the line that earns it, where a Warning would sit, what that class makes the round, and what `./scripts/review-plan.py --shape <class>` costs it. A parent that has not read the whole diff, callers included, leaves `args.shape` empty, and the triage names the class in the round note.
+- Name each target's class in the reply that launches the run, from the *Triage* table, and pass it as `args.shape`: the class, the line that earns it, where a Warning would sit, what that class makes the round, and what `./scripts/review-plan.py --shape <class>` costs it. A parent that has not read the whole diff, callers included, leaves `args.shape` empty, and the triage names the class in the round note. A solo round passes its class too, for the round note.
+- Pass `--suite-min` from the project's `AGENTS.md`, the measured minutes a judge's checks take there, so the projection's clock counts the test runs and not the model time alone.
 - Then call the Workflow tool: `scripts/workflows/review-pipeline.js` as `scriptPath`, the prepared values as `args`, the preset as `args.preset`, the rules directory as `args.rules_dir`. The `review` word is the opt-in the harness's gate asks for, per *Consent* in the workspace `AGENTS.md`, and this sentence is the skill instruction it accepts.
 - `args.risk_json` is what `round risk --json` wrote and `args.blob_url` the head repository's blob base at the sha, `https://github.com/<owner>/<repo>/blob/<sha>`: `round assemble` puts the tier on every row and the `[gh]` link on every header from them.
 - `args.bundles` is what `round dispatch` wrote, and its table goes in the launch reply beside the plan's: the finder count is read off it, one per bundle per angle with material, or one carrying every angle for a bundle under the floor.
 - **The tests and refactor angles run under `deep` alone, and claims only where the diff carries a doc.** They return what the author acts on later, a Suggestion, a Nit, a missing test, and a round on the defect angles still reaches the defects. A doc asserts what the code does at runtime and a code comment's wording ships `SKIP` either way, so `finder.claims_docs_only` earns the claims finder on a bundle carrying a `.md`, a `docs/` or an `adr/` path and on no other.
 - **A Critical or a Warning is run before it ships, always.** No preset cap, output ceiling or budget floor reaches one: the judges take the bands in order and a batch holding either is dispatched whatever is left. A round that truly cannot run one drops the band and says which check is missing, so a PLAUSIBLE Warning never reaches an author.
-- **Size the round by what the target is worth, and print what it costs before it runs.** Developer tooling, a docs page and a CI script take `quick` unless the user names another word; the triage class raises the shape inside a word and never the word itself. `./scripts/review-plan.py` prints the projection in dollars from the rates in `workspace.json`, the launch reply carries that figure, and a round costing more than its target is worth waits for the user to say go.
-- **Ask what one agent would miss before taking the plan's agent count.** The preset's table sizes the stages and never the target, so a diff one read holds whole, callers included, takes the class *Triage* gives it and the agent count that class earns, not the table's. The plan projects a shape; it does not choose one.
+- **Size the round by what the target is worth, and print what it costs before it runs.** Developer tooling, a docs page and a CI script take `quick` unless the user names another word; the triage class raises the shape inside a word and never the word itself. `./scripts/review-plan.py` prints the projection in dollars from the rates in `workspace.json`, the launch reply carries that figure, and a round costing more than the project's `CONTEXT.md` lets a round spend unasked waits for the user to say go; where the file names no figure, every round waits.
+- **Ask what one agent would miss before taking the plan's agent count.** The preset's table sizes the stages and never the target: a diff one read holds whole, callers included, runs solo, and the class sizes a pipeline alone. The plan projects a shape; it does not choose one.
 - **Every stage runs on the session's model.** Another model runs only where the user names it in the turn or sets a stage's `model` key in `scripts/workflows/review-pipeline.json`, since a stage that picks its own model spends money nobody approved. What the round tunes is the reading: the effort, the grouping and the batches, which the triage plans. Tiering a stage onto a cheaper model is the common practice elsewhere; this corpus trades it for no spend the user did not set. Where a round keeps a finder stage, cut the finder count, the caps or the angles rather than the finder's effort, each of which drops reading the round chose to skip rather than reading it did badly.
+- Each stage runs at the `effort` its entry in `scripts/workflows/review-pipeline.json` sets. The finders' `xhigh` rests on a measured round, recorded under Effort in the file's `_doc`, and it is the measurement the model note defers to: the note's effort line is inference, and no stage moves off the config's value until a round on the session model measures the difference.
 - **A stage `./scripts/review-retro.py` names as moved onto another model re-runs at `max` on that model**, after the input is shrunk per *Repro rules*, since a smaller repro that keeps the session's model is the better fix. Resume the run, `resumeFromRunId`, with that stage's `model` and `effort` set in `args.stages`, which re-runs every agent of the stage.
 - `./scripts/review-setup.sh --model <id>` names the session's model, so the triage reads the published note on it, `skills/knowledge/models/<id>.md`.
 - **An angle the user names in the launch turn runs, whatever the word.** The parent adds it to `args.stages.finder.angles` and clears `claims_docs_only` where claims is the one named, so `review <target> +claims` buys the deep angle without the deep round.
@@ -99,7 +101,7 @@ What the parent hands the runner, and what every stage gets from it.
 
 ### Triage
 
-The change's class sets the shape and the word caps it. The parent names it in
+The change's class sizes a pipeline, and the word caps it; a diff one read holds runs solo per *The round*, whatever its class. The parent names it in
 `args.shape` when it has read the diff whole, callers included; otherwise one
 short agent reads the diff, the risk table and the material before any stage is
 sized and names it. Size is one factor and never the trigger.
@@ -269,9 +271,12 @@ findings is `skills/change.md`; they stay here.
 
 ## The critical pass
 
-**A round whose target fixes a reported vulnerability carries one topic per
-bound the fix claims to hold, in the launch itself and never offered after it.**
-The parent writes each bound from the description and the guard's own code: what
+**A round whose target fixes a reported vulnerability, or whose description
+names a guard it adds or hardens against an attack, carries one topic per bound
+the fix claims to hold, in the launch itself and never offered after it.**
+The parent writes each bound from the description, the vulnerability's own
+write-up where the project's delta names the tracker holding it, and the guard's
+own code: what
 it promises on every call shape reaching the guarded value, every case it
 exempts, and every consumer the change reaches across the trees it ships to.
 

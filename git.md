@@ -12,7 +12,8 @@ the word is given.
 
 Commit with the consumer's own verb, `./scripts/commit -m <message> <path>...`,
 `-C <repo>` for another tree: it measures the destination's visibility, takes
-the handle from there and sets all four identity variables. Two handles, by
+the handle from there and sets all four identity variables, `GIT_AUTHOR_NAME`,
+`GIT_AUTHOR_EMAIL`, `GIT_COMMITTER_NAME` and `GIT_COMMITTER_EMAIL`. Two handles, by
 visibility: the user's own for a public destination, and for a private one a
 machine handle tied to no account, so the commit counts toward nobody's graph.
 A private destination going public takes the user's handle from now, named in
@@ -28,15 +29,6 @@ the two agree wherever both apply. `./scripts/identity` alone reports drift, `--
 every commit this machine's own config committed under neither handle. The machine's global
 identity is the private handle, so an unpinned tree defaults to the one that counts toward nobody's
 graph.
-
-Why it is a verb rather than a line to type. Author and committer must both be
-set, in `GIT_AUTHOR_NAME`, `GIT_AUTHOR_EMAIL`, `GIT_COMMITTER_NAME` and
-`GIT_COMMITTER_EMAIL`: a variable set beats config, local and global,
-and `git -c` too, so the verb holds in a tree the pin has not reached. `--amend` keeps the original
-author however those four are set, so an amend meant to repair an identity
-repairs the committer alone; the verb passes `--reset-author`. `rebase` and
-`cherry-pick` take the committer where `commit` does, so a rebase run bare
-commits under the config identity.
 
 A fix branch under `projects/<repo>/changes/<slug>/checkout/` targets a public
 upstream and takes the user's handle even though the parent tree is private;
@@ -113,14 +105,7 @@ A submodule sits on a detached HEAD, and every failure here follows from that.
 - **Push it as `git push origin HEAD:main`.** A submodule's `main` is whatever
   the last update left, usually stale, so pushing that ref is refused as behind
   while the commit that matters sits on `HEAD`. Follow with
-  `git branch -f main origin/main`. The refusal does not stop a surrounding
-  `set -e` script, so confirm the gitlink resolves on the remote before pushing
-  the parent, never after.
-- **Push the submodule, then the parent.** `git -C <path> push` sends its commits
-  to its own remote and the parent tracks only a gitlink;
-  `git push --recurse-submodules=on-demand` does both. A clone breaks when a
-  gitlink's commit is not on the url `.gitmodules` names, and `workspace.md`
-  says which submodules point at a fork.
+  `git branch -f main origin/main`.
 - Version a fix branch as a submodule, never a worktree. A worktree's `.git`
   is a file into the main object store, so git cannot track it.
   `git submodule add -b <branch> <fork-url> <path>` records the branch, which
@@ -152,12 +137,9 @@ A submodule sits on a detached HEAD, and every failure here follows from that.
   a refused push prints its error and the script's next line still reports the
   push as done. Push every refspec of one remote in a single `git push --atomic`
   and let its status stand.
-- `gh pr edit` reports a scope failure as success. It resolves reviewers and
-  assignees over GraphQL before it patches, so a token without `read:org`
-  prints `Your token has not been granted the required scopes`, sends no edit,
-  exits 0, and the old body stays. Patch over REST,
-  `gh api -X PATCH repos/<owner>/<repo>/pulls/<n> -F body=@<file>`, and read
-  the body back after every edit.
+- `gh pr edit` exits 0 on a token scope failure and sends nothing. A body goes
+  up through `./scripts/pr-body-apply`, any other field over REST,
+  `gh api -X PATCH repos/<owner>/<repo>/pulls/<n>`, read back after the edit.
 - Stage under `set -e` with care. A `git add` naming a path already staged
   as deleted exits nonzero and stages nothing beside it, so the commit carries
   the deletion alone. A tree that looks current is a snapshot of its last sync,
@@ -188,6 +170,4 @@ saying so is the answer.
 ## After a final action
 
 Bring `pr-body.md`, `issue.md`, the change `README.md` with its `Status:` and
-`Head:` lines, and the `checkout/` gitlink up to match what landed. Read the live
-text back with `gh pr view <n> --json body` first: an edit made in the GitHub
-interface is invisible here, and a later push from a stale draft reverts it.
+`Head:` lines, and the `checkout/` gitlink up to match what landed.

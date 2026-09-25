@@ -62,7 +62,7 @@ of measuring again.
 - Write a commit sha bare in prose GitHub renders: no backticks, no link. In a reply, link it: chat autolinks nothing.
 - Never write a section to say it is empty. Delete the heading.
 - **Link every named thing and every fact.** A file, symbol, PR, issue, package or project takes a link on first appearance; a default, a type, a bound, a count or a call site takes one on the words stating it, two facts taking two. An absence has no line and stays unlinked. In a table, that covers every cell naming an artifact, not the first column alone. Into code the link carries `#L37` or `#L35-L42` on a `blob` URL, never a bare file or directory, read back before shipping, on the ref `skills/review.md` picks.
-- A claim about someone else's platform carries the link that proves it. Never assert what a browser, OS, or runtime does from memory.
+- A claim about someone else's platform carries the link that proves it.
 - When the source states the reason, link the line and stop. Never restate what a reader reaches in one click.
 - Never fold a live observation and a source read into one setup line. Name the setup only when the claim rests on it: the instance, the browser, the device, the command. A source read owes none of that, since the permalink already carries the sha.
 - A finding links the problem, never the definition: point at the defective line, the unbounded call, the missing guard, the wrong operator. Link the `func` line only when the claim is about the symbol itself, never when the claim is a defect inside it.
@@ -73,7 +73,7 @@ of measuring again.
 - A guard earns one sentence more, naming what it prevents, where deleting it would break nothing a test can see.
 - A comment carrying three facts is a design note in the wrong file: the alternative that was rejected, the failure the shape prevents and the invariant behind it belong in the ADR, the plan or the commit message. Where a second fact is load-bearing for the line under it, keep that one and move the rest.
 - **A comment states what the code does now, never what it did before.** A clause naming the old order, the previous behaviour or what a change replaced reads as current to whoever arrives later, and the history has no line to sit on once the branch merges. Write the invariant the shape protects: `a failed add must not cost the proposer a point`, not `the old order spent the point and added nobody`. The branch's own history goes in the commit message and the plan.
-- **Name a model with the preset it ran under, every time.** `claude-opus-5, standard review`, in a review's metadata, a posted marker, a handover or a reply; a tier alone names nothing, since a preset sets one per stage. The name alone hides how much thinking the output got. Read the effort, never recall it: `echo $CLAUDE_EFFORT`, plus `modelSettings` in `~/.claude/settings.json`. An agent given no override inherits the session's and carries the same pair. Work agents did is named from their transcripts, each turn's model and effort, never from the config that dispatched them: the harness can finish an agent on another model, and only the transcript says so.
+- **Name a model with the preset it ran under, every time.** `claude-opus-5, standard review`, in a review's metadata, a posted marker, a handover or a reply; a tier alone names nothing, since a preset sets one per stage. The name alone hides how much thinking the output got. Read the effort, never recall it: `echo $CLAUDE_EFFORT`. An agent given no override inherits the session's and carries the same pair. Work agents did is named from their transcripts, each turn's model and effort, never from the config that dispatched them: the harness can finish an agent on another model, and only the transcript says so.
 - **Mark an opinion as an opinion.** Write "I think" in front of a preference about how the code should look or behave, so a reader tells taste from defect at a glance. Never attach it to something measured, which needs no owner, and never use it to soften a finding: a defect stays flat and unhedged.
 - **A severity is a number out of ten and the word for it**, `6/10, medium`. A pull request body fixing a defect carries it on its own first line, above every heading.
 - In a review, lead with the verdict only where no separate field carries it, and never soften a finding's wording: no "Optional", no "non-blocking".
@@ -99,11 +99,6 @@ Take the checks in order. Each is a search over the draft, not an impression of 
 10. **Gutted sentences.** For every sentence this revision cut a clause from, name what it still asserts. Where the claim lived in the removed words, delete the sentence and write what belongs in its place; keeping the residue leaves a slot filled by a line that states nothing.
 
 A pass that changes nothing is the exit condition. Never report a pass not run as a pass that changed nothing.
-
-## Short form
-
-Chat replies take *Short form*, `skills/short-form.md`. Every rule above holds
-under it.
 
 ## Posted comments
 

@@ -1,6 +1,6 @@
 ---
 name: review-comment
-description: Use when drafting, regenerating, or posting comment_<model>.md, the GitHub artifact a review ships. Extends skills/review.md with the body rules, the inline-comment shape, the final check, and the posting gate.
+description: Use when drafting, regenerating, or posting comment_<model>.md, the GitHub artifact a review ships. Extends skills/review.md with the body rules, the inline-comment shape, the final check, and posting.
 ---
 
 # The review comment
@@ -13,7 +13,7 @@ has not been reported. Where the two disagree on wording, this one is right and
 
 Draft in the round directory beside `claims.md`. Visible prose follows the *Posted comments* section of `skills/writing-style.md`. `SKIP` prefixed to a header, `## SKIP <path>:<line>`, marks a finding that never goes out, whatever the round decides; never delete a dropped comment, since the marker survives regeneration. Which of the rest go out this time is chosen at posting, by band or by anchor, per *Posting*, so a round that posts the Warnings alone writes no marker for what it holds.
 
-A target with no PR, a branch or a repository-level failure, gets a GitHub issue draft in the same filename: `Target:` and `Event: ISSUE` in place of the PR header, then `## Title`, `## Body`, and the anchored `## <path>:<line>` sections posting as plain headers inside the body. Each section still runs 1-3 sentences and closes with fixed-on-branch or left-out and why. Post with `gh issue create -R <repo> --title ... --body-file ...` under the same `post` gate.
+A target with no PR, a branch or a repository-level failure, gets a GitHub issue draft in the same filename: `Target:` and `Event: ISSUE` in place of the PR header, then `## Title`, `## Body`, and the anchored `## <path>:<line>` sections posting as plain headers inside the body. Each section still runs 1-3 sentences and closes with fixed-on-branch or left-out and why. Post with `gh issue create -R <repo> --title ... --body-file ...` under the `post` word of Invariant 1.
 
 Auto-SKIP duplicates: when another reviewer, or the posting account itself, already raised a finding, prefix its header with `SKIP` while drafting, attribute the reviewer in `claims.md`, and make `Already raised: <comment-url>` the section's first body line. When a section bundles an already-raised finding with a novel one, split it so the novel part posts. Where the raised finding is one case of a broader one being posted, name that case in the broader sentence and link it to the original instead of splitting.
 
@@ -51,7 +51,7 @@ Round: <n>. <the round note, re-review rounds only>
 ### Body rules
 
 - A finding with more than one case is a claim and a list, never a paragraph. One line for the claim and its mechanism, then one nested bullet per case naming its condition and outcome. Put the cases where it does not bite beside the ones where it does.
-- The Body has exactly two jobs: cross-cutting synthesis the per-line comments cannot carry, and every finding no single line owns. Below them goes the clip showing the feature doing what the bullets say. A paragraph there is a finding that should have been anchored.
+- The Body has exactly two jobs: cross-cutting synthesis the per-line comments cannot carry, and every finding no single line owns, as a list per *Posted comments* in `skills/writing-style.md`. Below the list goes the clip showing the feature doing what the bullets say. A paragraph there is a finding that should have been anchored.
 - A finding naming an edit is anchored on the line that gets edited, and every demonstrative in it points at that anchor. This timer, this map, this call carrying a link somewhere else is the symptom: the sentence wanted a second anchor and got a link instead.
 - **Never pin a line the finding does not want changed.** An anchor reads as a request to edit that line, so a finding whose edit lands elsewhere sends the author at code it never disputed. Where the line to edit sits outside the diff the finding has no anchor at all, and it goes in the Body as a bullet carrying its own links, never on the nearest changed line.
 - The Body is about the branch, never about the review. Two shapes fail it and both read as filler: the imperative, `Read the caption path`, which sets homework for the author who wrote that path; and the report, `This looked at the three token routes`, which names the reviewer's afternoon. Neither asserts anything that can be wrong, which is the tell. Write the problem no line owns, or the one property of the branch the anchored comments cannot carry between them.

@@ -12,7 +12,7 @@ My skills: the instruction sets my agents load before working on my projects.
 | Word | For | Cost, projected today |
 | --- | --- | --- |
 | `quick review <target>` | the overview of what a change is worth: one finder per bundle on the Warning-finding angles, each running its own Warning checks, judges in short parallel batches, no reflector, the text pass past 120 visible words of findings | about 8 agents, 360k output, 45 minutes, estimate |
-| `review <target>` | any change; a triage names the class first and a simple change runs one finder per bundle, one judge and the writer, a trivial one a single agent; the normal round: one finder per bundle per angle, or one per bundle past six bundles, each running its own Warning checks, the reflector, judges by six over the run-shaped candidates and by twelve over the reads, the writer, the text pass | about 24 agents, 1.1M output, 60 minutes |
+| `review <target>` | any change; the parent names the class, a triage only where the parent has not read the diff whole; a diff one read holds runs solo, one finder or several side by side, then one agent that judges and writes; a target the reviewer wrote stops at the findings and takes them as commits; a simple change runs one finder per bundle, one judge and the writer; every cold bundle folds into one finder; the normal round: one finder per bundle per angle, or one per bundle past six bundles, each running its own Warning checks, the reflector, judges by six over the run-shaped candidates and by twelve over the reads, the writer, the text pass | about 24 agents, 1.1M output, 60 minutes |
 | `deep review <target>` | code that is complex or unknown: finders at 60 calls, hot bundles split by code file, judges by three, the ceiling | about 28 agents, 1.1M output, 70 minutes |
 
 ### The shape follows the change
@@ -106,7 +106,7 @@ Everything starts with a review, on a PR, a branch, or a red CI.
    reads shorter without losing fact, stake or fix.
 9. **Style pass.** The closing Pass of [`writing-style.md`](https://github.com/davd-gzl/skills/blob/main/writing-style.md),
    run against the file and not from memory. Never skipped.
-10. **Commit and push.** The record lands in my workspace, nothing else moves.
+10. **Commit.** The record lands in my workspace on the word `push`, nothing else moves.
 11. **Hand over.** I read the draft and decide.
 
 ## The architecture
@@ -169,7 +169,7 @@ What the round carries in:
 - **Parallel dispatch**: one workflow per target, launched together; a security fix leaves the batch and runs alone first.
 - **A target I authored**: no draft, no posting; `claims.md` and `overview.md` still written.
 
-What leaves: nothing without `post`. The commit and push of the record are pre-authorised; a public destination gets the whole diff read as an adversary first.
+What leaves: nothing without `post`. The commit of the record is automatic and its push waits for `push`; a public destination gets the whole diff read as an adversary first.
 
 ## Why each piece
 
@@ -204,7 +204,7 @@ own argument and waits for the outcome table to measure it.
 | --- | --- | --- |
 | [`review.md`](https://github.com/davd-gzl/skills/blob/main/review.md) | a pull request, a branch or a repository-level failure is reviewed | the review round |
 | [`review-modes.md`](https://github.com/davd-gzl/skills/blob/main/review-modes.md) | a run covers many targets, or the reviewer authored the target | the deltas of that case |
-| [`review-comment.md`](https://github.com/davd-gzl/skills/blob/main/review-comment.md) | `comment_<model>.md` is drafted, regenerated or posted | the Body, the inline-comment shape, the final check, the posting gate |
+| [`review-comment.md`](https://github.com/davd-gzl/skills/blob/main/review-comment.md) | `comment_<model>.md` is drafted, regenerated or posted | the Body, the inline-comment shape, the final check, posting |
 | [`issue.md`](https://github.com/davd-gzl/skills/blob/main/issue.md) | a fix needs an upstream issue nobody has filed | `issue.md`, the problem and never the remedy |
 | [`change.md`](https://github.com/davd-gzl/skills/blob/main/change.md) | an issue or a finding goes to a pull request | `spec.md` and `plan.md` with their numbered open calls, the worktree, the fix, the local CI run, the pull request on my fork |
 | [`pr-body.md`](https://github.com/davd-gzl/skills/blob/main/pr-body.md) | a change is proposed, before the pull request opens | the title and body, in one of four shapes, looping until a full pass changes nothing |
@@ -216,6 +216,7 @@ own argument and waits for the outcome table to measure it.
 | [`report.md`](https://github.com/davd-gzl/skills/blob/main/report.md) | a periodic status report over a set of repositories | the report, generated only after I have edited its context file |
 | [`git.md`](https://github.com/davd-gzl/skills/blob/main/git.md) | a turn will commit, push, sync a checkout, or touch a submodule or worktree | the identity every commit takes, where a push goes, the commands that report success and move nothing |
 | [`writing-style.md`](https://github.com/davd-gzl/skills/blob/main/writing-style.md) | any visible prose, in any project | the rules every other skill defers to, the closing Pass, the chat register, the posted-comment shape |
+| [`thinking.md`](https://github.com/davd-gzl/skills/blob/main/thinking.md) | every reply on a model no effort setting controls | how the thinking before it is written |
 | [`shortcuts.md`](https://github.com/davd-gzl/skills/blob/main/shortcuts.md) | the user types a word | what each word starts, the one place a word is defined |
 | [`reply.md`](https://github.com/davd-gzl/skills/blob/main/reply.md) | every reply, in any workspace | what it opens with, the `Did:` block, the closing block, its links |
 | [`authoring.md`](https://github.com/davd-gzl/skills/blob/main/authoring.md) | a rule is added, edited or removed | where it lives, the shape it takes, what it displaces, the turns it must not add; its sources sit in `knowledge/`, never in the rule |
@@ -232,9 +233,12 @@ Short form is the register every chat reply takes, defined in
 [`writing-style.md`](https://github.com/davd-gzl/skills/blob/main/writing-style.md). The rules live there and are not
 restated here.
 
-The thinking before a reply takes the same register cut past readability, since
-nobody but the model reads it: the *Thinking* section of `short-form.md`, the
-evidence in [`knowledge/thinking-length-follows-difficulty.md`](https://github.com/davd-gzl/skills/blob/main/knowledge/thinking-length-follows-difficulty.md).
+How the thinking before a reply is written is [`thinking.md`](https://github.com/davd-gzl/skills/blob/main/thinking.md),
+imported for every model. The gate reads the running model from the harness,
+the `SessionStart` payload or the transcript's last assistant entry, and on a
+model its `effort-set` patterns match prints one line lifting it, since effort
+sets that model's thinking; a model it cannot name keeps the rules. The
+evidence is in [`knowledge/thinking-length-follows-difficulty.md`](https://github.com/davd-gzl/skills/blob/main/knowledge/thinking-length-follows-difficulty.md).
 `reply-check.py` measures the reply and not the thinking.
 
 [`archive/chat-register/`](https://github.com/davd-gzl/skills/blob/main/archive/chat-register) is the harness that chose the
@@ -264,8 +268,8 @@ through [`scripts/skill`](https://github.com/davd-gzl/skills/blob/main/scripts/s
 `./scripts/skill pr-body/docs` for a shape, `./scripts/skill meet` for a
 project's delta. It puts the skills a write still lacks into the context with a
 warning and lets the write through, and names the rules by path for the Read
-tool: the two files `CLAUDE.md` imports as the session opens, `shortcuts` and
-`short-form`, recorded as read; the task's and the
+tool: the files `CLAUDE.md` imports as the session opens, `shortcuts`,
+`short-form` and `thinking`, recorded as read; the task's and the
 repository's on the prompt
 that names them; everything the session had read, again after a compaction. A
 read holds while the file's

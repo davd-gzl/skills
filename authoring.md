@@ -373,8 +373,9 @@ waits for `push`.
 
 - Before any line's work, the lines the session takes get `Taken: <the
   session's start sha>` at their end, in one commit pushed first, since another
-  session reads the list only from the remote. A line another session marked is
-  skipped, and a marker whose line did not land leaves in the closing commit.
+  session reads the list only from the remote, and one `upgrade skills` runs at
+  a time. A line another session marked is skipped, and a marker whose line did
+  not land leaves in the closing commit.
 - A line about a project, a defect, an issue to file, a target's behaviour, a
   recipe or a catalog, moves as it stands into that project's tree, per
   *Writing it down* in `workspace.md`.
@@ -393,5 +394,6 @@ waits for `push`.
   pass's whole diff, each trying to prove a change wrong: a rule lost, a
   reference left dangling, a claim the code contradicts. What they find is
   fixed and the checkers run again over the fixes, until a round finds nothing.
-- The session ends on one list: what landed, what was struck and why, and every
-  line still waiting with what it waits on, the user's word first.
+- The session ends on one list: what landed, what was struck and why, what moved
+  to a project's tree, and every line still waiting with what it waits on, the
+  user's word first.

@@ -948,7 +948,7 @@ def has_word(text, word):
 
 
 MARKER = re.compile(r'(?i)co-authored-by:|generated with \[?claude|assisted by ai|\U0001F916')
-SHELL_LEAD = {'do', 'then', 'else', 'elif', 'if', 'while', 'until', '{', '(', '!'}
+SHELL_LEAD = {'do', 'then', 'else', 'elif', 'if', 'while', 'until', '{', '(', '!', 'and', 'or', 'not'}
 RUNNERS = {'bash', 'sh', 'zsh', 'fish', 'python', 'python3'}
 # A wrapper and the options it takes a value for; its first bare word after them may be its own argument.
 WRAPPERS = {'timeout': ({'-s', '--signal', '-k', '--kill-after'}, 1), 'nice': ({'-n', '--adjustment'}, 0),
@@ -1131,8 +1131,14 @@ def publish_words(cmd, cwd=None):
             cwd = os.path.join(cwd or os.getcwd(), os.path.expanduser(t[1].strip('"\'')))
             continue
         name = os.path.basename(t[0])
-        if name in ('post-review.sh', 'post-fix.sh', 'post-pr-review.py') and not _dry(t):
+        if name in ('post', 'post-review.sh', 'post-fix.sh', 'post-pr-review.py') and not _dry(t):
             needs.append({'post', 'upload'})
+        if name == 'pr-body-apply' and not _dry(t):
+            for arg in t[1:]:
+                text = _read_at('@' + os.path.join(cwd or os.getcwd(), arg)) if not arg.startswith('-') else ''
+                m = re.search(r'^Target: https://github\.com/([^/\s]+/[^/\s]+)/pull/\d+', text, re.M)
+                if m and norm_repo(m.group(1)) in strict:
+                    needs.append({'post'})
         if t[0] != 'gh':
             continue
         r = _gh_verb(t)
@@ -1253,9 +1259,14 @@ def push_targets(cmd, cwd):
     # directory can send a push anywhere: every push on it waits for the word.
     # Read outside quotes and heredoc bodies, so an email address or a sentence never counts.
     bare = re.sub(r"'[^']*'|\"(?:\\.|[^\"\\])*\"", ' ', _strip_heredocs(cmd))
-    unsure = bool(re.search(r'\bremote\s+(add|set-url)\b|\bgit\b[^;&|\n]*\bconfig\b|--git-dir|\bGIT_DIR=|'
+    unsure = bool(re.search(r'\bremote\s+(add|set-url)\b|--git-dir|\bGIT_DIR=|'
                             r'\bGIT_WORK_TREE=|\bpopd\b|\(\)\s*\{|(^|[;&|\n])\s*function\s+\w', bare))
     for t in _segments(cmd):
+        if t[0] == 'git' and _git_sub(t)[0] == 'config':
+            rest_c = t[_git_sub(t)[1] + 1:]
+            if not any(x in ('--get', '--get-all', '--get-regexp', '--list', '-l', '--show-origin', '--show-scope')
+                       for x in rest_c) and len([x for x in rest_c if not x.startswith('-')]) >= 2:
+                unsure = True
         if t[0] == 'git' and _git_sub(t)[0] == 'clone':
             src = [x for x in t[_git_sub(t)[1] + 1:] if not x.startswith('-')]
             if src and re.match(r'^(https?://|ssh://|git@|[\w.-]+@[\w.-]+:)', src[0]):
@@ -1288,9 +1299,18 @@ def push_targets(cmd, cwd):
                 where, raw = os.path.join(here, fill(t[i + 1])), t[i + 1]
             elif x.startswith('-C') and len(x) > 2:
                 where, raw = os.path.join(here, fill(x[2:])), x[2:]
-        rest = t[at + 1:]
+        rest, drop = [], False
+        for x in t[at + 1:]:
+            if drop:
+                drop = False
+            elif x in ('>', '>>', '<', '2>', '1>', '&>', '2>>'):
+                drop = True
+            elif not re.match(r'^\d*[<>]', x):
+                rest.append(x)
         if '--dry-run' in rest or '-n' in rest:
             continue
+        if any(x.startswith('--recurse-submodules') and not x.endswith(('=no', '=check')) for x in rest):
+            out.append((None, False, False))
         forced = any(x in ('--force', '--mirror') or x.startswith(('--force-with-lease', '--force-if-includes'))
                      or (x.startswith('-') and not x.startswith('--') and 'f' in x[1:]) for x in rest) \
             or any(x.startswith('+') for x in rest if not x.startswith('-'))
@@ -1320,7 +1340,7 @@ def push_targets(cmd, cwd):
         out.append((None if unsure or not m else norm_repo(f'{m.group(1)}/{m.group(2)}'), forced, deleted))
     for t in _segments(cmd):
         # git subtree push, and a git alias defined on the line, push where the gate cannot read.
-        if t[0] == 'git' and _git_sub(t)[0] == 'subtree' and 'push' in t:
+        if t[0] == 'git' and _git_sub(t)[0] in ('subtree', 'submodule') and 'push' in t:
             out.append((None, False, False))
     return out
 

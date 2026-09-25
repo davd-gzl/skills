@@ -710,6 +710,32 @@ class PublishWordsRoundSix(PublishWordsRoundFive):
         self.assertEqual(self.hook('gh api /markdown -f text=hi')[0], 0)
 
 
+class PublishWordsRoundSeven(PublishWordsRoundSix):
+    """What the seventh check round found."""
+
+    def test_the_post_wrapper_and_a_strict_body_apply_wait(self):
+        self.assertEqual(self.hook('./scripts/post d.md')[0], 2)
+        (self.root / 'workspace.json').write_text(json.dumps({'word_for_every_change': ['up/strict']}))
+        (self.root / 'b.md').write_text('# PR\nTarget: https://github.com/up/strict/pull/4\n')
+        (self.root / 'c.md').write_text('# PR\nTarget: https://github.com/up/loose/pull/4\n')
+        self.assertEqual(self.hook('./scripts/pr-body-apply b.md')[0], 2)
+        self.assertEqual(self.hook('./scripts/pr-body-apply c.md')[0], 0)
+
+    def test_redirects_and_config_reads_do_not_refuse_a_standing_push(self):
+        mine = self.standing()
+        for cmd in (f'cd {mine} && git push 2>&1 | tail -3', f'cd {mine} && git push >/dev/null 2>&1',
+                    f'cd {mine} && git add a.config.ts && git push origin main',
+                    f'cd {mine} && git push origin main && git config --get user.name'):
+            self.assertEqual(self.hook(cmd)[0], 0, cmd)
+        self.assertEqual(self.hook(f'cd {mine} && git config remote.origin.url https://x && git push')[0], 2)
+
+    def test_recursive_and_submodule_pushes_wait(self):
+        mine = self.standing()
+        self.assertEqual(self.hook(f'cd {mine} && git push --recurse-submodules=on-demand origin main')[0], 2)
+        self.assertEqual(self.hook(f'cd {mine} && git submodule foreach git push origin main')[0], 2)
+        self.assertEqual(self.hook('test -d .git; and gh pr comment 5 -b x')[0], 2)
+
+
 class HookRead(GateCase):
     def read(self, payload):
         return gate.main(['hook-read'], stdin=io.StringIO(json.dumps(payload)))

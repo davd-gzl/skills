@@ -208,8 +208,8 @@ request to the issue, and writes both URLs into the drafts' `Target:` lines. A
 `Target:` holding a real URL counts as open, so a re-run finishes a partial
 failure. Use `--dry-run` when anything about the drafts is uncertain, and
 commit the updated drafts after. Nothing else goes up with it: the pull request
-carries its body and no note from its own author, per
-`skills/review-comment.md`.
+carries its body and the author's inline notes per `skills/review-comment.md`,
+nothing more.
 
 Before any claim about an open pull request's body, code or threads, run
 `./scripts/pr-state <change dir>`: it prints the pull request's head, the fork

@@ -64,7 +64,9 @@ fn check_text(name: &str, text: &str, draft: bool) -> Vec<Hit> {
     let header = Regex::new(r"^## (SKIP )?\S+:\d+(-\d+)?( |$)").unwrap();
     // The band tag ./scripts/post-review.sh --band selects on, at the header's end. Without it the
     // section is invisible to every selection flag and posting means editing the draft by hand.
-    let band = Regex::new(r"(·|\|)\s*(Critical|Warning|Missing test|Nit|Suggestion|Test)\s*$").unwrap();
+    // post-review.sh appends ` [posted](<url>)` after the tag once the section is up, so the tag may
+    // sit before that link rather than at the very end.
+    let band = Regex::new(r"(·|\|)\s*(Critical|Warning|Missing test|Nit|Suggestion|Test)\s*(\[posted\]\([^)]*\)\s*)?$").unwrap();
     let question = Regex::new(r"\?\s*$").unwrap();
     // What the author reads never names CI, a flake or a rebase: the red job speaks for itself and
     // the base is the author's to merge, per *Body rules* in review-comment.md.
@@ -382,6 +384,14 @@ mod tests {
         let table = fs::read_to_string(round.join("check.md")).unwrap();
         assert!(table.contains("claims.md") && table.contains("bare #<number>"), "{table}");
         assert!(!table.contains("comment_x.md") && !table.contains("overview.md"), "a draft, a link, a qualified or a code-span number is not a hit: {table}");
+    }
+
+    #[test]
+    fn a_posted_link_after_the_band_tag_keeps_the_tag_and_a_posted_header_without_one_is_a_hit() {
+        let tagged = check_text("comment_x.md", "## pkg/a.go:10 [gh](https://x/a.go#L10) \u{b7} Warning [posted](https://x/pull/1#discussion_r1)\nFine.\n", true);
+        assert!(!tagged.iter().any(|h| h.what.contains("band tag")), "a tag before [posted] still counts");
+        let untagged = check_text("comment_x.md", "## pkg/a.go:10 [gh](https://x/a.go#L10) [posted](https://x/pull/1#discussion_r1)\nFine.\n", true);
+        assert!(untagged.iter().any(|h| h.what.contains("band tag")), "no tag at all is still a hit");
     }
 
     #[test]

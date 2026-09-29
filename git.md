@@ -75,7 +75,9 @@ destination before it is a missing permission.
 
 A commit stays on top of a pushed branch, whatever the repo's measured
 granularity: squashing an already-pushed branch costs a second force push, and
-the maintainer squashes at merge.
+the maintainer squashes at merge. A squash the user asks for, `squash push`
+included, folds only the commits the remote lacks, onto the pushed tip; one
+reaching below that tip is a force push, named as one before it is built.
 
 A skill edit lands in `davd-gzl/skills`. Every consumer tracks `branch = main`
 and its sync takes the tip at session start, so nobody needs a bump to read it.

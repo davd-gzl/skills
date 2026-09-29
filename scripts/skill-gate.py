@@ -914,21 +914,38 @@ def turn_text(transcript):
             continue
         if isinstance(row, dict):
             rows.append(row)
-    start = None
+    starts = []
     for i, e in enumerate(rows):
         if e.get('type') == 'user' and not e.get('isMeta') and not e.get('isCompactSummary'):
             typed = _typed(e)
             if typed is not None and not typed.lstrip().startswith(NOT_TYPED):
-                start, first = i, typed
-    if start is None:
+                starts.append((i, typed))
+    if not starts:
         return ''
-    parts = [first]
-    for e in rows[start + 1:]:
-        a = e.get('attachment') or {}
-        if e.get('type') == 'attachment' and a.get('type') == 'queued_command' \
-                and (a.get('origin') or {}).get('kind') == 'human':
-            parts.append(str(a.get('prompt', '')))
+    # A turn the API killed never finished: a retry typed after it resumes that turn, so the
+    # words given there still hold, however many retries it took.
+    k = len(starts) - 1
+    while k > 0 and RETRY.match(starts[k][1]) and _died(rows[starts[k - 1][0]:starts[k][0]]):
+        k -= 1
+    parts = []
+    for n, (start, first) in enumerate(starts[k:], k):
+        end = starts[n + 1][0] if n + 1 < len(starts) else len(rows)
+        parts.append(first)
+        for e in rows[start + 1:end]:
+            a = e.get('attachment') or {}
+            if e.get('type') == 'attachment' and a.get('type') == 'queued_command' \
+                    and (a.get('origin') or {}).get('kind') == 'human':
+                parts.append(str(a.get('prompt', '')))
     return '\n'.join(parts)
+
+
+RETRY = re.compile(r'(?i)^\s*(try again|retry)\W*$')
+
+
+def _died(rows):
+    """The turn these rows hold ended on an API error rather than a reply."""
+    last = next((e for e in reversed(rows) if e.get('type') == 'assistant'), None)
+    return bool(last and last.get('isApiErrorMessage'))
 
 
 def _typed(e):
@@ -946,10 +963,19 @@ NEGATION = re.compile(r"(?i)\b(don'?t|do not|never|no|not|without)\W+(\w+\W+){0,
 
 def has_word(text, word):
     """The word typed as a word, a hyphenated compound or a negation aside: `merge-base` is not merge."""
-    for m in re.finditer(rf'(?i)(?<![\w-]){word}(?![\w-])', text):
+    return _typed_as(text, rf'(?<![\w-]){word}(?![\w-])')
+
+
+def _typed_as(text, pattern):
+    for m in re.finditer(rf'(?i){pattern}', text):
         if not NEGATION.search(text[max(0, m.start() - 40):m.start()]):
             return True
     return False
+
+
+def gives_force(text):
+    """The turn approves a forced push: the word, or the flag spelled out, `push --force-with-lease`."""
+    return has_word(text, 'force') or _typed_as(text, r'(?<![\w-])--force(-with-lease|-if-includes)?(?![\w-])')
 
 
 # The letter the user types for each word, alone on a line. `p` and `push` both
@@ -1351,7 +1377,10 @@ def publish_words(cmd, cwd=None):
                     continue
                 needs.append({'upload', 'push'})
                 continue
-            needs.append({'delete'} if method == 'DELETE' else {'post'})
+            # Taking a label, an assignee or a reviewer off an issue or a pull request edits it:
+            # post, as adding one does. Any other DELETE removes the thing itself.
+            edit = re.search(r'/issues/[^/]+/(labels|assignees)(/|$)|/pulls/[^/]+/requested_reviewers/?$', path)
+            needs.append({'delete'} if method == 'DELETE' and not edit else {'post'})
     return needs
 
 
@@ -1527,7 +1556,7 @@ def refusal(cmd, payload):
     for repo, forced, deleted in pushes:
         if deleted and not gives(text, 'delete'):
             return 'a branch delete, which waits for its word, delete, per Invariant 1 of the workspace AGENTS.md.'
-        if forced and not has_word(text, 'force'):
+        if forced and not gives_force(text):
             return 'a forced push, which waits for approval in the turn, per Invariant 8 of the workspace AGENTS.md.'
         if repo not in standing and not gives(text, 'push'):
             return (f'a push to {repo or "a repository it cannot resolve"}, which no standing word covers and this '

@@ -503,6 +503,10 @@ class PublishWords(GateCase):
                     './scripts/post-review.sh d.md', 'gh issue create -R o/r -t t -b b'):
             self.assertEqual(self.hook(cmd)[0], 2, cmd)
         self.assertEqual(self.hook('gh pr merge 5', prompt='post')[0], 2, 'a merge takes merge, not post')
+        for cmd in ('gh api -X DELETE repos/o/r/issues/5/labels/class:hardfork',
+                    'gh api -X DELETE repos/o/r/pulls/5/requested_reviewers -f "reviewers[]=a"'):
+            self.assertEqual(self.hook(cmd, prompt='post')[0], 0, f'taking a label off is an edit: {cmd}')
+        self.assertEqual(self.hook('gh api -X DELETE repos/o/r/labels/bug', prompt='post')[0], 2, 'deleting a label is a delete')
         self.assertEqual(self.hook('gh pr merge 5', prompt='merge 5')[0], 0)
 
     def test_an_ai_marker_is_refused_whatever_the_turn_says(self):
@@ -525,6 +529,29 @@ class PublishWords(GateCase):
         self.assertEqual(self.hook(f'git -C {mine} push --force origin HEAD:main', prompt='push')[0], 2)
         self.assertEqual(self.hook(f'git -C {mine} push origin +HEAD:main', prompt='push')[0], 2)
         self.assertEqual(self.hook(f'git -C {mine} push --force origin HEAD:main', prompt='push, force it')[0], 0)
+        lease = f'git -C {mine} push --force-with-lease origin HEAD:main'
+        self.assertEqual(self.hook(lease, prompt='push --force-with-lease')[0], 0, 'the flag spelled out approves it')
+        self.assertEqual(self.hook(lease, prompt='push --force')[0], 0)
+        self.assertEqual(self.hook(lease, prompt="push, don't --force-with-lease")[0], 2)
+        self.assertEqual(self.hook('gh pr merge 5', prompt='check the merge-base')[0], 2, 'merge-base is still not merge')
+
+    def test_a_retry_after_an_api_error_keeps_the_dead_turn_word(self):
+        path = self.root / 'retry.jsonl'
+        died = {'type': 'assistant', 'isApiErrorMessage': True, 'message': {'role': 'assistant', 'content': [
+            {'type': 'text', 'text': "API Error: Can't reach the API server"}]}}
+        replied = {'type': 'assistant', 'message': {'role': 'assistant', 'content': [{'type': 'text', 'text': 'done'}]}}
+
+        def turn(*rows):
+            path.write_text('\n'.join(json.dumps(r) for r in rows) + '\n')
+            return gate.turn_text(str(path))
+
+        def user(text):
+            return {'type': 'user', 'message': {'role': 'user', 'content': text}}
+
+        self.assertIn('merge 69', turn(user('merge 69'), died, user('Try again')))
+        self.assertIn('merge 69', turn(user('merge 69'), died, user('Try again'), died, user('try again')))
+        self.assertNotIn('merge 69', turn(user('merge 69'), replied, user('Try again')), 'a finished turn ends its word')
+        self.assertNotIn('merge 69', turn(user('merge 69'), died, user('fix the test')), 'only a retry resumes it')
 
 
 class PublishWordsEdges(PublishWords):

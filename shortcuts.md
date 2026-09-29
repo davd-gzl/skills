@@ -5,6 +5,9 @@ description: The words the user types and what each one starts, in any workspace
 
 # Shortcuts
 
+A reply that waits names one letter, the first cell of its row below, never two
+words: the user types that letter alone to act.
+
 In context as the session opens, through a SessionStart hook. The register is `skills/short-form.md`
 and the shape of a reply is `skills/reply.md`.
 
@@ -20,16 +23,16 @@ as the skill defines it; ask when the reading changes what gets built.
 | `plan review <target>` | the round's steps 1 to 3, then three to five questions about the target in one reply, each answer a topic and one finder, the run launching on `go` | *Modes*, `skills/review.md` |
 | `review all` | every open target not yet reviewed, the scope written down first | `skills/review-modes.md` |
 | `plan` | what the next review round will run and cost, the stage table and the projection | `./scripts/review-plan.py` |
-| `upgrade skills` | every skill or script line of the workspace's `TODO.md` read as its critic and taken to its rule or script, one commit each, a script's with a test that fails without it, a project's line moved to its tree, a line that fails the read struck with its reason; then checkers over the whole diff, fixed and rechecked until a round finds nothing; run to the end without stopping to ask, pushed under the standing words; one closing list of what landed, what was struck and what waits | *Upgrading from the TODO*, `skills/authoring.md` |
+| `u`, `upgrade skills` | every skill or script line of the workspace's `TODO.md` read as its critic and taken to its rule or script, one commit each, a script's with a test that fails without it, a project's line moved to its tree, a line that fails the read struck with its reason; then checkers over the whole diff, fixed and rechecked until a round finds nothing; run to the end without stopping to ask, pushed under the standing words; one closing list of what landed, what was struck and what waits | *Upgrading from the TODO*, `skills/authoring.md` |
 | `config <stage> <key> <value>` | that knob of the review workflow changed, the plan reprinted, the estimate given | `./scripts/review-plan.py --set <stage>.<key>=<value> --write`, *A change to the run's shape* in `skills/authoring.md` |
 | `fix <issue or finding>` | a change on the fork: spec, plan, worktree, fix, CI, simplify last; nothing pushed | `skills/change.md` |
 | `try <pr> on <repo>` | the project booted locally, ready to click through | `skills/try.md` |
 | `video` | the clip, only once the finding's text is frozen | `skills/try.md` |
 | `stop` | the stack and the worktree torn down | `skills/try.md` |
 | `report [date]` | the period's status report | `skills/report.md` |
-| `post` | the shown draft goes to its target; `post as an AI` adds the marker; `upload` sends media | `skills/review-comment.md`, `skills/issue.md`, `skills/change.md` |
-| `push` | the whole git flow, every commit and push the work needs, once | *Consent*, workspace `AGENTS.md` |
-| `merge`, `close`, `delete` | that one action on the named target | Invariant 2 |
+| `p`, `push` | everything the closing block names, once: every commit and push the work needs, then the post, upload, title or body it links | *Consent*, workspace `AGENTS.md` |
+| `post` | the shown draft goes to its target where nothing waits to be pushed, and `p` sends it the same; `post as an AI` adds the marker; `upload` sends media | `skills/review-comment.md`, `skills/issue.md`, `skills/change.md` |
+| `m`, `x`, `d` | merge, close or delete: that one action on the named target | Invariant 2 |
 | `make this review public` | the round to the public artifact repo, links repointed | *Consent* |
 | `path` | the worktree the work sits in, its path alone | here |
 | "a comment" | the `comment_<model>.md` draft and the text for the target, never an explanation | `skills/review-comment.md` |

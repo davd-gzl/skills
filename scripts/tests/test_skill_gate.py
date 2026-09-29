@@ -480,6 +480,18 @@ class PublishWords(GateCase):
         self.assertEqual(self.hook(post, queued=['post'])[0], 0, 'a message queued into the turn carries it')
         self.assertEqual(self.hook(post, prompt='ok go')[0], 2, 'a vague yes authorises nothing')
 
+    def test_a_letter_alone_is_its_word_and_push_sends_it_all(self):
+        post = 'gh pr comment 5 -R o/r -b hi'
+        self.assertEqual(self.hook(post, prompt='p')[0], 0, 'p alone is the word')
+        self.assertEqual(self.hook(post, prompt=' P \n')[0], 0, 'case and spaces aside')
+        self.assertEqual(self.hook(post, prompt='push')[0], 0, 'push sends the post it names')
+        self.assertEqual(self.hook(post, prompt='a p in a sentence')[0], 2, 'a letter inside prose is no word')
+        self.assertEqual(self.hook(post, prompt='m')[0], 2, 'merge does not post')
+        self.assertEqual(self.hook('gh pr merge 5', prompt='m')[0], 0)
+        self.assertEqual(self.hook('gh pr merge 5', prompt='p')[0], 2, 'p does not merge')
+        self.assertEqual(self.hook('gh pr close 5', prompt='x')[0], 0)
+        self.assertEqual(self.hook('gh pr comment 5 -b hi', prompt='ok')[0], 2)
+
     def test_reads_dry_runs_and_an_open_pr_body_edit_pass(self):
         for cmd in ('gh pr view 5 -R o/r', 'gh api repos/o/r/pulls/5/comments --paginate',
                     "gh api graphql -f query='query{viewer{login}}'", 'gh api -X PATCH repos/o/r/pulls/5 -F body=@b.md',
@@ -1156,6 +1168,10 @@ class Prompt(HookCase):
     def test_a_shortcut_word_in_the_head_fires_after_an_opener(self):
         rc, context = self.run_hook('prompt', json.dumps({'prompt': 'Ok fix the conflict again, and we merge this time'}))
         self.assertIn('skills/change.md', context)
+
+    def test_u_alone_is_upgrade_skills(self):
+        rc, context = self.run_hook('prompt', json.dumps({'prompt': 'u'}))
+        self.assertIn('skills/authoring.md', context)
 
     def test_a_question_names_only_a_url_target(self):
         rc, context = self.run_hook('prompt', json.dumps({'prompt': 'our todo will fix the cache read problem?'}))

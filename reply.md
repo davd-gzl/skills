@@ -77,9 +77,10 @@ This job runs on a schedule only, and GitHub disables those after 60 days.
 
 ## The closing block
 
-- One bare verb, `post` never `post the issue`, and beside it what saying it
-  does: what opens, in which repository, against which base, and whether it
-  opens as a draft or ready. The sentence names every destination it covers.
+- One letter from `skills/shortcuts.md`, `p` for a push and every publish it
+  hosts, never two words to type in turn, and beside it what typing it does:
+  what opens, in which repository, against which base, and whether it opens as
+  a draft or ready. The sentence names every destination it covers.
 - Where a publish and something already authorised are both pending, do the
   latter and offer the publish alone.
 - Then the artifacts, one line each, in the order *Layout* in `workspace.md`

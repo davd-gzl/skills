@@ -621,7 +621,7 @@ PROMPT_SKILLS = [
     (r'\b(?i:try)\b(?:\s+(?i:the|a|an|pr|this|that|it))?\s+(?!(?:review|agent|workflow|round)s?\b)(?:#?\d{2,}\b|https?://\S+|[\w.-]+/[\w.-]+\b|[\w.-]+\s+(?i:on)\s+[\w.-]+\b)'
      r'|\b(?i:run|launch)\b(?:\s+(?i:the|a|an|pr|this|that|it))?\s+(?!(?:review|agent|workflow|round)s?\b)(?:https?://\S+|[\w.-]+/[\w.-]+\b|[\w.-]+\s+(?i:on)\s+[\w.-]+\b)'
      r'|\b(?i:boot)\b\s+(?!it\b|up\b|the\b)[\w.-]+|\bscreenshot\b|\bvideo\b|\bgif\b', ['try']),
-    (r'\bskill|\brules?\b|AGENTS\.md|writing.style|\bcaveman\b|\bcvm\b', ['authoring']),
+    (r'\bskill|\brules?\b|AGENTS\.md|writing.style|\bcaveman\b|\bcvm\b|^\s*[uU]\s*$', ['authoring']),
 ]
 PROMPT_URLS = [
     (r'/pull/\d+', ['review']),
@@ -950,6 +950,20 @@ def has_word(text, word):
         if not NEGATION.search(text[max(0, m.start() - 40):m.start()]):
             return True
     return False
+
+
+# The letter the user types for each word, alone on a line. `p` and `push` both
+# send everything the closing block named: the push, the post, the upload.
+LETTERS = {'p': 'push', 'm': 'merge', 'x': 'close', 'd': 'delete'}
+PUSH_COVERS = {'push', 'post', 'upload', 'ready'}
+
+
+def gives(text, word):
+    """The turn gives the word: typed, carried by push, or its letter alone on a line."""
+    words = {LETTERS.get(line.strip().lower()) for line in text.splitlines()}
+    if 'push' in words or has_word(text, 'push'):
+        words |= PUSH_COVERS
+    return word in words or has_word(text, word)
 
 
 MARKER = re.compile(r'(?i)co-authored-by:|generated with \[?claude|assisted by ai|\U0001F916')
@@ -1507,15 +1521,15 @@ def refusal(cmd, payload):
     if text is None:
         return 'the transcript is unreadable, so the word this command waits for cannot be confirmed.'
     for need in needs:
-        if not any(has_word(text, w) for w in need):
+        if not any(gives(text, w) for w in need):
             return (f'a publish waiting for its word, {" or ".join(sorted(need))}, which this turn does not carry, '
                     'per Invariants 1 and 2 of the workspace AGENTS.md. Show the draft and name the word.')
     for repo, forced, deleted in pushes:
-        if deleted and not has_word(text, 'delete'):
+        if deleted and not gives(text, 'delete'):
             return 'a branch delete, which waits for its word, delete, per Invariant 1 of the workspace AGENTS.md.'
         if forced and not has_word(text, 'force'):
             return 'a forced push, which waits for approval in the turn, per Invariant 8 of the workspace AGENTS.md.'
-        if repo not in standing and not has_word(text, 'push'):
+        if repo not in standing and not gives(text, 'push'):
             return (f'a push to {repo or "a repository it cannot resolve"}, which no standing word covers and this '
                     'turn does not name with push, per Consent in the workspace AGENTS.md.')
     return None

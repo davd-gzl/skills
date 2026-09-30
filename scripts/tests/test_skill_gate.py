@@ -492,6 +492,14 @@ class PublishWords(GateCase):
         self.assertEqual(self.hook('gh pr close 5', prompt='x')[0], 0)
         self.assertEqual(self.hook('gh pr comment 5 -b hi', prompt='ok')[0], 2)
 
+    def test_a_quiet_close_on_an_own_repository_needs_no_word(self):
+        (self.root / 'workspace.json').write_text(json.dumps({'identities': {'public': {'name': 'Me'}}}))
+        self.assertEqual(self.hook('gh pr close 12 -R me/fork')[0], 0, 'the fork pull request closes unasked')
+        self.assertEqual(self.hook('gh pr close 12 -R me/fork --comment bye')[0], 2, 'a comment is a post')
+        self.assertEqual(self.hook('gh pr close 12 -R me/fork -d')[0], 2, 'a branch delete waits')
+        self.assertEqual(self.hook('gh pr close 12 -R up/meet')[0], 2, 'an upstream close waits')
+        self.assertEqual(self.hook('gh issue close 3 -R me/fork')[0], 2, 'an issue close waits')
+
     def test_reads_dry_runs_and_an_open_pr_body_edit_pass(self):
         for cmd in ('gh pr view 5 -R o/r', 'gh api repos/o/r/pulls/5/comments --paginate',
                     "gh api graphql -f query='query{viewer{login}}'", 'gh api -X PATCH repos/o/r/pulls/5 -F body=@b.md',

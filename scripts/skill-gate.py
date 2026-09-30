@@ -1263,6 +1263,20 @@ def _remote_repos(cwd):
     return {norm_repo(f'{a}/{b}') for a, b in re.findall(r'github\.com[:/]([^/\s]+)/([^/\s]+?)(?:\.git)?\s', remotes)}
 
 
+def own_login():
+    try:
+        return json.loads((root() / 'workspace.json').read_text())['identities']['public']['name'].lower()
+    except (OSError, ValueError, KeyError, TypeError):
+        return None
+
+
+def _closes_own_quietly(t, cwd, line=''):
+    """Whether a gh pr close targets only the user's own repositories and says nothing and deletes nothing."""
+    login, repos = own_login(), _gh_repos(t, cwd, line)
+    loud = any(x.split('=')[0] in ('-c', '--comment', '-d', '--delete-branch') for x in t)
+    return bool(login and repos) and not loud and all(r.split('/')[0] == login for r in repos)
+
+
 def _edits_beyond_body(t):
     """Whether a gh pr edit sets anything but the body: a flag's value, `-` for stdin among them, is skipped."""
     free, i = ('--body', '-b', '--body-file', '-F', '-R', '--repo'), 3
@@ -1312,6 +1326,10 @@ def publish_words(cmd, cwd=None):
             needs.append({'post', 'ready'})
         elif verb == ('pr', 'merge'):
             needs.append({'merge'})
+        elif verb == ('pr', 'close') and _closes_own_quietly(t, cwd, cmd):
+            # The fork's pull request closes unasked once the upstream one opens, per *Presenting the
+            # change* in skills/change.md: a close with no comment on the user's own repository.
+            continue
         elif verb in {('pr', 'close'), ('issue', 'close')}:
             needs.append({'close'})
         elif r[1] == 'delete':

@@ -592,6 +592,23 @@ class PublishWordsEdges(PublishWords):
         self.assertIn('post it', gate.turn_text(str(path)))
         self.assertNotIn('merge', gate.turn_text(str(path)))
 
+    def test_a_pull_request_on_an_own_repository_goes_up_without_post(self):
+        (self.root / 'workspace.json').write_text(json.dumps({'standing_publish': ['me/fork']}))
+        for cmd in ('gh -R me/fork pr create -t x -b y', 'gh pr comment https://github.com/me/fork/pull/5 -b x',
+                    'gh -R me/fork pr edit 5 --title x', 'gh -R me/fork pr ready 5',
+                    'gh api -X POST repos/me/fork/pulls -f title=x -f head=a -f base=b',
+                    'gh api -X POST repos/me/fork/issues/5/comments -f body=x'):
+            self.assertEqual(self.hook(cmd)[0], 0, cmd)
+        for cmd in ('gh -R other/repo pr create -t x -b y', 'gh -R me/fork pr merge 5',
+                    'gh -R me/fork pr comment 5 -b x && gh -R other/repo pr comment 5 -b x',
+                    'gh api -X PUT repos/me/fork/pulls/5/merge', 'gh api -X POST repos/other/repo/pulls -f title=x'):
+            self.assertEqual(self.hook(cmd)[0], 2, cmd)
+
+    def test_every_change_still_waits_on_an_own_repository_that_asks_for_it(self):
+        (self.root / 'workspace.json').write_text(
+            json.dumps({'standing_publish': ['me/fork'], 'word_for_every_change': ['me/fork']}))
+        self.assertEqual(self.hook('gh -R me/fork pr create -t x -b y')[0], 2)
+
     def test_a_standing_push_needs_no_transcript(self):
         (self.root / 'workspace.json').write_text(json.dumps({'standing_push': ['me/private']}))
         mine = self.repo('https://github.com/me/private.git')

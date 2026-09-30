@@ -1297,6 +1297,7 @@ def publish_words(cmd, cwd=None):
     """Each set is one publish on the line, satisfied by any of its words; every set needs its own."""
     needs = []
     strict = every_change_repos()
+    own = standing_publish() - strict
     read = []
     list(_segments(cmd, cwd=cwd, collect=read))
     names = _names('\n'.join([cmd] + read))
@@ -1320,6 +1321,13 @@ def publish_words(cmd, cwd=None):
         if len(r) < 2:
             continue
         verb = (r[0], r[1])
+        # Opening, editing, commenting on or readying a pull request on the user's own repository
+        # waits for no word; a merge, a close and a delete still do.
+        if own and verb in {('pr', 'create'), ('pr', 'comment'), ('pr', 'review'), ('pr', 'edit'), ('pr', 'ready'),
+                            ('issue', 'comment')}:
+            repos = _gh_repos(t, cwd, cmd)
+            if repos and repos <= own:
+                continue
         if verb in {('pr', 'create'), ('pr', 'comment'), ('pr', 'review'), ('pr', 'reopen'), ('issue', 'create'),
                     ('issue', 'comment'), ('issue', 'reopen'), ('issue', 'edit'), ('issue', 'lock'), ('issue', 'transfer'),
                     ('release', 'create'), ('release', 'upload'), ('gist', 'create'), ('repo', 'create'), ('repo', 'edit')}:
@@ -1400,7 +1408,12 @@ def publish_words(cmd, cwd=None):
             # Taking a label, an assignee or a reviewer off an issue or a pull request edits it:
             # post, as adding one does. Any other DELETE removes the thing itself.
             edit = re.search(r'/issues/[^/]+/(labels|assignees)(/|$)|/pulls/[^/]+/requested_reviewers/?$', path)
-            needs.append({'delete'} if method == 'DELETE' and not edit else {'post'})
+            if method == 'DELETE' and not edit:
+                needs.append({'delete'})
+            elif repo in own and re.search(r'/(pulls|issues)(/|$)', path) and not re.search(r'/merge/?$', path):
+                continue
+            else:
+                needs.append({'post'})
     return needs
 
 
@@ -1549,6 +1562,14 @@ def push_targets(cmd, cwd):
 def standing_push():
     try:
         return set(json.loads((root() / 'workspace.json').read_text()).get('standing_push', []))
+    except (OSError, ValueError):
+        return set()
+
+
+def standing_publish():
+    """The user's own repositories where a pull request, its text and its comments go up unasked."""
+    try:
+        return {norm_repo(r) for r in json.loads((root() / 'workspace.json').read_text()).get('standing_publish', [])}
     except (OSError, ValueError):
         return set()
 

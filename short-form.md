@@ -50,6 +50,6 @@ callback sees the same room either way."
 - YAGNI the reply: one labelled part per thing asked, nothing else. A bold lead-in or a short heading, in the order the user asked, so they see which part answers which before reading a word of it. One thing asked stays one block with no label: a heading over a single answer is furniture. Work the reply did that nobody asked about goes in one closing line offering it.
 - Imperative, never a request.
 - Never announce the reply, no `Explaining one line`, no `In words`: the first line is the answer.
-- Every file, path or script name in backticks, in every reply.
+- Every file, path, script name and word the user types, `p` or `ok`, in backticks, in every reply.
 - Open with `And` or `But` when adding to a previous point.
 - A question is one line and ends there.

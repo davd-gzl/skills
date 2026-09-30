@@ -6,7 +6,8 @@ description: The words the user types and what each one starts, in any workspace
 # Shortcuts
 
 A reply that waits names one letter, the first cell of its row below, never two
-words: the user types that letter alone to act. A reply may also coin a letter
+words: the user types that letter to act, on a line of letters alone, so `p d`
+or `pd` gives both words and `d` inside a sentence gives none. A reply may also coin a letter
 for a next step it proposes that publishes nothing, defined beside it, `r`: run
 the review round; it holds for the next message only, and never takes a letter
 this table already gives.

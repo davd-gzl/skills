@@ -978,15 +978,17 @@ def gives_force(text):
     return has_word(text, 'force') or _typed_as(text, r'(?<![\w-])--force(-with-lease|-if-includes)?(?![\w-])')
 
 
-# The letter the user types for each word, alone on a line. `p` and `push` both
-# send everything the closing block named: the push, the post, the upload.
+# The letter the user types for each word, on a line of letters alone, so `p d`
+# and `pd` give both. `p` and `push` send everything the closing block named.
 LETTERS = {'p': 'push', 'm': 'merge', 'x': 'close', 'd': 'delete'}
 PUSH_COVERS = {'push', 'post', 'upload', 'ready'}
+LETTER_LINE = re.compile(r'(?i)^[\s,]*(?:[a-z][\s,]*){1,4}$')
 
 
 def gives(text, word):
-    """The turn gives the word: typed, carried by push, or its letter alone on a line."""
-    words = {LETTERS.get(line.strip().lower()) for line in text.splitlines()}
+    """The turn gives the word: typed, carried by push, or its letter on a line of letters alone."""
+    words = {LETTERS.get(c.lower()) for line in text.splitlines() if LETTER_LINE.match(line)
+             for c in re.findall(r'[a-z]', line, re.I)}
     if 'push' in words or has_word(text, 'push'):
         words |= PUSH_COVERS
     return word in words or has_word(text, word)

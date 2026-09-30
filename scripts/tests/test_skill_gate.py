@@ -489,6 +489,15 @@ class PublishWords(GateCase):
         self.assertEqual(self.hook(post, prompt='m')[0], 2, 'merge does not post')
         self.assertEqual(self.hook('gh pr merge 5', prompt='m')[0], 0)
         self.assertEqual(self.hook('gh pr merge 5', prompt='p')[0], 2, 'p does not merge')
+
+    def test_several_letters_on_one_line_each_give_their_word(self):
+        delete = 'git push origin --delete old-branch'
+        self.assertEqual(self.hook(delete, prompt='p d')[0], 0, 'a line of letters gives every word on it')
+        self.assertEqual(self.hook(delete, prompt='pd')[0], 0, 'letters typed together give each word')
+        self.assertEqual(self.hook(delete, prompt='p, d')[0], 0, 'a comma between letters is no prose')
+        self.assertEqual(self.hook(delete, prompt='p')[0], 2, 'p alone does not delete')
+        self.assertEqual(self.hook(delete, prompt='pd is next')[0], 2, 'letters opening prose are no word')
+        self.assertEqual(self.hook('gh pr merge 5', prompt='e m')[0], 0, 'a coined letter beside m leaves m its word')
         self.assertEqual(self.hook('gh pr close 5', prompt='x')[0], 0)
         self.assertEqual(self.hook('gh pr comment 5 -b hi', prompt='ok')[0], 2)
 

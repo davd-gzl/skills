@@ -153,6 +153,10 @@ A submodule sits on a detached HEAD, and every failure here follows from that.
 editor's source control lists the conflicted files alone and the user resolves
 from there.
 
+- When every side of a conflict is a branch the session built for the change
+  in hand, resolve it without a word: keep what each side meant, commit the
+  merge, run the checks the branches ran, and name each resolution in the next
+  reply. The rules below hold for any side someone else wrote.
 - Stop at the first conflict and report the files. No `git checkout --ours`
   or `--theirs`, and no edit to a conflicted file on the session's own judgement.
 - Explain each conflict before any resolution is written: what each side wants,

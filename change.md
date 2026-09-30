@@ -72,6 +72,12 @@ result, the checks beyond the jobs included.
 Size the first pull request to the smallest diff that closes the ask, and send
 every further capability to the out row with the decision it needs.
 
+When one ask produces fixes in several areas, open one pull request per area,
+each on its own branch from the default branch, never one pull request merging
+them: a reviewer can merge the sync fixes without reading the CSS cleanup.
+Branches that touch the same lines stack, the later one based on the earlier
+and saying so in its body.
+
 ### Numbered open calls
 
 An open call is a decision the document made that a human could reasonably

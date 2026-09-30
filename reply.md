@@ -16,7 +16,7 @@ Did:
 2. Draft and claims.md written, links checked, 40 lines rewritten
 Left: the Nit at line 88, which needs your call on the band
 
-📋 `post`: the draft goes to acme/app#42 as REQUEST_CHANGES; its commit and the workspace backup are already up.
+`post`: send the draft to acme/app#42 as REQUEST_CHANGES; its commit and the workspace backup are already up.
 
 | Target | Round |
 | --- | --- |
@@ -77,10 +77,15 @@ This job runs on a schedule only, and GitHub disables those after 60 days.
 
 ## The closing block
 
-- One letter from `skills/shortcuts.md`, `p` for a push and every publish it
-  hosts, never two words to type in turn, and beside it what typing it does:
-  what opens, in which repository, against which base, and whether it opens as
-  a draft or ready. The sentence names every destination it covers.
+- Every word a reply offers, anywhere in it, is its own line with the word
+  first: `` `m`: merge the site branch into main, then deploy ``. Never
+  `Type m.`, never a word inside a sentence, never an emoji ahead of it, since
+  the reader scans the left edge for what to type. One line per word offered,
+  each from `skills/shortcuts.md` or coined per its rule, `p` for a push and
+  every publish it hosts, never two words to type in turn. The clause after
+  the colon is imperative and names every destination it covers: what opens,
+  in which repository, against which base, and whether it opens as a draft or
+  ready.
 - Where a publish and something already authorised are both pending, do the
   latter and offer the publish alone.
 - Then the artifacts, one line each, in the order *Layout* in `workspace.md`

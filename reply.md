@@ -106,9 +106,11 @@ This job runs on a schedule only, and GitHub disables those after 60 days.
 
 ## A status table
 
-- When the user asks for a table, read it back as its critic before sending it,
-  unasked: whether the plan its rows lay out is still the one you would pick with
-  every row in view, which number no command run this turn printed, and which
+- Read every table a reply carries back as its critic before sending it, asked
+  for or not: whether the plan its rows lay out is still the one you would pick
+  with every row in view, which cell rests on a title, a name or a keyword match
+  rather than on reading the thing it sorts, which number no command run this
+  turn printed, which command that built it errored or was patched, and which
   rows overlap. What the read finds changes the table, estimates marked as such,
   and one line under it names what the read changed, or that it changed nothing.
 - **When the user asks for a table, give each row what it takes to understand

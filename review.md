@@ -429,26 +429,34 @@ Start each test file with a comment block carrying exact repro commands runnable
 
 ## Overview (`overview.md`)
 
-Write one for every target, first: its own agent, dispatched at step 1 while the parent prepares the round, so it is on disk and linked before a finder starts; a run launched without `overview_exists` starts that agent itself beside the finders, so the reader has it minutes in and never at the end. The findings are written for a reader who already knows the subject; the overview is the only artifact that assumes nothing, and it is what the user opens first, the draft second.
+Write one for every target, first: its own agent, dispatched at step 1 while the parent prepares the round, so it is on disk and linked before a finder starts; a run launched without `overview_exists` starts that agent itself beside the finders, so the reader has it minutes in and never at the end. Its reader knows the project and has not seen the change: it says what the change does, never what the project is, and it is what the user opens first, the draft second.
 
 The skeleton, filled per subject:
 
 ```markdown
-# <the subject, in the reader's words>
+# <the change, named as the code names it>
 <the generating model, once>
+PR: [<owner>/<repo>#<n>](<url>)
 
 ## TLDR
-## What it is for
-## How it works today
-## What the change does
-## Concepts
+## Before and after
+## How <the mechanism> works
+## What a user notices
+## Upgrading
+## Words used here
 ```
 
+- Name things as the code does, the function, the class, the setting, the endpoint, so the reader finds each one in the diff after reading. For this file that overrides the reader's-words bullet of *The rules* in `skills/writing-style.md`. Every name a reader new to the change would look up gets one row in `## Words used here`, the last section: the name, then what it is in one sentence, with the condition a reader can check, an endpoint's method and path, a setting's default, how often a client calls it.
+- The TLDR says what the code did before and what it does now, in those names, and why the change exists, in four to six lines.
+- `## Before and after` is one table, one row per place the behaviour enters, an endpoint, a view, a hook, each row phrased as what happens first and through which code second: "a guest waits in the waiting room, through `request_entry`".
+- `## How <the mechanism> works` is a diagram whose nodes are the functions it names, then one bullet per function saying what it decides.
+- `## What a user notices` gives each visible effect with what decides its scope, per browser, per account, never per IP unless the code reads one.
+- `## Upgrading` appears only where the change touches stored state, a cookie, a setting or a migration.
 - Write it as `overview.md`, never `overview.html`: GitHub serves an `.html` blob as source, so the reader downloads the file to read it.
 - **Every code block, diagram and table says whether it is the before or the after.** A reader who cannot tell which side they are looking at reads the defect as the fix. Put it in the prose introducing the block or in the block's own caption, never leave it to be inferred from the surrounding argument.
 - It goes at the review directory root, `projects/<repo>/reviews/<slug>/overview.md`, never inside a round directory: it explains the subject, not one commit.
 - Explainer only, carrying no review state: no verdict, no findings, no reviewed sha, no round. Name the generating model once, under the title.
-- Use anything GitHub renders: a `mermaid` diagram, a `$$` formula, a decision table, before and after values, a `> [!NOTE]`, a `<details>` fold, a committed image, a Concepts section. No emoji, and nothing needing a script or a click, which the blob page strips.
+- Use anything GitHub renders: a `mermaid` diagram, a `$$` formula, a decision table, before and after values, a `> [!NOTE]`, a `<details>` fold, a committed image. No emoji, and nothing needing a script or a click, which the blob page strips.
 - Where a page would have used a simulator, compute the interesting inputs and put the results in a table. The reader gets the answer without moving a slider, and every number is checkable from the file.
 - Run the mirrored logic before publishing its numbers, against the project's own tests where they exist and against the mirrored source where they do not, and say which of the two it was.
 - Update it only when new commits change the subject's own files. A base-only head bump, a new finding, a verdict change and a new round never touch it. Link it from the draft's `Overview:` line.
@@ -493,7 +501,7 @@ and the overview beside it at the slug root:
 
 ```text
 projects/<repo>/reviews/<slug>/
-  overview.md            the subject for a reader who knows nothing, no review state
+  overview.md            the change for a reader who knows the project, no review state
   <n>-<sha>/
     comment_<model>.md   the draft: Verdict, Event, Model, Commit, Overview, Open the code, Round;
                          the Body; one section per finding, posted or SKIP, its repro collapsed

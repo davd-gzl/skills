@@ -139,10 +139,14 @@ fn listed<'a>(v: &'a Value, key: &str) -> Vec<&'a Value> {
     }
 }
 
-/// The candidates of every file, merged by file:line the way the runner merges them, and every
-/// dropped row.
+/// The candidates of every file and every dropped row. A numbered candidate, one the runner
+/// put in a judge's list, is its own row, merged only with a copy of the same number. An
+/// unnumbered one, a finder's own return, merges by file:line the way the runner merges them,
+/// and where a numbered candidate holds its line it is that one's, never a second row or a
+/// second check beside it.
 fn candidates(files: &[(String, Value)]) -> (Vec<Candidate>, Vec<Dropped>) {
     let mut merged: Vec<Candidate> = Vec::new();
+    let mut loose: Vec<Candidate> = Vec::new();
     let mut dropped = Vec::new();
     for (_, value) in files {
         for c in listed(value, "candidates") {
@@ -158,10 +162,11 @@ fn candidates(files: &[(String, Value)]) -> (Vec<Candidate>, Vec<Dropped>) {
             if cand.file.is_empty() {
                 continue;
             }
-            match merged
-                .iter_mut()
-                .find(|m| m.file == cand.file && m.line == cand.line)
-            {
+            if cand.index.is_none() {
+                loose.push(cand);
+                continue;
+            }
+            match merged.iter_mut().find(|m| m.index == cand.index) {
                 Some(prev) => merge_into(prev, &cand),
                 None => merged.push(cand),
             }
@@ -174,6 +179,16 @@ fn candidates(files: &[(String, Value)]) -> (Vec<Candidate>, Vec<Dropped>) {
                 summary: text(d, "summary"),
                 settled_by: text(d, "settled_by"),
             });
+        }
+    }
+    for cand in loose {
+        let same_line = |m: &Candidate| m.file == cand.file && m.line == cand.line;
+        if merged.iter().any(|m| m.index.is_some() && same_line(m)) {
+            continue;
+        }
+        match merged.iter_mut().find(|m| m.index.is_none() && same_line(m)) {
+            Some(prev) => merge_into(prev, &cand),
+            None => merged.push(cand),
         }
     }
     (merged, dropped)
@@ -1075,6 +1090,41 @@ mod tests {
         assert_eq!(code, 0, "{claims}");
         assert!(claims.contains("| 2 | CONFIRMED | Warning | pkg/pool.go:228 | go test -run TestBound | TestBound: FAIL |"), "{claims}");
         assert!(claims.contains("| UNVERIFIED | Suggestion | pkg/pool.go:227 | apply the rename patch |"), "{claims}");
+    }
+
+    #[test]
+    fn two_numbered_candidates_on_one_line_keep_their_own_checks() {
+        let round = tmp("assemble-one-anchor");
+        fs::create_dir_all(round.join("candidates")).unwrap();
+        fs::create_dir_all(round.join("verdicts")).unwrap();
+        fs::write(
+            round.join("candidates/finder.json"),
+            r#"{"candidates": [{"file": "pkg/render.go", "line": 96, "angle": "lines", "summary": "the lexer is quadratic", "verify_by": "go test -run TestQuadratic", "band": "Warning"}]}"#,
+        )
+        .unwrap();
+        fs::write(
+            round.join("candidates/judge.json"),
+            r#"{"candidates": [{"index": 1, "file": "pkg/render.go", "line": 96, "angle": "lines", "summary": "the lexer is quadratic", "verify_by": "go test -run TestQuadratic", "band": "Warning"}]}"#,
+        )
+        .unwrap();
+        fs::write(
+            round.join("candidates/reflector.json"),
+            r#"{"candidates": [{"index": 2, "file": "pkg/render.go", "line": 96, "angle": "reflector", "summary": "a toml fence escapes", "verify_by": "go test -run TestFenceToml", "band": "Warning"}]}"#,
+        )
+        .unwrap();
+        fs::write(
+            round.join("verdicts/judge.json"),
+            r#"{"verdicts": [
+                {"index": 1, "state": "CONFIRMED", "band": "Warning", "file": "pkg/render.go", "line": 96, "tldr": "quadratic", "evidence": "TestQuadratic: FAIL"},
+                {"index": 2, "state": "REFUTED", "band": "Warning", "file": "pkg/render.go", "line": 96, "tldr": "toml fence", "refuted_by": "TestFenceToml: PASS"}
+              ]}"#,
+        )
+        .unwrap();
+        let (_, claims, _) = run_on(&round, &[]);
+        let rows: Vec<&str> = claims.lines().filter(|l| l.starts_with("| ") && !l.starts_with("| #") && !l.starts_with("| -")).collect();
+        assert_eq!(rows.len(), 2, "{claims}");
+        assert!(claims.contains("| 1 | CONFIRMED | Warning | pkg/render.go:96 | go test -run TestQuadratic | TestQuadratic: FAIL |"), "{claims}");
+        assert!(claims.contains("| 2 | REFUTED | Warning | pkg/render.go:96 | go test -run TestFenceToml | TestFenceToml: PASS |"), "{claims}");
     }
 
     #[test]

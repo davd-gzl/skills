@@ -820,6 +820,15 @@ class PublishWordsRoundEight(PublishWordsRoundSeven):
         (self.root / 'q.graphql').write_text('query { viewer { login } }')
         self.assertEqual(self.hook(f'cd {self.root} && gh api graphql -F query=@q.graphql')[0], 0)
 
+    def test_a_graphql_variable_is_no_shell_expansion(self):
+        read = ("gh api graphql -f query='query($org: String!, $first: Int = 50) { organization(login: $org) "
+                "{ projectV2(number: 3) { fields(first: $first) { nodes { ... on ProjectV2Field { name } } } } } }'")
+        self.assertEqual(self.hook(read)[0], 0, 'a variable left to its default is still a read')
+        self.assertEqual(self.hook(read.replace('query(', 'mutation(', 1))[0], 2)
+        for cmd in ('gh api graphql -f query="$OP { addComment(input: {}) { clientMutationId } }"',
+                    'gh api graphql -f query="query { x } $MORE"'):
+            self.assertEqual(self.hook(cmd)[0], 2, cmd)
+
     def test_a_pr_edit_beyond_its_body_waits(self):
         self.assertEqual(self.hook('gh pr edit 5 -R o/r --body x')[0], 0)
         self.assertEqual(self.hook("gh pr edit 5 -R o/r --body-file - <<'MD'\nbody\nMD")[0], 0)

@@ -1373,7 +1373,9 @@ def publish_words(cmd, cwd=None):
                     sources.append('@' + t[t.index('--input') + 1])
                 query, unreadable = '', False
                 for src in sources:
-                    if '$' in src or '`' in src:
+                    # A GraphQL variable, `($org: String!)` or `login: $org`, follows `(`, `,`, `:` or `[`;
+                    # a `$` anywhere else is the shell's, and what it expands to is unread.
+                    if '$' in re.sub(r'([(,:\[]\s*)\$[A-Za-z_]\w*', r'\1', src) or '`' in src:
                         unreadable = True
                     elif src.startswith('@'):
                         path_ = os.path.join(base, os.path.expanduser(src[1:]))

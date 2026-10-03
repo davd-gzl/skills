@@ -26,10 +26,12 @@ block, so a rule on the thinking has a number. A reply carrying a closing
 block, the artifact lines, carries the `Did:` account above it, as plain lines:
 an account inside a code fence is named, as is one with no `---` rule above it.
 The account, quotes, tables and code
-do not count toward WORDS.
+do not count toward WORDS. A coined letter, per skills/shortcuts.md, is defined
+on the TL;DR line that names it and never takes a letter the table gives.
 """
 
 import json
+import pathlib
 import re
 import statistics
 import sys
@@ -87,6 +89,44 @@ def unlinked(text):
     return [q for q in named if not re.search(r'\]\([^)]*' + re.escape(q.rsplit('/', 1)[-1]) + r'[^)]*\)', text)]
 
 
+SHORTCUTS = pathlib.Path(__file__).resolve().parent.parent / 'shortcuts.md'
+# A letter defined in place, per skills/shortcuts.md: `r`: run the round, or `r` (run the round).
+DEFINED = re.compile(r'`([a-z])`\s*(?::|\(|=|—)\s*([A-Za-z]*)')
+
+
+def table_letters():
+    """Each letter the shortcuts table gives, with the words it stands for: the other words of its row's
+    first cell, `p`, `push`, or where the cell holds letters alone, the second cell up to its first colon."""
+    try:
+        rows = SHORTCUTS.read_text(encoding='utf-8').splitlines()
+    except OSError:
+        return {}
+    out = {}
+    for row in rows:
+        cells = row.split('|')
+        if not row.startswith('| `') or len(cells) < 3:
+            continue
+        named = re.sub(r'`[a-z]`', ' ', cells[1])
+        words = set(re.findall(r'[a-z]+', (named if re.search(r'[a-z]', named) else cells[2].split(':')[0]).lower()))
+        for c in re.findall(r'`([a-z])`', cells[1]):
+            out[c] = words
+    return out
+
+
+def letters(text):
+    """A coined letter the TL;DR line names with no definition beside it, and a letter coined over the table's."""
+    table, reasons = table_letters(), []
+    for line in text.splitlines():
+        for c, word in DEFINED.findall(line):
+            if c in table and word.lower() not in table[c]:
+                reasons.append(f'coins `{c}`, a letter the shortcuts table already gives')
+        if line.lstrip('*').startswith('TL;DR'):
+            defined = {c for c, _ in DEFINED.findall(line)}
+            for c in sorted(set(re.findall(r'`([a-z])`', line)) - set(table) - defined):
+                reasons.append(f'the TL;DR names the coined letter `{c}` with no definition beside it')
+    return list(dict.fromkeys(reasons))
+
+
 def measure(text):
     """The numbers, and the reasons it drifts, empty when it does not."""
     p = prose(text)
@@ -121,6 +161,7 @@ def measure(text):
             reasons.append('hedge: ' + ', '.join(f'"{h}"' for h in m['hedges'][:3]))
         if m['pleasantries']:
             reasons.append('pleasantry: ' + ', '.join(f'"{h}"' for h in m['pleasantries'][:3]))
+    reasons += letters(text)
     m['unlinked'] = unlinked(text)
     if m['unlinked']:
         reasons.append('named with no link: ' + ', '.join(m['unlinked'][:3]))

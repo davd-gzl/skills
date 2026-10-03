@@ -208,3 +208,23 @@ class Unlinked(unittest.TestCase):
     def test_urls_and_fences_are_not_paths(self):
         m = rc.measure("See https://github.com/x/y/blob/main/a.md and\n```\ncat skills/x.md\n```\n")
         self.assertEqual(m['unlinked'], [])
+
+
+class Letters(unittest.TestCase):
+    """A coined letter, per skills/shortcuts.md: defined beside it, and never one the table gives."""
+
+    def coined(self, text):
+        return [r for r in rc.measure(text)['reasons'] if 'letter' in r]
+
+    def test_a_tldr_letter_outside_the_table_is_defined_in_its_line(self):
+        self.assertTrue(self.coined('Fix ready.\n\nTL;DR: the fix is ready; `f` waits.'))
+        self.assertFalse(self.coined('Fix ready.\n\nTL;DR: the fix is ready; `f`: fold it into #12, waits.'))
+        self.assertFalse(self.coined('Fix ready.\n\nTL;DR: the fix is ready; `f` (fold it into #12) waits.'))
+
+    def test_a_table_letter_needs_no_definition(self):
+        self.assertFalse(self.coined('Fix ready.\n\nTL;DR: the fix is ready; waits on `p`.'))
+        self.assertFalse(self.coined('Fix ready.\n\nTL;DR: the fix is ready; `p` (push) sends it.'))
+
+    def test_coining_a_letter_the_table_gives_is_a_reason(self):
+        self.assertTrue(self.coined('`u`: fold the rooms in and test it.\n\nTL;DR: rooms differ; `u` makes them the same.'))
+        self.assertFalse(self.coined('`r`: run the review round.\n\nTL;DR: round planned; `r`: run the review round.'))

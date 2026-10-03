@@ -3,7 +3,7 @@
 //!
 //! Inputs, under the round directory: `candidates/*.json`, what each finder, the reflector and
 //! the critic returned, `{"candidates": [...], "dropped": [...]}`; `verdicts/*.json`, what each
-//! verifier returned, `{"verdicts": [...]}`. Outputs: `claims.md`, the Candidates table, the
+//! verifier returned, `{"verdicts": [...]}` or the bare list. Outputs: `claims.md`, the Candidates table, the
 //! rows the finders settled, the hit rate per tier and an empty Completeness section; and
 //! `findings.md`, one block per finding in posting order with everything the writer needs.
 
@@ -128,13 +128,22 @@ fn items<'a>(v: &'a Value, key: &str) -> Vec<&'a Value> {
         .unwrap_or_default()
 }
 
+/// A file's main list: the array under its field, or the file itself where a stage saved the
+/// list bare, `[...]` for `{"verdicts": [...]}`.
+fn listed<'a>(v: &'a Value, key: &str) -> Vec<&'a Value> {
+    match v.as_array() {
+        Some(a) => a.iter().filter(|x| x.is_object()).collect(),
+        None => items(v, key),
+    }
+}
+
 /// The candidates of every file, merged by file:line the way the runner merges them, and every
 /// dropped row.
 fn candidates(files: &[(String, Value)]) -> (Vec<Candidate>, Vec<Dropped>) {
     let mut merged: Vec<Candidate> = Vec::new();
     let mut dropped = Vec::new();
     for (_, value) in files {
-        for c in items(value, "candidates") {
+        for c in listed(value, "candidates") {
             let cand = Candidate {
                 file: text(c, "file"),
                 line: number(c, "line"),
@@ -196,7 +205,7 @@ fn band_rank(band: &str) -> usize {
 fn verdicts(files: &[(String, Value)]) -> Vec<Verdict> {
     let mut out = Vec::new();
     for (_, value) in files {
-        for v in items(value, "verdicts") {
+        for v in listed(value, "verdicts") {
             let index = v.get("index").and_then(Value::as_u64).map(|n| n as usize);
             let verdict = Verdict {
                 index,
@@ -283,10 +292,15 @@ fn rows(
         } else {
             v.evidence.clone()
         };
+        let band = if v.band.is_empty() {
+            cand.map(|c| c.band.clone()).unwrap_or_default()
+        } else {
+            v.band.clone()
+        };
         out.push(Row {
             index: v.index.unwrap_or(0),
             state: v.state.clone(),
-            band: v.band.clone(),
+            band,
             file: v.file.clone(),
             line: v.line,
             check,
@@ -1014,6 +1028,20 @@ mod tests {
         );
         assert!(claims.contains("| tests/01-ttl.go | hot |"), "{claims}");
         assert!(claims.contains("Hit rate per tier, from the rows above: hot 1/2 confirmed over 1 files, warm 0/0 confirmed over 0 files, cold 0/2 confirmed over 2 files."), "{claims}");
+    }
+
+    #[test]
+    fn a_verdict_file_holding_a_bare_list_joins_its_rows_and_takes_the_candidates_band() {
+        let (round, _) = fixture("bare-list");
+        fs::remove_file(round.join("verdicts/nits-1.json")).unwrap();
+        fs::write(
+            round.join("verdicts/big-1.json"),
+            r#"[{"state": "CONFIRMED", "file": "pkg/a.go", "line": 10, "angle": "lines", "tldr": "a zero TTL never expires", "details": "", "evidence": "go test -run TestTTL: FAIL", "refuted_by": ""}]"#,
+        )
+        .unwrap();
+        let (code, claims, _) = run_on(&round, &[]);
+        assert_eq!(code, 0, "{claims}");
+        assert!(claims.contains("| 1 | CONFIRMED | Warning | pkg/a.go:10 |"), "{claims}");
     }
 
     #[test]

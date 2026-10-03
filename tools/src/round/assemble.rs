@@ -412,9 +412,11 @@ fn posting_order(rows: &[Row]) -> Vec<&Row> {
     out
 }
 
-/// Whether a row ships SKIP: a PLAUSIBLE Nit or Suggestion, a read that could not settle it.
+/// Whether a row ships SKIP: a PLAUSIBLE Nit or Suggestion, a read that could not settle it, and
+/// an UNVERIFIED one, which no judge ran and the user flips to posted once its check is run.
 fn skips(row: &Row) -> bool {
-    row.state == "PLAUSIBLE" && (row.band == "Nit" || row.band == "Suggestion")
+    row.state == "UNVERIFIED"
+        || (row.state == "PLAUSIBLE" && (row.band == "Nit" || row.band == "Suggestion"))
 }
 
 /// `claims.md`: the title and shape lines when given, the Candidates table, the hit rate per
@@ -976,7 +978,7 @@ mod tests {
             "{findings}"
         );
         assert!(
-            findings.contains("2 to post, 1 SKIP, 1 refuted kept out"),
+            findings.contains("1 to post, 2 SKIP, 1 refuted kept out"),
             "{findings}"
         );
     }
@@ -1125,6 +1127,15 @@ mod tests {
         assert_eq!(rows.len(), 2, "{claims}");
         assert!(claims.contains("| 1 | CONFIRMED | Warning | pkg/render.go:96 | go test -run TestQuadratic | TestQuadratic: FAIL |"), "{claims}");
         assert!(claims.contains("| 2 | REFUTED | Warning | pkg/render.go:96 | go test -run TestFenceToml | TestFenceToml: PASS |"), "{claims}");
+    }
+
+    #[test]
+    fn a_nit_no_judge_ran_ships_skip_and_is_not_counted_to_post() {
+        let (round, _) = fixture("unverified");
+        let (_, claims, findings) = run_on(&round, &[]);
+        assert!(claims.contains("| UNVERIFIED | Nit | pkg/b.go:4 |"), "{claims}");
+        assert!(findings.contains("## SKIP pkg/b.go:4 · Nit\n"), "{findings}");
+        assert!(findings.starts_with("# Findings in posting order, from round assemble: 1 to post, 2 SKIP,"), "{findings}");
     }
 
     #[test]

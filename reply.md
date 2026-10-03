@@ -77,6 +77,15 @@ This job runs on a schedule only, and GitHub disables those after 60 days.
 
 ## The closing block
 
+- When the work needs a decision only the user can make, an open call, a pick
+  between designs, a reading of their words that changes what gets built, ask
+  it through the harness's question tool where it has one: every such decision
+  of the turn in one call, the recommended option first and marked. The reply
+  then names the asked decisions in one line and carries no word for them.
+  Where the harness has no such tool, the question is one line, per
+  `skills/short-form.md`.
+- A publish never goes through the question tool: its word is typed, per
+  Invariant 2 in the workspace `AGENTS.md`.
 - Every word a reply offers, anywhere in it, is its own line with the word
   first: `` `m`: merge the site branch into main, then deploy ``. Never
   `Type m.`, never a word inside a sentence, never an emoji ahead of it, since

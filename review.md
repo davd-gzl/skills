@@ -304,6 +304,12 @@ risk and what they know of the area. Each answer naming a place or a property
 becomes a topic, `args.topics`, one finder each with that topic as its angle,
 and the run launches on `go`.
 
+A fourth is a request to simplify a target: one agent reads the whole feature
+before the round and names the cuts that span more than one bundle, which the
+refactor angle never proposes since each finder reads one bundle. The round
+launches on the diff once those cuts land, so no finder reads code the design
+removes.
+
 ## For each target
 
 ### Fetch & understand

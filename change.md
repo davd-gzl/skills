@@ -128,10 +128,12 @@ gh repo fork <owner>/<repo> --remote-only --remote-name fork
    the moment a branch lands in it:
    ```bash
    git -C <checkout> fetch <canonical-remote> <default-branch>
-   git -C <checkout> worktree add .worktrees/<repo>-fix-<id> <canonical-remote>/<default-branch>
+   git -C <checkout> worktree add "$PWD/.worktrees/<repo>-fix-<id>" <canonical-remote>/<default-branch>
    git -C .worktrees/<repo>-fix-<id> checkout -b <branch>
    ```
-   `<id>` is the issue number where one exists, a short slug otherwise.
+   `<id>` is the issue number where one exists, a short slug otherwise. Run it
+   from the workspace root, and keep the path absolute: `-C` resolves a
+   relative one inside the checkout.
 5. **Weigh each finding before building it.** Name what implementing one costs in files and what
    it buys in cases a user actually hits: a suggestion covering a transition
    nobody has been through yet goes to the pull request body's leaves-out

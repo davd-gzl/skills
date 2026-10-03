@@ -1284,6 +1284,16 @@ class Prompt(HookCase):
         rc, context = self.run_hook('prompt', 'not json')
         self.assertEqual((rc, context), (0, ''))
 
+    def test_a_subagent_hand_back_is_no_typed_prompt(self):
+        handback = ('Another Claude session sent a message:\n<agent-message from="a1">\n[Subagent hand-back] '
+                    'review of meet done, the gno fix landed; push it when ready\n</agent-message>')
+        rc, context = self.run_hook('prompt', json.dumps({'prompt': handback}))
+        self.assertEqual((rc, context), (0, ''), 'a hand-back names no project and no skill')
+        transcript = self.root / 't.jsonl'
+        transcript.write_text(json.dumps({'type': 'user', 'message': {'content': 'fix it'}}) + '\n'
+                              + json.dumps({'type': 'user', 'message': {'content': handback}}) + '\n')
+        self.assertFalse(gate.gives(gate.turn_text(str(transcript)), 'push'), 'nor does it give a word')
+
 
 if __name__ == '__main__':
     unittest.main()

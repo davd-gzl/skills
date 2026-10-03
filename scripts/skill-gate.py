@@ -878,7 +878,8 @@ def cmd_prompt(stdin, stdout):
     """What this prompt's words and repositories call for, minus what the session already read."""
     payload = _payload(stdin)
     prompt = str(payload.get('prompt', ''))
-    names = [n for n in prompt_reads(prompt) if not is_read(n)]
+    # A hand-back or a notification is the harness's message, never the user's prompt: its words call for nothing.
+    names = [n for n in prompt_reads(prompt) if not is_read(n)] if not prompt.lstrip().startswith(NOT_TYPED) else []
     note = model_note(payload)
     extra = [note] if note else []
     point(names, 'Rules this prompt calls for, unread this session. Read each whole with the Read tool '
@@ -894,7 +895,8 @@ def cmd_prompt(stdin, stdout):
 # shell can send a push in more forms than a reading can follow, a script generated at run time
 # for one. Where the reading cannot place a push it asks for the word; the words themselves, in
 # AGENTS.md, stay the control.
-NOT_TYPED = ('<task-notification', '<command-', '<local-command-', '<system-reminder', '[SYSTEM NOTIFICATION')
+NOT_TYPED = ('<task-notification', '<command-', '<local-command-', '<system-reminder', '[SYSTEM NOTIFICATION',
+             'Another Claude session sent a message:')
 
 
 def turn_text(transcript):

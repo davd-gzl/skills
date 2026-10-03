@@ -26,6 +26,8 @@ const BAND_ORDER: [&str; 5] = ["Critical", "Warning", "Missing test", "Nit", "Su
 /// One candidate a finder returned, merged with any other at the same line.
 #[derive(Debug, Clone)]
 struct Candidate {
+    /// The number the runner gave it in the judge's list, which the judge echoes on its verdict.
+    index: Option<usize>,
     file: String,
     line: usize,
     angle: String,
@@ -145,6 +147,7 @@ fn candidates(files: &[(String, Value)]) -> (Vec<Candidate>, Vec<Dropped>) {
     for (_, value) in files {
         for c in listed(value, "candidates") {
             let cand = Candidate {
+                index: c.get("index").and_then(Value::as_u64).map(|n| n as usize),
                 file: text(c, "file"),
                 line: number(c, "line"),
                 angle: text(c, "angle"),
@@ -229,9 +232,15 @@ fn verdicts(files: &[(String, Value)]) -> Vec<Verdict> {
     out
 }
 
-/// The candidate a verdict answers: the one at its exact line, else the nearest in the same
-/// file within `NEAR` lines that no verdict has taken yet.
+/// The candidate a verdict answers: the one whose index the verdict echoes; for a verdict or a
+/// round that carries none, the one at its exact line, else the nearest in the same file within
+/// `NEAR` lines that no verdict has taken yet.
 fn join_candidate(v: &Verdict, cands: &[Candidate], taken: &[bool]) -> Option<usize> {
+    if let Some(i) = v.index {
+        if let Some(at) = cands.iter().position(|c| c.index == Some(i)) {
+            return (!taken[at]).then_some(at);
+        }
+    }
     let exact = cands
         .iter()
         .position(|c| c.file == v.file && c.line == v.line && !taken_at(taken, c, cands));
@@ -893,7 +902,7 @@ mod tests {
 
     #[test]
     fn a_candidate_copied_beside_its_finder_keeps_one_check() {
-        let mut a = Candidate { file: "f".into(), line: 1, angle: "lines".into(), summary: "s".into(), verify_by: "go test".into(), band: "Warning".into() };
+        let mut a = Candidate { index: None, file: "f".into(), line: 1, angle: "lines".into(), summary: "s".into(), verify_by: "go test".into(), band: "Warning".into() };
         let b = a.clone();
         merge_into(&mut a, &b);
         assert_eq!(a.verify_by, "go test");
@@ -1042,6 +1051,30 @@ mod tests {
         let (code, claims, _) = run_on(&round, &[]);
         assert_eq!(code, 0, "{claims}");
         assert!(claims.contains("| 1 | CONFIRMED | Warning | pkg/a.go:10 |"), "{claims}");
+    }
+
+    #[test]
+    fn a_verdict_joins_the_candidate_its_index_names_not_the_nearest_line() {
+        let round = tmp("assemble-by-index");
+        fs::create_dir_all(round.join("candidates")).unwrap();
+        fs::create_dir_all(round.join("verdicts")).unwrap();
+        fs::write(
+            round.join("candidates/judge.json"),
+            r#"{"candidates": [
+                {"index": 1, "file": "pkg/pool.go", "line": 227, "angle": "refactor", "summary": "rename the field", "verify_by": "apply the rename patch", "band": "Suggestion"},
+                {"index": 2, "file": "pkg/pool.go", "line": 231, "angle": "bounds", "summary": "the bound is off by one", "verify_by": "go test -run TestBound", "band": "Warning"}
+              ]}"#,
+        )
+        .unwrap();
+        fs::write(
+            round.join("verdicts/judge.json"),
+            r#"{"verdicts": [{"index": 2, "state": "CONFIRMED", "band": "Warning", "file": "pkg/pool.go", "line": 228, "tldr": "off by one", "evidence": "TestBound: FAIL"}]}"#,
+        )
+        .unwrap();
+        let (code, claims, _) = run_on(&round, &[]);
+        assert_eq!(code, 0, "{claims}");
+        assert!(claims.contains("| 2 | CONFIRMED | Warning | pkg/pool.go:228 | go test -run TestBound | TestBound: FAIL |"), "{claims}");
+        assert!(claims.contains("| UNVERIFIED | Suggestion | pkg/pool.go:227 | apply the rename patch |"), "{claims}");
     }
 
     #[test]

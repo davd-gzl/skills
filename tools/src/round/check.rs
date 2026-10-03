@@ -1,7 +1,8 @@
 //! `round check`: the mechanical half of the text pass over a round's draft and overview, so the
 //! pass keeps only the judgement. An em-dash outside a fence, a visible sentence ending in a
 //! question mark, a finding header without its `[gh]` link, a phrase that points at the page
-//! instead of the code, a `Full review:` line, and, over the draft, `claims.md`, `findings.md`,
+//! instead of the code, a `Full review:` line, a bullet above the draft's first section, which
+//! post-review.sh never sends, and, over the draft, `claims.md`, `findings.md`,
 //! `candidates/` and `verdicts/`, an absolute path outside the reviewed repo, which a judge
 //! quoting its own command line carries in. A draft with no `Event:` line, posted text naming
 //! CI, a flake or a rebase, a verdict or a sha in `overview.md`, and an `overview.md` without its
@@ -85,6 +86,10 @@ fn check_text(name: &str, text: &str, draft: bool) -> Vec<Hit> {
     // second plain line is a paragraph, an affirmation or a re-described change.
     let (mut in_body, mut details, mut plain) = (false, 0i32, 0usize);
     for (line, content) in prose_lines(text) {
+        // A bullet above the first section sits in the header, which post-review.sh never sends.
+        if draft && !posted && (content.starts_with("- ") || content.starts_with("* ")) {
+            hit(&mut hits, line, "a bullet above the first section, which never posts; it goes under ## Body");
+        }
         if content.starts_with("## ") {
             in_body = content.trim_end() == "## Body";
             posted = true;
@@ -480,6 +485,14 @@ mod tests {
             assert!(table.contains(what), "{what} missing in\n{table}");
         }
         assert!(table.contains("| overview.md | 3 |"), "{table}");
+    }
+
+    #[test]
+    fn a_bullet_above_the_first_section_is_a_hit_and_one_under_body_is_not() {
+        let header = check_text("comment_x.md", "# Review\nEvent: COMMENT\n- [`f`](https://x) can overflow.\n\n## pkg/a.go:10 [gh](https://x) \u{b7} Warning\nThe clamp is missing.\n", true);
+        assert_eq!(header.iter().map(|h| (h.line, h.what.as_str())).collect::<Vec<_>>(), vec![(3, "a bullet above the first section, which never posts; it goes under ## Body")]);
+        let body = check_text("comment_x.md", "# Review\nEvent: COMMENT\n\n## Body\n- [`f`](https://x) can overflow.\n", true);
+        assert!(body.is_empty(), "{:?}", body.iter().map(|h| &h.what).collect::<Vec<_>>());
     }
 
     #[test]

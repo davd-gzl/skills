@@ -72,7 +72,8 @@ pub const USAGE: &str = "round <subcommand> ...
       The mechanical half of the text pass over the round's comment_*.md and the overview.md
       beside the directory: an em-dash outside a fence, a visible sentence ending in a
       question mark, a finding header without its [gh] link or without its ' · <Band>'
-      tag, a phrase that points at the page, a Full review: line. One row per hit into
+      tag, a phrase that points at the page, a Full review: line, a bullet above the
+      first section. One row per hit into
       <round dir>/check.md; exit 1 on any.";
 
 pub fn dispatch(args: &[String]) -> i32 {

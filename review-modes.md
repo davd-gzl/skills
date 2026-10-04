@@ -65,8 +65,13 @@ Findings land as commits on the branch, never as a review to post.
 
 - Draft nothing for a reader: no `comment_<model>.md`, no `pr-body.md`, no text pass, and post nothing. `claims.md` is the record `round assemble` writes, never drafted by hand. The round ends at `findings.md` and the fixes come off it in the same turn.
 - Launch with `args.own_pr` true, which `./scripts/review-setup.sh` sets from the pull request's author and `--own-pr yes|no` overrides, and print its cost with `./scripts/review-plan.py --own-pr`: the runner then stops at `findings.md` in a solo round and a pipeline round alike, and returns one line per CONFIRMED finding saying whether its fix is mechanical or a decision.
+- Where the build is uncommitted, the round reads a snapshot of it:
+  `./scripts/snapshot <worktree>` prints a dangling commit holding every
+  uncommitted edit over HEAD, the worktree and its index left as they were, and
+  `git -C <worktree> worktree add --detach <path> <sha>` gives
+  `./scripts/review-setup.sh` its head worktree, removed once the round ends.
 - Write `overview.md`, which the next round on the target reads.
-- Apply every mechanical fix in the checkout the review uses: comments, docs, tests, naming, dead code. Then *Fix* step 7 in `skills/change.md`, the local CI run, until green.
+- Apply every mechanical fix in the branch's own worktree, never a snapshot's: comments, docs, tests, naming, dead code. Then *Fix* step 7 in `skills/change.md`, the local CI run, until green.
 - Never apply without asking: observable behavior changes, fixes to defects predating the branch, anything a maintainer would treat as a design decision. Present each as a named decision.
 - One commit per finding class, conventional subject, for the PR's head repository and never upstream; its push waits for `push`.
 - Hand over the branch and shas, then what was left unapplied and the decision each needs.

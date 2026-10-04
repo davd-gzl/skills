@@ -74,4 +74,5 @@ Findings land as commits on the branch, never as a review to post.
 - Apply every mechanical fix in the branch's own worktree, never a snapshot's: comments, docs, tests, naming, dead code. Then *Fix* step 7 in `skills/change.md`, the local CI run, until green.
 - Never apply without asking: observable behavior changes, fixes to defects predating the branch, anything a maintainer would treat as a design decision. Present each as a named decision.
 - One commit per finding class, conventional subject, for the PR's head repository and never upstream; its push waits for `push`.
+- Before the fix push, compare `gh pr view <n> -R <repo> --json headRefOid --jq .headRefOid` with `pr_head` in the round's `args.json`; a move means another push landed mid-round, so the push waits and the handover names both commits.
 - Hand over the branch and shas, then what was left unapplied and the decision each needs.

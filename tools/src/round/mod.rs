@@ -65,7 +65,9 @@ pub const USAGE: &str = "round <subcommand> ...
       row after row, each header closed with the highest band of its rows as
       ' · <Band>', which is what post-review.sh --list and --band read, and SKIP in
       front where every row is a PLAUSIBLE Nit or an UNVERIFIED row, which no judge ran.
-      Exit 1 when a row's file:line is not at the head.
+      A block on a file the --risk table does not list sits outside the diff, and goes
+      under ## Body as a bullet with no anchor. Exit 1 when a row's file:line is not at
+      the head.
 
   check <round dir> [--overview <file>] [--out <file>] [--private <file>]
       --private names, one per line, that the draft, claims.md, candidates/ and verdicts/

@@ -587,8 +587,10 @@ fn hit_rate(rows: &[Row], tiers: &HashMap<String, String>) -> String {
 /// `findings.md`: one block per anchor in posting order, the header the draft will carry,
 /// SKIP in front where no row of it posts, and every field the writer composes from, row
 /// after row where two findings share the line; the check is on every row, since an unrun
-/// row is one the reader runs by hand.
-fn findings_md(rows: &[Row], url: &str, misses: &[String]) -> String {
+/// row is one the reader runs by hand. Where the risk table lists the diff's files, a block on
+/// a file outside them is a bullet under `## Body` instead, since GitHub refuses the whole
+/// review for an anchor off the diff.
+fn findings_md(rows: &[Row], url: &str, misses: &[String], diff_files: &HashMap<String, String>) -> String {
     let blocks = blocks(rows);
     let skipped = blocks.iter().filter(|b| block_skips(b)).count();
     let refuted = rows.iter().filter(|r| r.state == "REFUTED").count();
@@ -602,10 +604,9 @@ fn findings_md(rows: &[Row], url: &str, misses: &[String]) -> String {
             out.push_str(&format!("- {m}\n"));
         }
     }
-    for block in &blocks {
-        let r = block[0];
-        let skip = if block_skips(block) { "SKIP " } else { "" };
-        let link = if url.is_empty() {
+    let in_diff = |b: &&Vec<&Row>| diff_files.is_empty() || diff_files.contains_key(&b[0].file);
+    let link = |r: &Row| {
+        if url.is_empty() {
             String::new()
         } else {
             format!(
@@ -614,7 +615,27 @@ fn findings_md(rows: &[Row], url: &str, misses: &[String]) -> String {
                 r.file,
                 r.line
             )
-        };
+        }
+    };
+    let outside: Vec<&Vec<&Row>> = blocks.iter().filter(|b| !in_diff(b)).collect();
+    if !outside.is_empty() {
+        out.push_str("\n## Body\n\n");
+        for block in outside {
+            let r = block[0];
+            let skip = if block_skips(block) { "SKIP " } else { "" };
+            out.push_str(&format!(
+                "- {skip}{}: {}:{}{}, outside the diff, so no anchor\n",
+                r.band, r.file, r.line, link(r)
+            ));
+            for r in block {
+                row_fields(&mut out, r, "  ");
+            }
+        }
+    }
+    for block in blocks.iter().filter(in_diff) {
+        let r = block[0];
+        let skip = if block_skips(block) { "SKIP " } else { "" };
+        let link = link(r);
         // The band closes the header, which is what ./scripts/post-review.sh --list and --band read:
         // untagged, a section can only be chosen by editing the draft.
         out.push_str(&format!(
@@ -622,35 +643,35 @@ fn findings_md(rows: &[Row], url: &str, misses: &[String]) -> String {
             r.file, r.line, r.band
         ));
         for r in block {
-            row_fields(&mut out, r);
+            row_fields(&mut out, r, "");
         }
     }
     out
 }
 
-/// The fields of one row under its block's header.
-fn row_fields(out: &mut String, r: &Row) {
+/// The fields of one row under its block's header, each line opening on `indent`.
+fn row_fields(out: &mut String, r: &Row, indent: &str) {
     let read_only = if r.unrun {
         ", on the finder's read only"
     } else {
         ""
     };
     out.push_str(&format!(
-        "State: {}, band: {}, angle: {}{read_only}\n",
+        "{indent}State: {}, band: {}, angle: {}{read_only}\n",
         r.state, r.band, r.angle
     ));
-    out.push_str(&format!("TL;DR: {}\n", r.tldr));
+    out.push_str(&format!("{indent}TL;DR: {}\n", r.tldr));
     if !r.check.is_empty() {
-        out.push_str(&format!("Check: {}\n", r.check));
+        out.push_str(&format!("{indent}Check: {}\n", r.check));
     }
     if !r.details.is_empty() {
-        out.push_str(&format!("Details: {}\n", r.details));
+        out.push_str(&format!("{indent}Details: {}\n", r.details));
     }
     if !r.observed.is_empty() {
-        out.push_str(&format!("Evidence: {}\n", r.observed));
+        out.push_str(&format!("{indent}Evidence: {}\n", r.observed));
     }
     if !r.artifact.is_empty() {
-        out.push_str(&format!("Artifact: {}\n", r.artifact));
+        out.push_str(&format!("{indent}Artifact: {}\n", r.artifact));
     }
 }
 
@@ -819,7 +840,7 @@ fn run(args: &[String]) -> Result<(String, Vec<String>, Option<String>), String>
         &dropped,
         &tiers,
     );
-    let findings = findings_md(&rows, opts.get("url").unwrap_or(&empty), &misses);
+    let findings = findings_md(&rows, opts.get("url").unwrap_or(&empty), &misses, &tiers);
     let old_claims = fs::read_to_string(round.join("claims.md")).unwrap_or_default();
     let old_findings = fs::read_to_string(round.join("findings.md")).unwrap_or_default();
     let claims = keep_written_claims(&claims, &old_claims);
@@ -1203,5 +1224,22 @@ mod tests {
         assert_eq!(findings.matches("## pkg/team.go:87").count(), 1, "{findings}");
         assert!(findings.contains("## pkg/team.go:87 · Warning\nState: CONFIRMED, band: Warning, angle: lines\nTL;DR: accepted\nCheck: go test -run TestUpper\nEvidence: TestUpper: FAIL\nState: CONFIRMED, band: Nit, angle: reach\nTL;DR: locked\n"), "{findings}");
         assert!(findings.starts_with("# Findings in posting order, from round assemble: 2 to post, 0 SKIP,"), "{findings}");
+    }
+
+    #[test]
+    fn a_finding_on_a_file_the_diff_does_not_touch_is_a_body_bullet() {
+        let (round, _) = fixture("outside-diff");
+        fs::write(
+            round.join("verdicts/outside.json"),
+            r#"{"verdicts": [{"index": 7, "state": "CONFIRMED", "band": "Warning", "file": "locales/en/settings.json", "line": 25, "tldr": "the label still names the old setting", "evidence": "grep: one hit"}]}"#,
+        )
+        .unwrap();
+        let risk = round.join("risk.json");
+        fs::write(&risk, r#"{"hot": ["pkg/a.go"], "warm": [], "cold": ["pkg/b.go"]}"#).unwrap();
+        let (_, _, findings) = run_on(&round, &["--risk", &risk.display().to_string(), "--url", "https://x/blob/abc"]);
+        assert!(!findings.contains("## locales/en/settings.json"), "{findings}");
+        assert!(findings.contains("\n## Body\n\n- Warning: locales/en/settings.json:25 [gh](https://x/blob/abc/locales/en/settings.json#L25), outside the diff, so no anchor\n  State: CONFIRMED, band: Warning, angle: \n  TL;DR: the label still names the old setting\n"), "{findings}");
+        assert!(findings.contains("\n## pkg/a.go:12 [gh]"), "{findings}");
+        assert!(findings.starts_with("# Findings in posting order, from round assemble: 2 to post,"), "{findings}");
     }
 }

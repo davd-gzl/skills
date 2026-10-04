@@ -152,7 +152,7 @@ projects/<repo>/reviews/<slug>/
                          one section per finding, posted or SKIP, its repro collapsed
     claims.md            one row per candidate: state, band, file:line, the check,
                          the output, the artifact, the tier; the completeness answers
-    findings.md          the draft's skeleton from round assemble, one block per finding
+    findings.md          the draft's skeleton from round assemble, one block per anchored line
                          in posting order, the check on each
     links.md             every link of the draft and the overview, resolved at its sha,
                          its range checked, the claim column

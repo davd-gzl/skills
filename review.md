@@ -222,7 +222,7 @@ file and one merge pass assembling the whole.
 
 - `overview.md` is never the writer's: the parent's overview agent wrote it at step 1, or the runner's, started beside the finders when the launch came without `overview_exists`; the writer links it.
 - `comment_<model>.md` per `skills/review-comment.md`, its header the Format block of `skills/review-comment.md`: the `# Review:` title on line 1, then the `Event:` line its *General rules* default from the verdict, then `Verdict:`; every finding a section, posted or `SKIP`. A PLAUSIBLE Warning names the check still to run as a statement, never a question; a PLAUSIBLE Nit or Suggestion ships `SKIP`, since a read that cannot settle it is no ground to post.
-- `./scripts/round assemble <round dir> --repo <head worktree> --sha <sha> --risk <risk.json> --url <blob url base> --title <text> --shape <text>` first: it writes `claims.md` whole, the Candidates table from the verdicts as data, the rows the finders settled, the hit rate per tier and an empty Completeness section, and `findings.md`, one block per finding in posting order with `SKIP` in front of a PLAUSIBLE Nit or Suggestion and of an UNVERIFIED row, which no judge ran. It exits 1 listing every anchor not at the head; such a row is settled by reading the code and moving the anchor, never by dropping the finding.
+- `./scripts/round assemble <round dir> --repo <head worktree> --sha <sha> --risk <risk.json> --url <blob url base> --title <text> --shape <text>` first: it writes `claims.md` whole, the Candidates table from the verdicts as data, the rows the finders settled, the hit rate per tier and an empty Completeness section, and `findings.md`, one block per anchored line in posting order with `SKIP` in front of a PLAUSIBLE Nit or Suggestion and of an UNVERIFIED row, which no judge ran. It exits 1 listing every anchor not at the head; such a row is settled by reading the code and moving the anchor, never by dropping the finding.
 - `claims.md` per *Output*: the table is the tool's and stays as written; the writer replaces the Completeness placeholder with its answers.
 - The draft's sections come from `findings.md`, never from the JSON under `candidates/` or `verdicts/`.
 - `./scripts/round check <round dir>` last, before returning, into `check.md`; then `./scripts/prose-check.py <draft>`. The writer clears both lists, since the two gates do not overlap and a round whose text pass is skipped ships what the writer returned.
@@ -514,7 +514,7 @@ projects/<repo>/reviews/<slug>/
     comment_<model>.md   the draft: Verdict, Event, Model, Commit, Overview, Open the code, Round;
                          the Body; one section per finding, posted or SKIP, its repro collapsed
     claims.md            one row per candidate, then the completeness answers, then Outcomes
-    findings.md          the draft's skeleton, one block per finding in posting order, from `round assemble`
+    findings.md          the draft's skeleton, one block per anchored line in posting order, from `round assemble`
     links.md             one row per link of the draft and the overview
     tests/               every artifact a verifier ran
     candidates/          what each finder and the reflector returned, as JSON

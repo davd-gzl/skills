@@ -24,7 +24,7 @@ binary runs it.
 
 ## Tests
 
-`cargo test --manifest-path tools/Cargo.toml` runs 71 tests: unit tests beside
+`cargo test --manifest-path tools/Cargo.toml` runs the unit tests beside
 the code in each module, the line map among them against a git repository
 built in a temporary directory, and one golden test in
 `tests/lint_golden.rs`.

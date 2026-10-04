@@ -27,8 +27,8 @@ pub const USAGE: &str = "round <subcommand> ...
 
   links <round dir> [--repo <git dir>] [--out <file>]
       Every blob link in the round's comment_*.md and the overview.md beside it: the
-      file at the pinned sha, through git show in --repo when the sha is there, else
-      gh api, and the #L range inside it. One row per link into <round dir>/links.md,
+      file at the pinned sha, through git show when --repo holds the commit, else gh
+      api, and the #L range inside it. One row per link into <round dir>/links.md,
       exit 1 when any link misses; a file the forge could not serve says why.
 
   prior <slug dir> --repo <git dir> --sha <head sha> [--json <file>] [--applied <file>]

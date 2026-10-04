@@ -201,16 +201,8 @@ fn round_files(round: &Path) -> std::io::Result<Vec<PathBuf>> {
 
 /// The file at the sha: through git in the repo when it holds the commit, else through gh api.
 fn blob_at(repo: Option<&Path>, link: &Link) -> Blob {
-    if let Some(repo) = repo {
-        let object = format!("{}:{}", link.sha, link.path);
-        match command("git", &["-C", &repo.to_string_lossy(), "show", &object]) {
-            Ok(bytes) => return Blob::Lines(count_lines(&bytes)),
-            Err(why) => {
-                if let Some(blob) = repository_failure(&why) {
-                    return blob;
-                }
-            }
-        }
+    if let Some(blob) = repo.and_then(|repo| repo_blob(repo, link)) {
+        return blob;
     }
     let endpoint = format!(
         "repos/{}/{}/contents/{}?ref={}",
@@ -222,6 +214,20 @@ fn blob_at(repo: Option<&Path>, link: &Link) -> Blob {
     ) {
         Ok(bytes) => Blob::Lines(count_lines(&bytes)),
         Err(why) => forge_failure(&why),
+    }
+}
+
+/// The file at the sha in the repo, or `None` when the repo lacks the commit. Git reads a full
+/// forty-digit sha as an object name without looking it up, so a link into another repository
+/// would read `does not exist in` and pass for a missing file; the commit is asked for first.
+fn repo_blob(repo: &Path, link: &Link) -> Option<Blob> {
+    let dir = repo.to_string_lossy();
+    let commit = format!("{}^{{commit}}", link.sha);
+    command("git", &["-C", &dir, "cat-file", "-e", &commit]).ok()?;
+    let object = format!("{}:{}", link.sha, link.path);
+    match command("git", &["-C", &dir, "show", &object]) {
+        Ok(bytes) => Some(Blob::Lines(count_lines(&bytes))),
+        Err(why) => repository_failure(&why),
     }
 }
 
@@ -243,7 +249,7 @@ fn forge_failure(why: &str) -> Blob {
 
 #[cfg(test)]
 mod tests {
-    use super::super::testutil::{shifted_repo, tmp};
+    use super::super::testutil::{git, shifted_repo, tmp};
     use super::*;
 
     #[test]
@@ -323,6 +329,17 @@ mod tests {
             Blob::Unreadable("error connecting to api.github.com".into())
         );
         assert_eq!(forge_failure(""), Blob::Unreadable("no answer".into()));
+    }
+
+    #[test]
+    fn a_full_sha_the_repository_lacks_goes_to_the_forge() {
+        let (repo, _first, _head) = shifted_repo("links-foreign");
+        let full = git(&repo, &["rev-parse", "HEAD"]);
+        let link = |sha: &str, path: &str| find_links("f", &format!("[x](https://github.com/o/r/blob/{sha}/{path}#L1)")).remove(0);
+        assert_eq!(repo_blob(&repo, &link(&full, "f.go")), Some(Blob::Lines(8)));
+        assert_eq!(repo_blob(&repo, &link(&full, "nope.go")), Some(Blob::Missing), "a path absent from a held commit is missing");
+        let foreign = "0123456789abcdef0123456789abcdef01234567";
+        assert_eq!(repo_blob(&repo, &link(foreign, "f.go")), None, "a commit of another repository is the forge's question");
     }
 
     #[test]

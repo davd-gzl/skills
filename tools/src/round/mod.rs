@@ -61,10 +61,11 @@ pub const USAGE: &str = "round <subcommand> ...
       verifier returned. claims.md holds the Candidates table, one row per verdict joined
       to its candidate and one per candidate no verifier reached, the rows a finder
       settled, the hit rate per tier and an empty Completeness section; findings.md one
-      block per finding in posting order, each header closed with the verifier's band as
+      block per anchor in posting order, two findings on one file:line sharing its block
+      row after row, each header closed with the highest band of its rows as
       ' · <Band>', which is what post-review.sh --list and --band read, and SKIP in
-      front of a PLAUSIBLE Nit and of an UNVERIFIED row, which no judge ran. Exit 1 when
-      a row's file:line is not at the head.
+      front where every row is a PLAUSIBLE Nit or an UNVERIFIED row, which no judge ran.
+      Exit 1 when a row's file:line is not at the head.
 
   check <round dir> [--overview <file>] [--out <file>] [--private <file>]
       --private names, one per line, that the draft, claims.md, candidates/ and verdicts/

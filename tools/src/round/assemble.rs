@@ -5,7 +5,7 @@
 //! the critic returned, `{"candidates": [...], "dropped": [...]}`; `verdicts/*.json`, what each
 //! verifier returned, `{"verdicts": [...]}` or the bare list. Outputs: `claims.md`, the Candidates table, the
 //! rows the finders settled, the hit rate per tier and an empty Completeness section; and
-//! `findings.md`, one block per finding in posting order with everything the writer needs.
+//! `findings.md`, one block per anchor in posting order with everything the writer needs.
 
 use std::collections::HashMap;
 use regex::Regex;
@@ -412,6 +412,24 @@ fn posting_order(rows: &[Row]) -> Vec<&Row> {
     out
 }
 
+/// The rows in posting order cut into one block per `file:line`, at the place of its first row,
+/// so the band that opens a block is its highest: the draft carries one section per anchor.
+fn blocks(rows: &[Row]) -> Vec<Vec<&Row>> {
+    let mut out: Vec<Vec<&Row>> = Vec::new();
+    for r in posting_order(rows) {
+        match out.iter_mut().find(|b| b[0].file == r.file && b[0].line == r.line) {
+            Some(block) => block.push(r),
+            None => out.push(vec![r]),
+        }
+    }
+    out
+}
+
+/// Whether a block ships SKIP: every row in it does.
+fn block_skips(block: &[&Row]) -> bool {
+    block.iter().all(|r| skips(r))
+}
+
 /// Whether a row ships SKIP: a PLAUSIBLE Nit or Suggestion, a read that could not settle it, and
 /// an UNVERIFIED one, which no judge ran and the user flips to posted once its check is run.
 fn skips(row: &Row) -> bool {
@@ -566,16 +584,17 @@ fn hit_rate(rows: &[Row], tiers: &HashMap<String, String>) -> String {
     )
 }
 
-/// `findings.md`: one block per finding in posting order, the header the draft will carry,
-/// SKIP in front where the row ships none, and every field the writer composes from; the
-/// check is on every block, since an unrun row is one the reader runs by hand.
+/// `findings.md`: one block per anchor in posting order, the header the draft will carry,
+/// SKIP in front where no row of it posts, and every field the writer composes from, row
+/// after row where two findings share the line; the check is on every row, since an unrun
+/// row is one the reader runs by hand.
 fn findings_md(rows: &[Row], url: &str, misses: &[String]) -> String {
-    let posting = posting_order(rows);
-    let skipped = posting.iter().filter(|r| skips(r)).count();
-    let refuted = rows.len() - posting.len();
+    let blocks = blocks(rows);
+    let skipped = blocks.iter().filter(|b| block_skips(b)).count();
+    let refuted = rows.iter().filter(|r| r.state == "REFUTED").count();
     let mut out = format!(
         "# Findings in posting order, from round assemble: {} to post, {skipped} SKIP, {refuted} refuted kept out\n",
-        posting.len() - skipped
+        blocks.len() - skipped
     );
     if !misses.is_empty() {
         out.push_str("\n## Anchors that miss at the head\n\n");
@@ -583,8 +602,9 @@ fn findings_md(rows: &[Row], url: &str, misses: &[String]) -> String {
             out.push_str(&format!("- {m}\n"));
         }
     }
-    for r in posting {
-        let skip = if skips(r) { "SKIP " } else { "" };
+    for block in &blocks {
+        let r = block[0];
+        let skip = if block_skips(block) { "SKIP " } else { "" };
         let link = if url.is_empty() {
             String::new()
         } else {
@@ -601,30 +621,37 @@ fn findings_md(rows: &[Row], url: &str, misses: &[String]) -> String {
             "\n## {skip}{}:{}{link} · {}\n",
             r.file, r.line, r.band
         ));
-        let read_only = if r.unrun {
-            ", on the finder's read only"
-        } else {
-            ""
-        };
-        out.push_str(&format!(
-            "State: {}, band: {}, angle: {}{read_only}\n",
-            r.state, r.band, r.angle
-        ));
-        out.push_str(&format!("TL;DR: {}\n", r.tldr));
-        if !r.check.is_empty() {
-            out.push_str(&format!("Check: {}\n", r.check));
-        }
-        if !r.details.is_empty() {
-            out.push_str(&format!("Details: {}\n", r.details));
-        }
-        if !r.observed.is_empty() {
-            out.push_str(&format!("Evidence: {}\n", r.observed));
-        }
-        if !r.artifact.is_empty() {
-            out.push_str(&format!("Artifact: {}\n", r.artifact));
+        for r in block {
+            row_fields(&mut out, r);
         }
     }
     out
+}
+
+/// The fields of one row under its block's header.
+fn row_fields(out: &mut String, r: &Row) {
+    let read_only = if r.unrun {
+        ", on the finder's read only"
+    } else {
+        ""
+    };
+    out.push_str(&format!(
+        "State: {}, band: {}, angle: {}{read_only}\n",
+        r.state, r.band, r.angle
+    ));
+    out.push_str(&format!("TL;DR: {}\n", r.tldr));
+    if !r.check.is_empty() {
+        out.push_str(&format!("Check: {}\n", r.check));
+    }
+    if !r.details.is_empty() {
+        out.push_str(&format!("Details: {}\n", r.details));
+    }
+    if !r.observed.is_empty() {
+        out.push_str(&format!("Evidence: {}\n", r.observed));
+    }
+    if !r.artifact.is_empty() {
+        out.push_str(&format!("Artifact: {}\n", r.artifact));
+    }
 }
 
 /// Every row whose file is not at the head or whose line lies past its end: with a sha,
@@ -814,8 +841,8 @@ fn summary(
     cand_files: &[(String, Value)],
 ) -> String {
     let count = |state: &str| rows.iter().filter(|r| r.state == state).count();
-    let posting = posting_order(rows);
-    let skipped = posting.iter().filter(|r| skips(r)).count();
+    let blocks = blocks(rows);
+    let skipped = blocks.iter().filter(|b| block_skips(b)).count();
     format!(
         "assemble: {} rows from {} verdict files and {} candidate files: {} CONFIRMED, {} PLAUSIBLE, {} REFUTED, {} UNVERIFIED, {} settled by a finder; {} to post, {} SKIP; claims.md and findings.md written",
         rows.len(),
@@ -826,7 +853,7 @@ fn summary(
         count("REFUTED"),
         count("UNVERIFIED"),
         dropped.len(),
-        posting.len() - skipped,
+        blocks.len() - skipped,
         skipped
     )
 }
@@ -1145,5 +1172,36 @@ mod tests {
         fs::create_dir_all(round.join("verdicts")).unwrap();
         fs::write(round.join("verdicts/x.json"), "{not json").unwrap();
         assert_eq!(assemble_cmd(&[round.display().to_string()]), 2);
+    }
+
+    #[test]
+    fn two_findings_on_one_line_write_one_block() {
+        let round = tmp("assemble-one-block");
+        fs::create_dir_all(round.join("candidates")).unwrap();
+        fs::create_dir_all(round.join("verdicts")).unwrap();
+        fs::write(
+            round.join("candidates/judge.json"),
+            r#"{"candidates": [
+                {"index": 1, "file": "pkg/team.go", "line": 87, "angle": "lines", "summary": "an upper-case address is accepted", "verify_by": "go test -run TestUpper", "band": "Warning"},
+                {"index": 2, "file": "pkg/team.go", "line": 87, "angle": "reach", "summary": "the same address locks the team", "verify_by": "go test -run TestTransfer", "band": "Nit"},
+                {"index": 3, "file": "pkg/render.go", "line": 12, "angle": "lines", "summary": "the picker drops a page", "verify_by": "go test -run TestPicker", "band": "Nit"}
+              ]}"#,
+        )
+        .unwrap();
+        fs::write(
+            round.join("verdicts/judge.json"),
+            r#"{"verdicts": [
+                {"index": 1, "state": "CONFIRMED", "band": "Warning", "file": "pkg/team.go", "line": 87, "tldr": "accepted", "evidence": "TestUpper: FAIL"},
+                {"index": 2, "state": "CONFIRMED", "band": "Nit", "file": "pkg/team.go", "line": 87, "tldr": "locked", "evidence": "TestTransfer: FAIL"},
+                {"index": 3, "state": "CONFIRMED", "band": "Nit", "file": "pkg/render.go", "line": 12, "tldr": "dropped", "evidence": "TestPicker: FAIL"}
+              ]}"#,
+        )
+        .unwrap();
+        let (code, claims, findings) = run_on(&round, &[]);
+        assert_eq!(code, 0, "{findings}");
+        assert_eq!(claims.matches("| pkg/team.go:87 |").count(), 2, "{claims}");
+        assert_eq!(findings.matches("## pkg/team.go:87").count(), 1, "{findings}");
+        assert!(findings.contains("## pkg/team.go:87 · Warning\nState: CONFIRMED, band: Warning, angle: lines\nTL;DR: accepted\nCheck: go test -run TestUpper\nEvidence: TestUpper: FAIL\nState: CONFIRMED, band: Nit, angle: reach\nTL;DR: locked\n"), "{findings}");
+        assert!(findings.starts_with("# Findings in posting order, from round assemble: 2 to post, 0 SKIP,"), "{findings}");
     }
 }

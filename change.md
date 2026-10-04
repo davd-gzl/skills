@@ -212,6 +212,11 @@ draft, which `./scripts/post-fix.sh` passes, and the user marks it ready after
 revising it; on their own repos it opens ready. The fork pull request closes
 when the upstream one opens, unasked and with no comment on it.
 
+Before proposing to close a pull request another one replaces, diff each
+closed head against the replacement, `git diff <replacement head> <closed head> --stat`
+then the hunks, and name in the reply proposing the close every user-visible
+feature the replacement drops: each is carried over, or named as dropped.
+
 On the word `post`, run `./scripts/post-fix.sh <review-dir> <change-dir>`: it
 reads `issue.md` and `pr-body.md`, creates what is missing, links the pull
 request to the issue, and writes both URLs into the drafts' `Target:` lines. A
@@ -229,8 +234,10 @@ the pushed sha and says so, since the local branch may hold work nobody pushed
 and a body read against HEAD describes a tree the reviewer never saw.
 
 After any push to an open pull request, read what the bots posted before the
-turn ends: `gh api repos/<owner>/<repo>/pulls/<n>/comments` and
-`gh pr checks <n>`. Report what landed, and say plainly when nothing has yet. A
+turn ends: `gh api repos/<owner>/<repo>/pulls/<n>/comments` for the inline
+ones, `gh api repos/<owner>/<repo>/issues/<n>/comments --jq '.[] | select(.user.type == "Bot")'`
+for the ones a quality gate posts on the conversation, each finding it links
+followed, and `gh pr checks <n>`. Report what landed, and say plainly when nothing has yet. A
 review bot answers a push within minutes, so a turn that stops at the push
 leaves the user to find the findings. Replying to one is the project's own
 rule, in `projects/<repo>/AGENTS.md`.

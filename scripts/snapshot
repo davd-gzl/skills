@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# NOT AUDITED — AI-generated tooling. Review before executing in any privileged context.
+#
+# Commit a worktree's uncommitted build over its HEAD and print the commit's sha, so a review round
+# reads the build before anything is committed. Tracked edits, staged or not, deletions and untracked
+# files go in; ignored files stay out. The commit is dangling: no branch or ref moves, and the
+# worktree's files and index are left as they were, since the tree is built in a temporary index.
+#
+#   ./scripts/snapshot <worktree>
+#   git -C <worktree> worktree add --detach <path> "$(./scripts/snapshot <worktree>)"
+set -euo pipefail
+wt=${1:?usage: snapshot <worktree>}
+g() { git -C "$wt" "$@"; }
+head=$(g rev-parse --verify HEAD)
+index=$(g rev-parse --path-format=absolute --git-path index)
+tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
+export GIT_INDEX_FILE="$tmp/index"
+# Starting from a copy keeps the stat cache, so only changed files are hashed again.
+if [ -f "$index" ]; then cp "$index" "$GIT_INDEX_FILE"; else g read-tree "$head"; fi
+g add -A
+tree=$(g write-tree)
+g commit-tree "$tree" -p "$head" -m "snapshot: uncommitted work over $head"

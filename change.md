@@ -142,7 +142,9 @@ gh repo fork <owner>/<repo> --remote-only --remote-name fork
    finding whose absence makes the feature not work is never in this class.
 6. **Implement** inside the worktree. A defect met on the way is fixed in the
    same worktree and named in the body. Comments follow `skills/writing-style.md`.
-7. **Run the CI locally.** Reproduce every job the diff touches, loop until
+7. **Run the CI locally.** While iterating, after each edit run only the test
+   files and linters that cover the files it touched; run the whole suite once,
+   last, before the push. Reproduce every job the diff touches, loop until
    green before pushing, the formatter and the auto-fixer included: that job
    fails on their diff whatever the linter itself found. Take the command from
    the workflow file, never the Makefile or README, read what each script runs,

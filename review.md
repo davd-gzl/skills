@@ -467,7 +467,7 @@ PR: [<owner>/<repo>#<n>](<url>)
 - Use anything GitHub renders: a `mermaid` diagram, a `$$` formula, a decision table, before and after values, a `> [!NOTE]`, a `<details>` fold, a committed image. No emoji, and nothing needing a script or a click, which the blob page strips.
 - Where a page would have used a simulator, compute the interesting inputs and put the results in a table. The reader gets the answer without moving a slider, and every number is checkable from the file.
 - Run the mirrored logic before publishing its numbers, against the project's own tests where they exist and against the mirrored source where they do not, and say which of the two it was.
-- Update it only when new commits change the subject's own files. A base-only head bump, a new finding, a verdict change and a new round never touch it. Link it from the draft's `Overview:` line.
+- Update it when new commits change the subject's own files, and in the same command as a push that rewrites the body of the pull request it is linked from. A base-only head bump, a new finding, a verdict change and a new round never touch it. Link it from the draft's `Overview:` line.
 
 ## Links & citations
 

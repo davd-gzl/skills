@@ -6,7 +6,8 @@
 //! `candidates/` and `verdicts/`, an absolute path outside the reviewed repo, which a judge
 //! quoting its own command line carries in. A draft with no `Event:` line, posted text naming
 //! CI, a flake or a rebase, a verdict or a sha in `overview.md`, and an `overview.md` without its
-//! `## TLDR` section are hits too. One row per hit
+//! `## TLDR` section are hits too. A round with no draft, an Own PR round, gets the record
+//! checks alone. One row per hit
 //! into `<round dir>/check.md`,
 //! exit 1 when any hit.
 
@@ -214,8 +215,9 @@ fn run(args: &[String]) -> Result<Vec<Hit>, String> {
             }
         }
     }
-    if drafts == 0 {
-        return Err(format!("{}: no comment_*.md", round.display()));
+    // An Own PR round stops at findings.md and writes no draft; its record is still checked.
+    if drafts == 0 && record_files(round).is_empty() {
+        return Err(format!("{}: no comment_*.md and no record: claims.md, findings.md, candidates/, verdicts/ or tests/", round.display()));
     }
     let overview = match opts.get("overview") {
         Some(p) => Path::new(p).to_path_buf(),
@@ -540,6 +542,20 @@ mod tests {
         assert_eq!(check_cmd(&[round.display().to_string()]), 1);
         let table = fs::read_to_string(round.join("check.md")).unwrap();
         assert!(table.contains("| overview.md | 1 | overview without its ## TLDR section |"), "{table}");
+    }
+
+    #[test]
+    fn a_round_without_a_draft_still_checks_its_record() {
+        let slug = tmp("check-own-pr");
+        let round = slug.join("1-abc");
+        fs::create_dir_all(round.join("candidates")).unwrap();
+        fs::write(round.join("findings.md"), "## pkg/a.go:10 \u{b7} Warning\nThe clamp is missing.\n").unwrap();
+        fs::write(round.join("candidates").join("find-1.json"), "{\"summary\": \"tracked in acme/secret-fixes#12\"}\n").unwrap();
+        let list = slug.join("names.txt");
+        fs::write(&list, "secret-fixes\n").unwrap();
+        assert_eq!(check_cmd(&[round.display().to_string(), "--private".into(), list.display().to_string()]), 1);
+        let table = fs::read_to_string(round.join("check.md")).unwrap();
+        assert!(table.contains("| candidates/find-1.json | 1 | private name: secret-fixes |"), "{table}");
     }
 
     #[test]

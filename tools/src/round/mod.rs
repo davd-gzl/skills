@@ -73,8 +73,9 @@ pub const USAGE: &str = "round <subcommand> ...
       beside the directory: an em-dash outside a fence, a visible sentence ending in a
       question mark, a finding header without its [gh] link or without its ' · <Band>'
       tag, a phrase that points at the page, a Full review: line, a bullet above the
-      first section. One row per hit into
-      <round dir>/check.md; exit 1 on any.";
+      first section. A round with no draft, an Own PR round, gets the record checks
+      alone; a directory with neither a draft nor that record exits 2. One row per
+      hit into <round dir>/check.md; exit 1 on any.";
 
 pub fn dispatch(args: &[String]) -> i32 {
     match args.first().map(String::as_str) {

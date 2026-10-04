@@ -171,7 +171,7 @@ and 329k output. `stop` kills them.
   when to expect them back, and that `stop` kills them. Their return gets the
   same line with what was spent.
 - **Report long work on its own stage boundaries, a background command of your
-  own included, and set the fallback timer at a quarter of the forecast, never
+  own and a long foreground turn included, one line at each task boundary, and set the fallback timer at a quarter of the forecast, never
   under twenty minutes.** A wake-up re-reads the whole conversation, so frequent
   polling costs more than the work it reports on. Each wake says which stage and
   what it wrote, never a percentage:

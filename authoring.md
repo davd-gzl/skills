@@ -314,10 +314,8 @@ from it is measured here before it is trusted.
   sections a task seems to need is how a section gets missed.
 - Re-read after `git -C skills log -1` shows a commit that was not there before.
   Another session moves the pin mid-turn.
-- A rule that proves unclear, missing or wrong during other work becomes one line
-  of the workspace's `TODO.md`, `./scripts/todo add`, and the work continues. The
-  rule's file changes under `upgrade skills` or when the user names that rule,
-  never in the middle of a task.
+- A rule that proves unclear, missing or wrong during other work is fixed in that
+  turn, per *Where it goes* and *The shape*, in a commit of its own.
 - A rule resting on a published result from outside this workspace gets that
   finding into `skills/knowledge/` in the same commit, per *Where it goes*.
 - A knob, a stage or a word that a change renames is grepped across `skills/`,
@@ -362,39 +360,3 @@ rate, each a number and each marked estimate until the outcome table measures
 it. An estimate in output tokens alone measures the minor term,
 `./scripts/review-retro.py` printing the split per stage. A change with no
 estimate is a change nobody can judge.
-
-## Upgrading from the TODO
-
-`upgrade skills` runs on the strongest model available and runs to the end: it
-takes the workspace's `TODO.md` line by line, newest first, and stops only when
-no line is left that the session can act on and a round of checkers finds
-nothing. It never stops mid-pass to ask. Its commits push under the standing
-words of *Consent* in the workspace `AGENTS.md`; a public tree none covers
-waits for `push`.
-
-- Before any line's work, the lines the session takes get `Taken: <the
-  session's start sha>` at their end, in one commit pushed first, since another
-  session reads the list only from the remote, and one `upgrade skills` runs at
-  a time. A line another session marked is skipped, and a marker whose line did
-  not land leaves in the closing commit.
-- A line about a project, a defect, an issue to file, a target's behaviour, a
-  recipe or a catalog, moves as it stands into that project's tree, per
-  *Writing it down* in `workspace.md`.
-- Each line is read as its critic before any work: does the check it names
-  still hold, does the rule it proposes fit the corpus, does what it costs pay.
-- A line that passes becomes a rule, per *Where it goes* and *The shape*, with
-  what it displaces named, or a script where a command can enforce it, proved
-  by a test that fails without the change; one commit per line, its message the
-  line's substance and its estimate per *A change to the run's shape*, the line
-  struck in that commit.
-- A line that fails the read, whose check fails when run, or that a rule
-  already covers is struck with its reason, which the closing list names.
-- A line whose work is a run, a capability not yet there or the user's word
-  stays, with `Waits:` and what it waits on.
-- Once every line that can land has landed, independent checkers read the
-  pass's whole diff, each trying to prove a change wrong: a rule lost, a
-  reference left dangling, a claim the code contradicts. What they find is
-  fixed and the checkers run again over the fixes, until a round finds nothing.
-- The session ends on one list: what landed, what was struck and why, what moved
-  to a project's tree, and every line still waiting with what it waits on, the
-  user's word first.

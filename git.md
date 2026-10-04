@@ -81,10 +81,9 @@ reaching below that tip is a force push, named as one before it is built.
 
 A skill edit lands in `davd-gzl/skills`. Every consumer tracks `branch = main`
 and its sync takes the tip at session start, so nobody needs a bump to read it.
-The pin moves once per `upgrade skills` pass, in one commit of its own at the
-close, `skills at <sha>: <what it carries>`, after the skills push landed, so a
-clone resolves to the rules the pass wrote about; between passes `git status`
-reading `M skills` is the expected state.
+The pin moves in the workspace commit after a skills push lands, `skills at
+<sha>: <what it carries>`, so a clone resolves to the rules the work wrote
+about; between pushes `git status` reading `M skills` is the expected state.
 
 ## The parent races other sessions
 

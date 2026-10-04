@@ -27,8 +27,8 @@ pub const USAGE: &str = "round <subcommand> ...
 
   links <round dir> [--repo <git dir>] [--out <file>]
       Every blob link in the round's comment_*.md and the overview.md beside it: the
-      file at the pinned sha, through git show in --repo when the sha is there, else
-      gh api, and the #L range inside it. One row per link into <round dir>/links.md,
+      file at the pinned sha, through git show when --repo holds the commit, else gh
+      api, and the #L range inside it. One row per link into <round dir>/links.md,
       exit 1 when any link misses; a file the forge could not serve says why.
 
   prior <slug dir> --repo <git dir> --sha <head sha> [--json <file>] [--applied <file>]
@@ -77,7 +77,11 @@ pub const USAGE: &str = "round <subcommand> ...
       beside the directory: an em-dash outside a fence, a visible sentence ending in a
       question mark, a finding header without its [gh] link or without its ' · <Band>'
       tag, a phrase that points at the page, a Full review: line, a bullet above the
-      first section. One row per hit into
+      first section. On a review draft, whose Event: is APPROVE, REQUEST_CHANGES or
+      COMMENT, a line 1 that is not its # title, an Event: other than the Verdict:'s
+      default and a Body naming an anchored finding's path:line are hits too. A round
+      with no draft, an Own PR round, gets the record checks alone; a directory with
+      neither a draft nor a record exits 2. One row per hit into
       <round dir>/check.md; exit 1 on any.";
 
 pub fn dispatch(args: &[String]) -> i32 {

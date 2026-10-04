@@ -59,12 +59,16 @@ pub const USAGE: &str = "round <subcommand> ...
       claims.md and findings.md from the round's verdicts as data: candidates/*.json, what
       each finder, the reflector and the critic returned, and verdicts/*.json, what each
       verifier returned. claims.md holds the Candidates table, one row per verdict joined
-      to its candidate and one per candidate no verifier reached, the rows a finder
+      to its candidate, its Check the one the judge says it ran, else the candidate's, and
+      one per candidate no verifier reached, the rows a finder
       settled, the hit rate per tier and an empty Completeness section; findings.md one
-      block per finding in posting order, each header closed with the verifier's band as
+      block per anchor in posting order, two findings on one file:line sharing its block
+      row after row, each header closed with the highest band of its rows as
       ' · <Band>', which is what post-review.sh --list and --band read, and SKIP in
-      front of a PLAUSIBLE Nit and of an UNVERIFIED row, which no judge ran. Exit 1 when
-      a row's file:line is not at the head.
+      front where every row is a PLAUSIBLE Nit or an UNVERIFIED row, which no judge ran.
+      A block on a file the --risk table does not list sits outside the diff, and goes
+      under ## Body as a bullet with no anchor. Exit 1 when a row's file:line is not at
+      the head.
 
   check <round dir> [--overview <file>] [--out <file>] [--private <file>]
       --private names, one per line, that the draft, claims.md, candidates/ and verdicts/

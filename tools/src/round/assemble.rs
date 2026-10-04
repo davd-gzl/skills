@@ -284,10 +284,10 @@ fn taken_at(taken: &[bool], c: &Candidate, cands: &[Candidate]) -> bool {
         .unwrap_or(false)
 }
 
-/// Every row of the table: a row per verdict, its Check from the candidate it answers, then a
-/// row per candidate no verifier reached, UNVERIFIED for a Nit or a Suggestion and PLAUSIBLE
-/// with its check still to run for anything above. Numbered by the verdict's index where the
-/// runner gave one, the rest after the highest.
+/// Every row of the table: a row per verdict, its Check the one the judge ran, else the one the
+/// candidate it answers proposed, then a row per candidate no verifier reached, UNVERIFIED for a
+/// Nit or a Suggestion and PLAUSIBLE with its check still to run for anything above. Numbered by
+/// the verdict's index where the runner gave one, the rest after the highest.
 fn rows(
     verdicts: &[Verdict],
     cands: &[Candidate],
@@ -302,10 +302,12 @@ fn rows(
             taken[i] = true;
         }
         let cand = joined.map(|i| &cands[i]);
-        let check = cand
-            .map(|c| c.verify_by.clone())
+        // The check the judge says it ran, before the one the finder proposed: a judge that could
+        // not run the proposal confirms another way and says so in its own verify_by.
+        let check = Some(v.verify_by.clone())
             .filter(|s| !s.is_empty())
-            .unwrap_or_else(|| v.verify_by.clone());
+            .or_else(|| cand.map(|c| c.verify_by.clone()))
+            .unwrap_or_default();
         let angle = cand
             .map(|c| c.angle.clone())
             .filter(|s| !s.is_empty())
@@ -1241,5 +1243,25 @@ mod tests {
         assert!(findings.contains("\n## Body\n\n- Warning: locales/en/settings.json:25 [gh](https://x/blob/abc/locales/en/settings.json#L25), outside the diff, so no anchor\n  State: CONFIRMED, band: Warning, angle: \n  TL;DR: the label still names the old setting\n"), "{findings}");
         assert!(findings.contains("\n## pkg/a.go:12 [gh]"), "{findings}");
         assert!(findings.starts_with("# Findings in posting order, from round assemble: 2 to post,"), "{findings}");
+    }
+
+    #[test]
+    fn a_judged_row_carries_the_check_the_judge_ran_not_the_finders_proposal() {
+        let round = tmp("assemble-judge-check");
+        fs::create_dir_all(round.join("candidates")).unwrap();
+        fs::create_dir_all(round.join("verdicts")).unwrap();
+        fs::write(
+            round.join("candidates/judge.json"),
+            r#"{"candidates": [{"index": 5, "file": "chart/values.yaml", "line": 336, "angle": "two versions", "summary": "an upgrade drops the old keys", "verify_by": "helm template chart -f old-values.yaml: expect no media Ingress", "band": "Warning"}]}"#,
+        )
+        .unwrap();
+        fs::write(
+            round.join("verdicts/judge.json"),
+            r#"{"verdicts": [{"index": 5, "state": "CONFIRMED", "band": "Warning", "file": "chart/values.yaml", "line": 336, "verify_by": "grep -rn oldKey over the chart; helm template not run, no helm on this host", "tldr": "the old keys are read by nothing", "evidence": "grep: no hit at the head"}]}"#,
+        )
+        .unwrap();
+        let (_, claims, findings) = run_on(&round, &[]);
+        assert!(claims.contains("| 5 | CONFIRMED | Warning | chart/values.yaml:336 | grep -rn oldKey over the chart; helm template not run, no helm on this host | grep: no hit at the head |"), "{claims}");
+        assert!(!findings.contains("Check: helm template"), "{findings}");
     }
 }

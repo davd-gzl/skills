@@ -6,8 +6,9 @@
 //! `candidates/` and `verdicts/`, an absolute path outside the reviewed repo, which a judge
 //! quoting its own command line carries in. A draft with no `Event:` line, posted text naming
 //! CI, a flake or a rebase, a verdict or a sha in `overview.md`, and an `overview.md` without its
-//! `## TLDR` section are hits too. A round with no draft, an Own PR round, gets the record
-//! checks alone. One row per hit
+//! `## TLDR` section are hits too, and so is a review draft whose line 1 is not its title, whose
+//! event is not the verdict's default, or whose Body names an anchored `path:line`. A round with
+//! no draft, an Own PR round, gets the record checks alone. One row per hit
 //! into `<round dir>/check.md`,
 //! exit 1 when any hit.
 
@@ -213,6 +214,7 @@ fn run(args: &[String]) -> Result<Vec<Hit>, String> {
             if !text.lines().take_while(|l| !l.starts_with("## ")).any(|l| l.starts_with("Event:")) {
                 hits.push(Hit { file: name.clone(), line: 1, what: "draft header without its Event: line".into() });
             }
+            hits.extend(review_shape(&name, &text));
         }
     }
     // An Own PR round stops at findings.md and writes no draft; its record is still checked.
@@ -246,6 +248,81 @@ fn run(args: &[String]) -> Result<Vec<Hit>, String> {
         .unwrap_or_else(|| round.join("check.md"));
     fs::write(&out, table(&hits)).map_err(|e| format!("{}: {e}", out.display()))?;
     Ok(hits)
+}
+
+/// The event a verdict defaults to, per *General rules* in review-comment.md; `None` for a verdict
+/// word the table does not name.
+fn default_event(verdict: &str) -> Option<&'static str> {
+    let v = verdict.trim().to_uppercase().replace('_', " ");
+    [("APPROVE", "APPROVE"), ("REQUEST CHANGES", "REQUEST_CHANGES"), ("NEEDS DISCUSSION", "COMMENT"), ("CLOSE", "COMMENT"), ("COMMENT", "COMMENT")]
+        .into_iter()
+        .find(|(word, _)| v.starts_with(word))
+        .map(|(_, event)| event)
+}
+
+/// A `path:line` written in prose, the path as written.
+static CITED_LINE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"([\w./-]+):(\d+)").unwrap());
+/// A link's target, which cites a line as evidence and names no finding.
+static LINK_TARGET: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\]\([^)]*\)").unwrap());
+
+/// The shape a pull-request review draft owes post-review.sh and the forge, where `Event:` names a
+/// review: line 1 is the `# ` title, the event is the verdict's default, and the Body names no
+/// anchored finding's `path:line` outside a link target, which posts the finding twice. An issue
+/// or a reply draft is left alone.
+fn review_shape(name: &str, text: &str) -> Vec<Hit> {
+    let header: Vec<&str> = text.lines().take_while(|l| !l.starts_with("## ")).collect();
+    let field = |key: &str| header.iter().find_map(|l| l.strip_prefix(key)).map(str::trim);
+    let event = field("Event:").and_then(|e| e.split_whitespace().next()).unwrap_or("").to_uppercase();
+    if !["APPROVE", "REQUEST_CHANGES", "COMMENT"].contains(&event.as_str()) {
+        return Vec::new();
+    }
+    let mut hits = Vec::new();
+    let mut hit = |line: usize, what: String| hits.push(Hit { file: name.to_string(), line, what });
+    // A project delta may name its own title, `# PR [#<n>](<url>): <title>` for one; the header
+    // post-review.sh reads sits under whichever line 1 holds.
+    if !text.starts_with("# ") {
+        hit(1, "line 1 is not the draft's # title, which post-review.sh reads the header under".into());
+    }
+    if let Some(default) = field("Verdict:").and_then(default_event) {
+        if event != default {
+            let line = header.iter().position(|l| l.starts_with("Event:")).unwrap_or(0) + 1;
+            hit(line, format!("Event: {event} under a verdict whose default is {default}"));
+        }
+    }
+    let anchor = Regex::new(r"^## (\S+):(\d+)(?:-(\d+))?( |$)").unwrap();
+    let anchors: Vec<(String, usize, usize)> = text
+        .lines()
+        .filter_map(|l| anchor.captures(l))
+        .map(|c| {
+            let start: usize = c[2].parse().unwrap_or(0);
+            let end = c.get(3).and_then(|m| m.as_str().parse().ok()).unwrap_or(start);
+            (c[1].to_string(), start, end)
+        })
+        .collect();
+    let (mut in_body, mut details) = (false, 0i32);
+    for (line, content) in prose_lines(text) {
+        if content.starts_with("## ") {
+            in_body = content.trim_end() == "## Body";
+            continue;
+        }
+        details = (details + content.matches("<details").count() as i32 - content.matches("</details").count() as i32).max(0);
+        if !in_body || details > 0 {
+            continue;
+        }
+        let prose = LINK_TARGET.replace_all(&content, "]");
+        for c in CITED_LINE.captures_iter(&prose) {
+            let (cited, n): (&str, usize) = (&c[1], c[2].parse().unwrap_or(0));
+            let named = anchors.iter().find(|(path, start, end)| {
+                let same = path == cited || path.ends_with(&format!("/{cited}")) || cited.ends_with(&format!("/{path}"));
+                same && (*start..=*end).contains(&n)
+            });
+            if let Some((path, start, _)) = named {
+                hit(line, format!("Body names the anchored finding at {path}:{start}"));
+                break;
+            }
+        }
+    }
+    hits
 }
 
 /// Review state in the overview, which explains the subject and never the round: a verdict line or
@@ -452,7 +529,7 @@ mod tests {
     fn a_clean_draft_has_no_hits() {
         let round = round_with(
             "check-clean",
-            "# Review\nEvent: COMMENT\n\n## pkg/a.go:10 [gh](https://x/a.go#L10) \u{b7} Warning\nThe clamp is missing.\n\n```go\n// a — dash in code is fine?\n```\n",
+            "# Review: [#1](https://x/pull/1)\nEvent: COMMENT\nVerdict: NEEDS DISCUSSION, the clamp.\n\n## pkg/a.go:10 [gh](https://x/a.go#L10) \u{b7} Warning\nThe clamp is missing.\n\n```go\n// a — dash in code is fine?\n```\n",
             "# Subject\n\nWhat it is for.\n\n## TLDR\n",
         );
         assert_eq!(check_cmd(&[round.display().to_string()]), 0);
@@ -542,6 +619,24 @@ mod tests {
         assert_eq!(check_cmd(&[round.display().to_string()]), 1);
         let table = fs::read_to_string(round.join("check.md")).unwrap();
         assert!(table.contains("| overview.md | 1 | overview without its ## TLDR section |"), "{table}");
+    }
+
+    #[test]
+    fn a_review_draft_without_its_title_its_default_event_or_a_body_clear_of_anchors_is_a_hit() {
+        let draft = "Event: COMMENT\nVerdict: APPROVE, nothing open.\n\n## Body\n- The clamp at `a.go:12` is missing, per [the guard](https://github.com/o/r/blob/abc1234/pkg/b.go#L4).\n- [`h`](https://x) is dead.\n\n<details><summary>repro</summary>\npkg/a.go:10 in the log\n</details>\n\n## pkg/a.go:10-14 [gh](https://x) \u{b7} Warning\nThe clamp is missing.\n\n## pkg/b.go:4 [gh](https://x) \u{b7} Nit\nThe guard is dead.\n";
+        let what: Vec<_> = review_shape("comment_x.md", draft).into_iter().map(|h| (h.line, h.what)).collect();
+        assert_eq!(
+            what,
+            vec![
+                (1, "line 1 is not the draft's # title, which post-review.sh reads the header under".to_string()),
+                (1, "Event: COMMENT under a verdict whose default is APPROVE".to_string()),
+                (5, "Body names the anchored finding at pkg/a.go:10".to_string()),
+            ]
+        );
+        let clean = "# PR [#1](https://x/pull/1): a title\nEvent: REQUEST_CHANGES\nVerdict: REQUEST CHANGES: the clamp.\n\n## Body\n- [`h`](https://github.com/o/r/blob/abc1234/pkg/a.go#L10) calls it, and `pkg/a.go:20` is dead.\n\n## pkg/a.go:10 [gh](https://x) \u{b7} Warning\nThe clamp is missing.\n";
+        assert!(review_shape("comment_x.md", clean).is_empty(), "a delta's own title, a link target and a line outside every anchor are not hits");
+        let issue = "# Site review: x\n\nTarget: o/r\nEvent: ISSUE\n\n## Body\nSee pkg/a.go:10.\n\n## pkg/a.go:10 [gh](https://x) \u{b7} Warning\nOdd.\n";
+        assert!(review_shape("comment_x.md", issue).is_empty(), "an issue draft keeps its own title");
     }
 
     #[test]

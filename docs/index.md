@@ -251,8 +251,10 @@ the turn's final reply off the transcript, drops fenced code, inline code,
 blockquotes, table rows, link targets, anything between two `---` rules and the
 `Did:` account, and measures what is left. It prints the words, the articles per
 hundred and the words per sentence, and none of the three is a reason; the reasons
-are a hedge, a pleasantry, a path named with no link, and an account missing above
-a closing block or sitting in a code fence. A reply under 30 prose words, or one
+are a hedge, a pleasantry, a path named with no link, an account missing above
+a closing block or sitting in a code fence, a coined letter the `TL;DR:` line names
+with no definition beside it, and a letter coined over one
+[`shortcuts.md`](https://github.com/davd-gzl/skills/blob/main/shortcuts.md) already gives. A reply under 30 prose words, or one
 answering a `+` prompt, is not measured. It is a command a person runs over a file
 or a transcript: no hook calls it, and no count reaches the writer of the next reply.
 

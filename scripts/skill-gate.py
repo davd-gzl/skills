@@ -621,7 +621,7 @@ PROMPT_SKILLS = [
     (r'\b(?i:try)\b(?:\s+(?i:the|a|an|pr|this|that|it))?\s+(?!(?:review|agent|workflow|round)s?\b)(?:#?\d{2,}\b|https?://\S+|[\w.-]+/[\w.-]+\b|[\w.-]+\s+(?i:on)\s+[\w.-]+\b)'
      r'|\b(?i:run|launch)\b(?:\s+(?i:the|a|an|pr|this|that|it))?\s+(?!(?:review|agent|workflow|round)s?\b)(?:https?://\S+|[\w.-]+/[\w.-]+\b|[\w.-]+\s+(?i:on)\s+[\w.-]+\b)'
      r'|\b(?i:boot)\b\s+(?!it\b|up\b|the\b)[\w.-]+|\bscreenshot\b|\bvideo\b|\bgif\b', ['try']),
-    (r'\bskill|\brules?\b|AGENTS\.md|writing.style|\bcaveman\b|\bcvm\b|^\s*[uU]\s*$', ['authoring']),
+    (r'\bskill|\brules?\b|AGENTS\.md|writing.style|\bcaveman\b|\bcvm\b', ['authoring']),
 ]
 PROMPT_URLS = [
     (r'/pull/\d+', ['review']),

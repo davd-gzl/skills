@@ -1239,10 +1239,6 @@ class Prompt(HookCase):
         rc, context = self.run_hook('prompt', json.dumps({'prompt': 'Ok fix the conflict again, and we merge this time'}))
         self.assertIn('skills/change.md', context)
 
-    def test_u_alone_is_upgrade_skills(self):
-        rc, context = self.run_hook('prompt', json.dumps({'prompt': 'u'}))
-        self.assertIn('skills/authoring.md', context)
-
     def test_a_question_names_only_a_url_target(self):
         rc, context = self.run_hook('prompt', json.dumps({'prompt': 'our todo will fix the cache read problem?'}))
         self.assertEqual((rc, context), (0, ''))

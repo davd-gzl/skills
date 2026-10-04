@@ -226,5 +226,5 @@ class Letters(unittest.TestCase):
         self.assertFalse(self.coined('Fix ready.\n\nTL;DR: the fix is ready; `p` (push) sends it.'))
 
     def test_coining_a_letter_the_table_gives_is_a_reason(self):
-        self.assertTrue(self.coined('`u`: fold the rooms in and test it.\n\nTL;DR: rooms differ; `u` makes them the same.'))
+        self.assertTrue(self.coined('`p`: fold the rooms in and test it.\n\nTL;DR: rooms differ; `p` makes them the same.'))
         self.assertFalse(self.coined('`r`: run the review round.\n\nTL;DR: round planned; `r`: run the review round.'))

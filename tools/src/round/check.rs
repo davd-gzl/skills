@@ -284,7 +284,8 @@ fn review_shape(name: &str, text: &str) -> Vec<Hit> {
         hit(1, "line 1 is not the draft's # title, which post-review.sh reads the header under".into());
     }
     if let Some(default) = field("Verdict:").and_then(default_event) {
-        if event != default {
+        // A lighter event is the user's call, per review-comment.md; a heavier one is the stale default.
+        if event != default && event != "COMMENT" {
             let line = header.iter().position(|l| l.starts_with("Event:")).unwrap_or(0) + 1;
             hit(line, format!("Event: {event} under a verdict whose default is {default}"));
         }
@@ -623,18 +624,20 @@ mod tests {
 
     #[test]
     fn a_review_draft_without_its_title_its_default_event_or_a_body_clear_of_anchors_is_a_hit() {
-        let draft = "Event: COMMENT\nVerdict: APPROVE, nothing open.\n\n## Body\n- The clamp at `a.go:12` is missing, per [the guard](https://github.com/o/r/blob/abc1234/pkg/b.go#L4).\n- [`h`](https://x) is dead.\n\n<details><summary>repro</summary>\npkg/a.go:10 in the log\n</details>\n\n## pkg/a.go:10-14 [gh](https://x) \u{b7} Warning\nThe clamp is missing.\n\n## pkg/b.go:4 [gh](https://x) \u{b7} Nit\nThe guard is dead.\n";
+        let draft = "Event: APPROVE\nVerdict: REQUEST CHANGES, the clamp.\n\n## Body\n- The clamp at `a.go:12` is missing, per [the guard](https://github.com/o/r/blob/abc1234/pkg/b.go#L4).\n- [`h`](https://x) is dead.\n\n<details><summary>repro</summary>\npkg/a.go:10 in the log\n</details>\n\n## pkg/a.go:10-14 [gh](https://x) \u{b7} Warning\nThe clamp is missing.\n\n## pkg/b.go:4 [gh](https://x) \u{b7} Nit\nThe guard is dead.\n";
         let what: Vec<_> = review_shape("comment_x.md", draft).into_iter().map(|h| (h.line, h.what)).collect();
         assert_eq!(
             what,
             vec![
                 (1, "line 1 is not the draft's # title, which post-review.sh reads the header under".to_string()),
-                (1, "Event: COMMENT under a verdict whose default is APPROVE".to_string()),
+                (1, "Event: APPROVE under a verdict whose default is REQUEST_CHANGES".to_string()),
                 (5, "Body names the anchored finding at pkg/a.go:10".to_string()),
             ]
         );
         let clean = "# PR [#1](https://x/pull/1): a title\nEvent: REQUEST_CHANGES\nVerdict: REQUEST CHANGES: the clamp.\n\n## Body\n- [`h`](https://github.com/o/r/blob/abc1234/pkg/a.go#L10) calls it, and `pkg/a.go:20` is dead.\n\n## pkg/a.go:10 [gh](https://x) \u{b7} Warning\nThe clamp is missing.\n";
         assert!(review_shape("comment_x.md", clean).is_empty(), "a delta's own title, a link target and a line outside every anchor are not hits");
+        let lighter = "# Review: x\nEvent: COMMENT\nVerdict: APPROVE, nothing open.\n\n## pkg/a.go:10 [gh](https://x) \u{b7} Nit\nOdd.\n";
+        assert!(review_shape("comment_x.md", lighter).is_empty(), "a lighter event is the user's call");
         let issue = "# Site review: x\n\nTarget: o/r\nEvent: ISSUE\n\n## Body\nSee pkg/a.go:10.\n\n## pkg/a.go:10 [gh](https://x) \u{b7} Warning\nOdd.\n";
         assert!(review_shape("comment_x.md", issue).is_empty(), "an issue draft keeps its own title");
     }
@@ -654,7 +657,7 @@ mod tests {
     }
 
     #[test]
-    fn a_round_without_a_draft_is_an_error() {
+    fn a_directory_with_neither_draft_nor_record_is_an_error() {
         let round = tmp("check-empty");
         assert_eq!(check_cmd(&[round.display().to_string()]), 2);
     }

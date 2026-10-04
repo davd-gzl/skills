@@ -78,7 +78,7 @@ pub const USAGE: &str = "round <subcommand> ...
       question mark, a finding header without its [gh] link or without its ' · <Band>'
       tag, a phrase that points at the page, a Full review: line, a bullet above the
       first section. On a review draft, whose Event: is APPROVE, REQUEST_CHANGES or
-      COMMENT, a line 1 that is not its # title, an Event: other than the Verdict:'s
+      COMMENT, a line 1 that is not its # title, an Event: heavier than the Verdict:'s
       default and a Body naming an anchored finding's path:line are hits too. A round
       with no draft, an Own PR round, gets the record checks alone; a directory with
       neither a draft nor a record exits 2. One row per hit into

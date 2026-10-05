@@ -54,7 +54,7 @@ pub const USAGE: &str = "round <subcommand> ...
       under the floor. --diff-dir writes each bundle's diff with its enclosing functions
       and a comment-blanked twin. The table to --out, else to stdout; JSON to --json.
 
-  assemble <round dir> [--repo <head worktree>] [--sha <sha>] [--risk <risk.json>] [--url <blob url base>]
+  assemble <round dir> [--repo <head worktree>] [--sha <sha>] [--base <merge base>] [--risk <risk.json>] [--url <blob url base>]
            [--title <text>] [--shape <text>]
       claims.md and findings.md from the round's verdicts as data: candidates/*.json, what
       each finder, the reflector and the critic returned, and verdicts/*.json, what each
@@ -65,9 +65,11 @@ pub const USAGE: &str = "round <subcommand> ...
       block per anchor in posting order, two findings on one file:line sharing its block
       row after row, each header closed with the highest band of its rows as
       ' · <Band>', which is what post-review.sh --list and --band read, and SKIP in
-      front where every row is a PLAUSIBLE Nit or an UNVERIFIED row, which no judge ran.
+      front where every row is a PLAUSIBLE Nit, Suggestion or Missing test or an UNVERIFIED
+      row, which no judge ran.
       A block on a file the --risk table does not list sits outside the diff, and goes
-      under ## Body as a bullet with no anchor. Exit 1 when a row's file:line is not at
+      under ## Body as a bullet with no anchor; with --repo and --base, so does a block
+      whose line no hunk of git diff <base> <sha> covers. Exit 1 when a row's file:line is not at
       the head.
 
   check <round dir> [--overview <file>] [--out <file>] [--private <file>]

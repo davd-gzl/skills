@@ -437,11 +437,14 @@ fn block_skips(block: &[&Row]) -> bool {
     block.iter().all(|r| skips(r))
 }
 
-/// Whether a row ships SKIP: a PLAUSIBLE Nit or Suggestion, a read that could not settle it, and
-/// an UNVERIFIED one, which no judge ran and the user flips to posted once its check is run.
+/// Whether a row ships SKIP: a PLAUSIBLE Nit, Suggestion or Missing test, a read that could not
+/// settle it, and an UNVERIFIED one, which no judge ran and the user flips to posted once its
+/// check is run. A Missing test is an absence a grep settles, so an unjudged one may name a test
+/// that exists.
 fn skips(row: &Row) -> bool {
     row.state == "UNVERIFIED"
-        || (row.state == "PLAUSIBLE" && (row.band == "Nit" || row.band == "Suggestion"))
+        || (row.state == "PLAUSIBLE"
+            && (row.band == "Nit" || row.band == "Suggestion" || row.band == "Missing test"))
 }
 
 /// `claims.md`: the title and shape lines when given, the Candidates table, the hit rate per
@@ -596,8 +599,15 @@ fn hit_rate(rows: &[Row], tiers: &HashMap<String, String>) -> String {
 /// after row where two findings share the line; the check is on every row, since an unrun
 /// row is one the reader runs by hand. Where the risk table lists the diff's files, a block on
 /// a file outside them is a bullet under `## Body` instead, since GitHub refuses the whole
-/// review for an anchor off the diff.
-fn findings_md(rows: &[Row], url: &str, misses: &[String], diff_files: &HashMap<String, String>) -> String {
+/// review for an anchor off the diff; where `hunks` holds the diff's line ranges, so is a
+/// block on a listed file whose line no hunk covers.
+fn findings_md(
+    rows: &[Row],
+    url: &str,
+    misses: &[String],
+    diff_files: &HashMap<String, String>,
+    hunks: &HashMap<String, Vec<(usize, usize)>>,
+) -> String {
     let blocks = blocks(rows);
     let skipped = blocks.iter().filter(|b| block_skips(b)).count();
     let refuted = rows.iter().filter(|r| r.state == "REFUTED").count();
@@ -611,7 +621,15 @@ fn findings_md(rows: &[Row], url: &str, misses: &[String], diff_files: &HashMap<
             out.push_str(&format!("- {m}\n"));
         }
     }
-    let in_diff = |b: &&Vec<&Row>| diff_files.is_empty() || diff_files.contains_key(&b[0].file);
+    let in_hunk = |r: &Row| {
+        hunks.is_empty()
+            || hunks
+                .get(&r.file)
+                .is_some_and(|rs| rs.iter().any(|&(a, z)| a <= r.line && r.line <= z))
+    };
+    let in_diff = |b: &&Vec<&Row>| {
+        (diff_files.is_empty() || diff_files.contains_key(&b[0].file)) && in_hunk(b[0])
+    };
     let link = |r: &Row| {
         if url.is_empty() {
             String::new()
@@ -684,6 +702,29 @@ fn row_fields(out: &mut String, r: &Row, indent: &str) {
 
 /// Every row whose file is not at the head or whose line lies past its end: with a sha,
 /// through `git show`; without, the file in the worktree.
+/// The head-side line ranges of every hunk in `git diff <base> <head>`, three lines of context
+/// as GitHub shows them, per file: the lines a review comment may anchor on.
+fn diff_hunks(repo: &str, base: &str, head: &str) -> Result<HashMap<String, Vec<(usize, usize)>>, String> {
+    let out = super::command("git", &["-C", repo, "diff", "-U3", "--no-color", base, head])
+        .map_err(|why| format!("git diff {base} {head}: {why}"))?;
+    let mut hunks: HashMap<String, Vec<(usize, usize)>> = HashMap::new();
+    let mut file = None;
+    for line in String::from_utf8_lossy(&out).lines() {
+        if let Some(path) = line.strip_prefix("+++ ") {
+            file = path.strip_prefix("b/").map(str::to_string);
+        } else if let (Some(f), Some(rest)) = (&file, line.strip_prefix("@@ ")) {
+            let new = rest.split_whitespace().find(|w| w.starts_with('+')).unwrap_or("+0,0");
+            let mut parts = new[1..].split(',');
+            let start: usize = parts.next().and_then(|n| n.parse().ok()).unwrap_or(0);
+            let count: usize = parts.next().and_then(|n| n.parse().ok()).unwrap_or(1);
+            if count > 0 {
+                hunks.entry(f.clone()).or_default().push((start, start + count - 1));
+            }
+        }
+    }
+    Ok(hunks)
+}
+
 fn anchor_misses(rows: &[Row], repo: &str, sha: &str) -> Vec<String> {
     let mut out = Vec::new();
     for r in rows {
@@ -849,7 +890,11 @@ fn run(args: &[String]) -> Result<(String, Vec<String>, Option<String>), String>
         &dropped,
         &tiers,
     );
-    let findings = findings_md(&rows, opts.get("url").unwrap_or(&empty), &misses, &tiers);
+    let hunks = match (opts.get("repo"), opts.get("base")) {
+        (Some(repo), Some(base)) => diff_hunks(repo, base, opts.get("sha").map_or("HEAD", |s| s))?,
+        _ => HashMap::new(),
+    };
+    let findings = findings_md(&rows, opts.get("url").unwrap_or(&empty), &misses, &tiers, &hunks);
     let old_claims = fs::read_to_string(round.join("claims.md")).unwrap_or_default();
     let old_findings = fs::read_to_string(round.join("findings.md")).unwrap_or_default();
     let claims = keep_written_claims(&claims, &old_claims);
@@ -890,7 +935,7 @@ fn summary(
 
 #[cfg(test)]
 mod tests {
-    use super::super::testutil::tmp;
+    use super::super::testutil::{git, tmp};
     use super::*;
 
     #[test]
@@ -1265,6 +1310,43 @@ mod tests {
         assert!(findings.contains("\n## Body\n\n- Warning: locales/en/settings.json:25 [gh](https://x/blob/abc/locales/en/settings.json#L25), outside the diff, so no anchor\n  State: CONFIRMED, band: Warning, angle: \n  TL;DR: the label still names the old setting\n"), "{findings}");
         assert!(findings.contains("\n## pkg/a.go:12 [gh]"), "{findings}");
         assert!(findings.starts_with("# Findings in posting order, from round assemble: 2 to post,"), "{findings}");
+    }
+
+    #[test]
+    fn a_finding_on_a_diffed_file_outside_every_hunk_is_a_body_bullet() {
+        let (round, head) = fixture("outside-hunk");
+        git(&head, &["init", "-q"]);
+        git(&head, &["add", "."]);
+        git(&head, &["commit", "-q", "-m", "base"]);
+        let base = git(&head, &["rev-parse", "HEAD"]);
+        let mut lines: Vec<String> = "package a\n".repeat(50).lines().map(str::to_string).collect();
+        lines[11] = "package changed".to_string();
+        fs::write(head.join("pkg/a.go"), lines.join("\n") + "\n").unwrap();
+        git(&head, &["commit", "-q", "-am", "head"]);
+        fs::write(
+            round.join("verdicts/far.json"),
+            r#"{"verdicts": [{"index": 9, "state": "CONFIRMED", "band": "Nit", "file": "pkg/a.go", "line": 40, "tldr": "far from the change", "evidence": "read"}]}"#,
+        )
+        .unwrap();
+        let (_, _, findings) = run_on(&round, &["--repo", &head.display().to_string(), "--base", base.trim()]);
+        assert!(findings.contains("\n## pkg/a.go:12"), "{findings}");
+        assert!(findings.contains("- Nit: pkg/a.go:40, outside the diff, so no anchor"), "{findings}");
+        assert!(!findings.contains("\n## pkg/a.go:40"), "{findings}");
+    }
+
+    #[test]
+    fn an_unjudged_missing_test_ships_skip() {
+        let round = tmp("assemble-unjudged-missing-test");
+        fs::create_dir_all(round.join("candidates")).unwrap();
+        fs::create_dir_all(round.join("verdicts")).unwrap();
+        fs::write(
+            round.join("candidates/b1.json"),
+            r#"{"candidates": [{"file": "pkg/a.go", "line": 5, "angle": "reach", "summary": "no test covers the refusal", "verify_by": "grep -rn Refusal", "band": "Missing test", "checked": true}]}"#,
+        )
+        .unwrap();
+        let (_, claims, findings) = run_on(&round, &[]);
+        assert!(claims.contains("| PLAUSIBLE | Missing test | pkg/a.go:5 |"), "{claims}");
+        assert!(findings.contains("## SKIP pkg/a.go:5 · Missing test"), "{findings}");
     }
 
     #[test]

@@ -332,12 +332,15 @@ fn overview_state(text: &str) -> Vec<Hit> {
     static VERDICT: LazyLock<Regex> =
         LazyLock::new(|| Regex::new(r"(?i)^verdict:|\brequest(ed)? changes\b|\bapproved?\b").unwrap());
     static SHA: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\b[0-9a-f]{7,40}\b").unwrap());
+    // A link pins the head sha by rule, so its target is never review state: only the visible text is read.
+    static TARGET: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\]\([^)\s]*\)|https?://\S+").unwrap());
     let mut hits = Vec::new();
     for (line, content) in prose_lines(text) {
         if VERDICT.is_match(&content) {
             hits.push(Hit { file: "overview.md".into(), line, what: "review state in the overview: a verdict".into() });
         }
-        let sha = SHA.find_iter(&content).any(|m| {
+        let visible = TARGET.replace_all(&content, "");
+        let sha = SHA.find_iter(&visible).any(|m| {
             let w = m.as_str();
             w.bytes().any(|b| b.is_ascii_digit()) && w.bytes().any(|b| b.is_ascii_alphabetic())
         });
@@ -612,6 +615,15 @@ mod tests {
             assert!(table.contains(what), "{what} missing in\n{table}");
         }
         assert_eq!(table.matches("names CI").count(), 1, "the header, the fold and the SKIP section never count: {table}");
+    }
+
+    #[test]
+    fn a_sha_inside_a_link_target_is_not_overview_state() {
+        let hits = overview_state(
+            "# Subject\n\nThe [cap](https://github.com/o/r/blob/3f680fa12/a.go#L19) bounds one expression.\nPinned at <https://github.com/o/r/tree/3f680fa12/dir>.\nReviewed at 3f680fa12.\n",
+        );
+        let what: Vec<_> = hits.iter().map(|h| (h.line, h.what.as_str())).collect();
+        assert_eq!(what, vec![(5, "review state in the overview: a sha")]);
     }
 
     #[test]

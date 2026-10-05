@@ -77,5 +77,5 @@ Findings land as commits on the branch, never as a review to post.
 - One commit per finding class, conventional subject, for the PR's head repository and never upstream; its push waits for `push`.
 - Before the fix push, compare `gh pr view <n> -R <repo> --json headRefOid --jq .headRefOid` with `pr_head` in the round's `args.json`; a move means another push landed mid-round, so the push waits and the handover names both commits.
 - Before the handover, run a judge on every PLAUSIBLE row, per *Verifiers* in `skills/review.md`, writing `verdicts/<judge>.json`, and run `round assemble` again: the latest verdict on an index replaces the earlier one. The author reads every row as theirs to fix, and a row no run settled is one they cannot act on.
-- A row the judge leaves PLAUSIBLE stays in `claims.md` and reaches neither the handover nor a reply.
+- A row the judge leaves PLAUSIBLE gets the check its verdict names as missing, run by the parent, until it reads CONFIRMED or REFUTED; only then does it reach the handover.
 - Hand over the branch and shas, then what was left unapplied and the decision each needs.

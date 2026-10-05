@@ -58,6 +58,15 @@ Stage the paths the turn touched, never the whole tree, and read
 `git show --stat` before pushing. Run the CI locally first, per *Fix* in
 `skills/change.md`.
 
+When a file you commit also holds another session's uncommitted hunk, commit
+your hunks alone: save the file, write HEAD's version plus your hunks, commit
+the path, restore the saved file, and `git diff` it to see only the other
+hunk left.
+
+When the tree you tested carries another session's uncommitted edits, run the
+suites again on the commits alone before the push: a worktree at the new HEAD,
+`git -C <checkout> worktree add --detach <path> <sha>`, removed after.
+
 ## Where a push goes
 
 **A pull request's branch lives in its head repository, a fork whenever

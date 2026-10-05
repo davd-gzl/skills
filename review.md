@@ -282,6 +282,7 @@ exempts, and every consumer the change reaches across the trees it ships to.
 - Pass the round's own `prior_checks`, so no check runs twice, and print the cost first with `./scripts/review-plan.py --preset critical --topics <n>`.
 - **Run another pass while the last one returned a candidate the verifiers banded above Nit.** Stop at two whatever the second returns, and name in the round note which bound is left standing on one pass.
 - A bound the round already broke is a finding, never a topic: a pass attacks the bounds that survived.
+- A review the user keeps to one concern, security for one, runs as a pass of its own: `--preset critical` with one `--topic` per bound the concern holds, and no general angle.
 
 ## Subjects
 
@@ -447,8 +448,12 @@ The skeleton, filled per subject:
 PR: [<owner>/<repo>#<n>](<url>)
 
 ## TLDR
-## Before and after
+## What <the feature> is            <- a feature
+## How it works, in <n> steps        <- a feature
+## The parts, at a glance            <- a feature
+## Before and after                  <- a change to existing behaviour
 ## How <the mechanism> works
+## Read the code in this order
 ## What a user notices
 ## Upgrading
 ## Words used here
@@ -456,6 +461,8 @@ PR: [<owner>/<repo>#<n>](<url>)
 
 - Name things as the code does, the function, the class, the setting, the endpoint, so the reader finds each one in the diff after reading. For this file that overrides the reader's-words bullet of *The rules* in `skills/writing-style.md`. Every name a reader new to the change would look up gets one row in `## Words used here`, the last section: the name, then what it is in one sentence, with the condition a reader can check, an endpoint's method and path, a setting's default, how often a client calls it.
 - The TLDR says what the code did before and what it does now, in those names, and why the change exists, in four to six lines.
+- A feature opens for a reader who has never seen it: what it is in the user's terms, then how it works in numbered steps carrying one concrete example of the data passed between them, then a table naming each part, its file and its job. It takes no `## Before and after` and never describes itself by its absence: the reader already knows the product without it.
+- `## Read the code in this order` is numbered stops, each opening the next: the file linked, one or two sentences on what it decides and what breaks if it is wrong, and the lines that matter copied from the pinned sha.
 - `## Before and after` is one table, one row per place the behaviour enters, an endpoint, a view, a hook, each row phrased as what happens first and through which code second: "a guest waits in the waiting room, through `request_entry`".
 - `## How <the mechanism> works` is a diagram whose nodes are the functions it names, then one bullet per function saying what it decides.
 - `## What a user notices` gives each visible effect with what decides its scope, per browser, per account, never per IP unless the code reads one.
@@ -467,6 +474,7 @@ PR: [<owner>/<repo>#<n>](<url>)
 - Use anything GitHub renders: a `mermaid` diagram, a `$$` formula, a decision table, before and after values, a `> [!NOTE]`, a `<details>` fold, a committed image. No emoji, and nothing needing a script or a click, which the blob page strips.
 - Where a page would have used a simulator, compute the interesting inputs and put the results in a table. The reader gets the answer without moving a slider, and every number is checkable from the file.
 - Run the mirrored logic before publishing its numbers, against the project's own tests where they exist and against the mirrored source where they do not, and say which of the two it was.
+- Every link pins one sha, the head the overview describes. When that head moves, `./scripts/repin-links.py <overview.md> <head worktree> <old sha> <new sha>` carries every link and anchor across, and exits 1 naming each range whose lines the change touched, which is read and re-anchored by hand; excerpts from a touched file are copied again.
 - Update it when new commits change the subject's own files, and in the same command as a push that rewrites the body of the pull request it is linked from. A base-only head bump, a new finding, a verdict change and a new round never touch it. Link it from the draft's `Overview:` line.
 
 ## Links & citations
@@ -550,6 +558,7 @@ When a posted round's target merges or closes, `./scripts/review-outcomes.py <dr
 - What ships `SKIP` by default, whatever band it lands in, is the list in `skills/review-comment.md`, which is right where the two disagree. A cosmetic convention carries the config link and is checked against that config before it is flagged, and the measurement that shows a skipped finding right stays in `claims.md`. An ADR finding is a posted Nit, and a removal request for unreachable code is posted too.
 - A pre-existing defect is in scope in three cases: the diff sweeps that defect's class and missed it, the change makes the code permanent, or the change makes the defect reachable for the first time. Name the sweep, the freeze or the new path, and say it predates the diff. Read the diff, never recall: promoting something to a security boundary, or adding a test asserting the behaviour, is the first case, and the verdict moves with it.
 - A pre-existing defect found while reviewing, in scope or not, goes the same turn to an issue draft per `skills/issue.md`, or to the project's audit tracking where its delta names one, under the disclosure invariant when the code is deployed. A row in `claims.md` is where such a finding dies.
+- Before raising a pre-existing defect as a disclosure or an issue, search the open pull requests for its fix, the user's own first: `gh pr list -R <repo> --author @me --state open`, then a full-text search on its symbol. A fix already open turns the finding into a link to that pull request.
 - Code that cannot run is a finding, never a reason to drop one: an impossible guard, an unreachable branch, a default the type forbids. **Ask for its removal, and name every site the removal touches**, the symbol it declares included. A rename, a reworded message or a tidied comment keeps the code and ships as polish on protection that is not there, so a wording finding inside proven-dead code is that same finding, one band down.
 - Clearing something needs the same evidence as flagging it, and so does calling anything dead, redundant or unused: map the full call graph. To clear "X is safe because guard G covers it", find G's construction site, list its callers, and confirm X is one; never infer that a guard reaches a member from a grouping made by the diff, its docs, or its author. A cleared item whose mechanism was not traced is unverified, and the round says so. A suspected defect leaves the review only through a run showing it guarded, with the proving line quoted, and without that run it is a Warning, never an Open question.
 - When the finding is a missed member of a class, measure the whole class in one harness and publish the table. A class whose members each take seconds to time runs under the stage's own clock: the members likeliest to fail first, stopping once the class is shown, the rest listed in the table as unmeasured, never one long timeout over them all.

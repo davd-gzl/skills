@@ -75,4 +75,5 @@ Findings land as commits on the branch, never as a review to post.
 - Never apply without asking: observable behavior changes, fixes to defects predating the branch, anything a maintainer would treat as a design decision. Present each as a named decision.
 - One commit per finding class, conventional subject, for the PR's head repository and never upstream; its push waits for `push`.
 - Before the fix push, compare `gh pr view <n> -R <repo> --json headRefOid --jq .headRefOid` with `pr_head` in the round's `args.json`; a move means another push landed mid-round, so the push waits and the handover names both commits.
+- Before the handover, run a judge on every PLAUSIBLE row, per *Verifiers* in `skills/review.md`, writing `verdicts/<judge>.json`, and run `round assemble` again: the latest verdict on an index replaces the earlier one. The author reads every row as theirs to fix, and a row no run settled is one they cannot act on.
 - Hand over the branch and shas, then what was left unapplied and the decision each needs.

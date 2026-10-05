@@ -239,8 +239,13 @@ fn verdicts(files: &[(String, Value)]) -> Vec<Verdict> {
                 angle: text(v, "angle"),
                 verify_by: text(v, "verify_by"),
             };
-            if !verdict.file.is_empty() {
-                out.push(verdict);
+            if verdict.file.is_empty() {
+                continue;
+            }
+            // A later verdict on the same index replaces the earlier one.
+            match out.iter().position(|o: &Verdict| o.index.is_some() && o.index == verdict.index) {
+                Some(at) => out[at] = verdict,
+                None => out.push(verdict),
             }
         }
     }
@@ -814,7 +819,9 @@ fn run(args: &[String]) -> Result<(String, Vec<String>, Option<String>), String>
     let opts = options(args)?;
     let empty = String::new();
     let cand_files = read_json_dir(&round.join("candidates"))?;
-    let verdict_files = read_json_dir(&round.join("verdicts"))?;
+    let mut verdict_files = read_json_dir(&round.join("verdicts"))?;
+    // A finding judged again keeps its latest verdict: the files are read oldest first.
+    verdict_files.sort_by_key(|(path, _)| fs::metadata(path).and_then(|m| m.modified()).ok());
     if cand_files.is_empty() && verdict_files.is_empty() {
         return Err(format!(
             "{}: no candidates/*.json and no verdicts/*.json",
@@ -885,6 +892,21 @@ fn summary(
 mod tests {
     use super::super::testutil::tmp;
     use super::*;
+
+    #[test]
+    fn a_later_verdict_replaces_the_earlier_one_on_its_index() {
+        let files = vec![
+            ("v/a.json".to_string(), serde_json::json!({"verdicts": [
+                {"index": 3, "state": "PLAUSIBLE", "file": "pkg/a.go", "line": 10}
+            ]})),
+            ("v/b.json".to_string(), serde_json::json!({"verdicts": [
+                {"index": 3, "state": "CONFIRMED", "file": "pkg/a.go", "line": 10}
+            ]})),
+        ];
+        let got = verdicts(&files);
+        assert_eq!(got.len(), 1);
+        assert_eq!(got[0].state, "CONFIRMED");
+    }
 
     /// A round directory with two finders' candidates, one reflector drop and two verifiers'
     /// verdicts, over a head worktree of two files.

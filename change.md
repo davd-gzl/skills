@@ -233,8 +233,10 @@ where they differ. A claim then reads the body, the diff and the threads at
 the pushed sha and says so, since the local branch may hold work nobody pushed
 and a body read against HEAD describes a tree the reviewer never saw.
 
-After any push to an open pull request, read what the bots posted before the
-turn ends: `gh api repos/<owner>/<repo>/pulls/<n>/comments` for the inline
+After any push to an open pull request the user authored, move their inline
+notes to the new head in the same command, per *Consent* in the workspace
+`AGENTS.md`. Then read what the bots posted before the turn ends:
+`gh api repos/<owner>/<repo>/pulls/<n>/comments` for the inline
 ones, `gh api repos/<owner>/<repo>/issues/<n>/comments --jq '.[] | select(.user.type == "Bot")'`
 for the ones a quality gate posts on the conversation, each finding it links
 followed, and `gh pr checks <n>`. Report what landed, and say plainly when nothing has yet. A

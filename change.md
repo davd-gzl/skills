@@ -235,7 +235,11 @@ and a body read against HEAD describes a tree the reviewer never saw.
 
 After any push to an open pull request the user authored, move their inline
 notes to the new head in the same command, per *Consent* in the workspace
-`AGENTS.md`. Then read what the bots posted before the turn ends:
+`AGENTS.md`. Move the code links of `pr-body.md` and of the overview the same
+way, `./scripts/repin-links.py <file> <worktree> <old head> <new head>` on each,
+per *Overview* in `skills/review.md`: it carries the diff links and the blob
+links, and each range it names is read and set by hand before the body goes
+up. Then read what the bots posted before the turn ends:
 `gh api repos/<owner>/<repo>/pulls/<n>/comments` for the inline
 ones, `gh api repos/<owner>/<repo>/issues/<n>/comments --jq '.[] | select(.user.type == "Bot")'`
 for the ones a quality gate posts on the conversation, each finding it links

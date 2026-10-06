@@ -123,6 +123,11 @@ gh repo fork <owner>/<repo> --remote-only --remote-name fork
    corrects: one guard where the callers all route through covers the siblings,
    and a term corrected only on the pages that argued for it survives on the
    page a reader reaches from search.
+   Then list the tests that reach the code the fix will touch, `git grep -l
+   <symbol> -- <the project's test paths>` for each function it names, and run
+   them before the first edit: they are what the fix can break. No test-first
+   ritual goes on top; a fix that needs a regression test gets one that fails
+   without it, per the plan.
 3. **Plan**, per *Spec and plan* above.
 4. **Worktree**, never the checkout, which is a submodule whose gitlink moves
    the moment a branch lands in it:
@@ -142,6 +147,11 @@ gh repo fork <owner>/<repo> --remote-only --remote-name fork
    finding whose absence makes the feature not work is never in this class.
 6. **Implement** inside the worktree. A defect met on the way is fixed in the
    same worktree and named in the body. Comments follow `skills/writing-style.md`.
+   An existing test's expectation changes only as a named open call in the
+   plan, with the line and what the issue says against it, never to turn a job
+   green: the issue outranks the tests, and a test edited to pass is the
+   shortcut an agent takes first. A rename or a moved fixture carrying the same
+   expectation is no call.
 7. **Run the CI locally.** While iterating, after each edit run only the test
    files and linters that cover the files it touched; run the whole suite once,
    last, before the push. Reproduce every job the diff touches, loop until
@@ -159,12 +169,17 @@ gh repo fork <owner>/<repo> --remote-only --remote-name fork
    8's, in a copy of the working tree, untracked files included,
    `rsync -a --exclude .git ./ <scratch>/mut/`, never in the tree the suite
    compiles, which reports on whichever version the scheduler reached.
+   Once green, run the issue's own repro from step 2 again, the way its
+   reporter hit it: the suite proves only the tests the agent could see.
 8. **Loop over the whole diff, green, until a pass adds nothing.** Read it as a
    reviewer who did not write it, with the *Verification discipline* and
    severity model of `skills/review.md`. Apply each, re-run the checks, read
-   again. That empty pass
-   runs unasked and gates the handover. Never hand a finding back as a
-   suggestion, and never park one as an open question to keep the report tidy.
+   again. The first pass reads in this session; every later pass runs in a
+   fresh agent, given the issue, the plan, the diff and this file's path and
+   none of the conversation, since a second review in the session that wrote
+   the code finds less than one in a fresh context. That empty pass runs
+   unasked and gates the handover. Never hand a finding back as a suggestion,
+   and never park one as an open question to keep the report tidy.
    What survives unapplied needs a decision only the user can make, and each is
    named as a decision rather than a leftover. Record what each round caught in
    the plan where there is one, never silently amend it away. A measurement

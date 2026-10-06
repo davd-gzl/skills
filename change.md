@@ -123,12 +123,11 @@ gh repo fork <owner>/<repo> --remote-only --remote-name fork
    corrects: one guard where the callers all route through covers the siblings,
    and a term corrected only on the pages that argued for it survives on the
    page a reader reaches from search.
-   Then list the tests that reach the code the fix will touch, `git grep -l
-   <symbol> -- <the project's test paths>` for each function the issue names
-   and each caller the grep above found: they are what the fix can break, and
-   step 4 runs them in the worktree before the first edit. No test-first
-   ritual goes on top; a fix that needs a regression test gets one that fails
-   without it, per the plan.
+   Then list the tests that reach the code the fix will touch, one `git grep -l
+   -e <symbol> -e <symbol> -- <the project's test paths>` over the functions
+   the issue names and the callers the grep above found. Add no test-first
+   ritual; a fix that needs a regression test gets one that fails without it,
+   per the plan.
 3. **Plan**, per *Spec and plan* above.
 4. **Worktree**, never the checkout, which is a submodule whose gitlink moves
    the moment a branch lands in it:
@@ -151,14 +150,14 @@ gh repo fork <owner>/<repo> --remote-only --remote-name fork
    same worktree and named in the body. Comments follow `skills/writing-style.md`.
    An existing test's expectation changes only as a named open call in the
    plan, written where none exists yet, with the line and what the issue says
-   against it, never to turn a job green: the issue outranks the tests, and a
-   test edited to pass is the shortcut an agent takes first. A rename or a
-   moved fixture carrying the same expectation is no call.
+   against it, never to turn a job green: the issue outranks the tests. A
+   rename or a moved fixture carrying the same expectation is no call.
 7. **Run the CI locally.** While iterating, after each edit run only the test
-   files and linters that cover the files it touched; run the whole suite once,
-   last, before the push. Reproduce every job the diff touches, loop until
-   green before pushing, the formatter and the auto-fixer included: that job
-   fails on their diff whatever the linter itself found. Take the command from
+   files and linters that cover the files it touched, step 2's list first;
+   run the whole suite once, last, before the push. Reproduce every job the
+   diff touches, loop until green before pushing, the formatter and the
+   auto-fixer included: that job fails on their diff whatever the linter
+   itself found. Take the command from
    the workflow file, never the Makefile or README, read what each script runs,
    and match it exactly: a `check` target may be formatting only. Report a job
    that cannot run locally as not run, never as passing, naming the missing
@@ -173,18 +172,22 @@ gh repo fork <owner>/<repo> --remote-only --remote-name fork
    compiles, which reports on whichever version the scheduler reached.
    Once green, run the issue's own repro from step 2 again, the way its
    reporter hit it: the suite proves only the tests the agent could see.
-8. **Loop over the whole diff, green, until a pass adds nothing.** Read it as a
+8. **Loop over the whole diff, green, until a pass returns no Critical or
+   Warning, or only ones on lines the pass before it changed.** Read it as a
    reviewer who did not write it, with the *Verification discipline* and
    severity model of `skills/review.md`. Apply each, re-run the checks, read
-   again. The first pass reads in this session; every later pass, a pass step
-   9 reopens included, runs in a fresh agent given the diff and this file's
-   path alone, none of the conversation and none of its intent, told to return
-   findings and edit nothing, since a second review in the session that wrote
-   the code finds less than one in a session given the artifact alone. The
-   parent applies what it returns.
-   That empty pass runs unasked and gates the handover. Never hand a finding
-   back as a suggestion, and never park one as an open question to keep the
-   report tidy.
+   again. The first pass reads in this session; every later pass, one step 9
+   reopens included, runs in a fresh agent given only the diff and this file's
+   path, told to return findings and edit nothing; the parent applies them.
+   Each pass starts by snapshotting the worktree, `./scripts/snapshot
+   <worktree>`, whose sha is that pass's head. A line the pass before changed
+   falls inside a `+<start>[,<count>]` hunk of `git diff -U0 <its head> <head>
+   -- <file>`, a missing count meaning one line and a `,0` deletion counting
+   `<start>` and `<start>+1`; `<first rebased fix commit>^` stands in for its
+   head after a rebase. Apply the closing pass's findings too. That closing
+   pass runs unasked and gates the handover.
+   Never hand a finding back as a suggestion, and never park one as an open
+   question to keep the report tidy.
    What survives unapplied needs a decision only the user can make, and each is
    named as a decision rather than a leftover. Record what each round caught in
    the plan where there is one, never silently amend it away. A measurement
@@ -208,9 +211,7 @@ gh repo fork <owner>/<repo> --remote-only --remote-name fork
     before the push; a bare `p` pushes with no round.** `./scripts/review-setup.sh`, then the review runner by `scriptPath`
     at the `quick` or `critical` preset, in Own PR mode per
     `skills/review-modes.md`; the branch has no pull request yet, so that mode's
-    author check is the branch itself. Step 8 is the author's own eyes, and a
-    branch that ships on those alone was read by nobody else. A finding reopens
-    step 8.
+    author check is the branch itself. A finding reopens step 8.
 11. **Report** the changed files and what each change does.
 12. **Keep the worktree.** It carries review feedback, rebases and follow-up
     work until the pull request merges.

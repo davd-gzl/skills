@@ -124,8 +124,9 @@ gh repo fork <owner>/<repo> --remote-only --remote-name fork
    and a term corrected only on the pages that argued for it survives on the
    page a reader reaches from search.
    Then list the tests that reach the code the fix will touch, `git grep -l
-   <symbol> -- <the project's test paths>` for each function it names, and run
-   them before the first edit: they are what the fix can break. No test-first
+   <symbol> -- <the project's test paths>` for each function the issue names
+   and each caller the grep above found: they are what the fix can break, and
+   step 4 runs them in the worktree before the first edit. No test-first
    ritual goes on top; a fix that needs a regression test gets one that fails
    without it, per the plan.
 3. **Plan**, per *Spec and plan* above.
@@ -138,7 +139,8 @@ gh repo fork <owner>/<repo> --remote-only --remote-name fork
    ```
    `<id>` is the issue number where one exists, a short slug otherwise. Run it
    from the workspace root, and keep the path absolute: `-C` resolves a
-   relative one inside the checkout.
+   relative one inside the checkout. Then run the tests step 2 listed, in the
+   worktree, and note which fail before any edit.
 5. **Weigh each finding before building it.** Name what implementing one costs in files and what
    it buys in cases a user actually hits: a suggestion covering a transition
    nobody has been through yet goes to the pull request body's leaves-out
@@ -148,10 +150,10 @@ gh repo fork <owner>/<repo> --remote-only --remote-name fork
 6. **Implement** inside the worktree. A defect met on the way is fixed in the
    same worktree and named in the body. Comments follow `skills/writing-style.md`.
    An existing test's expectation changes only as a named open call in the
-   plan, with the line and what the issue says against it, never to turn a job
-   green: the issue outranks the tests, and a test edited to pass is the
-   shortcut an agent takes first. A rename or a moved fixture carrying the same
-   expectation is no call.
+   plan, written where none exists yet, with the line and what the issue says
+   against it, never to turn a job green: the issue outranks the tests, and a
+   test edited to pass is the shortcut an agent takes first. A rename or a
+   moved fixture carrying the same expectation is no call.
 7. **Run the CI locally.** While iterating, after each edit run only the test
    files and linters that cover the files it touched; run the whole suite once,
    last, before the push. Reproduce every job the diff touches, loop until
@@ -174,12 +176,15 @@ gh repo fork <owner>/<repo> --remote-only --remote-name fork
 8. **Loop over the whole diff, green, until a pass adds nothing.** Read it as a
    reviewer who did not write it, with the *Verification discipline* and
    severity model of `skills/review.md`. Apply each, re-run the checks, read
-   again. The first pass reads in this session; every later pass runs in a
-   fresh agent, given the issue, the plan, the diff and this file's path and
-   none of the conversation, since a second review in the session that wrote
-   the code finds less than one in a fresh context. That empty pass runs
-   unasked and gates the handover. Never hand a finding back as a suggestion,
-   and never park one as an open question to keep the report tidy.
+   again. The first pass reads in this session; every later pass, a pass step
+   9 reopens included, runs in a fresh agent given the diff and this file's
+   path alone, none of the conversation and none of its intent, told to return
+   findings and edit nothing, since a second review in the session that wrote
+   the code finds less than one in a session given the artifact alone. The
+   parent applies what it returns.
+   That empty pass runs unasked and gates the handover. Never hand a finding
+   back as a suggestion, and never park one as an open question to keep the
+   report tidy.
    What survives unapplied needs a decision only the user can make, and each is
    named as a decision rather than a leftover. Record what each round caught in
    the plan where there is one, never silently amend it away. A measurement

@@ -180,12 +180,14 @@ gh repo fork <owner>/<repo> --remote-only --remote-name fork
    reopens included, runs in a fresh agent given only the diff and this file's
    path, told to return findings and edit nothing; the parent applies them.
    Each pass starts by snapshotting the worktree, `./scripts/snapshot
-   <worktree>`, whose sha is that pass's head. A line the pass before changed
-   falls inside a `+<start>[,<count>]` hunk of `git diff -U0 <its head> <head>
-   -- <file>`, a missing count meaning one line and a `,0` deletion counting
-   `<start>` and `<start>+1`; `<first rebased fix commit>^` stands in for its
-   head after a rebase. Apply the closing pass's findings too. That closing
-   pass runs unasked and gates the handover.
+   <worktree>`, whose sha is that pass's head. `round stop <list> --repo
+   <worktree> --prev <the pass before's head> --head <this pass's head>`
+   settles the stop, the list one `<Band> <file:line>` line per Critical and
+   Warning the pass returned, or a round's `claims.md`; it exits 0 to stop,
+   and counts every commit between the two heads as the fix.
+   `<first rebased fix commit>^` stands in for the pass before's head after a
+   rebase. Apply the closing pass's findings too. That closing pass runs
+   unasked and gates the handover.
    Never hand a finding back as a suggestion, and never park one as an open
    question to keep the report tidy.
    What survives unapplied needs a decision only the user can make, and each is

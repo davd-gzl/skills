@@ -8,6 +8,7 @@ mod dispatch;
 mod links;
 mod prior;
 mod risk;
+mod stop;
 
 use std::collections::HashMap;
 use std::path::Path;
@@ -22,6 +23,7 @@ pub use prior::{
     AppliedRow, Hunk, LineMap, PriorCheck, Row,
 };
 pub use risk::{rank, risk, FileRisk, Kind, Tier};
+pub use stop::{blocking_rows, place_rows, stop, touches, Blocking, Place};
 
 pub const USAGE: &str = "round <subcommand> ...
 
@@ -84,7 +86,18 @@ pub const USAGE: &str = "round <subcommand> ...
       default and a Body naming an anchored finding's path:line are hits too. A round
       with no draft, an Own PR round, gets the record checks alone; a directory with
       neither a draft nor a record exits 2. One row per hit into
-      <round dir>/check.md; exit 1 on any.";
+      <round dir>/check.md; exit 1 on any.
+
+  stop <claims.md or list> --repo <git dir> --prev <sha> --head <sha>
+      Whether a fix loop stops after this pass or round: every Critical and Warning
+      row of a Candidates table no judge refuted, or every '<Band> <file:line>' line
+      of a pass's own list, placed against git diff -U0 -M <prev> <head>, the diff the
+      pass before wrote, every commit between the shas counted, new work included. A
+      row is on the fix when its file:line falls inside a hunk's added lines, or
+      beside a pure deletion. One line per row; exit 0 when no such
+      row is left or every one is on the fix, 1 when one sits outside it or has no
+      file:line anchor, 2 when a sha is not a commit or, in input with no Candidates
+      header, a line is not '<Band> <file:line>' or 'none'.";
 
 pub fn dispatch(args: &[String]) -> i32 {
     match args.first().map(String::as_str) {
@@ -94,6 +107,7 @@ pub fn dispatch(args: &[String]) -> i32 {
         Some("dispatch") if args.len() >= 4 => dispatch_cmd(&args[1..]),
         Some("assemble") if args.len() >= 2 => assemble_cmd(&args[1..]),
         Some("check") if args.len() >= 2 => check_cmd(&args[1..]),
+        Some("stop") if args.len() >= 2 => stop(&args[1..]),
         _ => {
             eprintln!("{USAGE}");
             2

@@ -37,6 +37,7 @@ as the skill defines it; ask when the reading changes what gets built.
 | `pr`, `p r`, `push review` | the round over the change's branch, step 10 of *Fix*, its fixes applied, then everything `p` sends; a bare `p` runs no round | `skills/change.md` |
 | `post` | the shown draft goes to its target where nothing waits to be pushed, and `p` sends it the same; `post as an AI` adds the marker; `upload` sends media | `skills/review-comment.md`, `skills/issue.md`, `skills/change.md` |
 | `m`, `x`, `d` | merge, close or delete: that one action on the named target | Invariant 2 |
+| `o`, `ready` | the named draft pull request marked ready for review | Invariant 2 |
 | `make this review public` | the round to the public artifact repo, links repointed | *Consent* |
 | `path` | the worktree the work sits in, its path alone | here |
 | "a comment" | the `comment_<model>.md` draft and the text for the target, never an explanation | `skills/review-comment.md` |

@@ -779,10 +779,11 @@ fn read_tiers(path: &str) -> Result<HashMap<String, String>, String> {
 }
 
 /// The command: reads the round directory, writes `claims.md` and `findings.md` beside its
-/// inputs, prints the counts, and exits 1 when an anchor misses at the head.
+/// inputs, prints the counts, and exits 1 when an anchor misses at the head, or, under
+/// `--own-pr yes`, while a row is still PLAUSIBLE or UNVERIFIED.
 pub fn assemble_cmd(args: &[String]) -> i32 {
     match run(args) {
-        Ok((summary, misses, ungated)) => {
+        Ok((summary, misses, ungated, unsettled)) => {
             println!("{summary}");
             for m in &misses {
                 println!("anchor miss: {m}");
@@ -790,7 +791,10 @@ pub fn assemble_cmd(args: &[String]) -> i32 {
             if let Some(why) = &ungated {
                 println!("ungated: {why}");
             }
-            if misses.is_empty() && ungated.is_none() {
+            for u in &unsettled {
+                println!("unsettled: {u}");
+            }
+            if misses.is_empty() && ungated.is_none() && unsettled.is_empty() {
                 0
             } else {
                 1
@@ -854,8 +858,24 @@ fn strip_local_paths(cands: &mut [Candidate], verdicts: &mut [Verdict], dropped:
     }
 }
 
-/// The work of `assemble_cmd`: the summary line, the anchor misses, and the ungating reason.
-fn run(args: &[String]) -> Result<(String, Vec<String>, Option<String>), String> {
+/// On the author's own pull request every row reaches the handover settled: the author reads each
+/// as theirs to fix, and a row no run decided is one they cannot act on.
+fn unsettled(rows: &[Row]) -> Vec<String> {
+    rows.iter()
+        .filter(|r| r.state == "PLAUSIBLE" || r.state == "UNVERIFIED")
+        .map(|r| {
+            format!(
+                "#{} {} {} {}:{}, run its check until it reads CONFIRMED or REFUTED",
+                r.index, r.state, r.band, r.file, r.line
+            )
+        })
+        .collect()
+}
+
+/// The work of `assemble_cmd`: the summary line, the anchor misses, the ungating reason, and
+/// the rows an own pull request still has to settle.
+#[allow(clippy::type_complexity)]
+fn run(args: &[String]) -> Result<(String, Vec<String>, Option<String>, Vec<String>), String> {
     let round = Path::new(&args[0]);
     let opts = options(args)?;
     let empty = String::new();
@@ -901,10 +921,12 @@ fn run(args: &[String]) -> Result<(String, Vec<String>, Option<String>), String>
     let findings = keep_fix_lines(&findings, &old_findings);
     fs::write(round.join("claims.md"), claims).map_err(|e| format!("claims.md: {e}"))?;
     fs::write(round.join("findings.md"), findings).map_err(|e| format!("findings.md: {e}"))?;
+    let own_pr = opts.get("own-pr").is_some_and(|v| v == "yes");
     Ok((
         summary(&rows, &dropped, &verdict_files, &cand_files),
         misses,
         ungated(&rows),
+        if own_pr { unsettled(&rows) } else { Vec::new() },
     ))
 }
 
@@ -1050,6 +1072,16 @@ mod tests {
             fs::remove_file(f.unwrap().path()).unwrap();
         }
         let (code, _, _) = run_on(&round, &[]);
+        assert_eq!(code, 1);
+    }
+
+    #[test]
+    fn an_own_pull_request_with_a_plausible_row_exits_one() {
+        let (round, _) = fixture("own-pr");
+        let (code, _, _) = run_on(&round, &[]);
+        assert_eq!(code, 0);
+        let (code, claims, _) = run_on(&round, &["--own-pr", "yes"]);
+        assert!(claims.contains("PLAUSIBLE"), "{claims}");
         assert_eq!(code, 1);
     }
 

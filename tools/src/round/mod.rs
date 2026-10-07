@@ -56,7 +56,7 @@ pub const USAGE: &str = "round <subcommand> ...
       under the floor. --diff-dir writes each bundle's diff with its enclosing functions
       and a comment-blanked twin. The table to --out, else to stdout; JSON to --json.
 
-  assemble <round dir> [--repo <head worktree>] [--sha <sha>] [--base <merge base>] [--risk <risk.json>] [--url <blob url base>]
+  assemble <round dir> [--repo <head worktree>] [--sha <sha>] [--base <merge base>] [--risk <risk.json>] [--url <blob url base>] [--own-pr yes]
            [--title <text>] [--shape <text>]
       claims.md and findings.md from the round's verdicts as data: candidates/*.json, what
       each finder, the reflector and the critic returned, and verdicts/*.json, what each

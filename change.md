@@ -122,7 +122,10 @@ gh repo fork <owner>/<repo> --remote-only --remote-name fork
    function the issue names, or every page stating the fact a docs change
    corrects: one guard where the callers all route through covers the siblings,
    and a term corrected only on the pages that argued for it survives on the
-   page a reader reaches from search.
+   page a reader reaches from search. A fix that changes what a shared surface
+   receives, a listener on the document, a store, a setting, maps every other
+   consumer of that surface the same way: a key listener moved to the capture
+   phase reaches every control's keys, not only the control the issue names.
    Then list the tests that reach the code the fix will touch, one `git grep -l
    -e <symbol> -e <symbol> -- <the project's test paths>` over the functions
    the issue names and the callers the grep above found. Add no test-first
@@ -147,7 +150,8 @@ gh repo fork <owner>/<repo> --remote-only --remote-name fork
    which puts a tracker item in front of maintainers who did not ask for one. A
    finding whose absence makes the feature not work is never in this class.
 6. **Implement** inside the worktree. A defect met on the way is fixed in the
-   same worktree and named in the body. Comments follow `skills/writing-style.md`.
+   same worktree and named in the body. Comments follow `skills/writing-style.md`,
+   and a comment stating what the code does is a claim, run before it is written.
    An existing test's expectation changes only as a named open call in the
    plan, written where none exists yet, with the line and what the issue says
    against it, never to turn a job green: the issue outranks the tests. A
@@ -159,7 +163,9 @@ gh repo fork <owner>/<repo> --remote-only --remote-name fork
    auto-fixer included: that job fails on their diff whatever the linter
    itself found. Take the command from
    the workflow file, never the Makefile or README, read what each script runs,
-   and match it exactly: a `check` target may be formatting only. Report a job
+   and match it exactly, the job's environment variables included: a `check`
+   target may be formatting only, and a local container's env file may set what
+   the job leaves at its default. Report a job
    that cannot run locally as not run, never as passing, naming the missing
    dependency and the closest real substitute. A check whose reach the diff
    changes, a linter now walking new files or a suppression that moved, is

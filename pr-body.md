@@ -20,6 +20,8 @@ Pick one of four shapes, by what the pull request carries, and read that shape's
 
 Put `pr-body.md` in the change directory, `projects/<repo>/changes/<slug>/`. It opens with a header block: `Target:` holding the opened PR URL, or else the `compare/...?expand=1` URL, `Head:` and `Base:` with shas, and `Status:` when there is something to say. Then `## Title` and `## Body`, and nothing after them: `./scripts/post-fix.sh` opens the PR from this file and pastes every line following the `## Body` heading into it, so a section added below goes out with the body. Media provenance and the inline comments posted beside the body belong in `plan.md`. Before a body already on GitHub is rewritten, `./scripts/pr-body-apply --pull <pr-body.md>` brings the live body into the file, since an edit made in the interface is invisible here. `./scripts/pr-body-apply <pr-body.md>` puts the file's Body up and reads it back, exiting 1 on any difference; before sending it lists every link, image and section the live body carries that the draft drops and sends nothing, and `--drop` sends once the reply showing the draft names each as dropped.
 
+Every body links the change's overview on its own line under the `Fixes` or `Refs` line, `[Overview](<blob url>)`: the change's `overview.md`, per *Overview* in `skills/review.md`, published before the body goes up to the artifact repository the workspace `AGENTS.md` names, at `<project>/<pull request>/overview.md`. A push that revises the body revises the overview in the same command.
+
 Write nothing about how the file was written: no shape label, no model PR, no round count; that record belongs in `plan.md`. Every line is something the user pastes or acts on; delete the rest.
 
 ## Shape

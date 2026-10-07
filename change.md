@@ -36,8 +36,8 @@ the same files minus the review links, and the kind of change goes in its
   directory, the link to the review.
 - `spec.md` and `plan.md`, below.
 - `pr-body.md`, per `skills/pr-body.md`.
-- `overview.md`, where the subject needs explaining before the diff, per
-  *Overview* in `skills/review.md`.
+- `overview.md`, for every change, per *Overview* in `skills/review.md`, and
+  linked from the body per `skills/pr-body.md`.
 - `issue.md`, only where no upstream issue covers the problem, stays in the
   review directory per `skills/issue.md` and is linked from `README.md`.
 - `checkout/`: a submodule pinned to the branch,

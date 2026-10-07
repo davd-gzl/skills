@@ -171,11 +171,12 @@ gh repo fork <owner>/<repo> --remote-only --remote-name fork
    changes, a linter now walking new files or a suppression that moved, is
    proved by breaking what it covers, watching it fire, and restoring it. For a
    behaviour-preserving refactor of a pure function, ship an equivalence proof
-   over a large input set. A suite left running in the background pins the tree
-   it reads until it returns: run any mutation meanwhile, this step's or step
-   8's, in a copy of the working tree, untracked files included,
-   `rsync -a --exclude .git ./ <scratch>/mut/`, never in the tree the suite
-   compiles, which reports on whichever version the scheduler reached.
+   over a large input set. Run every mutation, this step's or step 8's, in a
+   copy of the working tree, untracked files included,
+   `rsync -a --exclude .git ./ <scratch>/mut/`, never in the tree itself: a
+   suite left running in the background reports on whichever version the
+   scheduler reached, and a mutation a container or a later command forgets to
+   restore ships with the next commit.
    Once green, run the issue's own repro from step 2 again, the way its
    reporter hit it: the suite proves only the tests the agent could see.
 8. **Loop over the whole diff, green, until a pass returns no Critical or

@@ -27,7 +27,8 @@ block, the artifact lines, carries the `Did:` account above it, as plain lines:
 an account inside a code fence is named, as is one with no `---` rule above it.
 The account, quotes, tables and code
 do not count toward WORDS. A coined letter, per skills/shortcuts.md, is defined
-on the TL;DR line that names it and never takes a letter the table gives.
+on the TL;DR line that names it and never takes a letter the table gives, and
+a phrase offered to type is one the table quotes.
 """
 
 import json

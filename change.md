@@ -1,6 +1,6 @@
 ---
 name: change
-description: Use when taking an issue or a review finding to a pull request. Covers the change directory, spec.md and plan.md with their numbered open calls, the worktree, the fix, the CI run, and the pull request on the fork.
+description: Use when taking an issue or a review finding to a pull request. Covers the change directory, spec.md and plan.md with their numbered open calls, the worktree, the fix, the CI run, and the pull request upstream.
 argument-hint: <issue-number|url|description>
 ---
 
@@ -76,7 +76,13 @@ When one ask produces fixes in several areas, open one pull request per area,
 each on its own branch from the default branch, never one pull request merging
 them: a reviewer can merge the sync fixes without reading the CSS cleanup.
 Branches that touch the same lines stack, the later one based on the earlier
-and saying so in its body.
+and saying so in its body. Before each push, read `git diff --stat
+<base>...HEAD` against the pull request's title: a file outside its area moves
+to that area's branch.
+
+Work asked for on an open pull request lands on that pull request's branch, and
+`p` pushes it there. A branch stacked on it opens only when the user names a
+second pull request.
 
 ### Numbered open calls
 
@@ -212,7 +218,9 @@ gh repo fork <owner>/<repo> --remote-only --remote-name fork
    `git status --porcelain > <scratch>/pre-simplify.status` before it and read
    every hunk and new file after: one that no applied finding names is a probe
    left behind, and is reverted. Apply what holds, re-run the checks,
-   and read the diff once more; a pass that changes anything reopens step 8,
+   and report the behaviour unchanged only from the suite and the issue's
+   repro run after the pass, never from a read of the diff. Read the diff once
+   more; a pass that changes anything reopens step 8,
    and the empty one is recorded in the plan's Iterations. It runs unasked, and
    its trigger is every fix handed back rather than a change's end alone: a turn
    reporting a behaviour change done runs this pass before reporting it.
@@ -234,13 +242,11 @@ proposing a pull request carries
 `https://github.com/<upstream>/compare/<base>...<fork-owner>:<repo>:<branch>`
 as a hyperlink, with the file and line counts in the sentence.
 
-Every change opens on the fork first, so the user reads the diff, the title,
-the body and the checks where they will appear. The fork pull request is what
-`post` is given against; the upstream one opens only after they say so, in a
-later turn. On a repo the user does not own it opens as a
-draft, which `./scripts/post-fix.sh` passes, and the user marks it ready after
-revising it; on their own repos it opens ready. The fork pull request closes
-when the upstream one opens, unasked and with no comment on it.
+On `post`, the pull request opens on upstream, as a draft on a repo the user
+does not own, which `./scripts/post-fix.sh` passes, and ready on their own
+repos; the user marks a draft ready after revising it. A fork pull request
+opens only when the user asks for one, and closes when the upstream one opens,
+unasked and with no comment on it.
 
 Before proposing to close a pull request another one replaces, diff each
 closed head against the replacement, `git diff <replacement head> <closed head> --stat`

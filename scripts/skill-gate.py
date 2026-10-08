@@ -1311,12 +1311,8 @@ def publish_words(cmd, cwd=None):
         name = os.path.basename(t[0])
         if name in POST_SCRIPTS - {'pr-body-apply'} and not _dry(t):
             needs.append({'post', 'upload'})
-        if name == 'pr-body-apply' and not _dry(t):
-            for arg in t[1:]:
-                text = _read_at('@' + os.path.join(cwd or os.getcwd(), arg)) if not arg.startswith('-') else ''
-                m = re.search(r'^Target: https://github\.com/([^/\s]+/[^/\s]+)/pull/\d+', text, re.M)
-                if m and norm_repo(m.group(1)) in strict:
-                    needs.append({'post'})
+        # pr-body-apply needs no word: it refuses a pull request the signed-in account
+        # did not author, and a revised body on the user's own one is a standing word.
         if t[0] != 'gh':
             continue
         r = _gh_verb(t)

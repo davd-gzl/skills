@@ -786,12 +786,13 @@ class PublishWordsRoundSix(PublishWordsRoundFive):
 class PublishWordsRoundSeven(PublishWordsRoundSix):
     """What the seventh check round found."""
 
-    def test_the_post_wrapper_and_a_strict_body_apply_wait(self):
+    def test_the_post_wrapper_waits_and_a_body_apply_runs_on_any_repo(self):
+        # pr-body-apply refuses a pull request the user did not author, so it takes no word.
         self.assertEqual(self.hook('./scripts/post d.md')[0], 2)
         (self.root / 'workspace.json').write_text(json.dumps({'word_for_every_change': ['up/strict']}))
         (self.root / 'b.md').write_text('# PR\nTarget: https://github.com/up/strict/pull/4\n')
         (self.root / 'c.md').write_text('# PR\nTarget: https://github.com/up/loose/pull/4\n')
-        self.assertEqual(self.hook('./scripts/pr-body-apply b.md')[0], 2)
+        self.assertEqual(self.hook('./scripts/pr-body-apply b.md')[0], 0)
         self.assertEqual(self.hook('./scripts/pr-body-apply c.md')[0], 0)
 
     def test_redirects_and_config_reads_do_not_refuse_a_standing_push(self):

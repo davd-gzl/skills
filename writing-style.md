@@ -25,8 +25,8 @@ of measuring again.
 
 ## The rules
 
-- Lead with the conclusion, in the document and in each finding inside it: the rule in a doc, the verdict in a review, what breaks before the line that breaks it. **An explanation makes it a `TLDR` heading**, two or three lines carrying the whole answer, so a reader who stops there has it and everything below is for checking. That covers a reply explaining code, a mechanism or a change, and an `overview.md`.
-- Pitch to the audience. A user-facing doc states what the reader observes in one or two sentences, then links the deeper doc; internals stay out.
+- Lead with the conclusion, in the document and in each finding inside it: the rule in a doc, the verdict in a review, what breaks before the line that breaks it. **An explanation makes it a `TLDR` heading**, two or three lines carrying the whole answer, so a reader who stops there has it and everything below is for checking. That covers a reply explaining code, a mechanism or a change, an `overview.md`, and a user-facing doc page, whose `TL;DR` heading sits under the title with the commands the page teaches.
+- Pitch to the audience. A user-facing doc states what the reader observes in one or two sentences, then links the deeper doc; internals stay out. A page for beginners carries only what its first task needs: a verification step, a default the reader can skip and a pointer to an advanced page are cut. A topic another page covers is linked, never restated, and an example uses the production network wherever it runs there.
 - Keep it small. The deeper doc has three parts, no more: the rule, one short example, the why in one sentence. No second example, no footnote, no table of cases. Deeper mechanism goes in code comments or the source, linked.
 - Write headings that mean something before the section is read. Define a term before first use.
 - Use a precise term over a hedge, naming the state rather than the range of states it might be in. Spell out an abbreviation a reader outside the project could not expand, and leave the ones they read daily alone.

@@ -113,9 +113,37 @@ def table_letters():
     return out
 
 
+def table_words():
+    """Every word the shortcuts table quotes, a `<placeholder>` matching any run of text."""
+    try:
+        rows = [r for r in SHORTCUTS.read_text(encoding='utf-8').splitlines() if r.startswith('| `')]
+    except OSError:
+        return []
+    return [re.compile(re.sub(r'<[^>]*>', '.+', re.escape(w)) + r'\Z')
+            for r in rows for w in re.findall(r'`([^`]+)`', r)]
+
+
+# A word offered to type: `say ...` or `type ...` before it, or `word`: at the head of a line.
+OFFERED = re.compile(r'\b(?:say|type)\s+\**`([^`]+)`|^\s*\**`([^`]+)`\**\s*:', re.I | re.M)
+
+
+def phrases(text):
+    """A phrase offered to type where the shortcuts table gives a letter, per its opening rule."""
+    allowed = table_words()
+    known = {t for p in allowed for t in re.findall(r'[a-z]+', p.pattern)}
+    out = []
+    for said, head in OFFERED.findall(text):
+        w = (said or head).strip()
+        if ' ' not in w or all(len(t) == 1 for t in w.split()) or any(p.match(w) for p in allowed):
+            continue
+        if said or w.split()[0].lower() in known:
+            out.append(f'offers `{w}` to type, a phrase the shortcuts table does not give')
+    return out
+
+
 def letters(text):
     """A coined letter the TL;DR line names with no definition beside it, and a letter coined over the table's."""
-    table, reasons = table_letters(), []
+    table, reasons = table_letters(), phrases(text)
     for line in text.splitlines():
         for c, word in DEFINED.findall(line):
             if c in table and word.lower() not in table[c]:

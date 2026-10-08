@@ -228,3 +228,11 @@ class Letters(unittest.TestCase):
     def test_coining_a_letter_the_table_gives_is_a_reason(self):
         self.assertTrue(self.coined('`p`: fold the rooms in and test it.\n\nTL;DR: rooms differ; `p` makes them the same.'))
         self.assertFalse(self.coined('`r`: run the review round.\n\nTL;DR: round planned; `r`: run the review round.'))
+
+    def test_a_phrase_offered_to_type_is_a_reason_unless_the_table_gives_it(self):
+        phrase = lambda t: [r for r in rc.measure(t)['reasons'] if 'phrase' in r]
+        self.assertTrue(phrase('Ready.\n\nSay `mark 42 ready` and it goes.'))
+        self.assertTrue(phrase('`push merge`: push, then merge once CI passes.'))
+        self.assertFalse(phrase('`post as an AI`: send the draft with the marker.'))
+        self.assertFalse(phrase('`p d`: push, then delete the branch.'))
+        self.assertFalse(phrase('`git status`: clean.'))

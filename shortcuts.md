@@ -36,6 +36,7 @@ as the skill defines it; ask when the reading changes what gets built.
 | `p`, `push` | everything the closing block names, once: every commit and push the work needs, then the post, upload, title or body it links | *Consent*, workspace `AGENTS.md` |
 | `pr`, `p r`, `push review` | the round over the change's branch, step 10 of *Fix*, its fixes applied, then everything `p` sends; a bare `p` runs no round | `skills/change.md` |
 | `r` | the same round over the change's branch, its fixes applied, nothing committed or pushed | `skills/change.md` |
+| `pf`, `p f`, `push force` | everything `p` sends, the branch it names replaced on its remote with `--force-with-lease`: Invariant 8's approval, for that push alone | Invariant 8 |
 | `post` | the shown draft goes to its target where nothing waits to be pushed, and `p` sends it the same; `post as an AI` adds the marker; `upload` sends media | `skills/review-comment.md`, `skills/issue.md`, `skills/change.md` |
 | `m`, `x`, `d` | merge, close or delete: that one action on the named target | Invariant 2 |
 | `o`, `ready` | the named draft pull request marked ready for review | Invariant 2 |

@@ -982,15 +982,30 @@ def gives_force(text):
 
 # The letter the user types for each word, on a line of letters alone, so `p d`
 # and `pd` give both. `p` and `push` send everything the closing block named.
-LETTERS = {'p': 'push', 'm': 'merge', 'x': 'close', 'd': 'delete'}
+LETTERS = {'p': 'push', 'm': 'merge', 'x': 'close', 'd': 'delete', 'o': 'ready'}
 PUSH_COVERS = {'push', 'post', 'upload', 'ready'}
 LETTER_LINE = re.compile(r'(?i)^[\s,]*(?:[a-z][\s,]*){1,4}$')
+# The shortcut letters, `r` and `f` riding with `p`. `o` gives `ready` only on a
+# line of these alone, since `ok` and `go` carry it inside a vague yes.
+SHORTCUT_LETTERS = set(LETTERS) | {'r', 'f'}
+# A word spelled only in shortcut letters is a word, never a verb.
+NOT_LETTERS = {'do', 'od'}
+
+
+def letter_words(line):
+    """The words a line of letters alone gives: `pd` both, `ok`, `go` and `do` none."""
+    if not LETTER_LINE.match(line):
+        return set()
+    letters = [c.lower() for c in re.findall(r'[a-z]', line, re.I)]
+    if ''.join(letters) in NOT_LETTERS:
+        return set()
+    pure = set(letters) <= SHORTCUT_LETTERS
+    return {LETTERS[c] for c in letters if c in LETTERS and (c != 'o' or pure)}
 
 
 def gives(text, word):
     """The turn gives the word: typed, carried by push, or its letter on a line of letters alone."""
-    words = {LETTERS.get(c.lower()) for line in text.splitlines() if LETTER_LINE.match(line)
-             for c in re.findall(r'[a-z]', line, re.I)}
+    words = {w for line in text.splitlines() for w in letter_words(line)}
     if 'push' in words or has_word(text, 'push'):
         words |= PUSH_COVERS
     return word in words or has_word(text, word)

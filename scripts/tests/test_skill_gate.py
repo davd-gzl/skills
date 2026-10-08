@@ -501,6 +501,14 @@ class PublishWords(GateCase):
         self.assertEqual(self.hook('gh pr close 5', prompt='x')[0], 0)
         self.assertEqual(self.hook('gh pr comment 5 -b hi', prompt='ok')[0], 2)
 
+    def test_o_alone_readies_and_a_vague_yes_never_does(self):
+        ready = 'gh pr ready 79 -R o/r'
+        self.assertEqual(self.hook(ready, prompt='o')[0], 0, 'o alone is ready')
+        self.assertEqual(self.hook(ready, prompt='p o')[0], 0, 'o beside p keeps its word')
+        for vague in ('ok', 'go', 'so', 'no', 'o k'):
+            self.assertEqual(self.hook(ready, prompt=vague)[0], 2, f'{vague!r} is no ready')
+        self.assertEqual(self.hook('git push origin --delete b', prompt='do')[0], 2, 'do is a word, not d')
+
     def test_a_quiet_close_on_an_own_repository_needs_no_word(self):
         (self.root / 'workspace.json').write_text(json.dumps({'identities': {'public': {'name': 'Me'}}}))
         self.assertEqual(self.hook('gh pr close 12 -R me/fork')[0], 0, 'the fork pull request closes unasked')

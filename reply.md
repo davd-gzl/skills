@@ -89,6 +89,10 @@ This job runs on a schedule only, and GitHub disables those after 60 days.
   then names the asked decisions in one line and carries no word for them.
   Where the harness has no such tool, the question is one line, per
   `skills/short-form.md`.
+- Before the first question about something new to build, restate it in one
+  sentence that keeps the user's own nouns, and ask whether that is the thing.
+  The tell is a question already using a different noun for it: the user says
+  their apps, and the question asks about documents.
 - A publish never goes through the question tool: its word is typed, per
   Invariant 2 in the workspace `AGENTS.md`.
 - Every word a reply offers, anywhere in it, is its own line with the word

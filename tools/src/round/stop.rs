@@ -2,19 +2,23 @@
 //! `round stop`: whether a fix loop stops, from a round's `claims.md` or a pass's own list and
 //! the diff the pass before wrote. It stops when no Critical or Warning survives, or when every
 //! one sits on a line `git diff -U0 -M <prev> <head>` changed, per *Fix* step 8 in
-//! `skills/change.md`.
-use super::{command, options, Hunk, LineMap, USAGE};
+//! `skills/change.md`. With `--prior <slug dir>`, a Warning whose Mechanism cell names the
+//! mechanism of an earlier round's unrefuted row counts as on the fix too, per *Own PR* in
+//! `skills/review-modes.md`: the loop is patching one mechanism shape by shape.
+use super::{command, dir_name, options, Hunk, LineMap, USAGE};
 use regex::Regex;
 use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::LazyLock;
 
-/// A Critical or Warning that no judge refuted.
+/// A Critical or Warning that no judge refuted, and the mechanism its judge named, empty where
+/// the table has no Mechanism column or the judge named none.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Blocking {
     pub band: String,
     pub anchor: String,
+    pub mechanism: String,
 }
 
 /// The header of a Candidates table, with or without its leading `#` column.
@@ -35,24 +39,68 @@ static LINE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"^(Critical|Warning|Suggestion|Nit|Missing test)\s+(\S+)$").unwrap()
 });
 
+/// A table line's cells, split on every pipe `cell` in `assemble.rs` left unescaped, so a Check
+/// holding `\|` stays one cell.
+fn cells(line: &str) -> Vec<String> {
+    let line = line.trim();
+    let line = line.strip_prefix('|').unwrap_or(line);
+    let mut out = vec![String::new()];
+    let mut chars = line.chars().peekable();
+    while let Some(c) = chars.next() {
+        match c {
+            '\\' if chars.peek() == Some(&'|') => {
+                out.last_mut().unwrap().push_str("\\|");
+                chars.next();
+            }
+            '|' => out.push(String::new()),
+            _ => out.last_mut().unwrap().push(c),
+        }
+    }
+    if out.len() > 1 && out.last().is_some_and(|c| c.trim().is_empty()) {
+        out.pop();
+    }
+    out.into_iter().map(|c| c.trim().to_string()).collect()
+}
+
 /// Every Critical and Warning that still blocks the stop. A text holding a Candidates header is
-/// read as `claims.md`, its rows in any state but REFUTED; any other text is a pass's list, and a
-/// line in it that is neither `<Band> <file:line>` nor `none` is an error, never a skipped row.
+/// read as `claims.md`, its rows in any state but REFUTED, each with the cell under the latest
+/// header's Mechanism column, counted from the end so a row without its `#` cell still finds it;
+/// any other text is a pass's list, and a line in it that is neither `<Band> <file:line>` nor
+/// `none` is an error, never a skipped row.
 pub fn blocking_rows(text: &str) -> Result<Vec<Blocking>, String> {
-    let blocking = |band: &str, anchor: &str| Blocking {
+    let blocking = |band: &str, anchor: &str, mechanism: &str| Blocking {
         band: band.to_string(),
         anchor: anchor.trim().to_string(),
+        mechanism: mechanism.trim_matches('`').to_string(),
     };
     if text.lines().any(|line| HEADER.is_match(line)) {
-        let rows = text
-            .lines()
-            .filter_map(|line| ROW.captures(line))
-            .filter(|caps| &caps[1] != "REFUTED")
-            .filter_map(|caps| {
-                let band = BLOCKING_BAND.captures(&caps[2])?;
-                Some(blocking(&band[1], &caps[3]))
-            })
-            .collect();
+        let mut rows = Vec::new();
+        // The Mechanism column's place from the end of the latest header, None before one has it.
+        let mut from_end: Option<usize> = None;
+        for line in text.lines() {
+            if HEADER.is_match(line) {
+                let head = cells(line);
+                from_end = head
+                    .iter()
+                    .position(|c| c == "Mechanism")
+                    .map(|at| head.len() - at);
+                continue;
+            }
+            let Some(caps) = ROW.captures(line) else {
+                continue;
+            };
+            if &caps[1] == "REFUTED" {
+                continue;
+            }
+            let Some(band) = BLOCKING_BAND.captures(&caps[2]) else {
+                continue;
+            };
+            let row = cells(line);
+            let mechanism = from_end
+                .and_then(|k| row.len().checked_sub(k))
+                .map_or("", |at| row[at].as_str());
+            rows.push(blocking(&band[1], &caps[3], mechanism));
+        }
         return Ok(rows);
     }
     let mut rows = Vec::new();
@@ -68,7 +116,7 @@ pub fn blocking_rows(text: &str) -> Result<Vec<Blocking>, String> {
             )
         })?;
         if matches!(&caps[1], "Critical" | "Warning") {
-            rows.push(blocking(&caps[1], &caps[2]));
+            rows.push(blocking(&caps[1], &caps[2], ""));
         }
     }
     Ok(rows)
@@ -176,6 +224,52 @@ pub fn place_rows(rows: &[Blocking], hunks: &HashMap<String, Vec<Hunk>>) -> Vec<
         .collect()
 }
 
+/// The mechanism of every unrefuted Critical and Warning in the slug's rounds before `own`, the
+/// round directory the input sits in: `(round directory, mechanism)`, held rows included, since a
+/// row the author kept open names its mechanism as surely as one a commit closed. A round is
+/// earlier by the number its directory opens on; a directory with none is read unless it is
+/// `own`. A claims.md with no Mechanism column gives nothing.
+pub fn prior_mechanisms(slug: &Path, own: &str) -> Result<Vec<(String, String)>, String> {
+    let number = |name: &str| name.split('-').next().and_then(|n| n.parse::<usize>().ok());
+    let own_n = number(own);
+    let mut dirs: Vec<(Option<usize>, String, PathBuf)> = fs::read_dir(slug)
+        .map_err(|e| format!("{}: {e}", slug.display()))?
+        .flatten()
+        .map(|entry| entry.path())
+        .filter(|path| path.join("claims.md").exists())
+        .map(|path| (number(&dir_name(&path)), dir_name(&path), path))
+        .filter(|(n, name, _)| name != own && !matches!((n, own_n), (Some(n), Some(o)) if n >= &o))
+        .collect();
+    dirs.sort();
+    let mut out = Vec::new();
+    for (_, name, path) in dirs {
+        let text = fs::read_to_string(path.join("claims.md")).unwrap_or_default();
+        for row in blocking_rows(&text).unwrap_or_default() {
+            if !row.mechanism.is_empty() {
+                out.push((name.clone(), row.mechanism));
+            }
+        }
+    }
+    Ok(out)
+}
+
+/// For each row, the earlier round whose row names the same mechanism, when the row is a Warning
+/// and its mechanism is not empty; case and surrounding space aside, the slugs must be equal.
+pub fn recurring(rows: &[Blocking], prior: &[(String, String)]) -> Vec<Option<String>> {
+    rows.iter()
+        .map(|row| {
+            let mechanism = row.mechanism.trim().to_lowercase();
+            if row.band != "Warning" || mechanism.is_empty() {
+                return None;
+            }
+            prior
+                .iter()
+                .find(|(_, m)| m.trim().to_lowercase() == mechanism)
+                .map(|(round, _)| round.clone())
+        })
+        .collect()
+}
+
 pub fn stop(args: &[String]) -> i32 {
     let input = PathBuf::from(&args[0]);
     let opts = match options(args) {
@@ -208,18 +302,44 @@ pub fn stop(args: &[String]) -> i32 {
             return 2;
         }
     };
-    let places = place_rows(&rows, &hunks);
-    for (row, place) in rows.iter().zip(&places) {
+    let prior = match opts.get("prior") {
+        Some(slug) => {
+            let own = input.parent().map(dir_name).unwrap_or_default();
+            match prior_mechanisms(Path::new(slug), &own) {
+                Ok(prior) => prior,
+                Err(e) => {
+                    eprintln!("{e}");
+                    return 2;
+                }
+            }
+        }
+        None => Vec::new(),
+    };
+    let mut places = place_rows(&rows, &hunks);
+    let recurs = recurring(&rows, &prior);
+    for ((row, place), earlier) in rows.iter().zip(places.iter_mut()).zip(&recurs) {
+        if earlier.is_some() {
+            *place = Place::OnFix;
+        }
         let word = match place {
             Place::OnFix => "on the fix",
             Place::Outside => "outside",
             Place::Unanchored => "unanchored",
         };
-        println!("{word}\t{}\t{}", row.band, row.anchor);
+        let mechanism = match (row.mechanism.as_str(), earlier) {
+            ("", _) => String::new(),
+            (m, Some(round)) => format!("\tmechanism {m}, as in {round}"),
+            (m, None) => format!("\tmechanism {m}"),
+        };
+        println!("{word}\t{}\t{}{mechanism}", row.band, row.anchor);
     }
     let blocking = places.iter().filter(|p| **p != Place::OnFix).count();
+    let by_mechanism = recurs.iter().any(Option::is_some);
     if rows.is_empty() {
         println!("stop: no Critical or Warning");
+        0
+    } else if blocking == 0 && by_mechanism {
+        println!("stop: every Critical and Warning sits on lines {prev}..{head} changed or repeats an earlier round's mechanism; measure a design that removes the mechanism, per Own PR in skills/review-modes.md");
         0
     } else if blocking == 0 {
         println!("stop: every Critical and Warning sits on lines {prev}..{head} changed");
@@ -305,6 +425,133 @@ mod tests {
         );
     }
 
+    fn mechanisms(text: &str) -> Vec<String> {
+        blocking_rows(text)
+            .unwrap()
+            .into_iter()
+            .map(|r| r.mechanism)
+            .collect()
+    }
+
+    #[test]
+    fn the_mechanism_cell_is_read_from_the_end_and_an_old_table_has_none() {
+        let claims = "| # | State | Band | file:line | Check | Observed | Artifact | Tier | Mechanism |\n\
+            | --- | --- | --- | --- | --- | --- | --- | --- | --- |\n\
+            | 1 | CONFIRMED | Warning | a.go:3 | go test -run A \\| go test -run B | red | | hot | code-fence-parse |\n\
+            | 2 | PLAUSIBLE | Critical | a.go:9 | x | | | hot | |\n\
+            | UNVERIFIED | Warning | c.go:1 | x | | | cold | `nest-depth` |\n";
+        assert_eq!(
+            mechanisms(claims),
+            ["code-fence-parse", "", "nest-depth"],
+            "an escaped pipe stays in its cell, an empty cell is no mechanism, a row without # still finds the column"
+        );
+        let old = "| # | State | Band | file:line | Check | Observed | Artifact | Tier |\n\
+            | 1 | CONFIRMED | Warning | a.go:3 | x | red | | code-fence-parse |\n";
+        assert_eq!(mechanisms(old), [""], "no Mechanism header, no mechanism, whatever the last cell holds");
+        let two = format!("{claims}\n## Critical pass 1\n\n{old}");
+        assert_eq!(
+            mechanisms(&two),
+            ["code-fence-parse", "", "nest-depth", ""],
+            "each row reads the header above it"
+        );
+    }
+
+    const HEADER_9: &str = "| # | State | Band | file:line | Check | Observed | Artifact | Tier | Mechanism |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- |\n";
+
+    /// An own pull request loop's slug: round 2 holds the code-fence Warning the author kept
+    /// open and a refuted row, round 3 a padding fix, round 4 the foreign-body Warning on the
+    /// code-fence mechanism, and round 5 one that must not count as earlier than round 4.
+    fn loop_slug(name: &str) -> PathBuf {
+        let slug = tmp(name);
+        let round = |dir: &str, rows: &str| {
+            fs::create_dir_all(slug.join(dir)).unwrap();
+            fs::write(slug.join(dir).join("claims.md"), format!("## Candidates\n\n{HEADER_9}{rows}")).unwrap();
+        };
+        round("2-aaa", "| 2 | CONFIRMED | Warning | f.go:3 | x | | | hot | code-fence-parse |\n| 9 | REFUTED | Warning | f.go:4 | x | | | hot | tilde-fence |\n");
+        round("3-bbb", "| 1 | CONFIRMED | Warning | f.go:2 | x | | | hot | summary-offset |\n");
+        round("4-ccc", "| 1 | CONFIRMED | Warning | f.go:6 | x | | | hot | Code-Fence-Parse |\n| 2 | CONFIRMED | Critical | f.go:7 | x | | | hot | summary-offset |\n| 3 | CONFIRMED | Warning | f.go:1 | x | | | hot | tilde-fence |\n");
+        round("5-ddd", "| 1 | CONFIRMED | Warning | f.go:1 | x | | | hot | tilde-fence |\n");
+        fs::create_dir_all(slug.join("1-old")).unwrap();
+        fs::write(slug.join("1-old/claims.md"), "| # | State | Band | file:line | Check | Observed | Artifact | Tier |\n| 1 | CONFIRMED | Warning | f.go:1 | x | | | hot |\n").unwrap();
+        slug
+    }
+
+    #[test]
+    fn a_warning_on_an_earlier_rounds_mechanism_recurs_and_a_critical_does_not() {
+        let slug = loop_slug("stop-prior");
+        let prior = prior_mechanisms(&slug, "4-ccc").unwrap();
+        assert_eq!(
+            prior,
+            [("2-aaa".to_string(), "code-fence-parse".to_string()), ("3-bbb".to_string(), "summary-offset".to_string())],
+            "earlier rounds only, the refuted row and the old table left out"
+        );
+        let rows = blocking_rows(&fs::read_to_string(slug.join("4-ccc/claims.md")).unwrap()).unwrap();
+        assert_eq!(
+            recurring(&rows, &prior),
+            [Some("2-aaa".to_string()), None, None],
+            "the Warning matches case aside; the Critical waits on its line; a refuted mechanism is no match"
+        );
+        assert!(prior_mechanisms(&slug.join("absent"), "4-ccc").is_err());
+    }
+
+    fn run_with(repo: &Path, prev: &str, head: &str, input: &Path, extra: &[&str]) -> i32 {
+        let mut args: Vec<String> = [
+            &*input.to_string_lossy(),
+            "--repo",
+            &repo.to_string_lossy(),
+            "--prev",
+            prev,
+            "--head",
+            head,
+        ]
+        .iter()
+        .map(|s| s.to_string())
+        .collect();
+        args.extend(extra.iter().map(|s| s.to_string()));
+        stop(&args)
+    }
+
+    #[test]
+    fn a_loop_stops_on_the_held_rows_mechanism() {
+        let (repo, prev, head) = fixed_repo("stop-held");
+        let slug = tmp("stop-held-slug");
+        fs::create_dir_all(slug.join("2-aaa")).unwrap();
+        fs::create_dir_all(slug.join("4-ccc")).unwrap();
+        fs::write(
+            slug.join("2-aaa/claims.md"),
+            format!("{HEADER_9}| 2 | CONFIRMED | Warning | f.go:6 | x | | | hot | code-fence-parse |\n\n## Applied\n\nRow 2 waits on the author.\n"),
+        )
+        .unwrap();
+        let input = slug.join("4-ccc/claims.md");
+        fs::write(
+            &input,
+            format!("{HEADER_9}| 1 | CONFIRMED | Warning | f.go:6 | x | | | hot | code-fence-parse |\n| 2 | CONFIRMED | Warning | f.go:2 | x | | | hot | |\n"),
+        )
+        .unwrap();
+        let prior = slug.to_string_lossy().to_string();
+        assert_eq!(run_with(&repo, &prev, &head, &input, &[]), 1, "by line alone, f.go:6 sits outside the fix");
+        assert_eq!(
+            run_with(&repo, &prev, &head, &input, &["--prior", &prior]),
+            0,
+            "f.go:6 repeats round 2's mechanism"
+        );
+        fs::write(
+            &input,
+            format!("{HEADER_9}| 1 | CONFIRMED | Warning | f.go:6 | x | | | hot | stale-cache |\n"),
+        )
+        .unwrap();
+        assert_eq!(
+            run_with(&repo, &prev, &head, &input, &["--prior", &prior]),
+            1,
+            "a new mechanism outside the fix still blocks"
+        );
+        assert_eq!(
+            run_with(&repo, &prev, &head, &input, &["--prior", &slug.join("absent").to_string_lossy()]),
+            2,
+            "an unreadable slug is a bad call"
+        );
+    }
+
     #[test]
     fn hunks_by_path_follow_the_new_side() {
         let diff = "diff --git a/old.go b/new.go\nsimilarity index 90%\nrename from old.go\nrename to new.go\n\
@@ -342,6 +589,7 @@ mod tests {
         Blocking {
             band: "Warning".into(),
             anchor: anchor.into(),
+            mechanism: String::new(),
         }
     }
 

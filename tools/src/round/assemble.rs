@@ -61,6 +61,9 @@ struct Verdict {
     refuted_by: String,
     angle: String,
     verify_by: String,
+    /// The defect class the judge named for a Critical or Warning, a short slug, so `round stop`
+    /// can tell a later round's Warning on the same mechanism from a new one.
+    mechanism: String,
 }
 
 /// One row of the Candidates table, a verdict joined to its candidate or a candidate no
@@ -80,6 +83,7 @@ pub struct Row {
     pub tldr: String,
     pub details: String,
     pub unrun: bool,
+    pub mechanism: String,
 }
 
 /// Every `.json` file of a directory, by name, so a run is deterministic; an absent
@@ -238,6 +242,7 @@ fn verdicts(files: &[(String, Value)]) -> Vec<Verdict> {
                 refuted_by: text(v, "refuted_by"),
                 angle: text(v, "angle"),
                 verify_by: text(v, "verify_by"),
+                mechanism: text(v, "mechanism"),
             };
             if verdict.file.is_empty() {
                 continue;
@@ -342,6 +347,7 @@ fn rows(
             tldr: v.tldr.clone(),
             details: v.details.clone(),
             unrun: false,
+            mechanism: v.mechanism.clone(),
         });
     }
     for (i, c) in cands.iter().enumerate() {
@@ -368,6 +374,7 @@ fn rows(
             tldr: c.summary.clone(),
             details: String::new(),
             unrun: true,
+            mechanism: String::new(),
         });
     }
     number_rows(&mut out);
@@ -464,10 +471,10 @@ fn claims_md(
     if !shape.is_empty() {
         out.push_str(&format!("Round shape: {shape}\n\n"));
     }
-    out.push_str("## Candidates\n\n| # | State | Band | file:line | Check | Observed | Artifact | Tier |\n| --- | --- | --- | --- | --- | --- | --- | --- |\n");
+    out.push_str("## Candidates\n\n| # | State | Band | file:line | Check | Observed | Artifact | Tier | Mechanism |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- |\n");
     for r in table_order(rows) {
         out.push_str(&format!(
-            "| {} | {} | {} | {}:{} | {} | {} | {} | {} |\n",
+            "| {} | {} | {} | {}:{} | {} | {} | {} | {} | {} |\n",
             r.index,
             r.state,
             cell(&r.band),
@@ -476,7 +483,8 @@ fn claims_md(
             cell(&r.check),
             cell(&r.observed),
             cell(&r.artifact),
-            r.tier
+            r.tier,
+            cell(&r.mechanism)
         ));
     }
     if !tiers.is_empty() {
@@ -1036,6 +1044,23 @@ mod tests {
         assert_eq!(strip_local("cd /w/head && go test ./pkg", "/w/head"), "cd . && go test ./pkg");
         assert_eq!(strip_local("go test /tmp/claude/x/judge-3/pkg/... and /tmp/claude/x/find-b1-lines/pkg/a.go", "/w/head"), "go test pkg/... and pkg/a.go");
         assert_eq!(strip_local("pkg/a.go:10 holds", "/w/head"), "pkg/a.go:10 holds");
+    }
+
+    #[test]
+    fn the_judges_mechanism_is_the_last_cell_and_round_stop_reads_it() {
+        let (round, _) = fixture("mechanism");
+        fs::write(
+            round.join("verdicts/big-1.json"),
+            r#"{"verdicts": [{"index": 1, "state": "CONFIRMED", "band": "Warning", "file": "pkg/a.go", "line": 12, "tldr": "a zero TTL never expires", "evidence": "TestTTL: FAIL", "verify_by": "go test -run 'A|B'", "mechanism": "ttl-clamp"}]}"#,
+        )
+        .unwrap();
+        let (_, claims, _) = run_on(&round, &[]);
+        assert!(claims.contains("| Tier | Mechanism |\n"), "{claims}");
+        assert!(claims.contains("| 1 | CONFIRMED | Warning | pkg/a.go:12 | go test -run 'A\\|B' | TestTTL: FAIL |  |  | ttl-clamp |\n"), "{claims}");
+        assert!(claims.contains("| UNVERIFIED | Nit | pkg/b.go:4 | grep -n 'err' pkg/b.go | not run: on the finder's read |  |  |  |\n"), "a row no judge ran names no mechanism: {claims}");
+        let blocking = super::super::blocking_rows(&claims).unwrap();
+        assert_eq!(blocking.len(), 1, "{blocking:?}");
+        assert_eq!(blocking[0].mechanism, "ttl-clamp");
     }
 
     #[test]

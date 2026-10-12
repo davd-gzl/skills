@@ -15,6 +15,7 @@ import subprocess
 import tempfile
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
+from unittest import mock
 
 SCRIPT = pathlib.Path(__file__).resolve().parent.parent / 'skill-gate.py'
 spec = importlib.util.spec_from_file_location('skill_gate', SCRIPT)
@@ -932,6 +933,83 @@ class PublishWordsRoundEleven(PublishWordsRoundTen):
         self.assertIn(self.hook('bash /tmp/a\x00b.sh; git push origin x')[0], (0, 2))
 
 
+class DraftPullRequestPush(GateCase):
+    """A draft pull request's branch goes up unasked on the user's own repository, and a ready one's waits for push
+    where the standing word covers drafts alone; no pull request, or no answer from GitHub, keeps the standing list's."""
+
+    turn, hook, repo = PublishWords.turn, PublishWords.hook, PublishWords.repo
+
+    def setUp(self):
+        super().setUp()
+        (self.root / 'workspace.json').write_text(json.dumps({
+            'identities': {'public': {'name': 'Me'}},
+            'standing_push': ['me/private', 'me/fixes'], 'standing_push_draft': ['me/fixes']}))
+        self.calls = []
+
+    def github(self, draft, parent='up/gno', on=None):
+        """GitHub as `gh api` answers it: True a draft, False a ready pull request, None none, 'offline' no answer;
+        the pull request opens on `on`, the parent unless named."""
+        def api(path, jq):
+            self.calls.append(path)
+            if draft == 'offline':
+                return None
+            if '/pulls?' not in path:
+                return parent + '\n'
+            return '' if draft is None or not path.startswith(f'repos/{on or parent}/') else f'{str(draft).lower()}\n'
+        return mock.patch.object(gate, '_gh_api', api)
+
+    def push(self, url, refspec='HEAD:refs/heads/docs/x', prompt='fix it'):
+        shutil.rmtree(self.root / 'r', ignore_errors=True)
+        return self.hook(f'git -C {self.repo(url)} push origin {refspec}', prompt=prompt)
+
+    def test_a_draft_branch_on_an_own_fork_goes_up_unasked(self):
+        with self.github(True):
+            self.assertEqual(self.push('https://github.com/me/gno.git')[0], 0)
+            self.assertIn('repos/up/gno/pulls?state=open&per_page=100&head=me%3Adocs%2Fx', self.calls)
+            self.assertEqual(self.push('https://github.com/me/gno.git', refspec='docs/x')[0], 0)
+            self.assertEqual(self.push('https://github.com/me/gno.git', refspec='--force HEAD:docs/x')[0], 2,
+                             'a forced push still waits for force')
+
+    def test_a_bare_push_asks_for_the_checked_out_branch(self):
+        repo = self.repo('https://github.com/me/gno.git')
+        subprocess.run(['git', '-C', repo, 'symbolic-ref', 'HEAD', 'refs/heads/docs/x'], check=True)
+        with self.github(True):
+            self.assertEqual(self.hook(f'git -C {repo} push -u origin')[0], 0)
+        self.assertTrue(any('head=me%3Adocs%2Fx' in c for c in self.calls))
+
+    def test_a_ready_branch_no_pull_request_or_no_answer_waits_for_push_on_an_own_fork(self):
+        for state in (False, None, 'offline'):
+            with self.github(state):
+                self.assertEqual(self.push('https://github.com/me/gno.git')[0], 2, state)
+                self.assertEqual(self.push('https://github.com/me/gno.git', prompt='push')[0], 0, state)
+
+    def test_a_ready_branch_waits_for_push_where_the_standing_word_covers_drafts_alone(self):
+        with self.github(False, parent='up/fixes'):
+            rc, err = self.push('https://github.com/me/fixes.git')
+            self.assertEqual(rc, 2)
+            self.assertIn('ready pull request', err)
+            self.assertEqual(self.push('https://github.com/me/fixes.git', prompt='p')[0], 0)
+        for state in (True, None, 'offline'):
+            with self.github(state, parent='up/fixes'):
+                self.assertEqual(self.push('https://github.com/me/fixes.git')[0], 0, state)
+
+    def test_a_full_standing_word_and_a_repository_the_user_does_not_own_ask_github_nothing(self):
+        with self.github(False):
+            self.assertEqual(self.push('https://github.com/me/private.git')[0], 0)
+            self.assertEqual(self.push('https://github.com/up/gno.git')[0], 2)
+        self.assertEqual(self.calls, [])
+
+    def test_a_pull_request_on_the_fork_itself_counts(self):
+        with self.github(True, on='me/gno'):
+            self.assertEqual(self.push('https://github.com/me/gno.git')[0], 0)
+
+    def test_a_call_that_hangs_is_no_answer(self):
+        with mock.patch.object(gate.subprocess, 'run', side_effect=subprocess.TimeoutExpired('gh', 5)):
+            self.assertIsNone(gate._gh_api('repos/me/gno', '.parent.full_name'))
+        with mock.patch.object(gate.subprocess, 'run', side_effect=FileNotFoundError('gh')):
+            self.assertIsNone(gate._gh_api('repos/me/gno', '.parent.full_name'))
+
+
 class HookRead(GateCase):
     def read(self, payload):
         return gate.main(['hook-read'], stdin=io.StringIO(json.dumps(payload)))
@@ -1053,6 +1131,26 @@ class PreCommitRefusals(GateCase):
         subprocess.run(['git', '-C', str(sub), 'update-ref', 'refs/remotes/origin/main', sha], check=True)
         with redirect_stderr(io.StringIO()):
             self.assertEqual(gate.main(['pre-commit'], cwd=str(repo)), 0, 'held by a remote branch, the pointer passes')
+
+    def test_a_held_gitlink_passes_from_a_linked_worktree(self):
+        repo = self._repo()
+        env = {**os.environ, 'GIT_AUTHOR_NAME': 't', 'GIT_AUTHOR_EMAIL': 't@x', 'GIT_COMMITTER_NAME': 't', 'GIT_COMMITTER_EMAIL': 't@x'}
+        subprocess.run(['git', '-C', str(repo), 'commit', '-q', '-n', '--allow-empty', '-m', 'base'], check=True, env=env)
+        wt = self.root / 'wt'
+        subprocess.run(['git', '-C', str(repo), 'worktree', 'add', '-q', '--detach', str(wt)], check=True)
+        sub = wt / 'sub'
+        subprocess.run(['git', 'init', '-q', str(sub)], check=True)
+        subprocess.run(['git', '-C', str(sub), 'commit', '-q', '--allow-empty', '-m', 'one'], check=True, env=env)
+        sha = subprocess.run(['git', '-C', str(sub), 'rev-parse', 'HEAD'], capture_output=True, text=True, check=True).stdout.strip()
+        subprocess.run(['git', '-C', str(sub), 'update-ref', 'refs/remotes/origin/main', sha], check=True)
+        subprocess.run(['git', '-C', str(wt), 'update-index', '--add', '--cacheinfo', f'160000,{sha},sub'], check=True)
+        # What git hands a pre-commit hook in a linked worktree: an absolute GIT_DIR and index.
+        hook_env = {'GIT_DIR': str(repo / '.git' / 'worktrees' / 'wt'),
+                    'GIT_INDEX_FILE': str(repo / '.git' / 'worktrees' / 'wt' / 'index')}
+        err = io.StringIO()
+        with mock.patch.dict(os.environ, hook_env), redirect_stderr(err):
+            rc = gate.main(['pre-commit'], cwd=str(wt))
+        self.assertEqual(rc, 0, err.getvalue())
 
 
 class PrePush(GateCase):

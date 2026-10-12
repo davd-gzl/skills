@@ -212,6 +212,7 @@ A verdict, filled:
 - An artifact the judge builds itself goes under `tests/judge-<candidate>-<slug>.<ext>` per *Write tests for test-shaped findings*; the finder's keeps its name.
 - Report what the user loses, never the artifact that causes it.
 - Write the verdicts you return to `<round dir>/verdicts/<agent>.json`, each carrying its candidate's index, angle and check, so `round assemble` joins it to its row.
+- Give a Critical or a Warning `mechanism`, a short kebab-case slug naming the defect class and never its line or file, `code-fence-parse`: `round stop --prior` reads a later round's Warning naming the same slug as the loop patching one mechanism.
 - An earlier round's command for the same line arrives with the candidate, never its verdict; re-run it before building your own.
 - Every judge carries a tool-call budget and returns PLAUSIBLE with the check still to run when it runs out, since the slowest judge holds every stage behind it. The project's tool sits prebuilt on the PATH, so none builds one and none runs `go build`, `make` or `go run`, since a named test compiles what it needs; run named tests, never a module sweep.
 

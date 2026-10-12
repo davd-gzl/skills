@@ -61,8 +61,8 @@ pub const USAGE: &str = "round <subcommand> ...
       claims.md and findings.md from the round's verdicts as data: candidates/*.json, what
       each finder, the reflector and the critic returned, and verdicts/*.json, what each
       verifier returned. claims.md holds the Candidates table, one row per verdict joined
-      to its candidate, its Check the one the judge says it ran, else the candidate's, and
-      one per candidate no verifier reached, the rows a finder
+      to its candidate, its Check the one the judge says it ran, else the candidate's, its
+      last column the mechanism slug the judge named, and one per candidate no verifier reached, the rows a finder
       settled, the hit rate per tier and an empty Completeness section; findings.md one
       block per anchor in posting order, two findings on one file:line sharing its block
       row after row, each header closed with the highest band of its rows as
@@ -88,13 +88,17 @@ pub const USAGE: &str = "round <subcommand> ...
       neither a draft nor a record exits 2. One row per hit into
       <round dir>/check.md; exit 1 on any.
 
-  stop <claims.md or list> --repo <git dir> --prev <sha> --head <sha>
+  stop <claims.md or list> --repo <git dir> --prev <sha> --head <sha> [--prior <slug dir>]
       Whether a fix loop stops after this pass or round: every Critical and Warning
       row of a Candidates table no judge refuted, or every '<Band> <file:line>' line
       of a pass's own list, placed against git diff -U0 -M <prev> <head>, the diff the
       pass before wrote, every commit between the shas counted, new work included. A
       row is on the fix when its file:line falls inside a hunk's added lines, or
-      beside a pure deletion. One line per row; exit 0 when no such
+      beside a pure deletion. With --prior, a Warning is on the fix too when its
+      Mechanism cell names the mechanism of an unrefuted Critical or Warning row in a
+      round of the slug numbered below the input's, a row the author held included;
+      a claims.md with no Mechanism column matches nothing. One line per row, its
+      mechanism after it and the earlier round it repeats; exit 0 when no such
       row is left or every one is on the fix, 1 when one sits outside it or has no
       file:line anchor, 2 when a sha is not a commit or, in input with no Candidates
       header, a line is not '<Band> <file:line>' or 'none'.";

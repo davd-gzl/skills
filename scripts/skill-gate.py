@@ -50,6 +50,7 @@ import shlex
 import subprocess
 import sys
 import time
+import urllib.parse
 from pathlib import Path
 
 RECORD = '.skill-gate.json'
@@ -543,10 +544,20 @@ def runner_parse_errors(top, staged):
     return out
 
 
+def _own_repo_env():
+    """The environment minus every variable that ties git to the repository at hand, as `git rev-parse --local-env-vars`
+    lists them: a hook in a linked worktree gets an absolute GIT_DIR, and a `git -C <submodule>` under it reads the
+    parent's object store."""
+    local = set(subprocess.run(['git', 'rev-parse', '--local-env-vars'], capture_output=True, text=True).stdout.split())
+    local = local or {'GIT_DIR', 'GIT_INDEX_FILE', 'GIT_WORK_TREE', 'GIT_COMMON_DIR', 'GIT_OBJECT_DIRECTORY'}
+    return {k: v for k, v in os.environ.items() if k not in local}
+
+
 def unpushed_gitlinks(top, cwd):
     """A staged submodule pointer at a commit no remote branch of that submodule holds: a clone cannot resolve it and
     every later push of this repository is refused over it, so the submodule is pushed first."""
     out = []
+    env = _own_repo_env()
     for line in _git(cwd, 'diff', '--cached', '--raw').splitlines():
         parts = line.split('\t')
         if len(parts) != 2 or not parts[0].startswith(':'):
@@ -558,7 +569,8 @@ def unpushed_gitlinks(top, cwd):
         sub = top / path
         if not (sub / '.git').exists():
             continue
-        held = subprocess.run(['git', '-C', str(sub), 'branch', '-r', '--contains', sha], capture_output=True, text=True)
+        held = subprocess.run(['git', '-C', str(sub), 'branch', '-r', '--contains', sha], capture_output=True, text=True,
+                              env=env)
         if held.returncode != 0 or not held.stdout.strip():
             out.append(f'{path} points at {sha[:9]}, which no remote branch of that submodule holds: push the submodule first')
     return out
@@ -1466,7 +1478,8 @@ def commit_messages(cmd):
 
 
 def push_targets(cmd, cwd):
-    """(repository, forced) for each git push on the line; repository is owner/name or None."""
+    """(repository, forced, deleted, branches) for each git push on the line; repository is owner/name or None, and
+    branches the remote branch each refspec writes, or None where one cannot be named."""
     out = []
     here = cwd or os.getcwd()
     here_raw = ''
@@ -1543,7 +1556,7 @@ def push_targets(cmd, cwd):
         if '--dry-run' in rest or '-n' in rest:
             continue
         if any(x.startswith('--recurse-submodules') and not x.endswith(('=no', '=check')) for x in rest):
-            out.append((None, False, False))
+            out.append((None, False, False, None))
         forced = any(x in ('--force', '--mirror') or x.startswith(('--force-with-lease', '--force-if-includes'))
                      or (x.startswith('-') and not x.startswith('--') and 'f' in x[1:]) for x in rest) \
             or any(x.startswith('+') for x in rest if not x.startswith('-'))
@@ -1570,11 +1583,28 @@ def push_targets(cmd, cwd):
             continue
         deleted = '--delete' in rest or '-d' in rest or any(x.startswith(':') for x in args[1:])
         m = re.search(r'github\.com[:/]([^/\s]+)/([^/\s]+?)(?:\.git)?/?$', url)
-        out.append((None if unsure or not m else norm_repo(f'{m.group(1)}/{m.group(2)}'), forced, deleted))
+        out.append((None if unsure or not m else norm_repo(f'{m.group(1)}/{m.group(2)}'), forced, deleted,
+                    pushed_branches([fill(x) for x in (args if repo_flag else args[1:])], where)))
     for t in _segments(cmd):
         # git subtree push, and a git alias defined on the line, push where the gate cannot read.
         if t[0] == 'git' and _git_sub(t)[0] in ('subtree', 'submodule') and 'push' in t:
-            out.append((None, False, False))
+            out.append((None, False, False, None))
+    return out
+
+
+def pushed_branches(refspecs, where):
+    """The remote branch each refspec writes, the checked-out one for a bare push or HEAD; None when any writes no
+    branch the gate can name: a tag, a wildcard, a shell value, a detached HEAD."""
+    out = []
+    for x in refspecs or ['HEAD']:
+        dst = x.lstrip('+').split(':', 1)[-1]
+        if dst == 'HEAD':
+            dst = subprocess.run(['git', '-C', where, 'symbolic-ref', '-q', '--short', 'HEAD'],
+                                 capture_output=True, text=True).stdout.strip()
+        dst = dst[len('refs/heads/'):] if dst.startswith('refs/heads/') else dst
+        if not dst or dst.startswith('refs/') or re.search(r'[*$`\s]', dst):
+            return None
+        out.append(dst)
     return out
 
 
@@ -1583,6 +1613,46 @@ def standing_push():
         return set(json.loads((root() / 'workspace.json').read_text()).get('standing_push', []))
     except (OSError, ValueError):
         return set()
+
+
+def standing_push_draft():
+    """The standing repositories whose word covers a draft pull request's branch alone: a ready one's waits for push."""
+    try:
+        return {norm_repo(r) for r in json.loads((root() / 'workspace.json').read_text()).get('standing_push_draft', [])}
+    except (OSError, ValueError):
+        return set()
+
+
+PR_LOOKUP_TIMEOUT = 5
+
+
+def _gh_api(path, jq):
+    """gh api's output, or None when the call fails, times out or gh is absent."""
+    try:
+        run = subprocess.run(['gh', 'api', path, '--jq', jq], capture_output=True, text=True, timeout=PR_LOOKUP_TIMEOUT)
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    return run.stdout if run.returncode == 0 else None
+
+
+def head_pr_state(repo, branches):
+    """`draft` when every pushed branch heads an open draft pull request, on the repository or its parent; `ready` when
+    any heads a ready one; None when one heads none, or GitHub cannot be asked, and the standing list decides."""
+    parent = _gh_api(f'repos/{repo}', '.parent.full_name // empty')
+    if parent is None:
+        return None
+    states = set()
+    for branch in branches:
+        drafts = []
+        for base in dict.fromkeys([repo] + parent.split()):
+            q = urllib.parse.quote(f'{repo.split("/")[0]}:{branch}', safe='')
+            out = _gh_api(f'repos/{base}/pulls?state=open&per_page=100&head={q}',
+                          f'.[] | select(.head.repo.full_name | ascii_downcase == "{repo}") | .draft')
+            if out is None:
+                return None
+            drafts += out.split()
+        states.add('ready' if 'false' in drafts else 'draft' if drafts else None)
+    return 'ready' if 'ready' in states else 'draft' if states == {'draft'} else None
 
 
 def standing_publish():
@@ -1603,7 +1673,16 @@ def refusal(cmd, payload):
     if {'\x00never'} in needs:
         return 'a forced sync resets a remote branch, which Invariant 8 of the workspace AGENTS.md never allows.'
     standing = {norm_repo(x) for x in standing_push()}
-    pushes = [(r, f, d) for r, f, d in push_targets(cmd, payload.get('cwd')) if f or d or r not in standing]
+    draft_only, login = standing_push_draft(), own_login()
+    pushes = []
+    for r, f, d, branches in push_targets(cmd, payload.get('cwd')):
+        # A draft pull request's branch goes up unasked on a repository the user owns, and a ready one's waits for
+        # push where the standing word covers drafts alone, per Consent; no pull request keeps the standing list's answer.
+        state = None
+        if not (f or d) and r and branches and (r in draft_only or (r not in standing and r.split('/')[0] == login)):
+            state = head_pr_state(r, branches)
+        if f or d or state == 'ready' or (r not in standing and state != 'draft'):
+            pushes.append((r, f, d, state == 'ready' and r in standing))
     if not needs and not pushes:
         return None
     text = turn_text(payload.get('transcript_path') or '')
@@ -1613,11 +1692,14 @@ def refusal(cmd, payload):
         if not any(gives(text, w) for w in need):
             return (f'a publish waiting for its word, {" or ".join(sorted(need))}, which this turn does not carry, '
                     'per Invariants 1 and 2 of the workspace AGENTS.md. Show the draft and name the word.')
-    for repo, forced, deleted in pushes:
+    for repo, forced, deleted, ready in pushes:
         if deleted and not gives(text, 'delete'):
             return 'a branch delete, which waits for its word, delete, per Invariant 1 of the workspace AGENTS.md.'
         if forced and not gives_force(text):
             return 'a forced push, which waits for approval in the turn, per Invariant 8 of the workspace AGENTS.md.'
+        if ready and not gives(text, 'push'):
+            return (f'a push to {repo}, the head branch of a ready pull request, which waits for push: the standing word '
+                    'covers a draft pull request\'s branch alone, per Consent in the workspace AGENTS.md.')
         if repo not in standing and not gives(text, 'push'):
             return (f'a push to {repo or "a repository it cannot resolve"}, which no standing word covers and this '
                     'turn does not name with push, per Consent in the workspace AGENTS.md.')

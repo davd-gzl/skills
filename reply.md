@@ -106,6 +106,10 @@ This job runs on a schedule only, and GitHub disables those after 60 days.
   ready.
 - Where a publish and something already authorised are both pending, do the
   latter and offer the publish alone.
+- Before a reply in a summarized session says nothing waits, or answers what is
+  left, list every topic the session opened, from the summary and from the
+  commits the session made, `git log --since=<session start> --format=%s`,
+  never the current task alone.
 - Then the artifacts, one line each, in the order *Layout* in `workspace.md`
   gives them. A closed or merged target keeps its link and loses its verb. Each
   is a `[label](<url>)` into the workspace repo's `blob/main`, never a local

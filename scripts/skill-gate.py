@@ -976,8 +976,12 @@ def _typed_as(text, pattern):
 
 
 def gives_force(text):
-    """The turn approves a forced push: the word, or the flag spelled out, `push --force-with-lease`."""
-    return has_word(text, 'force') or _typed_as(text, r'(?<![\w-])--force(-with-lease|-if-includes)?(?![\w-])')
+    """The turn approves a forced push: the word, `pf` or `p f` on a line of letters alone, or the flag spelled out."""
+    shortcut = any(
+        LETTER_LINE.match(line) and {'p', 'f'} <= {c.lower() for c in re.findall(r'[a-z]', line, re.I)}
+        for line in text.splitlines()
+    )
+    return shortcut or has_word(text, 'force') or _typed_as(text, r'(?<![\w-])--force(-with-lease|-if-includes)?(?![\w-])')
 
 
 # The letter the user types for each word, on a line of letters alone, so `p d`

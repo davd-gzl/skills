@@ -558,6 +558,11 @@ class PublishWords(GateCase):
         self.assertEqual(self.hook(lease, prompt='push --force-with-lease')[0], 0, 'the flag spelled out approves it')
         self.assertEqual(self.hook(lease, prompt='push --force')[0], 0)
         self.assertEqual(self.hook(lease, prompt="push, don't --force-with-lease")[0], 2)
+        # the shortcut table's `pf`, alone on its line, is the same word
+        self.assertEqual(self.hook(lease, prompt='pf')[0], 0)
+        self.assertEqual(self.hook(lease, prompt='p f')[0], 0)
+        self.assertEqual(self.hook(lease, prompt='p')[0], 2, 'a bare push forces nothing')
+        self.assertEqual(self.hook(lease, prompt='the pf files')[0], 2, 'letters inside a sentence give no word')
         self.assertEqual(self.hook('gh pr merge 5', prompt='check the merge-base')[0], 2, 'merge-base is still not merge')
 
     def test_a_retry_after_an_api_error_keeps_the_dead_turn_word(self):

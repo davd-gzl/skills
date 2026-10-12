@@ -217,7 +217,10 @@ gh repo fork <owner>/<repo> --remote-only --remote-name fork
    finding, so save `git diff HEAD --binary > <scratch>/pre-simplify.patch` and
    `git status --porcelain > <scratch>/pre-simplify.status` before it and read
    every hunk and new file after: one that no applied finding names is a probe
-   left behind, and is reverted. Apply what holds, re-run the checks,
+   left behind, and is reverted. Every test the branch adds, a golden and a
+   fixture included and whoever asked for it, stays only where a mutation of
+   the code it covers turns it red, run per step 7; drop the rest. Apply what
+   holds, re-run the checks,
    and report the behaviour unchanged only from the suite and the issue's
    repro run after the pass, never from a read of the diff. Read the diff once
    more; a pass that changes anything reopens step 8,

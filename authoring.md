@@ -314,8 +314,10 @@ from it is measured here before it is trusted.
   sections a task seems to need is how a section gets missed.
 - Re-read after `git -C skills log -1` shows a commit that was not there before.
   Another session moves the pin mid-turn.
-- A rule that proves unclear, missing or wrong during other work is fixed in that
-  turn, per *Where it goes* and *The shape*, in a commit of its own.
+- During other work, a rule that proves unclear, missing or wrong, or a step
+  the work showed a skill should obviously have taken, is fixed in the skill in
+  that turn, unasked, per *Where it goes* and *The shape*, in a commit of its
+  own. Never offer the edit as a next step.
 - A rule resting on a published result from outside this workspace gets that
   finding into `skills/knowledge/` in the same commit, per *Where it goes*.
 - A knob, a stage or a word that a change renames is grepped across `skills/`,

@@ -44,6 +44,7 @@ as the skill defines it; ask when the reading changes what gets built.
 | `o`, `ready` | the named draft pull request marked ready for review | Invariant 2 |
 | `make this review public` | the round to the public artifact repo, links repointed | *Consent* |
 | `path` | the worktree the work sits in, its path alone | here |
+| `links <target>` | three markdown hyperlinks on one line, each to its page on the remote hosting it, never a bare URL or a local path: the pull request, its latest round's `overview.md`, and that round's `comment_<model>.md` | here |
 | "a comment" | the `comment_<model>.md` draft and the text for the target, never an explanation | `skills/review-comment.md` |
 | `TLDR` | the answer in one line, and the word it waits on | here |
 | `continue` | the local work resumed, dead agents re-dispatched first; nothing published | here |

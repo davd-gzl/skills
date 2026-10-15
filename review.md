@@ -142,7 +142,7 @@ A finder returns candidates as data, never prose. One, filled:
 ```
 
 - Read the diff written out at `args.diff_file`, the head worktree and the catalog; run nothing that writes. Reads of at most 500 lines and searches of at most 100 hits.
-- Read the code before the description, since a description calling something safe lowers what a reader finds. Five angles read the copy of head with comment lines blanked and the blanked twin of the diff; the claims angle reads the description and the comments first, its subject; the refactor and rollout angles read head, a comment being where a boot-time guarantee is stated.
+- Read the code before the description, since a description calling something safe lowers what a reader finds. Five angles read the copy of head with comment lines blanked and the blanked twin of the diff; the claims angle reads the description and the comments first, its subject; the refactor and rollout angles read head, a comment being where a boot-time guarantee is stated, and the page angle reads head, since a blanked `#` line is a markdown heading.
 - Run the read-shaped half of your own `verify_by` before returning a candidate, the grep, the count, the file read. For a candidate banded Critical or Warning, and for a rewrite, run the check itself in your own scratch worktree, `git -C <head worktree> worktree add --detach <scratch>/find-<job> <sha>`, removed at the end; write the artifact under `tests/<job>-<slug>.<ext>` per *Write tests for test-shaped findings*, and return the candidate with `run` true, its evidence, the key output quoted, and `repro_path`. A check the run refutes goes under `dropped` with the output as its settling line; one the budget did not reach returns with `run` false. The merge-base comparison belongs to the judge. A Nit, a Suggestion and a Missing test are read, never run.
 - Work the bands in order: the checks of every Critical, Warning and Missing test candidate before any Nit's or Suggestion's, so a budget that runs out leaves a Nit unchecked and never a Warning. Mark each candidate `checked` or not; one you did not reach goes back with its check named, never dropped.
 - Work the files in the risk table's order, hot first, then warm, then cold: a budget that runs out leaves a cold file unread and never a hot one.
@@ -157,11 +157,12 @@ A finder returns candidates as data, never prose. One, filled:
 | Angle | Walks | Runs when |
 | --- | --- | --- |
 | lines | every hunk and its enclosing function, for the input, state, timing or caller that makes a line wrong | always |
-| removed | every deleted or rewritten line, the invariant it enforced, and the siblings the diff missed, swept by shape and never by name in code, by the name itself in a doc, whose stale sibling repeats it | the diff deletes a line, a doc's included |
+| removed | every deleted or rewritten line, the invariant it enforced, and the siblings the diff missed, swept by shape and never by name in code, by the name itself in a doc, whose stale sibling repeats it; every item a visitor saw that the diff removes, traced with `git log -S` to the change that added it | the diff deletes a line, a doc's included |
 | claims | every claim the diff writes about itself, a godoc, a comment, a test header, the description, a decision record, each returned with the check that settles it, a doc example with its run from outside the package | a doc file in the bundle, `deep` or `+claims` for a comment too |
 | tests | every test the diff adds or changes, with the mutation that must turn it red | `deep`, and the diff carries a test file |
 | reach | callers and callees of every changed function, and the extremes through every path the diff makes reachable for the first time | always |
 | refactor | every added block rewritten shorter and run, and the depth of each fix | named with `+refactor`, and the diff adds a block of twenty lines |
+| page | every page the diff changes, rendered at base and head as the project's delta says, read as a visitor: a label against its destination, link text, a heading out of context, a row that wraps, and each claim the copy makes about a third party against that party's own source | the diff changes a file a visitor sees rendered |
 | catalog | every class of the project's invariant catalog against the diff | the project has a catalog |
 
 `./scripts/review-plan.py --diff <head worktree> <base> <head>` prints which angles run and writes the measurement the workflow reads.

@@ -19,13 +19,20 @@ pub const REFACTOR_BLOCK: usize = 20;
 
 /// The angles a finder can carry, in the order the skill lists them.
 pub const ANGLES: &[&str] = &[
-    "lines", "removed", "claims", "tests", "reach", "refactor", "rollout", "catalog",
+    "lines", "removed", "claims", "tests", "reach", "refactor", "rollout", "page", "catalog",
 ];
 
 /// A path whose name says a guarantee may live at boot, in a sweep or in a one-shot job: the
 /// rollout angle's material, two versions of the code running at once.
 static ROLLOUT: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"(?i)(migrat|boot|startup|ready|sweep|cron|command|manage|deploy|seed|init|upgrade|install)")
+        .unwrap()
+});
+
+/// A file a visitor sees rendered, a template, a stylesheet, or content under a pages or home
+/// path: the page angle's material, as `review-plan.py` counts it.
+static PAGE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)(\.(html?|tmpl|gohtml|css|scss|vue|svelte|jsx|tsx)$|(^|/)(pages?|templates?|views?|components?|public|frontend|site|home[^/]*)/|(^|/)home[^/.]*\.(md|gno)$)")
         .unwrap()
 });
 
@@ -201,6 +208,7 @@ fn angles_for(files: &[&FileFacts], catalog: bool) -> Vec<&'static str> {
     let tests = files.iter().any(|f| f.kind == Kind::Test);
     let block = files.iter().map(|f| f.block_max).max().unwrap_or(0);
     let rollout = files.iter().any(|f| ROLLOUT.is_match(&f.path));
+    let page = files.iter().any(|f| PAGE.is_match(&f.path));
     let mut out = Vec::new();
     for angle in ANGLES {
         let has = match *angle {
@@ -210,6 +218,7 @@ fn angles_for(files: &[&FileFacts], catalog: bool) -> Vec<&'static str> {
             "tests" => tests,
             "refactor" => block >= REFACTOR_BLOCK,
             "rollout" => rollout,
+            "page" => page,
             "catalog" => catalog,
             _ => false,
         };
@@ -414,7 +423,10 @@ pub(super) fn bundles(
         let added: usize = prose.iter().map(|f| f.added).sum();
         let deleted: usize = prose.iter().map(|f| f.deleted).sum();
         // A doc rewrite deletes a sentence its siblings may still hold: removed sweeps for them.
-        let angles: Vec<&'static str> = if deleted > 0 { vec!["removed", "claims"] } else { vec!["claims"] };
+        let mut angles: Vec<&'static str> = if deleted > 0 { vec!["removed", "claims"] } else { vec!["claims"] };
+        if prose.iter().any(|f| PAGE.is_match(&f.path)) {
+            angles.push("page");
+        }
         out.push(Bundle {
             id: out.len() + 1,
             name: "docs and config".to_string(),
@@ -1081,6 +1093,16 @@ mod tests {
         assert_eq!(b[0].finders, vec![vec!["removed", "claims"]], "under the floor one finder carries both");
         let (b, _) = bundles(&[fact("docs/c.md", Kind::Doc, 2)], &HashMap::new(), false);
         assert_eq!(b[0].angles, vec!["claims"], "an added-only doc has nothing removed");
+    }
+
+    #[test]
+    fn a_rendered_page_carries_the_page_angle_and_code_does_not() {
+        let (b, _) = bundles(&[fact("site/home-alias/home.main.md", Kind::Doc, 4)], &HashMap::new(), false);
+        assert_eq!(b[0].angles, vec!["claims", "page"], "{b:?}");
+        let (b, _) = bundles(&[fact("web/templates/head.html", Kind::Code, 4)], &HashMap::new(), false);
+        assert!(b[0].angles.contains(&"page"), "{b:?}");
+        let (b, _) = bundles(&[fact("pkg/store/cache.go", Kind::Code, 4)], &HashMap::new(), false);
+        assert!(!b[0].angles.contains(&"page"), "{b:?}");
     }
 
     #[test]

@@ -65,9 +65,10 @@ Inside the word, whether one careful read holds the diff sets how many agents ru
 3. *Reproduce the failure*: each suite once per tree state, the project's tool built once from the head worktree, named in `args.prebuilt`; a tool whose source lives in another repository is pinned there, per that section.
 4. Print the plan and launch, per *Launch*; the parent names the class, the triage only where the parent has not read the diff whole, and the stages read *Finders*, *Reflector*, *Verifiers*, *Writer* and *Text pass*. A target fixing a reported vulnerability launches with its bounds as `args.topics`, per *The critical pass*.
 5. Run the *Final check* of `skills/review-comment.md`, then the `skills/writing-style.md` Pass over `overview.md` and the draft, `./scripts/prose-check.py <file>` first; re-run it after any later edit to that prose, an edit made in answer to a question included; the handover lists every row it still prints, each with the reason it stays.
-6. One commit covering everything, to the repository holding the round directory, plus the workspace commit recording its gitlink where that repository is a submodule; it is pushed as *Consent* in the workspace `AGENTS.md` says for that repository.
-7. Retro, per *Retro*.
-8. Hand over, per *Handover*.
+6. Read the finished round back as its critic before the commit: every section of the draft, `SKIP` ones included, against its own row in `claims.md` and the tree it names; the findings ranked against one another by their measured cost, so no held section outweighs a posted one; every `Not posted:` reason against the project's delta and the scope rules of *Calibration*; every fact naming a revision, read at that revision. Fix what the read finds in the round, re-run where a claim changes, before the handover reaches the user.
+7. One commit covering everything, to the repository holding the round directory, plus the workspace commit recording its gitlink where that repository is a submodule; it is pushed as *Consent* in the workspace `AGENTS.md` says for that repository.
+8. Retro, per *Retro*.
+9. Hand over, per *Handover*.
 
 ### Launch
 

@@ -441,7 +441,7 @@ Start each test file with a comment block carrying exact repro commands runnable
 
 ## Overview (`overview.md`)
 
-Write one for every target, first: its own agent, dispatched at step 1 while the parent prepares the round, so it is on disk and linked before a finder starts; a run launched without `overview_exists` starts that agent itself beside the finders, so the reader has it minutes in and never at the end. Its reader knows the project and has not seen the change: it says what the change does, never what the project is, and it is what the user opens first, the draft second.
+Write one for every target, first: its own agent, dispatched at step 1 while the parent prepares the round, so it is on disk and linked before a finder starts; a run launched without `overview_exists` starts that agent itself beside the finders, so the reader has it minutes in and never at the end. Its reader knows the project and has not seen the change, and one friendly read of the overview alone explains every topic the change touches, in plain words: it says what the change does, never what the project is. It is what the user opens first, the draft second.
 
 The skeleton, filled per subject:
 
@@ -468,7 +468,7 @@ PR: [<owner>/<repo>#<n>](<url>)
 - `## Read the code in this order` is numbered stops, each opening the next, each its own heading so the section scans by heading alone:
 
   ````markdown
-  ### 1. `hot` · The room check, [`views.py`](<diff link>)
+  ### 1. `hot` · The room check, [`app/rooms/views.py`](<diff link>)
   Refuses a guest whose token names another room, before the token is issued.
   **If wrong:** a guest invited to one room joins any room.
   ```python
@@ -476,8 +476,9 @@ PR: [<owner>/<repo>#<n>](<url>)
   ```
   ````
 
-  The heading carries the file's tier from `round risk <repo> <base> <head>`, `hot`, `warm` or `cold`, then what the stop is in a few words, then the file linked; one sentence says what it decides, one bold `If wrong:` line what breaks. A stop on lines the diff left alone says so after its tier.
-- `## Before and after` is one table, one row per place the behaviour enters, an endpoint, a view, a hook, each row phrased as what happens first and through which code second: "a guest waits in the waiting room, through `request_entry`".
+  The heading carries the file's temperature, its tier from `round risk <repo> <base> <head>`, `hot`, `warm` or `cold`, then what the stop is in a few words, then the file's full path from the repository root, linked to its diff; one sentence says what it decides, one bold `If wrong:` line what breaks. A stop on lines the diff left alone says so after its tier.
+- The section opens on one line saying what the temperatures mean: `hot` is the risky code to read closely, `warm` other code, `cold` a test or a generated file.
+- `## Before and after` is one short table, one row per place the behaviour enters, an endpoint, a view, a hook, each row phrased as what happens first and through which code second: "a guest waits in the waiting room, through `request_entry`". It keeps the rows that show the change and nothing else: a second table, a row repeating a neighbour's point and an introduction past one line are cut.
 - `## How <the mechanism> works` is a diagram whose nodes are the functions it names, then one bullet per function saying what it decides.
 - `## What a user notices` gives each visible effect with what decides its scope, per browser, per account, never per IP unless the code reads one.
 - `## Upgrading` appears only where the change touches stored state, a cookie, a setting or a migration.

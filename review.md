@@ -348,7 +348,7 @@ The danger pass, before a branch from outside the project is fetched into a loca
 
 The catalog:
 
-- **A project with no invariant catalog gets one proposed before its first round starts**, built from the repository's own bug history, its past reviews and the classes its domain is known for, one class per entry with the check that settles it; the round waits for the user's word on the draft, since a finder walking no catalog walks nothing.
+- **A project with no invariant catalog gets one proposed before its first round starts**, built from the repository's own bug history, its past reviews and the classes its domain is known for, one class per entry with the check that settles it; the round waits for the user's word on the draft, since a finder walking no catalog walks nothing. Under `review as ai` the draft runs the round and the handover names it.
 - A CONFIRMED finding whose class the catalog lacks adds that class to the catalog in the same round, with the check that found it, so the next round's finders walk it.
 
 Treat CI as a first-class source. `gh run list` shows only GitHub Actions; external checks from apps are check runs. Read the authoritative list for the exact commit:

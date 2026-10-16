@@ -454,20 +454,23 @@ PR: [<owner>/<repo>#<n>](<url>)
 ## What <the feature> is            <- a feature
 ## How it works, in <n> steps        <- a feature
 ## The parts, at a glance            <- a feature
-## Why <the old behaviour> was not enough   <- a fix
-## How <the mechanism> works
+## Why <the old behaviour> was not enough   <- a complex fix
+## How <the mechanism> works        <- a complex fix
 ## Before and after                  <- a change to existing behaviour
-## Read the code in this order
-## What a user notices
-## What it leaves open              <- where the change covers less than the problem
+## What a user notices               <- someone else's change
+## What it leaves open              <- someone else's change
 ## Upgrading
 ## Words used here
+<details> Read the code in this order
 ```
+
+- **Size the overview by what its reader lacks, never by the skeleton.** It is a help, read before the change, and every section carries context the pull request body does not. Where the body explains the change to a reader who knows the project, the overview is the TLDR and the words; the why and how sections are for a change whose mechanism is new to that reader or whose parts interact. A section restating the body's Problem or Fix is cut whole, never shortened.
+- On a change of our own, `What a user notices` and `What it leaves open` are design and live in the pull request body, per `skills/pr-body.md`.
 
 - Name things as the code does, the function, the class, the setting, the endpoint, so the reader finds each one in the diff after reading. For this file that overrides the reader's-words bullet of *The rules* in `skills/writing-style.md`. Every name a reader new to the change would look up gets one row in `## Words used here`, the last section: the name, then what it is in one sentence, with the condition a reader can check, an endpoint's method and path, a setting's default, how often a client calls it.
 - The TLDR says what the code did before and what it does now, in those names, and why the change exists, in four to six lines.
 - A feature opens for a reader who has never seen it: what it is in the user's terms, then how it works in numbered steps carrying one concrete example of the data passed between them, then a table naming each part, its file and its job. It takes no `## Before and after` and never describes itself by its absence: the reader already knows the product without it.
-- `## Read the code in this order` is numbered stops, each opening the next, each its own heading so the section scans by heading alone:
+- `Read the code in this order` closes the file in a collapsed `<details>` of that title, numbered stops, each opening the next, each its own heading so the block scans by heading alone:
 
   ````markdown
   ### 1. `hot` · The room check, [`app/rooms/views.py`](<diff link>)
@@ -479,7 +482,7 @@ PR: [<owner>/<repo>#<n>](<url>)
   ````
 
   The heading carries the file's temperature, its tier from `round risk <repo> <base> <head>`, `hot`, `warm` or `cold`, then what the stop is in a few words, then the file's full path from the repository root, linked to its diff; one sentence says what it decides, one bold `If wrong:` line what breaks. A stop on lines the diff left alone says so after its tier.
-- The section opens on one line saying what the temperatures mean: `hot` is the risky code to read closely, `warm` other code, `cold` a test or a generated file.
+- The block opens on one line saying what the temperatures mean: `hot` is the risky code to read closely, `warm` other code, `cold` a test or a generated file.
 - `## Before and after` is two short paragraphs, one opening `**Before:**` and one `**After:**`, each a sentence or two naming what happens and through which code, never a table: "**Before:** a guest joins the room as soon as the link opens, through `request_entry`." What the sections above already explain is not repeated here.
 - `## Why <the old behaviour> was not enough` walks the reader through the defect: what the code assumed, where the assumption breaks, and what nothing else stopped.
 - `## How <the mechanism> works` is one short paragraph per part, led by a bold phrase naming it, saying what it does and why it is built that way, the trade-off it makes included. A diagram goes beside the paragraphs only where a flow crosses more parts than prose holds in one read.

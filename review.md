@@ -441,7 +441,7 @@ Start each test file with a comment block carrying exact repro commands runnable
 
 ## Overview (`overview.md`)
 
-Write one for every target, first: its own agent, dispatched at step 1 while the parent prepares the round, so it is on disk and linked before a finder starts; a run launched without `overview_exists` starts that agent itself beside the finders, so the reader has it minutes in and never at the end. Its reader knows the project and has not seen the change, and one friendly read of the overview alone explains every topic the change touches, in plain words: it says what the change does, never what the project is. It is what the user opens first, the draft second.
+Write one for every target, first: its own agent, dispatched at step 1 while the parent prepares the round, so it is on disk and linked before a finder starts; a run launched without `overview_exists` starts that agent itself beside the finders, so the reader has it minutes in and never at the end. Its reader knows the project and has not seen the change, and one friendly read of the overview alone explains every topic the change touches, in plain words: it says what the change does and why each part is built that way, never what the project is. It teaches rather than lists: a stated fact with no reason beside it is the line to rewrite. It is what the user opens first, the draft second.
 
 The skeleton, filled per subject:
 
@@ -454,10 +454,12 @@ PR: [<owner>/<repo>#<n>](<url>)
 ## What <the feature> is            <- a feature
 ## How it works, in <n> steps        <- a feature
 ## The parts, at a glance            <- a feature
-## Before and after                  <- a change to existing behaviour
+## Why <the old behaviour> was not enough   <- a fix
 ## How <the mechanism> works
+## Before and after                  <- a change to existing behaviour
 ## Read the code in this order
 ## What a user notices
+## What it leaves open              <- where the change covers less than the problem
 ## Upgrading
 ## Words used here
 ```
@@ -478,8 +480,10 @@ PR: [<owner>/<repo>#<n>](<url>)
 
   The heading carries the file's temperature, its tier from `round risk <repo> <base> <head>`, `hot`, `warm` or `cold`, then what the stop is in a few words, then the file's full path from the repository root, linked to its diff; one sentence says what it decides, one bold `If wrong:` line what breaks. A stop on lines the diff left alone says so after its tier.
 - The section opens on one line saying what the temperatures mean: `hot` is the risky code to read closely, `warm` other code, `cold` a test or a generated file.
-- `## Before and after` is one short table, one row per place the behaviour enters, an endpoint, a view, a hook, each row phrased as what happens first and through which code second: "a guest waits in the waiting room, through `request_entry`". It keeps the rows that show the change and nothing else: a second table, a row repeating a neighbour's point and an introduction past one line are cut.
-- `## How <the mechanism> works` is a diagram whose nodes are the functions it names, then one bullet per function saying what it decides.
+- `## Before and after` is two short paragraphs, one opening `**Before:**` and one `**After:**`, each a sentence or two naming what happens and through which code, never a table: "**Before:** a guest joins the room as soon as the link opens, through `request_entry`." What the sections above already explain is not repeated here.
+- `## Why <the old behaviour> was not enough` walks the reader through the defect: what the code assumed, where the assumption breaks, and what nothing else stopped.
+- `## How <the mechanism> works` is one short paragraph per part, led by a bold phrase naming it, saying what it does and why it is built that way, the trade-off it makes included. A diagram goes beside the paragraphs only where a flow crosses more parts than prose holds in one read.
+- `## What it leaves open` is one bullet per case the change does not reach, each with what does reach it or that nothing does yet.
 - `## What a user notices` gives each visible effect with what decides its scope, per browser, per account, never per IP unless the code reads one.
 - `## Upgrading` appears only where the change touches stored state, a cookie, a setting or a migration.
 - Write it as `overview.md`, never `overview.html`: GitHub serves an `.html` blob as source, so the reader downloads the file to read it.

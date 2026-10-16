@@ -22,6 +22,8 @@ Put `pr-body.md` in the change directory, `projects/<repo>/changes/<slug>/`. It 
 
 Every body opens on the change's overview, in a collapsed `<details>` titled `Overview` above the severity line and every heading: the change's `overview.md`, per *Overview* in `skills/review.md`, pasted from its TLDR down with its headings one level lower and its line naming the model dropped, per Invariant 7 in the workspace `AGENTS.md`. A push that revises the body pastes the revised overview in the same command.
 
+**The body stands without the overview.** Every fact a reviewer needs to judge the fix sits in the body's own sections: each mechanism and why it is built that way, the decisions and what they cost, what stays open. The overview is a guided read of the same change for a reader new to its context, so a body line is never cut because the overview already says it.
+
 Write nothing about how the file was written: no shape label, no model PR, no round count; that record belongs in `plan.md`. Every line is something the user pastes or acts on; delete the rest.
 
 ## Shape

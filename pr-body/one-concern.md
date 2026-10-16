@@ -5,7 +5,7 @@ description: The pull request body for one concern, which is every bug fix, what
 
 # One concern
 
-Four short paragraphs, about 200 words, under `## Problem` and `## Fix`. A target, not a minimum, and the count never settles a sentence.
+Short paragraphs under `## Problem` and `## Fix`, one per part of the fix, each saying what that part does and why it is built that way: a fix with one part runs about 200 words, one with five runs longer. The count never settles a sentence.
 
 - The first line is the severity, `6/10, medium`, per `skills/writing-style.md`, above `Fixes #n` and every heading.
 - `## Problem`, one or two paragraphs: the symptom first, in the reader's terms, under the condition that triggers it, then the mechanism named by symbol with a link into the code on the branch, then the change that introduced it.

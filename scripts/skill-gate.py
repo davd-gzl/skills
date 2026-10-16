@@ -1024,6 +1024,9 @@ def gives(text, word):
     words = {w for line in text.splitlines() for w in letter_words(line)}
     if 'push' in words or has_word(text, 'push'):
         words |= PUSH_COVERS
+    # `review as ai` carries the post of the draft it finishes, per skills/shortcuts.md.
+    if _typed_as(text, r'(?<![\w-])review as (?:an )?ai(?![\w-])'):
+        words.add('post')
     return word in words or has_word(text, word)
 
 

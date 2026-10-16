@@ -481,6 +481,14 @@ class PublishWords(GateCase):
         self.assertEqual(self.hook(post, queued=['post'])[0], 0, 'a message queued into the turn carries it')
         self.assertEqual(self.hook(post, prompt='ok go')[0], 2, 'a vague yes authorises nothing')
 
+    def test_review_as_ai_carries_the_post_of_its_draft(self):
+        post = './scripts/post-review.sh r/comment_m.md --as-ai'
+        self.assertEqual(self.hook(post, prompt='review as ai https://github.com/o/r/pull/5')[0], 0)
+        self.assertEqual(self.hook(post, prompt='deep review as an AI o/r#5')[0], 0, 'a preset in front keeps it')
+        self.assertEqual(self.hook(post, prompt='review https://github.com/o/r/pull/5')[0], 2, 'a plain review posts nothing')
+        self.assertEqual(self.hook(post, prompt="don't review as ai yet")[0], 2, 'a negation gives nothing')
+        self.assertEqual(self.hook('gh pr merge 5', prompt='review as ai o/r#5')[0], 2, 'it carries the post alone')
+
     def test_a_letter_alone_is_its_word_and_push_sends_it_all(self):
         post = 'gh pr comment 5 -R o/r -b hi'
         self.assertEqual(self.hook(post, prompt='p')[0], 0, 'p alone is the word')

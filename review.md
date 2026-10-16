@@ -465,7 +465,18 @@ PR: [<owner>/<repo>#<n>](<url>)
 - Name things as the code does, the function, the class, the setting, the endpoint, so the reader finds each one in the diff after reading. For this file that overrides the reader's-words bullet of *The rules* in `skills/writing-style.md`. Every name a reader new to the change would look up gets one row in `## Words used here`, the last section: the name, then what it is in one sentence, with the condition a reader can check, an endpoint's method and path, a setting's default, how often a client calls it.
 - The TLDR says what the code did before and what it does now, in those names, and why the change exists, in four to six lines.
 - A feature opens for a reader who has never seen it: what it is in the user's terms, then how it works in numbered steps carrying one concrete example of the data passed between them, then a table naming each part, its file and its job. It takes no `## Before and after` and never describes itself by its absence: the reader already knows the product without it.
-- `## Read the code in this order` is numbered stops, each opening the next: the file's tier from `round risk <repo> <base> <head>`, `hot`, `warm` or `cold`, with the signal that earned it, then the file linked, one or two sentences on what it decides and what breaks if it is wrong, and the lines that matter copied from the pinned sha. A stop on lines the diff left alone says so beside its tier.
+- `## Read the code in this order` is numbered stops, each opening the next, each its own heading so the section scans by heading alone:
+
+  ````markdown
+  ### 1. `hot` · The room check, [`views.py`](<diff link>)
+  Refuses a guest whose token names another room, before the token is issued.
+  **If wrong:** a guest invited to one room joins any room.
+  ```python
+  <the lines that matter, copied from the pinned sha>
+  ```
+  ````
+
+  The heading carries the file's tier from `round risk <repo> <base> <head>`, `hot`, `warm` or `cold`, then what the stop is in a few words, then the file linked; one sentence says what it decides, one bold `If wrong:` line what breaks. A stop on lines the diff left alone says so after its tier.
 - `## Before and after` is one table, one row per place the behaviour enters, an endpoint, a view, a hook, each row phrased as what happens first and through which code second: "a guest waits in the waiting room, through `request_entry`".
 - `## How <the mechanism> works` is a diagram whose nodes are the functions it names, then one bullet per function saying what it decides.
 - `## What a user notices` gives each visible effect with what decides its scope, per browser, per account, never per IP unless the code reads one.

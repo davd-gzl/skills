@@ -26,7 +26,7 @@ Every body but one of self-explaining hunks, per the paragraph under the shape t
 
 `./scripts/pr-body-check <pr-body.md>` refuses a body whose visible part runs past its ceiling, and `pr-body-apply` and `post-fix.sh` send nothing it refuses: mechanism, history and alternatives go to the decision record or `plan.md`.
 
-The overview pasted into the body carries only the context the body does not, sized per *Overview* in `skills/review.md`: on a change the body explains on its own it is the TLDR and the words, and a section repeating the body is cut. `What a user notices` and `What it leaves open` are design, so they are `##` sections of the body after `## Fix`, one bullet per effect. The overview's reading order goes last, in a collapsed `<details>` titled `Read the code in this order`, its temperature line and stops inside.
+The overview pasted into the body is its TLDR and one section per concept the change uses, per *Overview* in `skills/review.md`, however fully the body explains the change; a section repeating the body's Problem or Fix is cut. `What a user notices` and `What it leaves open` are design, so they are `##` sections of the body after `## Fix`, one bullet per effect. The overview's reading order goes last, in a collapsed `<details>` titled `Read the code in this order`, its temperature line and stops inside.
 
 Write nothing about how the file was written: no shape label, no model PR, no round count; that record belongs in `plan.md`. Every line is something the user pastes or acts on; delete the rest.
 

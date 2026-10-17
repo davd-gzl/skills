@@ -93,6 +93,10 @@ This job runs on a schedule only, and GitHub disables those after 60 days.
   sentence that keeps the user's own nouns, and ask whether that is the thing.
   The tell is a question already using a different noun for it: the user says
   their apps, and the question asks about documents.
+- A decision label, `P4` or `S2` per `skills/change.md`, carries its heading
+  beside it every time a reply names it: `P4, keep the escrow as funded`. The
+  user reads the reply, never the plan, and a bare label costs a turn asking
+  what it is.
 - A publish never goes through the question tool: its word is typed, per
   Invariant 2 in the workspace `AGENTS.md`.
 - Every word a reply offers, anywhere in it, is its own line with the word
@@ -175,8 +179,11 @@ This job runs on a schedule only, and GitHub disables those after 60 days.
 and 329k output. `stop` kills them.
 ```
 
-- An agent's return is not a turn. Reply when the step it fed is finished, never
-  per agent.
+- While an agent or a background command the request started still runs, end
+  the turn on the forecast line alone: no question, no word offered, no
+  decision. Every question and every word goes in the one reply after the last
+  of them returns, so one `p` covers the whole request. The tell is a closing
+  block reading `still running` above a word to type.
 - Re-dispatch every agent that died, before anything else, on `continue` and on
   any turn that resumes the work.
 - Dispatching agents ends the reply with one forecast line: what went out and

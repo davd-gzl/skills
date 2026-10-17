@@ -24,7 +24,7 @@ Put `pr-body.md` in the change directory, `projects/<repo>/changes/<slug>/`. It 
 
 Every body but one of self-explaining hunks, per the paragraph under the shape table, opens on the change's overview, in a collapsed `<details>` titled `Overview` above the severity line and every heading: the change's `overview.md`, per *Overview* in `skills/review.md`, pasted from its TLDR down with its headings one level lower and its line naming the model dropped, per Invariant 7 in the workspace `AGENTS.md`. A push that revises the body pastes the revised overview in the same command.
 
-**The body is mandatory and the overview is not.** A reviewer may skip the folded overview, so the body states the design explicitly: each mechanism with the reason it is built that way, each decision with what it costs and the alternative rejected, what a user notices and what stays open. The overview is a guided read for a reader new to the context, and a body line is never cut because the overview already says it.
+`./scripts/pr-body-check <pr-body.md>` refuses a body whose visible part runs past its ceiling, and `pr-body-apply` and `post-fix.sh` send nothing it refuses: mechanism, history and alternatives go to the decision record or `plan.md`.
 
 The overview pasted into the body carries only the context the body does not, sized per *Overview* in `skills/review.md`: on a change the body explains on its own it is the TLDR and the words, and a section repeating the body is cut. `What a user notices` and `What it leaves open` are design, so they are `##` sections of the body after `## Fix`, one bullet per effect. The overview's reading order goes last, in a collapsed `<details>` titled `Read the code in this order`, its temperature line and stops inside.
 
@@ -59,7 +59,7 @@ The reader has the diff: give only the defect, the consequence, and the context 
 - When the defect has a severe consequence and a mild one, lead with whichever is unambiguous. A severe example that looks like obvious garbage reads as correct rejection and hides the defect; the plainly wrong case that gets accepted lands.
 - Example values must be plausible. A version one step past the build shows the defect with nothing granted, where a version far past it invites "that should fail anyway". Quote the real string, and paste the actual error rather than describing it.
 - Explain why the existing guard failed only after the reader has watched it fail. When the defect is a disagreement between two builds, two nodes or two versions, say the disagreement is the defect and neither answer is.
-- A body fixing a defect states where it came from and what the fix leaves standing, even where an ADR or `plan.md` records the same: the change that introduced it, linked, and the assumption it broke; the deeper cause the fix does not remove, and what removing it would take; each stricter fix rejected, with its reason. A reviewer judges the fix against those, and an ADR is the file they open last.
+- What the fix leaves standing, a sibling with the same defect or a limit of the fix, takes one sentence naming it, never a paragraph explaining it.
 - Leave out the branch's own history, what an earlier round carried or what this one drops. That goes in `plan.md`.
 - Name a rider commit in one line and never offer to split it. The maintainer asks when they want that.
 

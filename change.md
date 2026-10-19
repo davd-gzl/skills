@@ -119,6 +119,13 @@ gh repo fork <owner>/<repo> --remote-only --remote-name fork
 
 ## Fix
 
+Before step 2, dispatch steps 2 to 9 to one agent, given the finding, this
+file's path and the project's `AGENTS.md`, and keep only its report: the diff
+stat, the class evidence, each test with the mutation that turned it red, and
+the open calls. Every tool result stays in the thread that called it and is
+re-read on each later call there, so a fix run in the session's own thread
+makes the rest of the session pay for its test output and file reads.
+
 1. **Check that nothing already covers the problem**, before the branch exists.
    Search the target repo's open and merged pull requests and its issues for the
    symbol the finding names, then the review corpus on disk and the upstream the
@@ -200,7 +207,9 @@ gh repo fork <owner>/<repo> --remote-only --remote-name fork
    and counts every commit between the two heads as the fix.
    `<first rebased fix commit>^` stands in for the pass before's head after a
    rebase. Apply the closing pass's findings too. That closing pass runs
-   unasked and gates the handover.
+   unasked and gates the handover. Where step 10 runs, its round is the
+   closing pass, and no fresh-agent pass runs before it: both read the same
+   diff, and a finding the round returns reopens this step anyway.
    Never hand a finding back as a suggestion, and never park one as an open
    question to keep the report tidy.
    What survives unapplied needs a decision only the user can make, and each is

@@ -31,7 +31,9 @@ The design choices a reviewer could reasonably flip go in a collapsed `<details>
 The overview pasted into the body is its TLDR and one section per concept the change uses, per *Overview* in `skills/review.md`, however fully the body explains the change; a section repeating the body's Problem or Fix is cut. `What a user notices` and `What it leaves open` are design, so they are `##` sections of the body after `## Fix`, one bullet per effect. The overview's reading order goes last, in a collapsed `<details>` titled `Read the code in this order`, its temperature line and stops inside. Stops run hot, then warm, then cold, in reading order within a tier, and a test or a test fixture is cold whatever the ranking says. In a body each stop is a numbered list item at text size, never a heading, on three lines, the title and its linked file on the first, and carries no code excerpt, since the diff link opens the lines:
 
 ```markdown
-1. `hot` · The exec check in `FormParser.Open`, [`gno.land/pkg/gnoweb/markdown/ext_forms.go`](<diff link>)
+🔴 hot is the riskiest code, 🟠 warm other code, 🔵 cold a test. The tier ranks the file's risk, not how much of it changed.
+
+1. 🔴 hot · The exec check in `FormParser.Open`, [`gno.land/pkg/gnoweb/markdown/ext_forms.go`](<diff link>)
    Refuses an `exec` that is not an exported identifier.
    **If wrong:** a realm puts shell text in the copied command.
 ```
@@ -45,7 +47,8 @@ Write prose, broken small.
 - Paragraphs of two to four sentences, one idea each. Five or more: split.
 - One-line paragraph for each turn in the argument; a skimmer reads only these.
 - No process headers such as Purpose or Testing. The shape's file names the headers it takes; nothing else gets one.
-- No tables, no bullet lists, no emoji, and no bold but the decision lead-ins of `skills/pr-body/surface.md`.
+- No tables, no emoji but the reading order's tier markers, and no bold but the decision lead-ins of `skills/pr-body/surface.md` and the labelled lead-ins a project's delta asks for. A bullet list only where its items run parallel, the paths a fix covers or the effects a user notices, never for an argument.
+- Each sentence opens on the plain-words version of what it says, then names the symbol. A concept the overview explains is not explained again in the body.
 - A diagram wherever a shape is clearer drawn than written.
 - A body using role words the reader may not share, an operator against a room owner for one, closes on a collapsed `<details>` block titled Glossary under the last paragraph: one entry per word, a blank line between them so each renders on its own, and the body stays a straight read for whoever already has the words.
 - No code block unless real observed output or a diagram, trimmed to the signal-bearing lines. A change that writes a file a person opens, an export or a report, shows a few real lines of it.

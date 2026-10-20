@@ -104,7 +104,7 @@ commit 8cbcad76 on main
 
 ## Loop
 
-Do not ship the first draft. Re-read against the checks below, revise, repeat until a full pass changes nothing. Record the rounds in `plan.md`.
+Do not ship the first draft. Re-read against checks 1 to 6, revise, repeat until a full pass changes nothing, then run check 7 once. Record the rounds in `plan.md`.
 
 1. Read it as the maintainer who wrote the code it describes, before the user ever sees it. Open the file behind every sentence about what the code does today. A claim of absence is the one that breaks: where the thing exists in a weaker form, name the form and what it fails to do, never call it missing.
 2. Would someone with no context understand the first sentence? If it needs a symbol they have not met, rewrite in observable terms.
@@ -112,9 +112,7 @@ Do not ship the first draft. Re-read against the checks below, revise, repeat un
 4. Skim it in ten seconds, first lines and diagrams only. If that does not give the merge decision, lift the argument's turns into one-line paragraphs.
 5. Check against the diff one last time. A body describing a change not in the diff is worse than none.
 6. Cut every heading the chosen shape does not list, `## What to review closely` above all, whose parts go as inline comments per `skills/pr-body/surface.md`; a body revised on the forge is re-derived from the shape, never edited section by section from the copy there.
-7. Once before the body first goes up, and again only after a revision rewrites a paragraph, a fresh agent given only the body, the diff and the parts the project's delta requires, never the plan, reads it as the reviewer. First it names every place it had to stop: a term used before it is explained, a step the argument skips, a sentence it read twice. Then, for every other paragraph, bullet, table row and reading-order stop, it names what the reviewer would lose if that line went, or `nothing`, or the line that already says it. Fix every stop before any cut: a concept the reader lacks gets its section in `overview.md`, pasted into the body again, and a skipped step, a hard sentence, or any stop in a body with no Overview is rewritten where it stands. Then cut each `nothing` and each repeat, never a line the next one needs, keeping the body's copy of the problem and the fix and the Overview's copy of a concept. A second fresh agent reads only the lines the first pass changed, and the step closes on its pass. Its verdicts go in `plan.md`, where a line kept against one names the fact it carries.
-
-Overflow detail belongs in the review file and the plan.
+7. Once before the body first goes up, and again only after a revision outside this step rewrites a paragraph, a fresh agent given only the body, the diff and the parts the project's delta requires, never the plan, reads it as the reviewer. First it names every place it had to stop: a term used before it is explained, a step the argument skips, a sentence it read twice. Then, for every paragraph, bullet, table row and reading-order stop, it names what the reviewer would lose if that line went, or `nothing`, or the line that already says it. Fix every stop before any cut: a concept the reader lacks gets its section in `overview.md`, pasted into the body again, and a skipped step, a hard sentence, or any stop in a body with no Overview is rewritten where it stands. Then cut each `nothing` and each repeat, never a line the next one needs, keeping the body's copy of the problem and the fix and the Overview's copy of a concept. A second fresh agent reads the whole body with the first pass's changes marked and judges those lines and the line after each cut; its stops are fixed, and the step ends there, with no third read. Its verdicts go in `plan.md`, where a line kept against one names the fact it carries.
 
 ## Visual evidence
 

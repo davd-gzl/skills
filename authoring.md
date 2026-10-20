@@ -255,8 +255,10 @@ rule. Neither is a cap: a rule that is all trigger, action and tell stays
 however long.
 
 A number in a rule is read by what it counts. A count of words rations them, and
-the only way to meet it is to delete words that carry meaning: a ceiling on a
-rule's words or a reply's goes, and so does a ratio like articles per hundred. A
+the only way to meet it is to delete words that carry meaning: never write a
+ceiling on words, in a skill or in a script, for a rule, a reply, a pull request
+body or any other artifact, and delete one wherever it is found, a ratio like
+articles per hundred included. A
 count of sentences, lines or items sets the shape of a bounded artifact, where
 meeting it means writing a different thing rather than shaving the same one:
 `1-3 sentences` in a draft's template, two lines for a code comment, three or four

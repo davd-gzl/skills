@@ -5,7 +5,7 @@ description: The pull request body for several independent changes sharing one p
 
 # Several independent changes
 
-One `### <symbol>: <one-line diagnosis>` section per change, separated by `---`, each readable alone. About 150 words per section, a target and not a minimum.
+One `### <symbol>: <one-line diagnosis>` section per change, separated by `---`, each readable alone.
 
 - Two or three framing paragraphs first: what the changes share and what none of them is, in the reader's terms. Then a one-line bridge counting what follows.
 - Each section carries its own symptom, mechanism and fix as a property of the new code, and a diagram where the reader would otherwise assemble the shape in their head, per *Diagrams* in `skills/pr-body.md`.

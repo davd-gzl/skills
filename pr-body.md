@@ -24,7 +24,7 @@ Put `pr-body.md` in the change directory, `projects/<repo>/changes/<slug>/`. It 
 
 Every body but one of self-explaining hunks, per the paragraph under the shape table, opens on the change's overview, in a collapsed `<details>` titled `Overview` above the severity line and every heading: the change's `overview.md`, per *Overview* in `skills/review.md`, pasted from its TLDR down with its headings one level lower and its line naming the model dropped, per Invariant 7 in the workspace `AGENTS.md`. A push that revises the body pastes the revised overview in the same command.
 
-`./scripts/pr-body-check <pr-body.md>` refuses a body whose visible part runs past its ceiling, and `pr-body-apply` and `post-fix.sh` send nothing it refuses: mechanism, history and alternatives go to the decision record or `plan.md`.
+A body carries every fact the merge decision needs, and nothing a reader would skip: the diff restated, mechanism a reviewer can read in the code, the branch's history, rejected alternatives a reviewer would not have raised. Those go to the decision record or `plan.md`, and the decisions not taken go in their collapsed block.
 
 The overview pasted into the body is its TLDR and one section per concept the change uses, per *Overview* in `skills/review.md`, however fully the body explains the change; a section repeating the body's Problem or Fix is cut. `What a user notices` and `What it leaves open` are design, so they are `##` sections of the body after `## Fix`, one bullet per effect. The overview's reading order goes last, in a collapsed `<details>` titled `Read the code in this order`, its temperature line and stops inside.
 
@@ -102,7 +102,7 @@ Do not ship the first draft. Re-read against the checks below, revise, repeat un
 5. Check against the diff one last time. A body describing a change not in the diff is worse than none.
 6. Cut every heading the chosen shape does not list, `## What to review closely` above all, whose parts go as inline comments per `skills/pr-body/surface.md`; a body revised on the forge is re-derived from the shape, never edited section by section from the copy there.
 
-Past the shape's budget: cut, never restructure. Overflow detail belongs in the review file and the plan. The count is never the target: the body is done when a cold read lands on the first pass.
+A body that does not read in one pass gets cut, never restructured: what the diff shows goes first, then repetition. Overflow detail belongs in the review file and the plan. The body is done when a cold read lands on the first pass.
 
 ## Visual evidence
 

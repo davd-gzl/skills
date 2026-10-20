@@ -24,7 +24,7 @@ Put `pr-body.md` in the change directory, `projects/<repo>/changes/<slug>/`. It 
 
 Every body but one of self-explaining hunks, per the paragraph under the shape table, opens on the change's overview, in a collapsed `<details>` titled `Overview` above the severity line and every heading: the change's `overview.md`, per *Overview* in `skills/review.md`, pasted from its TLDR down with its headings one level lower and its line naming the model dropped, per Invariant 7 in the workspace `AGENTS.md`. A push that revises the body pastes the revised overview in the same command.
 
-A body carries every fact the merge decision needs, and nothing a reader would skip: the diff restated, mechanism a reviewer can read in the code, the branch's history, rejected alternatives a reviewer would not have raised. Those go to the decision record or `plan.md`.
+Every line of a body is worth the reviewer's read, or it goes. A body carries every fact the merge decision needs, each stated once, where the reviewer meets it first, and nothing a reviewer would skip: the diff restated, mechanism a reviewer can read in the code, the branch's history, a figure or a sentence another part already gives, a line that would read the same on any pull request, rejected alternatives a reviewer would not have raised. Those go to the decision record or `plan.md`. Step 7 of *Loop* checks it.
 
 The design choices a reviewer could reasonably flip go in a collapsed `<details>` block titled `Could go another way`, after `## Fix`: one bullet per choice about the fix itself, the one a reviewer is likeliest to change first. Each bullet is the choice's name in bold, then two sentences: what the change does, then the other way and the condition that picks it, `- **Spaces in the name**: the value is checked as written, so a name with a leading space is refused. Trim it first if forms with stray spaces should keep rendering.` No sentence argues for either side: an option the reviewer may take, never a choice defended. A score, a label, a test-running method, how the change is split into pull requests, an alternative that cannot work, or anything about how the branch was made is not a design choice and stays out: each bullet is a question worth putting to the reviewer. A body with no such choice drops the block.
 
@@ -38,7 +38,7 @@ The overview pasted into the body is its TLDR and one section per concept the ch
    **If wrong:** a realm puts shell text in the copied command.
 ```
 
-Write nothing about how the file was written: no shape label, no model PR, no round count; that record belongs in `plan.md`. Every line is something the user pastes or acts on; delete the rest.
+Write nothing about how the file was written: no shape label, no model PR, no round count; that record belongs in `plan.md`.
 
 ## Shape
 
@@ -112,6 +112,7 @@ Do not ship the first draft. Re-read against the checks below, revise, repeat un
 4. Skim it in ten seconds, first lines and diagrams only. If that does not give the merge decision, lift the argument's turns into one-line paragraphs.
 5. Check against the diff one last time. A body describing a change not in the diff is worse than none.
 6. Cut every heading the chosen shape does not list, `## What to review closely` above all, whose parts go as inline comments per `skills/pr-body/surface.md`; a body revised on the forge is re-derived from the shape, never edited section by section from the copy there.
+7. Last, before the body goes up, a fresh agent given only the body and the diff, never the plan, reads it as the reviewer: for every paragraph, bullet, table row and reading-order stop it names what the reviewer would lose if that line went, or `nothing`, or the line that already says it. Cut each `nothing` and each repeat, keeping the copy the reviewer meets first, and write the verdicts in `plan.md`. A part a project's delta requires stays, and a line kept against its verdict names there the fact it carries. A cut reopens this step; it closes on a pass with nothing to cut.
 
 A body that does not read in one pass gets cut, never restructured: what the diff shows goes first, then repetition. Overflow detail belongs in the review file and the plan. The body is done when a cold read lands on the first pass.
 

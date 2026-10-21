@@ -30,6 +30,13 @@ every commit this machine's own config committed under neither handle. The machi
 identity is the private handle, so an unpinned tree defaults to the one that counts toward nobody's
 graph.
 
+A commit applying a fix a reviewer proposed, a `suggestion` block or an edit
+they spelled out, takes their fix as written and credits them with a
+`Co-authored-by: <name> <<id>+<login>@users.noreply.github.com>` trailer,
+`gh api users/<login> --jq '.id,.name'` printing both. A fix the agent wrote in
+place of theirs credits nobody, so take theirs wherever it holds. Invariant 7
+bars a trailer naming a model, never a human reviewer's.
+
 A fix branch under `projects/<repo>/changes/<slug>/checkout/` targets a public
 upstream and takes the user's handle even though the parent tree is private;
 only the parent's own commit takes the machine handle. A machine identity in

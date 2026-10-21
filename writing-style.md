@@ -100,6 +100,8 @@ Take the checks in order. Each is a search over the draft, not an impression of 
 
 10. **Gutted sentences.** For every sentence this revision cut a clause from, name what it still asserts. Where the claim lived in the removed words, delete the sentence and write what belongs in its place; keeping the residue leaves a slot filled by a line that states nothing.
 
+11. **Reader personas.** Name every kind of reader who could open the artifact, at least two who are not the writer: for a pull request body, someone from outside the project, the reviewer who knows the code, and the maintainer deciding the merge. Read the whole draft once as each, and mark every word that reader would not know and every sentence they would stop on. Fix each mark where it stands, then read again as that reader. The step ends when no reader stops.
+
 A pass that changes nothing is the exit condition. Never report a pass not run as a pass that changed nothing.
 
 ## Posted comments

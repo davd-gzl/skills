@@ -544,7 +544,7 @@ class PublishWords(GateCase):
         self.assertEqual(self.hook('gh pr merge 5', prompt='merge 5')[0], 0)
 
     def test_an_ai_marker_is_refused_whatever_the_turn_says(self):
-        rc, err = self.hook('git commit -m "fix\n\nCo-Authored-By: someone"', prompt='post push')
+        rc, err = self.hook('git commit -m "fix\n\nCo-Authored-By: Claude <noreply@anthropic.com>"', prompt='post push')
         self.assertEqual(rc, 2)
         self.assertIn('Invariant 7', err)
 
@@ -660,9 +660,14 @@ class PublishWordsEdges(PublishWords):
             self.assertEqual(self.hook(f'git -C {mine} push {flag} origin HEAD:main', prompt='push')[0], 2, flag)
 
     def test_marker_forms_are_all_caught(self):
-        for cmd in ('git commit --message="x\n\nCo-Authored-By: a"', 'git commit -m"Co-Authored-By: a"',
-                    'git commit -am "Co-Authored-By: a"', 'git commit -m x --trailer "Co-authored-by: a"'):
+        for cmd in ('git commit --message="x\n\nCo-Authored-By: Claude"', 'git commit -m"Co-Authored-By: Copilot"',
+                    'git commit -am "Co-Authored-By: a <noreply@anthropic.com>"',
+                    'git commit -m x --trailer "Co-authored-by: dependabot[bot] <a@b>"'):
             self.assertEqual(self.hook(cmd, prompt='post push')[0], 2, cmd)
+
+    def test_a_human_reviewer_co_author_passes(self):
+        cmd = 'git commit -m "fix\n\nCo-authored-by: Alex Doe <123+alexdoe@users.noreply.github.com>"'
+        self.assertEqual(self.hook(cmd, prompt='post push')[0], 0)
 
 
 class PublishWordsRoundThree(PublishWords):
@@ -696,7 +701,7 @@ class PublishWordsRoundThree(PublishWords):
             self.assertEqual(self.hook(cmd)[0], 2, cmd)
 
     def test_a_marker_in_a_heredoc_commit_message_is_caught_and_a_mention_elsewhere_is_not(self):
-        heredoc = 'git commit -m "$(cat <<\'EOF\'\nfix\n\nCo-Authored-By: someone\nEOF\n)"'
+        heredoc = 'git commit -m "$(cat <<\'EOF\'\nfix\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)"'
         self.assertEqual(self.hook(heredoc, prompt='push')[0], 2)
         elsewhere = './scripts/todo add "refuse Co-Authored-By: lines" && ./scripts/commit -m "TODO: a line" TODO.md'
         self.assertEqual(self.hook(elsewhere)[0], 0)

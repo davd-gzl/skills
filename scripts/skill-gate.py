@@ -1030,7 +1030,10 @@ def gives(text, word):
     return word in words or has_word(text, word)
 
 
-MARKER = re.compile(r'(?i)co-authored-by:|generated with \[?claude|assisted by ai|\U0001F916')
+# A Co-authored-by trailer is refused only where it names a model or a bot: a human reviewer whose
+# fix a commit applies is credited with one, per *Commit identity* in skills/git.md.
+MARKER = re.compile(r'(?i)co-authored-by:[^\n"]*(?:claude|anthropic|copilot|openai|chatgpt|gemini|\bai\b|\[bot\])'
+                    r'|generated with \[?claude|assisted by ai|\U0001F916')
 SHELL_LEAD = {'do', 'then', 'else', 'elif', 'if', 'while', 'until', '{', '(', '!', 'and', 'or', 'not'}
 RUNNERS = {'bash', 'sh', 'zsh', 'fish', 'python', 'python3'}
 # A wrapper and the options it takes a value for; its first bare word after them may be its own argument.
@@ -1670,7 +1673,7 @@ def refusal(cmd, payload):
     """Why this command waits for a word the turn does not carry, or None."""
     for msg in commit_messages(cmd):
         if MARKER.search(msg):
-            return ('an AI-authorship marker in a commit or post message: no Co-Authored-By, no "Generated with", '
+            return ('an AI-authorship marker in a commit or post message: no Co-Authored-By naming a model, no "Generated with", '
                     'no "Assisted by AI", per Invariant 7 of the workspace AGENTS.md.')
     needs = publish_words(cmd, payload.get('cwd'))
     if {'\x00never'} in needs:

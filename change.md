@@ -222,8 +222,10 @@ makes the rest of the session pay for its test output and file reads.
    `skills/review-comment.md`.
 9. **Simplify, last.** Once the loop closes, run the harness simplification
    pass, `/simplify`, over the whole final diff: reuse, fewer lines for the
-   same behaviour, a value computed once. Its agents may edit the tree to test a
-   finding, so save `git diff HEAD --binary > <scratch>/pre-simplify.patch` and
+   same behaviour, a value computed once. A subagent running the fix does this
+   read in its own thread: reviewer agents it launches in the background are
+   cut off when it hands back, before any of them reports. The pass's agents
+   may edit the tree to test a finding, so save `git diff HEAD --binary > <scratch>/pre-simplify.patch` and
    `git status --porcelain > <scratch>/pre-simplify.status` before it and read
    every hunk and new file after: one that no applied finding names is a probe
    left behind, and is reverted. Every test the branch adds, a golden and a

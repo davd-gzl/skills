@@ -62,6 +62,8 @@ Order the paragraphs, in every shape:
 3. Anything riding along, each item with its own why.
 4. What was verified, in the framing paragraphs, never at the end: the one runtime check the jobs cannot show, stated as a claim; the proof belongs in `plan.md`. Never "all tests pass" and never a trailing verification section, since the check list above the body carries every job's status; the one closing section `skills/pr-body/several-changes.md` keeps names a method several sections share, one row per section. A redness seen only locally is confirmed on CI before it reaches the body, and an explanation the checks withhold is a comment on the pull request.
 
+Before writing a pull request's state, back to draft, a commit its author has not reviewed, what it waits on, draft it as a comment on the pull request, never a line in the body: the body describes the change, and a state written there outlives the state.
+
 The reader has the diff: give only the defect, the consequence, and the context the code cannot supply.
 
 **A body carries the calls, never the coverage.** Which endpoints got the check, which case the guard catches, what each test asserts: the reader opens the diff for all of it. What survives is the decision a reviewer could have made differently: what the default keeps working, what fails loudly rather than quietly, what is deliberately left alone.

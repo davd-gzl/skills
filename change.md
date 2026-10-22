@@ -92,6 +92,11 @@ report-only, out of scope or left out goes back to the user as a question, never
 into the report as handled. The tell is a long review whose last paragraphs no
 brief quoted.
 
+Post a reply telling a reviewer their review is handled only on a pull request
+where every point in that list reads applied. Where any point is an open call,
+a separate change or documented rather than fixed, the reply waits until it is
+applied, since a reviewer reads "done" as the defect closed.
+
 ### Numbered open calls
 
 An open call is a decision the document made that a human could reasonably

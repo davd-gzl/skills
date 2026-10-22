@@ -131,6 +131,10 @@ This job runs on a schedule only, and GitHub disables those after 60 days.
 - The target is a link every time it is written, a table header included. A
   bare `#42` autolinks against whichever repository renders the reply, which
   is the workspace and not the target, so it resolves to an issue nobody opened.
+- Write a pull request's head branch in backticks beside it every time a reply
+  names the pull request, a table row and a table header included, read from
+  `gh pr view <n> --json headRefName`: the user reaches the work through the
+  branch, in the editor or a checkout, and a number alone costs them a lookup.
 - **A reply reporting a publish opens with one line per commit that went out**,
   before any of it: `[acme/app/3f680fa](<url>)`, then about five words saying
   what the commit holds.

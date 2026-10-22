@@ -84,6 +84,14 @@ Work asked for on an open pull request lands on that pull request's branch, and
 `p` pushes it there. A branch stacked on it opens only when the user names a
 second pull request.
 
+Before reporting a reviewer's comments on a pull request as handled, read every
+review body, thread and comment whole, never cut to a length, and list each
+point it asks for with one disposition: applied at a sha, a numbered open call,
+or a separate change the user agreed to. A point a brief or an agent marked
+report-only, out of scope or left out goes back to the user as a question, never
+into the report as handled. The tell is a long review whose last paragraphs no
+brief quoted.
+
 ### Numbered open calls
 
 An open call is a decision the document made that a human could reasonably

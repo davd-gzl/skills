@@ -120,7 +120,7 @@ flowchart TD
   T --> O[overview agent: the subject for a reader who knows nothing,<br/>on disk beside the finders, never at the end]
   F[finders, one per bundle per angle the bundle has material for,<br/>the hot bundles' twice under deep, read only] --> M[merge per file:line]
   M --> R[reflector: one read of every candidate against the diff,<br/>drops what a quoted line contradicts, asks what is missing]
-  R -->|Critical, Warning, a rewrite: the finder ran it| J[judges, six per agent, own worktree, xhigh:<br/>the artifact rerun, the code read, the base where causal]
+  R -->|Critical, Warning, a rewrite: the finder ran it| J[judges, six per agent, own worktree, high:<br/>the artifact rerun, the code read, the base where causal]
   R -->|Missing test, Suggestion, Nit| K[judges by read, twelve per agent:<br/>an absence a grep settles, a read settles a Nit]
   J --> A[round assemble: claims.md and findings.md<br/>from candidates/ and verdicts/ on disk]
   K --> A
@@ -132,10 +132,10 @@ flowchart TD
 
 | Stage | Reads | Returns | Tier |
 | --- | --- | --- | --- |
-| finder, one per angle with material, every angle twice under `deep` | the diff with its comments blanked for five angles, its angle's rule sections, the catalog | candidates: `file:line`, failure scenario, the check, the band, whether the finder ran the read-shaped half itself | xhigh, cap 6 per finder and 12 above Nit; `deep` 16 and 16 |
-| verifier, the judges | six run-shaped candidates of one bundle per agent, the finder's artifact and evidence in hand, a tool-call budget; twelve read-shaped per agent | CONFIRMED, PLAUSIBLE or REFUTED on the judge's own rerun and read, the exact lines or a concrete input quoted, the base compared where the claim is causal | xhigh |
+| finder, one per angle with material, every angle twice under `deep` | the diff with its comments blanked for five angles, its angle's rule sections, the catalog | candidates: `file:line`, failure scenario, the check, the band, whether the finder ran the read-shaped half itself | high, cap 6 per finder and 12 above Nit; `deep` 16 and 16 |
+| verifier, the judges | six run-shaped candidates of one bundle per agent, the finder's artifact and evidence in hand, a tool-call budget; twelve read-shaped per agent | CONFIRMED, PLAUSIBLE or REFUTED on the judge's own rerun and read, the exact lines or a concrete input quoted, the base compared where the claim is causal | high |
 | writer | verified findings, prior rounds, the candidate rows already tabled | `overview.md`, `comment_<model>.md`, `claims.md` | high |
-| text pass | the draft, the overview, `links.md` from `round links` | the claim column, the rewrites applied | xhigh |
+| text pass | the draft, the overview, `links.md` from `round links` | the claim column, the rewrites applied | high |
 
 The round on disk:
 
@@ -181,7 +181,7 @@ own argument and waits for the outcome table to measure it.
 | Routing by band: the Warning band and a rewrite get the rerun, the rest a read | A Missing test is an absence a grep settles and a read settles a Nit; on 6187 and 6177 every Nit the verifiers refuted was refuted by reading | the rounds' claims tables |
 | Small verifiers on the cheaper family tier | Their checks open with grep, count, ls or wc, or run a refactor's tests, and a weak verdict escalates to a full-tier agent, so a miss there costs one escalation while the stage costs a fifth; the next round's confirmed count against the last measures it | *reason* |
 | One vote per claim | Nine same-family judges carry 2.2 independent votes and the best single judge beat the panel; a cross-family refuter caught 16 % of same-family misses, and every model here is one family | [Nine Judges, Two Effective Votes 2026](https://arxiv.org/html/2605.29800), [Refute-or-Promote 2026](https://arxiv.org/abs/2604.19049) |
-| Finders and hard verifiers at `xhigh` | On gno#6187 finders at xhigh returned all six known Warnings and finders at high three, for a sixth less output; a miss at the verifier is final | *measured, one run each* |
+| Every stage at `high`, never `xhigh` | The user's call. On gno#6187 finders at xhigh returned all six known Warnings and finders at high three, for a sixth less output, so a missed Warning names the effort in its retro | *user's word; the xhigh run measured once* |
 | Code before the description; the claims angle alone reads the description first | "Bug-free" framing on vulnerable code cut detection by 16.2 to 93.5 points across six models; "vulnerable" framing on clean code raised false positives by 0.8 to 13.6 | [Mitropoulos et al. 2026](https://arxiv.org/abs/2603.18740) |
 | Five finders read a copy of head with comment lines blanked | The same framing sits inside the code, in a godoc calling something bounded or safe; the claims angle keeps the comments as its subject, the refactor angle as its lines | [Mitropoulos et al. 2026](https://arxiv.org/abs/2603.18740); *reason* for the extension |
 | One reflector, before the verifiers, drops and asks what is missing | It reads every candidate once against the diff, drops only what a code line contradicts, and asks the completeness question the critic used to ask beside the verifiers at three times the cost; its candidates verify in the first wave | *measured: 5 of 75 dropped, 3 on a comment's word, 3 added* |

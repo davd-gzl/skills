@@ -127,8 +127,8 @@ one pass.
 - One worked example before the rules it governs, at the head of the file and
   of every section showing a part the head one does not. Never two for the same
   rule: a second is read as the rule's whole range.
-  `skills/pr-body/one-concern.md` opens on the shape and closes on the body it
-  came from.
+  `skills/pr-body/one-concern.md` opens on the shape and closes on a skeleton of
+  the body; the real one it came from sits under `skills/pr-body/examples/`.
 - The prose under an example carries only what the example cannot show, and
   semantics come first: the shape, the command, the values. A sentence restating
   what the block above already displays is the one to cut.

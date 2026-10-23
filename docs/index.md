@@ -24,7 +24,7 @@ A triage agent runs before any stage is sized: one short read of the diff, the r
 | trivial | no behaviour changes: a doc, a comment, a rename, a version bump | one solo agent finds, runs what it bands Warning, judges and writes | 2 agents, ~64k output, about 8 minutes |
 | simple | one local behaviour change, one function and its direct callers | one finder per bundle carrying every angle, one judge, the writer; no reflector, no text pass | 5 agents, ~80k, about 17 minutes |
 | normal | more than one reach, a new invariant, a guard removed, a test that must turn red | the word's shape | 7 agents, ~113k, about 25 minutes |
-| complex | concurrency, consensus, gas, funds, permissions, cryptography, a state machine, unknown code | finders at 60 calls, hot bundles split by code file, judges by three, the text pass | |
+| complex | concurrency, consensus, gas, funds, permissions, cryptography, a state machine, unknown code | finders at 60 calls, hot bundles split by code file, the word's judge batches, the text pass | |
 
 The useless steps go by themselves: a round that finds nothing runs no judge, no reflector and no text pass; the reflector is skipped under six candidates and the text pass under four findings; the overview is a dozen lines for a simple change. A 1,200-line change on `review` still projects at 24 agents and about 1.1M output, so a seven-line fix costs a tenth of it rather than half.
 
@@ -208,10 +208,10 @@ own argument and waits for the outcome table to measure it.
 | [`issue.md`](https://github.com/davd-gzl/skills/blob/main/issue.md) | a fix needs an upstream issue nobody has filed | `issue.md`, the problem and never the remedy |
 | [`change.md`](https://github.com/davd-gzl/skills/blob/main/change.md) | an issue or a finding goes to a pull request | `spec.md` and `plan.md` with their numbered open calls, the worktree, the fix, the local CI run, the pull request on my fork |
 | [`pr-body.md`](https://github.com/davd-gzl/skills/blob/main/pr-body.md) | a change is proposed, before the pull request opens | the title and body, in one of four shapes, looping until a full pass changes nothing |
-| [`pr-body/docs.md`](https://github.com/davd-gzl/skills/blob/main/pr-body/docs.md) | the change is documentation pages | no headers, the fact the pages had wrong first, a worked example |
-| [`pr-body/one-concern.md`](https://github.com/davd-gzl/skills/blob/main/pr-body/one-concern.md) | one concern, which is every bug fix | `## Problem` and `## Fix`, four short paragraphs, a worked example |
-| [`pr-body/several-changes.md`](https://github.com/davd-gzl/skills/blob/main/pr-body/several-changes.md) | several independent changes share one pull request | one `###` section per change, each readable alone, a worked example |
-| [`pr-body/surface.md`](https://github.com/davd-gzl/skills/blob/main/pr-body/surface.md) | one change with a surface someone sees | `## Problem` with the shot, `## Design` with one bold lead-in per decision, a worked example |
+| [`pr-body/docs.md`](https://github.com/davd-gzl/skills/blob/main/pr-body/docs.md) | the change is documentation pages | no headers, the fact the pages had wrong first, a skeleton |
+| [`pr-body/one-concern.md`](https://github.com/davd-gzl/skills/blob/main/pr-body/one-concern.md) | one concern, which is every bug fix | `## Problem` and `## Fix`, four short paragraphs, a skeleton |
+| [`pr-body/several-changes.md`](https://github.com/davd-gzl/skills/blob/main/pr-body/several-changes.md) | several independent changes share one pull request | one `###` section per change, each readable alone, a skeleton |
+| [`pr-body/surface.md`](https://github.com/davd-gzl/skills/blob/main/pr-body/surface.md) | one change with a surface someone sees | `## Problem` with the shot, `## Design` with one bold lead-in per decision, a skeleton |
 | [`try.md`](https://github.com/davd-gzl/skills/blob/main/try.md) | a project is booted at a pull request, a branch or its default branch | a URL, a login, the click path; the clip once the claim is settled |
 | [`report.md`](https://github.com/davd-gzl/skills/blob/main/report.md) | a periodic status report over a set of repositories | the report, generated only after I have edited its context file |
 | [`git.md`](https://github.com/davd-gzl/skills/blob/main/git.md) | a turn will commit, push, sync a checkout, or touch a submodule or worktree | the identity every commit takes, where a push goes, the commands that report success and move nothing |

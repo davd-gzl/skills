@@ -6,4 +6,4 @@ Reviewing again in the session that produced the work finds less than reviewing 
 
 Source: [Cross-Context Review](https://arxiv.org/abs/2603.12123).
 
-Changes: *Fix* step 8 in `skills/change.md` reads its first pass in the session and runs every later pass in a fresh agent given the diff and the skill's path alone.
+Changes: *Fix* step 8 in `skills/change.md` reads its first pass in the session and runs every later pass in a fresh agent given the diff, or the one fix it reads, and the skill's path alone.

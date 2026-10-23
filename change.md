@@ -206,33 +206,45 @@ makes the rest of the session pay for its test output and file reads.
    restore ships with the next commit. A mutation weakens the guard rather than
    deleting it, a bound off by one or a check on the wrong length, and lands at
    the call site as well as in the helper: a test only a deleted guard turns red
-   passes a guard that is wrong.
+   passes a guard that is wrong. The guards set how many run: one mutation per
+   guard or bound the diff adds or changes outside its tests, in the helper and
+   at each call site, and one per test it adds that those leave green; a later
+   pass mutates only the guards its own fix changed. `git diff -U0 <base> --
+   <the code paths, tests excluded>` lists them, each added line that refuses,
+   clamps or returns early.
    Once green, run the issue's own repro from step 2 again, the way its
    reporter hit it: the suite proves only the tests the agent could see.
-8. **Loop over the whole diff, green, until a pass returns no Critical or
-   Warning, or only ones on lines the pass before it changed.** Read it as a
-   reviewer who did not write it, with the *Verification discipline* and
-   severity model of `skills/review.md`. The first pass opens one topic per
-   bound the body names and per guard or premise the plan leans on, and runs
-   each, never argues it, on every axis that reaches it: summed over a batch, a
-   loop or a value shared at many places; many identities from one host; two
-   callers at once; state that never expires; every return and call shape that
-   reaches the guard. An axis it cannot run goes to the plan as an open call
-   with its measured cost. Apply each, re-run the checks, read again. The
-   first pass reads in this session; every later pass, one step 9 reopens
-   included, runs in a fresh agent given only the diff and this file's
-   path, told to return findings and edit nothing; the parent applies them.
-   Each pass starts by snapshotting the worktree, `./scripts/snapshot
-   <worktree>`, whose sha is that pass's head. `round stop <list> --repo
-   <worktree> --prev <the pass before's head> --head <this pass's head>`
-   settles the stop, the list one `<Band> <file:line>` line per Critical and
-   Warning the pass returned, or a round's `claims.md`; it exits 0 to stop,
-   and counts every commit between the two heads as the fix.
+8. **Read the whole diff in two passes, then each fix in one, green, until a
+   pass returns no Critical or Warning, or only ones on lines the pass before
+   it changed.** Read it as a reviewer who did not write it, with the
+   *Verification discipline* and severity model of `skills/review.md`. The
+   first pass opens one topic per bound the body names and per guard or premise
+   the plan leans on, and runs each, never argues it, on every axis that
+   reaches it: summed over a batch, a loop or a value shared at many places;
+   many identities from one host; two callers at once; state that never
+   expires; every return and call shape that reaches the guard. An axis it
+   cannot run goes to the plan as an open call with its measured cost. Apply
+   each, re-run the checks, read again. The first pass reads in this session;
+   the second, the closing pass, runs in a fresh agent given only the whole
+   diff and this file's path, told to return findings and edit nothing; the
+   parent applies them. A later pass is earned by the fix that answers a
+   finding, never by the finding: a fix that adds or changes a guard or a bound
+   outside the tests, or changes what a caller of a changed function receives,
+   earns one fresh agent given only that fix, `git diff <the pass before's
+   head> <this pass's head>`, and the callers its hunks reach; a fix to tests,
+   comments, docs or names re-runs the checks it touched and earns none. Each
+   pass starts by snapshotting the worktree, `./scripts/snapshot <worktree>`,
+   whose sha is that pass's head. `round stop <list> --repo <worktree> --prev
+   <the pass before's head> --head <this pass's head>` settles the stop, the
+   list one `<Band> <file:line>` line per Critical and Warning the pass
+   returned, or a round's `claims.md`; it exits 0 to stop, and counts every
+   commit between the two heads as the fix.
    `<first rebased fix commit>^` stands in for the pass before's head after a
-   rebase. Apply the closing pass's findings too. That closing pass runs
-   unasked and gates the handover. Where step 10 runs, its round is the
-   closing pass, and no fresh-agent pass runs before it: both read the same
-   diff, and a finding the round returns reopens this step anyway.
+   rebase. Apply the last pass's findings too. The closing pass runs unasked
+   and gates the handover. Where step 10 runs, its round is the closing pass,
+   and no fresh-agent pass runs before it: both read the same diff, and the
+   fix answering a finding the round returns earns a pass as any other fix
+   does.
    Never hand a finding back as a suggestion, and never park one as an open
    question to keep the report tidy.
    What survives unapplied needs a decision only the user can make, and each is
@@ -259,8 +271,9 @@ makes the rest of the session pay for its test output and file reads.
    holds, re-run the checks,
    and report the behaviour unchanged only from the suite and the issue's
    repro run after the pass, never from a read of the diff. Read the diff once
-   more; a pass that changes anything reopens step 8,
-   and the empty one is recorded in the plan's Iterations. It runs unasked, and
+   more; an edit that changes a guard, a bound or what a caller receives earns
+   one step-8 pass over that edit, and the empty pass is recorded in the plan's
+   Iterations. It runs unasked, and
    its trigger is every fix handed back rather than a change's end alone: a turn
    reporting a behaviour change done runs this pass before reporting it.
 10. **On `pr`, run a round over the branch diff, after the simplify pass and

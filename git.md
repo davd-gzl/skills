@@ -121,8 +121,10 @@ A submodule sits on a detached HEAD, and every failure here follows from that.
   user's word, commit on a branch there instead.
 - **Push it as `git push origin HEAD:main`.** A submodule's `main` is whatever
   the last update left, usually stale, so pushing that ref is refused as behind
-  while the commit that matters sits on `HEAD`. Follow with
-  `git branch -f main origin/main`.
+  while the commit that matters sits on `HEAD`. On a detached HEAD, follow with
+  `git branch -f main origin/main`; a submodule checked out on `main`, as the
+  sync leaves `skills/`, is level once the push lands, and `git status -sb`
+  shows it.
 - Version a fix branch as a submodule, never a worktree. A worktree's `.git`
   is a file into the main object store, so git cannot track it.
   `git submodule add -b <branch> <fork-url> <path>` records the branch, which

@@ -291,6 +291,15 @@ OAuth; every variant in one run at effort `medium`; one blind judge pass, labels
 hidden and order shuffled, on single-pass readability and substance kept.
 `skills/archive/chat-register/` holds a harness for such a run.
 
+Before an edit to `skills/pr-body.md`, a shape under `skills/pr-body/` or
+`skills/review.md` lands, run `./scripts/skill-eval pr-body` or
+`./scripts/skill-eval review`: it measures the edited text against the
+committed one and a control that reads no skill, on a fixed set of past pull
+requests, several trials each, and prints each variant's mean, its spread
+across trials and its wins. A difference inside that spread is no difference:
+the edit lands only for a reason the set cannot measure, named in its commit
+message.
+
 A published result is one measurement on its own models, benchmarks and date:
 the knowledge line carries those conditions beside its number, and a rule drawn
 from it is measured here before it is trusted.

@@ -183,8 +183,9 @@ makes the rest of the session pay for its test output and file reads.
    against it, never to turn a job green: the issue outranks the tests. A
    rename or a moved fixture carrying the same expectation is no call.
 7. **Run the CI locally.** While iterating, after each edit run only the test
-   files and linters that cover the files it touched, step 2's list first;
-   run the whole suite once, last, before the push. Reproduce every job the
+   files and linters that cover the files it touched, step 2's list first,
+   and leave the whole suite to CI, read from the pull request's checks,
+   unless the project's `AGENTS.md` runs it locally. Reproduce every job the
    diff touches, loop until green before pushing, the formatter and the
    auto-fixer included: that job fails on their diff whatever the linter
    itself found. Take the command from

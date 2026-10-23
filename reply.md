@@ -122,7 +122,8 @@ This job runs on a schedule only, and GitHub disables those after 60 days.
 
 ## Links
 
-- Every reply ends on the links, pushed or not. A file whose push has not landed
+- A reply from a turn that wrote something, an edit, a commit, a push or a post,
+  ends on the links, pushed or not. A file whose push has not landed
   keeps its link and says so beside it, since that URL 404s until the sha is
   reported.
 - **Group them one table column per target**, or per category where the work had

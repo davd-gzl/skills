@@ -11,7 +11,7 @@ The decisions are what the reader gets rather than what the code does, so the bo
 - `## Problem`, two or three short paragraphs: what the reader sees today, then why it is a defect. The shot sits here, under a blockquote caption naming what it shows and what produced it, per *Visual evidence* in `skills/pr-body.md`.
 - The design page where one exists, linked on its own line under `## Design`.
 - `## Design`, one paragraph per decision a reviewer could have made differently, opening on the decision in bold inside its own sentence, never as a heading above it: what the reader sees, the interface, who it answers, what it costs, what is left out. A decision carrying one sentence is not a decision: fold it into its neighbour.
-- The parts a reviewer should open go as inline comments on the diff, one per part, per `skills/review-comment.md`, never as a section of the body.
+- The parts a reviewer should open go as inline comments on the diff, one per part, per `skills/review-comment.md`, never as a section of the body; the reading order block that closes every body stays.
 - Where the body uses role words, it closes on the Glossary block per *Shape* in `skills/pr-body.md`.
 
 Why: a reviewer of a surface decides on what a person will see, and a bold lead-in per decision lets them stop at the one they would have made differently.
@@ -40,4 +40,10 @@ Fixes #<issue>
 **<The decision, in bold inside its own sentence>**: <what the reader sees, who it answers, what it costs, what is left out.>
 
 **<The next decision>**: <the same parts.>
+
+<details><summary>Read the code in this order</summary>
+
+<The stops, hot then warm then cold, per skills/pr-body.md.>
+
+</details>
 ```

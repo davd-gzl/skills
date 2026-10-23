@@ -40,4 +40,10 @@ Why: a reviewer reads the section for the file they own and skips the rest, so a
 ### How each was proved
 
 <The method the sections share, once, then one row per section.>
+
+<details><summary>Read the code in this order</summary>
+
+<The stops, hot then warm then cold, per skills/pr-body.md.>
+
+</details>
 ```

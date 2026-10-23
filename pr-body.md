@@ -7,7 +7,7 @@ description: Write the title and body of a pull request. Use whenever a change i
 
 Write for a reader with no context who must decide whether to merge. Prose follows `skills/writing-style.md`; the rules below are the PR-body deltas.
 
-Pick one of four shapes, by what the pull request carries, and read that shape's file whole through `./scripts/skill pr-body/<shape>` before drafting: it holds the headers in order, what goes under each, the length, how it opens and closes, and a skeleton of the body. Never mix them. The real body each skeleton was drawn from sits in `skills/pr-body/examples/<shape>.md`, for whoever edits the shape.
+Pick one of four shapes, by what the pull request carries, and read that shape's file whole through `./scripts/skill pr-body/<shape>` before drafting: it holds the headers in order, what goes under each, the length, how it opens and closes, and a skeleton of the body. Never mix them. Every shape closes on the `Read the code in this order` block below, whatever its own file lists. The real body each skeleton was drawn from sits in `skills/pr-body/examples/<shape>.md`, for whoever edits the shape.
 
 | The pull request carries | Shape |
 | --- | --- |

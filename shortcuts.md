@@ -32,6 +32,7 @@ as the skill defines it; ask when the reading changes what gets built.
 | `plan` | what the next review round will run and cost, the stage table and the projection | `./scripts/review-plan.py` |
 | `config <stage> <key> <value>` | that knob of the review workflow changed, the plan reprinted, the estimate given | `./scripts/review-plan.py --set <stage>.<key>=<value> --write`, *A change to the run's shape* in `skills/authoring.md` |
 | `fix <issue or finding>` | a change on the fork: spec, plan, worktree, fix, CI, simplify last; nothing pushed | `skills/change.md` |
+| `fix as ai <pull request>`, `fix by ai <pull request>` | every reviewer comment on a pull request the user authored, applied per *Fix*, then pushed and each thread answered behind the AI reply marker once the fix finishes, nothing asked on the way: the request carries the `post` for those replies and the body revision, and the `push` for the branch. What an Invariant holds, an unsure read or a point left unapplied, still holds that reply and goes to the user | `skills/change.md`, *Answering a finding on your own pull request* and *Posting* in `skills/review-comment.md` |
 | `try <pr> on <repo>` | the project booted locally, ready to click through | `skills/try.md` |
 | `video` | the clip, only once the finding's text is frozen | `skills/try.md` |
 | `stop` | the stack and the worktree torn down | `skills/try.md` |

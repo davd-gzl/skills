@@ -54,12 +54,15 @@ Written before any fix code, split by audience per
 - `spec.md` is what and why: the problem, the scenarios, the numbered
   requirements, the acceptance criteria, what is out of scope. No technology is
   named in it. Write one where no review has settled the behaviour.
-- `plan.md` is how: root cause, approach, the files, how it is tested, the
-  paths walked behind every absolute the diff or its body states about the
-  code, a never, a cannot, an always, enumerated before the first push, the
-  commit split, the threat model and the module inventory where the change is
-  large enough to need them, and an Iterations section naming every round and
-  what caught it, failures included. Write one where the fix has a second
+- `plan.md` is how: root cause, approach, the files, how it is tested, a
+  `## Paths walked` section naming every path that reaches each absolute the
+  title, the body or the diff states about the code, a cap, a never, a cannot,
+  an at most, each with the run showing it holds or the body's leaves-out line
+  naming it, enumerated before the first push and checked by
+  `./scripts/absolutes-check.py`, the commit split, the threat model and the
+  module inventory where the change is large enough to need them, and an
+  Iterations section naming every round and what caught it, failures included.
+  Write one where the fix has a second
   defensible shape, or a call for a human, or a diff nobody reads in one sitting.
   A fix with one shape and no call goes straight to the body.
 

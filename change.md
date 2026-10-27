@@ -120,6 +120,12 @@ make differently. A document listing none is hiding them, so list every one. The
 3. The change `README.md` gathers every call from both documents under
    `## Waiting on a human`, naming the one or two to weigh first.
 
+Before a `Pick:` keeps code a finding flagged, run the premise the pick rests
+on, against the input the finding named, and quote the run under `Now:`. A
+premise the run disproves turns the call into a fix. The tell is a `Pick:` whose
+reason is a claim, `the base does the same` or `nothing reaches it`, with no
+command beside it.
+
 In the handover reply, repeat the first call in full and link the rest: chat is
 gone next session.
 
@@ -209,9 +215,13 @@ makes the rest of the session pay for its test output and file reads.
    restore ships with the next commit. A mutation weakens the guard rather than
    deleting it, a bound off by one or a check on the wrong length, and lands at
    the call site as well as in the helper: a test only a deleted guard turns red
-   passes a guard that is wrong. A guard a mutation turned red stays proven
-   until a fix changes it: a later pass mutates only the guards its own fix
-   changed.
+   passes a guard that is wrong. One mutation per guard reproduces the defect
+   class the fix closes, a truncation, an alias, a copy nothing reads, and the
+   test meets it with an input the right code accepts: an input every version
+   refuses, all-zero bytes for one, reddens no mutation. A guard choosing
+   between two behaviours is mutated toward each. A guard a mutation turned
+   red stays proven until a fix changes it: a later pass mutates only the
+   guards its own fix changed.
    Once green, run the issue's own repro from step 2 again, the way its
    reporter hit it: the suite proves only the tests the agent could see.
 8. **Loop over the whole diff, green, until a pass returns no Critical or
@@ -238,6 +248,9 @@ makes the rest of the session pay for its test output and file reads.
    unasked and gates the handover. Where step 10 runs, its round is the
    closing pass, and no fresh-agent pass runs before it: both read the same
    diff, and a finding the round returns reopens this step anyway.
+   A commit landing after the closing pass, a check moved or a line added,
+   reopens this step and step 7's mutations for every guard it touches, and
+   every review count the body states is measured again, never carried over.
    Never hand a finding back as a suggestion, and never park one as an open
    question to keep the report tidy. A Warning on code the diff neither
    changes, sweeps the class of, freezes nor makes reachable, per *Calibration*
@@ -248,11 +261,13 @@ makes the rest of the session pay for its test output and file reads.
    What survives unapplied needs a decision only the user can make, and each is
    named as a decision rather than a leftover. Record what each round caught in
    the plan where there is one, never silently amend it away. A measurement
-   that moves a claim is swept over the whole artifact by the claim's own
-   words, every restatement included, with `git grep` on its key words over
-   every tracked file and no pathspec, and each line the diff adds is read
-   against the lead of the section it sits under: the loop reads the diff, and
-   a line it never touched sits outside it.
+   that moves a claim, or a change that makes one false, a line `plan.md`
+   quotes from an earlier design or decision record included, is swept over
+   the whole artifact by the claim's own words, every restatement included,
+   with `git grep` on its key words over every tracked file and no pathspec,
+   the command and its hits written into `plan.md`, and each line the diff
+   adds is read against the lead of the section it sits under: the loop reads
+   the diff, and a line it never touched sits outside it.
    `comment_<model>.md` stays the postable artifact, per
    `skills/review-comment.md`.
 9. **Simplify, last.** Once the loop closes, run the harness simplification

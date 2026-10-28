@@ -177,7 +177,8 @@ makes the rest of the session pay for its test output and file reads.
    `<id>` is the issue number where one exists, a short slug otherwise. Run it
    from the workspace root, and keep the path absolute: `-C` resolves a
    relative one inside the checkout. Then run the tests step 2 listed, in the
-   worktree, and note which fail before any edit.
+   worktree, and note which fail before any edit. Before the first edit, run
+   `./scripts/snapshot <worktree>`: its sha is the fix's base for step 10.
 5. **Weigh each finding before building it.** Name what implementing one costs in files and what
    it buys in cases a user actually hits: a suggestion covering a transition
    nobody has been through yet goes to the pull request body's leaves-out
@@ -245,9 +246,9 @@ makes the rest of the session pay for its test output and file reads.
    and counts every commit between the two heads as the fix.
    `<first rebased fix commit>^` stands in for the pass before's head after a
    rebase. Apply the closing pass's findings too. That closing pass runs
-   unasked and gates the handover. Where step 10 runs, its round is the
-   closing pass, and no fresh-agent pass runs before it: both read the same
-   diff, and a finding the round returns reopens this step anyway.
+   unasked and gates the handover. Step 10's round is the closing pass, and
+   no fresh-agent pass runs before it: both read the same diff, and a finding
+   the round returns reopens this step anyway.
    A commit landing after the closing pass, a check moved or a line added,
    reopens this step and step 7's mutations for every guard it touches, and
    every review count the body states is measured again, never carried over.
@@ -288,11 +289,18 @@ makes the rest of the session pay for its test output and file reads.
    and the empty one is recorded in the plan's Iterations. It runs unasked, and
    its trigger is every fix handed back rather than a change's end alone: a turn
    reporting a behaviour change done runs this pass before reporting it.
-10. **On `pr`, run a round over the branch diff, after the simplify pass and
-    before the push; a bare `p` pushes with no round.** `./scripts/review-setup.sh`, then the review runner by `scriptPath`
-    at the `quick` or `critical` preset, in Own PR mode per
-    `skills/review-modes.md`; the branch has no pull request yet, so that mode's
-    author check is the branch itself. A finding reopens step 8.
+10. **After the simplify pass, run a `quick review` round over the fix's own
+    diff, unasked, never over the branch's or the feature's.** The base
+    worktree sits at step 4's snapshot and the head at `./scripts/snapshot
+    <worktree>` taken now, each by `git -C <worktree> worktree add --detach
+    <path> <sha>`; then `./scripts/review-setup.sh <head> <base> ... --preset
+    quick` and the review runner by `scriptPath`, in Own PR mode per
+    `skills/review-modes.md`, whose author check is the branch itself where no
+    pull request exists yet. A finding reopens step 8. On `pr` the round reads
+    the whole branch diff instead, at the `quick` or `critical` preset, before
+    the push; a bare `p` runs no further round. A review round's fixes take
+    the loop of *Own PR* in `skills/review-modes.md` instead, whose rounds
+    already read the fixes alone.
 11. **Report** the changed files and what each change does.
 12. **Keep the worktree.** It carries review feedback, rebases and follow-up
     work until the pull request merges.

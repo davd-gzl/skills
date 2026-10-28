@@ -31,14 +31,14 @@ as the skill defines it; ask when the reading changes what gets built.
 | `review all` | every open target not yet reviewed, the scope written down first | `skills/review-modes.md` |
 | `plan` | what the next review round will run and cost, the stage table and the projection | `./scripts/review-plan.py` |
 | `config <stage> <key> <value>` | that knob of the review workflow changed, the plan reprinted, the estimate given | `./scripts/review-plan.py --set <stage>.<key>=<value> --write`, *A change to the run's shape* in `skills/authoring.md` |
-| `fix <issue or finding>` | a change on the fork: spec, plan, worktree, fix, CI, simplify last; nothing pushed | `skills/change.md` |
+| `fix <issue or finding>` | a change on the fork: spec, plan, worktree, fix, CI, simplify, then a `quick review` of the fix's own diff, never the whole branch; nothing pushed | `skills/change.md` |
 | `fix as ai <pull request>`, `fix by ai <pull request>` | every reviewer comment on a pull request the user authored, applied per *Fix*, then pushed and each thread answered behind the AI reply marker once the fix finishes, nothing asked on the way: the request carries the `post` for those replies and the body revision, and the `push` for the branch. What an Invariant holds, an unsure read or a point left unapplied, still holds that reply and goes to the user | `skills/change.md`, *Answering a finding on your own pull request* and *Posting* in `skills/review-comment.md` |
 | `try <pr> on <repo>` | the project booted locally, ready to click through | `skills/try.md` |
 | `video` | the clip, only once the finding's text is frozen | `skills/try.md` |
 | `stop` | the stack and the worktree torn down | `skills/try.md` |
 | `report [date]` | the period's status report | `skills/report.md` |
 | `p`, `push` | everything the closing block names, once: every commit and push the work needs, then the post, upload, title or body it links | *Consent*, workspace `AGENTS.md` |
-| `pr`, `p r`, `push review` | the round over the change's branch, step 10 of *Fix*, its fixes applied, then everything `p` sends; a bare `p` runs no round | `skills/change.md` |
+| `pr`, `p r`, `push review` | the round over the change's whole branch, step 10 of *Fix*, its fixes applied, then everything `p` sends; a bare `p` runs no further round | `skills/change.md` |
 | `r` | the same round over the change's branch, its fixes applied, nothing committed or pushed | `skills/change.md` |
 | `rlp`, `review loop push` | the loop `review <target>` runs on a pull request the user authored, on the one the session works on, then everything `p` sends; one word, never the letters `r`, `l` and `p` | *Own PR* in `skills/review-modes.md`, *Consent* |
 | `pf`, `p f`, `push force` | everything `p` sends, the branch it names replaced on its remote with `--force-with-lease`: Invariant 8's approval, for that push alone | Invariant 8 |

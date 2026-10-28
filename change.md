@@ -304,7 +304,10 @@ makes the rest of the session pay for its test output and file reads.
     the push; a bare `p` runs no further round. A review round's fixes take
     the loop of *Own PR* in `skills/review-modes.md` instead, whose rounds
     already read the fixes alone.
-11. **Report** the changed files and what each change does.
+11. **Report** the changed files and what each change does. Before the
+    report, run `./scripts/dropped-findings.py <each round's claims.md>
+    <plan.md>`; on exit 1, apply each row it prints or cite its `file:line` in
+    a numbered open call, then run it again.
 12. **Keep the worktree.** It carries review feedback, rebases and follow-up
     work until the pull request merges.
 

@@ -37,15 +37,16 @@ as the skill defines it; ask when the reading changes what gets built.
 | `video` | the clip, only once the finding's text is frozen | `skills/try.md` |
 | `stop` | the stack and the worktree torn down | `skills/try.md` |
 | `report [date]` | the period's status report | `skills/report.md` |
+| `upgrade skills` | the corpus checked and made better: the lint over every rule file, each real hit, stale name, copy and contradiction fixed, then every `TODO.md` line no word or pending run holds, fixed or its line updated; committed and pushed on each repository's standing word | `skills/authoring.md`, *Writing it down* in `workspace.md` |
 | `p`, `push` | everything the closing block names, once: every commit and push the work needs, then the post, upload, title or body it links | *Consent*, workspace `AGENTS.md` |
 | `pr`, `p r`, `push review` | the round over the change's whole branch, step 10 of *Fix*, its fixes applied, then everything `p` sends; a bare `p` runs no further round | `skills/change.md` |
 | `r` | the same round over the change's branch, its fixes applied, nothing committed or pushed | `skills/change.md` |
-| `rlp`, `review loop push` | the loop `review <target>` runs on a pull request the user authored, on the one the session works on, then everything `p` sends; one word, never the letters `r`, `l` and `p` | *Own PR* in `skills/review-modes.md`, *Consent* |
+| `rlp`, `review loop push` | the loop `review <target>` runs on a pull request the user authored, on the one the session works on, then everything `p` sends; one word, never the letters `r`, `l` and `p` | *Own PR* in `skills/review-modes.md`, *Consent* in `AGENTS.md` |
 | `pf`, `p f`, `push force` | everything `p` sends, the branch it names replaced on its remote with `--force-with-lease`: Invariant 8's approval, for that push alone | Invariant 8 |
 | `post` | the shown draft goes to its target where nothing waits to be pushed, and `p` sends it the same; `post as an AI` adds the marker; `upload` sends media | `skills/review-comment.md`, `skills/issue.md`, `skills/change.md` |
 | `m`, `x`, `d` | merge, close or delete: that one action on the named target | Invariant 2 |
 | `o`, `ready` | the named draft pull request marked ready for review | Invariant 2 |
-| `make this review public` | the round to the public artifact repo, links repointed | *Consent* |
+| `make this review public` | the round to the public artifact repo, links repointed | *Consent* in `AGENTS.md` |
 | `path` | the worktree the work sits in, its path alone | here |
 | a pull request number alone | what the session changed on that pull request's branch, read from its diff, and why: the comment or finding each change answers | here |
 | `links <target>` | three markdown hyperlinks on one line, each to its page on the remote hosting it, never a bare URL or a local path: the pull request, its latest round's `overview.md`, and that round's `comment_<model>.md` | here |

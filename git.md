@@ -22,13 +22,15 @@ with it. `--show` prints the handle it would use and commits nothing.
 
 Pin the identity in every checkout's own git config, `./scripts/identity --write`.
 The verb above sets the four variables for its own call and reaches nothing else, so `git rebase`,
-`git cherry-pick`, `git commit --amend` and a bare `git commit` take the config identity: a push
-refused as non-fast-forward is retried with a rebase, and that rebase rewrites a correctly authored
-commit under whatever the machine holds. Local config beats global and loses to the variables, so
-the two agree wherever both apply. `./scripts/identity` alone reports drift, `--audit <n>` names
-every commit this machine's own config committed under neither handle. The machine's global
-identity is the private handle, so an unpinned tree defaults to the one that counts toward nobody's
-graph.
+`git cherry-pick`, `git commit --amend` and a bare `git commit` take whatever the machine holds,
+four exported variables before the config. Rebase an unpushed commit onto a moved remote, a push
+refused as non-fast-forward, with `./scripts/commit -C <repo> --rebase-onto <remote>/<branch>`: it
+rewrites every replayed committer under the destination's handle and aborts on a conflict, where
+a bare `git rebase` rewrites a correctly authored commit under the machine's. Local config beats
+global and loses to the variables, so the two agree wherever both apply. `./scripts/identity`
+alone reports drift, `--audit <n>` names every commit this machine's own config committed under
+neither handle. The machine's global identity is the private handle, so an unpinned tree defaults
+to the one that counts toward nobody's graph.
 
 A commit applying a fix a reviewer proposed, a `suggestion` block or an edit
 they spelled out, takes their fix as written and credits them with a

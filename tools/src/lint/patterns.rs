@@ -130,7 +130,7 @@ pattern! {
 }
 pattern! {
     /// A rule file named in a code span on the same line as a section reference.
-    NAMED_FILE = r"`((?:skills|projects)/[A-Za-z0-9_./-]+\.md|AGENTS\.md)`";
+    NAMED_FILE = r"`((?:skills|projects)/[A-Za-z0-9_./<>-]+\.md|AGENTS\.md)`";
 }
 pattern! {
     /// A markdown heading, whose text is indexed lowercased.

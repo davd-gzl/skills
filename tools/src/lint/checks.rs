@@ -167,9 +167,10 @@ fn paren(line: &ProseLine) -> Option<Finding> {
     ))
 }
 
-/// Every file a rule points at, over `bare`, the text with its fences removed. A file inside
+/// Every file a rule points at, over `bare`, the text with its fences blanked. A file inside
 /// skills/ names its own repository's scripts by their path there, which renders on that
-/// repository's page: the workspace's scripts/ is tried first, that one second. A delta's paths
+/// repository's page: the workspace's scripts/ is tried first, that one second, then the path
+/// from the file's own directory, which a relative markdown link names. A delta's paths
 /// are read from inside its own checkout, so a miss there is a lead rather than a defect.
 pub fn file_refs(path: &str, bare: &str, kind: Kind) -> Vec<Finding> {
     let mut out = Vec::new();
@@ -191,6 +192,7 @@ pub fn file_refs(path: &str, bare: &str, kind: Kind) -> Vec<Finding> {
 fn file_exists(from: &str, target: &str) -> bool {
     Path::new(target).exists()
         || (from.starts_with("skills/") && Path::new("skills").join(target).exists())
+        || Path::new(from).parent().is_some_and(|dir| dir.join(target).exists())
 }
 
 /// Every section a rule points at, `*Name*` alone or `*Name* in `file``. The star before the
@@ -209,15 +211,17 @@ pub fn section_refs(path: &str, bare: &str, corpus: &Corpus) -> Vec<Finding> {
             continue;
         }
         let name = name_match.as_str().trim_end_matches(['.', ',']);
-        let named = caps
-            .get(2)
-            .map(|m| m.as_str().to_string())
-            .or_else(|| file_named_on_line(bare, whole.start(), whole.end()));
+        let stated = caps.get(2).map(|m| m.as_str().to_string());
+        let guessed = stated.is_none();
+        let named = stated.or_else(|| file_named_near(bare, whole.start(), whole.end()));
         let target = match named {
             Some(file) if corpus.headings.contains_key(&file) => file,
-            _ => path.to_string(),
+            // A placeholder path, or a file outside the linted set, holds headings this run never read.
+            Some(_) => continue,
+            None => path.to_string(),
         };
-        if corpus.has_heading(&target, name) {
+        // A file guessed from the line that lacks the heading leaves the reference to its own file.
+        if corpus.has_heading(&target, name) || (guessed && corpus.has_heading(path, name)) {
             continue;
         }
         out.push(finding(
@@ -230,15 +234,18 @@ pub fn section_refs(path: &str, bare: &str, corpus: &Corpus) -> Vec<Finding> {
     out
 }
 
-/// The rule file named in a code span on the line holding `start..end`, when there is one.
-fn file_named_on_line(bare: &str, start: usize, end: usize) -> Option<String> {
+/// The rule file named in a code span near `start..end`: the nearest one after the reference, to
+/// the end of the next line since a wrapped `in the workspace `AGENTS.md`` lands there, which
+/// `*A* and *B* in `file`` and `*A*, workspace `AGENTS.md`` both name; else the nearest one before
+/// it on its own line.
+fn file_named_near(bare: &str, start: usize, end: usize) -> Option<String> {
     let from = bare[..start].rfind('\n').map(|i| i + 1).unwrap_or(0);
-    let to = bare[end..]
-        .find('\n')
-        .map(|i| i + end)
-        .unwrap_or(bare.len());
+    let line_end = |at: usize| bare[at..].find('\n').map(|i| i + at).unwrap_or(bare.len());
+    let to = line_end(end);
+    let to = if to < bare.len() { line_end(to + 1) } else { to };
     NAMED_FILE
-        .captures(&bare[from..to])
+        .captures(&bare[end..to])
+        .or_else(|| NAMED_FILE.captures_iter(&bare[from..start]).last())
         .map(|c| c[1].to_string())
 }
 

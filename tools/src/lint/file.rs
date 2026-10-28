@@ -42,12 +42,19 @@ pub fn classify(path: &str) -> Kind {
     }
 }
 
+/// The text with every fenced block blanked to its newlines, so a line counted in it is the file's line.
+fn unfenced(contents: &str) -> String {
+    FENCE_BLOCK
+        .replace_all(contents, |c: &regex::Captures| "\n".repeat(c[0].matches('\n').count()))
+        .into_owned()
+}
+
 /// Every file's text and lowercased headings, read once before any file is checked.
 pub fn index(paths: &[&String]) -> Corpus {
     let mut corpus = Corpus::default();
     for path in paths {
         let contents = fs::read_to_string(path).unwrap_or_default();
-        let bare = FENCE_BLOCK.replace_all(&contents, "");
+        let bare = unfenced(&contents);
         let headings = HEADING
             .captures_iter(&bare)
             .map(|c| c[1].trim().to_lowercase())
@@ -70,7 +77,7 @@ pub fn check_file(path: &str, corpus: &Corpus) -> FileReport {
         let next_clean = lines.get(i + 1).map(|l| l.clean.as_str()).unwrap_or("");
         findings.extend(checks::line_checks(line, next_clean, kind.is_log()));
     }
-    let bare = FENCE_BLOCK.replace_all(&contents, "");
+    let bare = unfenced(&contents);
     findings.extend(checks::file_refs(path, &bare, kind));
     findings.extend(checks::section_refs(path, &bare, corpus));
     // Every word costs context, a fenced command as much as a sentence, so the count is the file.
@@ -502,7 +509,8 @@ mod tests {
             "skills/b.md",
             "`./scripts/own.sh` resolves inside skills/ too\n",
         );
-        file(&dir, "projects/p/AGENTS.md", "see `scripts/nope.sh`\n");
+        file(&dir, "projects/p/skills/catalog.md", "");
+        file(&dir, "projects/p/AGENTS.md", "see `scripts/nope.sh`\nand `skills/catalog.md` beside this file\n");
         let (core, delta, skill) = in_dir(&dir, || {
             (
                 lint_rel(&["AGENTS.md"], "AGENTS.md"),
@@ -519,6 +527,11 @@ mod tests {
         );
         assert_eq!(core[0].level, Level::Error);
         assert_eq!(delta[0].level, Level::Warn, "a delta's miss is a lead");
+        assert_eq!(
+            messages_with(&delta, "xref"),
+            vec!["points at scripts/nope.sh, which does not exist"],
+            "a path relative to the file's own directory resolves"
+        );
         assert!(
             skill.iter().all(|f| f.code != "xref"),
             "{:?}",
@@ -559,6 +572,26 @@ mod tests {
             messages_with(&findings, "xref"),
             vec!["*Setup* has no heading in AGENTS.md"]
         );
+    }
+
+    #[test]
+    fn section_ref_takes_the_nearest_file_after_it_and_skips_a_placeholder() {
+        let dir = tmp("sections-nearest");
+        file(&dir, "skills/a.md", "# A\n## Setup\n");
+        file(&dir, "skills/b.md", "# B\n## Posting\n");
+        file(&dir, "AGENTS.md", "per `skills/a.md`, *Answering* and *Posting* in `skills/b.md`\nread `projects/<repo>/AGENTS.md`, its *Ports* section\n```\nfence\n```\n*Late* alone\n## Own section\nper `skills/a.md`, then *Own section* here\nper *Setup* in the workspace\n`skills/a.md`\n");
+        let findings = in_dir(&dir, || {
+            lint_rel(&["skills/a.md", "skills/b.md", "AGENTS.md"], "AGENTS.md")
+        });
+        assert_eq!(
+            messages_with(&findings, "xref"),
+            vec![
+                "*Answering* has no heading in skills/b.md",
+                "*Late* has no heading in AGENTS.md"
+            ]
+        );
+        let late = findings.iter().find(|f| f.message.starts_with("*Late*"));
+        assert_eq!(late.map(|f| f.line), Some(6), "a line after a fence keeps its number");
     }
 
     #[test]

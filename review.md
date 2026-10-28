@@ -48,7 +48,7 @@ The word sets the shape, and the word is how well the user knows the code:
 
 | Word | For | Shape |
 | --- | --- | --- |
-| `quick review` | the overview of what a change is worth, the fewest tokens and the shortest clock | one finder per bundle carrying the angles that find Warnings, lines, reach, removed, the catalog and rollout, the Warning cap untouched at 12 and the Nit slots 12 over the round, each finder running its own Warning checks, no reflector, judges by three at 12 calls and reads by eight, the writer, the text pass past 120 visible words of findings, a 500k ceiling |
+| `quick review` | the overview of what a change is worth, the fewest tokens and the shortest clock | one finder per bundle carrying the angles that find Warnings, lines, reach, removed, the catalog and rollout, plus claims on a bundle carrying a doc, the Warning cap untouched at 12 and the Nit slots 12 over the round, each finder running its own Warning checks, no reflector, judges by three at 12 calls and reads by eight, the writer, the text pass past 120 visible words of findings, a 500k ceiling |
 | `review` | any change | one finder per bundle per angle with material, or one per bundle carrying every angle past `finder.fold_past_bundles` bundles, the defect angles, lines, reach, removed, the catalog and rollout, plus claims on a bundle carrying a doc, each running its own Warning checks, the Warning cap 12 and the Nit cap 3 under a round-wide 24, the reflector, judges by six over the run-shaped candidates and by twelve over the reads, the writer, the text pass, a 1M ceiling |
 | `deep review` | code that is complex or unknown | every finder at 60 calls, the tests angle and the claims angle on every bundle on top of the defect ones, missing tests kept, the Warning cap 16 and the standard Nit caps, judges by three at 30 calls and reads by six at the standard effort, the writer, the text pass, a 2.5M ceiling |
 
@@ -281,11 +281,11 @@ exempts, and every consumer the change reaches across the trees it ships to.
 
 - A solo round carries the topics in its finders, `args.topics` beside the class, dealt out with the angles, so the pass costs no agent.
 - A pipeline round runs the pass as its own run after the round closes, one finder per topic under the `critical` preset of `scripts/workflows/review-pipeline.json`: no general angle, no text pass.
-- The pass records itself in `critical-<n>/` inside the round it closes, `args.critical_pass` numbering it, and its writer appends the verdicts to the round's `claims.md` under `## Critical pass <n>` and the kept findings to the round's draft, or to its `findings.md` in an own-PR round, rewriting neither.
+- The pass records itself in `critical-<n>/` inside the round it closes, `args.parent_round` naming that round, which `./scripts/review-setup.sh` sets where its `claims.md` is on disk, and `args.critical_pass` numbering it; a round under the preset with no `claims.md` there is a first round and writes into its own directory. Its writer appends the verdicts to the round's `claims.md` under `## Critical pass <n>` and the kept findings to the round's draft, or to its `findings.md` in an own-PR round, rewriting neither.
 - Pass the round's own `prior_checks`, so no check runs twice, and print the cost first with `./scripts/review-plan.py --preset critical --topics <n>`.
 - **Run another pass while the last one returned a candidate the verifiers banded above Nit.** Stop at two whatever the second returns, and name in the round note which bound is left standing on one pass.
 - A bound the round already broke is a finding, never a topic: a pass attacks the bounds that survived.
-- A review the user keeps to one concern, security for one, runs as a pass of its own: `--preset critical` with one `--topic` per bound the concern holds, and no general angle.
+- A review the user keeps to one concern, security for one, runs `--preset critical` with one `--topic` per bound the concern holds and `finder.angles` empty, and *The round* still sets its shape: a diff that sizes as solo runs `--solo`, its finders carrying the bounds as topics, never a pipeline of one finder per topic.
 
 ## Subjects
 

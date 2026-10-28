@@ -592,6 +592,42 @@ class PublishWords(GateCase):
         self.assertNotIn('merge 69', turn(user('merge 69'), replied, user('Try again')), 'a finished turn ends its word')
         self.assertNotIn('merge 69', turn(user('merge 69'), died, user('fix the test')), 'only a retry resumes it')
 
+    def test_a_question_asked_while_the_work_runs_keeps_the_word(self):
+        path = self.root / 'asked.jsonl'
+        replied = {'type': 'assistant', 'message': {'role': 'assistant', 'content': [{'type': 'text', 'text': 'running'}]}}
+
+        def turn(*rows):
+            path.write_text('\n'.join(json.dumps(r) for r in rows) + '\n')
+            return gate.turn_text(str(path))
+
+        def user(text, meta=False):
+            return {'type': 'user', 'isMeta': meta, 'message': {'role': 'user', 'content': text}}
+
+        def launched(task):
+            return {'type': 'user', 'message': {'role': 'user', 'content': [
+                {'type': 'tool_result', 'tool_use_id': 't', 'content': f'Async agent launched. agentId: {task}'}]}}
+
+        def notified(task):
+            return user(f'<task-notification>\n<task-id>{task}</task-id>\n<status>completed</status>')
+
+        def handed_back(task):
+            return user(f'Another Claude session sent a message: <agent-message from="{task}">done', meta=True)
+
+        for question in ("why it's so long", 'all good?', 'wyd'):
+            self.assertIn('push once', turn(user('push once you good'), launched('a1b2'), replied, user(question),
+                                            notified('a1b2')), question)
+        self.assertIn('push once', turn(user('push once you good'), launched('a1b2'), replied, user('all good?'),
+                                        handed_back('a1b2')))
+        self.assertNotIn('push once', turn(user('push once you good'), launched('a1b2'), notified('a1b2'), replied,
+                                           user('all good?')), 'work that reported before the question had finished')
+        self.assertNotIn('push once', turn(user('push once you good'), replied, user('all good?'), launched('c3d4'),
+                                           notified('c3d4')), 'work started after the question is not the request')
+        self.assertNotIn('push once', turn(user('push once you good'), launched('a1b2'), replied, user('fix the test'),
+                                           notified('a1b2')), 'a new task ends the word')
+        self.assertNotIn('push once', turn(user('push once you good'), launched('a1b2'), replied,
+                                           user('all good?\nand rename the flag'), notified('a1b2')),
+                         'a question carrying a task on another line ends it too')
+
 
 class PublishWordsEdges(PublishWords):
     """The cases a checker found: none of these may block ordinary work, and none may slip a publish through."""

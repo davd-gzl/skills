@@ -917,7 +917,7 @@ def turn_text(transcript):
         lines = open(transcript, encoding='utf-8', errors='replace').read().split('\n')
     except (OSError, TypeError):
         return None
-    rows = []
+    rows, raws = [], []
     for line in lines:
         line = line.strip().strip('\x00')
         if not line:
@@ -928,6 +928,7 @@ def turn_text(transcript):
             continue
         if isinstance(row, dict):
             rows.append(row)
+            raws.append(line)
     starts = []
     for i, e in enumerate(rows):
         if e.get('type') == 'user' and not e.get('isMeta') and not e.get('isCompactSummary'):
@@ -937,9 +938,11 @@ def turn_text(transcript):
     if not starts:
         return ''
     # A turn the API killed never finished: a retry typed after it resumes that turn, so the
-    # words given there still hold, however many retries it took.
+    # words given there still hold, however many retries it took. A question asked while the
+    # request's work still runs ends no word either, per Consent in the workspace AGENTS.md.
     k = len(starts) - 1
-    while k > 0 and RETRY.match(starts[k][1]) and _died(rows[starts[k - 1][0]:starts[k][0]]):
+    while k > 0 and (RETRY.match(starts[k][1]) and _died(rows[starts[k - 1][0]:starts[k][0]])
+                     or _status_question(starts[k][1]) and _still_running(rows, raws, starts[k][0])):
         k -= 1
     parts = []
     for n, (start, first) in enumerate(starts[k:], k):
@@ -960,6 +963,41 @@ def _died(rows):
     """The turn these rows hold ended on an API error rather than a reply."""
     last = next((e for e in reversed(rows) if e.get('type') == 'assistant'), None)
     return bool(last and last.get('isApiErrorMessage'))
+
+
+# A question about the work in flight: one line, ending on `?` or opening on a word that asks.
+ASKS = re.compile(r'(?i)(?:why|what|how|did|does|is|are|where|when|wyd|hello|status|all good|still)\b')
+NOTIFIED = re.compile(r'<task-id>([\w-]+)</task-id>|<agent-message from="([\w-]+)"')
+
+
+def _status_question(text):
+    t = text.strip()
+    return bool(t) and '\n' not in t and (t.endswith('?') or bool(ASKS.match(t)))
+
+
+def _still_running(rows, raws, at):
+    """Work launched before row `at` reports after it: a notification names a task an earlier row holds."""
+    for e in rows[at + 1:]:
+        for task in _notified(e):
+            if any(task in r for r in raws[:at]):
+                return True
+    return False
+
+
+def _notified(e):
+    """The tasks a harness notification names; a typed message and a tool result name none."""
+    a = e.get('attachment') or {}
+    if e.get('type') == 'attachment' and a.get('type') == 'queued_command':
+        if (a.get('origin') or {}).get('kind') == 'human':
+            return []
+        text = str(a.get('prompt', ''))
+    elif e.get('type') == 'user':
+        text = _typed(e) or ''
+        if not text.lstrip().startswith(NOT_TYPED):
+            return []
+    else:
+        return []
+    return [x or y for x, y in NOTIFIED.findall(text)]
 
 
 def _typed(e):

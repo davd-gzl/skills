@@ -60,6 +60,11 @@ named thing and on pitching to the audience included.
 
 ## A page
 
+- When asked to review a page or a section, run the reader-persona read unasked,
+  step 11 of the pass in `skills/writing-style.md`: take each reader whose
+  home-page card leads there, walk the pages doing that reader's likeliest task
+  start to finish, and fix every place they stop in the same turn. The tell is
+  the user naming the personas in the request.
 - Keep a line only if the reader acts on it or would be bitten without it. Cut
   what the screen already shows, an intro listing the headings, a sentence
   restating its table or diagram, and every detail written only for

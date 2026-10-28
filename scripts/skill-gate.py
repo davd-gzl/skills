@@ -1044,7 +1044,7 @@ WRAPPERS = {'timeout': ({'-s', '--signal', '-k', '--kill-after'}, 1), 'nice': ({
 
 
 SHELLS = {'bash', 'sh', 'zsh', 'fish', 'dash'}
-POST_SCRIPTS = {'post', 'post-review.sh', 'post-fix.sh', 'post-pr-review.py', 'pr-body-apply'}
+POST_SCRIPTS = {'post', 'post-review.sh', 'post-replies', 'post-fix.sh', 'post-pr-review.py', 'pr-body-apply'}
 
 
 def _heredoc_bodies(cmd):

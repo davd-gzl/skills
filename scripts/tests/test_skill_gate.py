@@ -534,7 +534,7 @@ class PublishWords(GateCase):
 
     def test_writes_through_the_api_and_the_post_scripts_wait(self):
         for cmd in ('gh api repos/o/r/issues/1/comments -f body=x', "gh api graphql -f query='mutation{x}'",
-                    './scripts/post-review.sh d.md', 'gh issue create -R o/r -t t -b b'):
+                    './scripts/post-review.sh d.md', './scripts/post-replies o/r 5 d', 'gh issue create -R o/r -t t -b b'):
             self.assertEqual(self.hook(cmd)[0], 2, cmd)
         self.assertEqual(self.hook('gh pr merge 5', prompt='post')[0], 2, 'a merge takes merge, not post')
         for cmd in ('gh api -X DELETE repos/o/r/issues/5/labels/class:hardfork',
@@ -882,7 +882,8 @@ class PublishWordsRoundNine(PublishWordsRoundEight):
         self.assertEqual(self.hook('for n in 67 68; do gh api --method PATCH repos/o/r/pulls/$n -F body=@new_$n.md; done')[0], 0)
 
     def test_help_publishes_nothing(self):
-        for cmd in ('./scripts/post-pr-review.py --help', './scripts/post-review.sh -h', './scripts/post --help'):
+        for cmd in ('./scripts/post-pr-review.py --help', './scripts/post-review.sh -h', './scripts/post --help',
+                    './scripts/post-replies o/r 5 d --dry-run'):
             self.assertEqual(self.hook(cmd)[0], 0, cmd)
 
 

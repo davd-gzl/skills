@@ -87,13 +87,16 @@ Work asked for on an open pull request lands on that pull request's branch, and
 `p` pushes it there. A branch stacked on it opens only when the user names a
 second pull request.
 
-Before reporting a reviewer's comments on a pull request as handled, read every
-review body, thread and comment whole, never cut to a length, and list each
-point it asks for with one disposition: applied at a sha, a numbered open call,
-or a separate change the user agreed to. A point a brief or an agent marked
-report-only, out of scope or left out goes back to the user as a question, never
-into the report as handled. The tell is a long review whose last paragraphs no
-brief quoted.
+Before drafting a reply to a reviewer, or reporting their comments on a pull
+request as handled, read every review body, thread and comment on it whole,
+from every reviewer, never cut to a length, and list each point it asks for
+with one disposition at the head of the draft: applied at a sha, a numbered
+open call, or a separate change the user agreed to. A brief that has an agent
+draft a reply hands it that list, never the one finding it fixes, or the reply
+answers that finding and leaves the reviewer's other points unread. A point a
+brief or an agent marked report-only, out of scope or left out goes back to the
+user as a question, never into the report as handled. The tell is a long
+review whose last paragraphs no brief quoted.
 
 Post a reply telling a reviewer their review is handled only on a pull request
 where every point in that list reads applied. Where any point is an open call,

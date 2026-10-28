@@ -517,6 +517,9 @@ class PublishWords(GateCase):
         for vague in ('ok', 'go', 'so', 'no', 'o k'):
             self.assertEqual(self.hook(ready, prompt=vague)[0], 2, f'{vague!r} is no ready')
         self.assertEqual(self.hook('git push origin --delete b', prompt='do')[0], 2, 'do is a word, not d')
+        for acronym in ('TLDR', 'WDYT', 'LGTM'):
+            self.assertEqual(self.hook('git push origin --delete b', prompt=acronym)[0], 2, f'{acronym} is no letter line')
+        self.assertEqual(self.hook('gh pr merge 5', prompt='M')[0], 0, 'one capital is still its letter')
 
     def test_a_quiet_close_on_an_own_repository_needs_no_word(self):
         (self.root / 'workspace.json').write_text(json.dumps({'identities': {'public': {'name': 'Me'}}}))
@@ -591,6 +594,16 @@ class PublishWords(GateCase):
         self.assertIn('merge 69', turn(user('merge 69'), died, user('Try again'), died, user('try again')))
         self.assertNotIn('merge 69', turn(user('merge 69'), replied, user('Try again')), 'a finished turn ends its word')
         self.assertNotIn('merge 69', turn(user('merge 69'), died, user('fix the test')), 'only a retry resumes it')
+
+    def test_a_verb_held_by_before_or_until_gives_no_word(self):
+        for text in ('I want to verify before you push', 'wait until I post', 'check the diff till you merge'):
+            word = next(w for w in ('push', 'post', 'merge') if w in text)
+            self.assertFalse(gate.has_word(text, word), text)
+        self.assertTrue(gate.has_word('fix and review and push', 'push'))
+        self.assertTrue(gate.has_word('push before you merge', 'push'))
+        self.assertFalse(gate.has_word('push before you merge', 'merge'))
+        self.assertTrue(gate.has_word('before you merge, push', 'push'), 'a comma ends the held clause')
+        self.assertEqual(self.hook('gh pr merge 5', prompt='review it before you merge')[0], 2)
 
     def test_a_question_asked_while_the_work_runs_keeps_the_word(self):
         path = self.root / 'asked.jsonl'

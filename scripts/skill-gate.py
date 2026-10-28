@@ -1011,16 +1011,21 @@ def _typed(e):
 
 
 NEGATION = re.compile(r"(?i)\b(don'?t|do not|never|no|not|without)\W+(\w+\W+){0,2}$")
+# A verb after `before` or `until` is the condition holding it, `verify before you push`: it reads
+# both ways, and two readings publish nothing, per Invariant 1. A comma ends the clause, so
+# `before you merge, push` still gives push.
+HOLD = re.compile(r"(?i)\b(before|until|till)\s+(\w+\s+){0,2}$")
 
 
 def has_word(text, word):
-    """The word typed as a word, a hyphenated compound or a negation aside: `merge-base` is not merge."""
+    """The word typed as a word, a hyphenated compound, a negation or a hold aside: `merge-base` is not merge."""
     return _typed_as(text, rf'(?<![\w-]){word}(?![\w-])')
 
 
 def _typed_as(text, pattern):
     for m in re.finditer(rf'(?i){pattern}', text):
-        if not NEGATION.search(text[max(0, m.start() - 40):m.start()]):
+        before = text[max(0, m.start() - 40):m.start()]
+        if not NEGATION.search(before) and not HOLD.search(before):
             return True
     return False
 
@@ -1044,11 +1049,13 @@ LETTER_LINE = re.compile(r'(?i)^[\s,]*(?:[a-z][\s,]*){1,4}$')
 SHORTCUT_LETTERS = set(LETTERS) | {'r', 'f'}
 # A word spelled only in shortcut letters is a word, never a verb.
 NOT_LETTERS = {'do', 'od'}
+# Capitals typed together are an acronym, `TLDR` or `WDYT`, whose `D` deletes nothing.
+ACRONYM = re.compile(r'^\s*[A-Z]{2,}\s*$')
 
 
 def letter_words(line):
-    """The words a line of letters alone gives: `pd` both, `ok`, `go` and `do` none."""
-    if not LETTER_LINE.match(line):
+    """The words a line of letters alone gives: `pd` both, `ok`, `go`, `do` and `TLDR` none."""
+    if not LETTER_LINE.match(line) or ACRONYM.match(line):
         return set()
     letters = [c.lower() for c in re.findall(r'[a-z]', line, re.I)]
     if ''.join(letters) in NOT_LETTERS:

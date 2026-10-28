@@ -113,11 +113,11 @@ named thing and on pitching to the audience included.
   unverifiable here, or misleading, with the source line and the replacement
   text, then one pass applying them, re-checking each first. A pass that edits
   and checks in one agent checks its own edits.
-- When a check turns up a contradiction, between two pages or between a page
-  and the code, loop before reporting: fix what it found, then run a fresh
-  checker over the whole site again, until a full pass finds none. Report the
-  fixes of every pass at once. The tell is the user meeting a new contradiction
-  in the next reply.
+- When a check turns up something to fix, a contradiction between two pages or
+  with the code, or a line to simplify, loop before reporting: fix what it
+  found, then run a fresh checker over the whole site again, until a full pass
+  finds nothing. Report the fixes of every pass at once. The tell is the user
+  meeting a new one in the next reply.
 - A claim about a browser, an operating system or a provider carries the vendor
   page that settles it, or is made general, per the unproved-claims step of the
   pass in `skills/writing-style.md`. A wrong precise claim is worse than a

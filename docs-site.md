@@ -1,0 +1,119 @@
+---
+name: docs-site
+description: Use when writing, restructuring or reviewing a project's user-facing documentation site, its home page, guides, how-it-works page, FAQ, install guides, and the screenshots and GIFs in them. Covers the shape of the site and of each page, the pictures, and checking every claim against the code. Prose rules stay in skills/writing-style.md.
+---
+
+# A documentation site
+
+The shape a page converges on, a guide for one kind of reader:
+
+```markdown
+# Hosting a large meeting
+
+For teachers and anyone running a meeting with many people.
+
+## Before the meeting
+
+<figure markdown="span">
+  ![Room settings](../assets/room-settings.png)
+  <figcaption>Settings → Room: who can join</figcaption>
+</figure>
+
+Sign in before you create the room, so you own it. Then pick who can join.
+
+## What it cannot do
+
+- No breakout rooms. In progress: [#123](<url>).
+```
+
+Who it is for in the first line, the most useful action next, a picture beside
+every control the text names, the limits last with the upstream work linked.
+Every sentence follows `skills/writing-style.md`, its rules on linking every
+named thing and on pitching to the audience included.
+
+## The site
+
+- Before writing a page, name every kind of reader who opens the site, and give
+  each an entry on the home page: a card titled with the reader, holding the
+  links they need, each link worded as the thing they want to do. A table whose
+  second column only repeats the link's name is a list.
+- Order sibling pages and guides by how likely a reader needs them, the most
+  common first, in the navigation, on the home page and in every list naming them.
+- A reader with one specific need, an accessibility need, a role, a weak device,
+  gets one guide page: who it is for, the most useful action first, then what the
+  product cannot do for them. Each guide is one click from the home page, from
+  the getting-started page and from the reference page it extends; a page that
+  only lists the guides is cut.
+- An install overview opens on the fastest path, a tip with one button, then the
+  other paths as a list saying when each fits. What each path needs lives in its
+  own prerequisites page, never in the overview, since it differs per path.
+- A lookup table, permissions, ports, variables, browser support, lives on one
+  page; every other page keeps one clause and links it.
+- A technical overview answers questions, the most asked first, each heading
+  the question a reader would type, in short paragraphs that explain. A *Key
+  concepts* section near the top defines each term of the field once, the
+  architecture the product rests on first, and links to the section detailing
+  it.
+- Feature support across browsers or devices is one table, a row per place and
+  a column per feature that varies, ✅ and ❌ in the cells, under one line saying
+  what works everywhere. An all-❌ row without that line reads as nothing working.
+
+## A page
+
+- Keep a line only if the reader acts on it or would be bitten without it. Cut
+  what the screen already shows, an intro listing the headings, a sentence
+  restating its table or diagram, and every detail written only for
+  completeness.
+- Explain in short paragraphs; a paragraph naming three or more parallel items
+  becomes a list, and a list of things that are not parallel goes back to prose.
+  A table is for a lookup, never for prose split into cells.
+- A section headed What it cannot do closes a guide: one line per limit, each
+  traced to the code. Where an issue or pull request is open on the limit, the
+  line ends `In progress: [#n](<url>)`.
+- After the user flags one line, grep the site for the same fault and fix every
+  instance in that turn, listing each changed line: a remark names a kind of
+  fault, never one sentence.
+- An emoji carries meaning or goes: ✅ and ❌ in a grid, one icon per component
+  shared by a diagram and its table. None in a heading or a sentence.
+- A UI label is written exactly as the app's locale file has it, case included,
+  checked by grep before it ships.
+
+## Pictures
+
+- Wherever a page names a button, a setting or a menu, show where it sits: a
+  screenshot cropped to it, beside the sentence naming it, with a `figcaption`
+  giving the path to reach it. A control named with no picture is the tell.
+- A picture on a site page takes a `figcaption` and a path relative to the
+  page, in place of the blockquote and the raw URL `skills/writing-style.md`
+  asks of a picture in a review or a pull request.
+- Never a screenshot of what a text table beside it already lists: the text is
+  searchable and a screen reader reads it, the picture neither.
+- A page for mouse users names the button and its icon, never the keyboard
+  shortcut. Shortcuts belong on the page for keyboard and screen-reader users.
+- A walkthrough of discrete clicks is a GIF of one still per step, each held one
+  to two seconds, with the key or the click named on the frame. A recording of
+  continuous motion is sped up until nothing on screen argues for its length.
+  Both read as lagging when a frame is shown for its capture interval.
+- A browser dialog, a share picker or a permission prompt, is drawn outside the
+  page, so headless screenshots never show it: film a headed browser on a
+  virtual display, per the headful rule in `skills/try.md`, and record the
+  display.
+- Capture with the browser's fake camera and microphone and with test accounts,
+  and name the fake source when the user asks about a frame.
+
+## Facts
+
+- After a pass of edits, check every claim the pass added against the code
+  before pushing: read-only checkers per area, each sorting a claim into wrong,
+  unverifiable here, or misleading, with the source line and the replacement
+  text, then one pass applying them, re-checking each first. A pass that edits
+  and checks in one agent checks its own edits.
+- A claim about a browser, an operating system or a provider carries the vendor
+  page that settles it, or is made general, per the unproved-claims step of the
+  pass in `skills/writing-style.md`. A wrong precise claim is worse than a
+  vague true one.
+
+## Versions
+
+- A rework pushed before it is done goes up as numbered versions, the commit
+  title `WIP vN`, the body naming the part finished and saying the rest is not.

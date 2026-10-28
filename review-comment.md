@@ -111,13 +111,8 @@ cannot be threaded at all. A finding that holds is fixed in the same turn rather
 reported back, and the bullet is `Fixed: <sha>`. One that does not gets the
 sentence that refutes it and a collapsed run. Never argue a finding across a
 paragraph: the reader is deciding whether to look, not reading the analysis.
-Where a push answers several threads, one reply alone, the first posted,
-closes with the range link:
-`https://github.com/<owner>/<repo>/pull/<n>/changes/<base>..<head>` with full
-shas, base being what the reviewer last saw, so one range covers work spread
-over several commits, and the anchor text is the two shas, seven characters
-each. Every other reply of that push names the sha and stops: the same range
-repeated under each thread is noise the reviewer scrolls past.
+Every reply names the pushed sha and stops, with no range or compare link
+after it: GitHub links the sha to its commit already.
 
 ### Repros (comment.md deltas)
 

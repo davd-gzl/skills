@@ -108,6 +108,11 @@ This job runs on a schedule only, and GitHub disables those after 60 days.
   the colon is imperative and names every destination it covers: what opens,
   in which repository, against which base, and whether it opens as a draft or
   ready.
+- When a reply ends on a status or links table, put the word lines directly
+  above it, one for every action that table leaves pending: `p` while anything
+  in it is unpushed, and the coined word of every next step the reply proposed.
+  The user reads the table for where things stand and the lines beside it for
+  what to type, so a word left in the prose costs a turn asking for it.
 - Where a publish and something already authorised are both pending, do the
   latter and offer the publish alone.
 - Before a reply in a summarized session says nothing waits, or answers what is

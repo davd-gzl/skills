@@ -69,6 +69,11 @@ named thing and on pitching to the audience included.
   what the screen already shows, an intro listing the headings, a sentence
   restating its table or diagram, and every detail written only for
   completeness.
+- A step that runs a command opens on a `console` block, the command after a
+  `$` prompt and its real output under it, captured from a run; one line of
+  prose follows. Prose saying what the output shows is the tell. Split a
+  command wider than the block with `\` and a `>` continuation line, since the
+  highlighter styles only `$`, `#` and `>` lines as typed.
 - Open a sentence with a question only where the answer sends the reader one
   of two ways, `Already run a reverse proxy? Skip to Stack 2.` A question the
   page itself answers, `No proxy yet?` on the proxy page, is cut.

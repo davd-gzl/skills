@@ -90,7 +90,9 @@ named thing and on pitching to the audience included.
   another page's list is replaced by a link to that page, its top rather than
   an optional section of it.
 - Every step leads with its example, a command, a config or the output it
-  prints; the prose after it carries only what the example cannot show.
+  prints; the prose after it carries only what the example cannot show. A value
+  the reader replaces in a command is named in one line before the block, since
+  the copy button copies the example as is.
 - A step that runs a command opens on a `console` block, the command after a
   `$` prompt and its real output under it, captured from a run, a blank line
   before each command that follows output; one line of prose follows. Prose

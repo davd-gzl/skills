@@ -69,6 +69,9 @@ named thing and on pitching to the audience included.
   what the screen already shows, an intro listing the headings, a sentence
   restating its table or diagram, and every detail written only for
   completeness.
+- Open a sentence with a question only where the answer sends the reader one
+  of two ways, `Already run a reverse proxy? Skip to Stack 2.` A question the
+  page itself answers, `No proxy yet?` on the proxy page, is cut.
 - Explain in short paragraphs; a paragraph naming three or more parallel items
   becomes a list, and a list of things that are not parallel goes back to prose.
   A table is for a lookup, never for prose split into cells.

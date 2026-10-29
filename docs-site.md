@@ -99,10 +99,18 @@ named thing and on pitching to the audience included.
   saying what the output shows is the tell. Every typed line starts with `$`:
   a command wider than the block gets shorter, through an alias or a variable
   set on the line before, never a `\` and `>` continuation.
-- Files a reader downloads are fetched in one command per source folder, each
-  file still named on the line, `curl -fsSL --remote-name-all $RAW/dir/{a,b}`,
-  never one `curl` per file and never a fetch script that hides which files a
+- A file the reader needs whole is shipped in the repository and fetched, one
+  command per source folder, each file still named on the line, `curl -fsSL
+  --remote-name-all $RAW/dir/{a,b}`; the page shows only the lines the reader
+  changes, filled by a command where one can. Never a file pasted from blocks on
+  the page, one `curl` per file, or a fetch script that hides which files a
   stack is made of.
+- A block holding a file's contents carries the file's name as its title,
+  ` ```yaml title="values.yaml" `, never a comment naming it inside the block.
+- Every mention of a variable outside code blocks and headings links to its row
+  in the variables reference, whose rows carry `{#NAME}` anchors, and the linked
+  row is highlighted on arrival. A name documented in two sections links the row
+  of the service the sentence is about.
 - Put what a command is for in a comment above it in the block, never at the
   line's end, and keep every code line narrower than the block: a comment or a
   command past the edge is hidden behind a scroll bar.
@@ -115,6 +123,9 @@ named thing and on pitching to the audience included.
 - Explain in short paragraphs; a paragraph naming three or more parallel items
   becomes a list, and a list of things that are not parallel goes back to prose.
   A table is for a lookup, never for prose split into cells.
+- A troubleshooting entry opens on the cause as a plain sentence, each other
+  cause starting with `Or`, and labels only the fix: a `Cause:` label says what
+  the heading already implies.
 - A section headed What it cannot do closes a guide: one line per limit, each
   traced to the code. Where an issue or pull request is open on the limit, the
   line ends `In progress: [#n](<url>)`.

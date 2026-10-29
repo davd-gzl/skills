@@ -70,8 +70,8 @@ named thing and on pitching to the audience included.
   restating its table or diagram, and every detail written only for
   completeness.
 - A step that runs a command opens on a `console` block, the command after a
-  `$` prompt and its real output under it, captured from a run; one line of
-  prose follows. Prose saying what the output shows is the tell. Split a
+  `$` prompt and its real output under it, captured from a run, a blank line
+  before each command that follows output; one line of prose follows. Prose saying what the output shows is the tell. Split a
   command wider than the block with `\` and a `>` continuation line, since the
   highlighter styles only `$`, `#` and `>` lines as typed.
 - Open a sentence with a question only where the answer sends the reader one

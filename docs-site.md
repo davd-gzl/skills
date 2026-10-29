@@ -54,6 +54,9 @@ named thing and on pitching to the audience included.
   concepts* section near the top defines each term of the field once, the
   architecture the product rests on first, and links to the section detailing
   it.
+- Every code block carries a copy button, and a terminal block's copies its
+  commands alone, without the `$` prompt or the output: the theme's copy feature
+  on, plus a page script setting each terminal block's copy text.
 - Feature support across browsers or devices is one table, a row per place and
   a column per feature that varies, ✅ and ❌ in the cells, under one line saying
   what works everywhere. An all-❌ row without that line reads as nothing working.
@@ -69,11 +72,41 @@ named thing and on pitching to the audience included.
   what the screen already shows, an intro listing the headings, a sentence
   restating its table or diagram, and every detail written only for
   completeness.
+- Prefer one plain sentence to a precise paragraph: `One script installs Meet and
+  everything it needs on a fresh Linux server.` beat a sentence naming each
+  piece it installs. A first line that repeats its page's or its box's title is
+  cut.
+- A page about a concept opens on a one-line definition of it, the term linked:
+  `A reverse proxy receives your domains' HTTPS traffic and passes each request
+  to the right container.`
+- A page offering an alternative to the default path opens on why a reader
+  takes it: what the default cannot do, `The Quick Start script always installs
+  its own reverse proxy and Keycloak.`
+- Keep the structure flat. A heading wrapping a single subsection is flattened,
+  two sections about one thing merge, a section whose one fact fits a table row
+  folds into that row, and no `---` separates sections.
+- A list repeating what is kept whole elsewhere becomes one link to it: a
+  checklist restating the page's own sections is deleted, and a partial copy of
+  another page's list is replaced by a link to that page, its top rather than
+  an optional section of it.
+- Every step leads with its example, a command, a config or the output it
+  prints; the prose after it carries only what the example cannot show.
 - A step that runs a command opens on a `console` block, the command after a
   `$` prompt and its real output under it, captured from a run, a blank line
-  before each command that follows output; one line of prose follows. Prose saying what the output shows is the tell. Split a
-  command wider than the block with `\` and a `>` continuation line, since the
-  highlighter styles only `$`, `#` and `>` lines as typed.
+  before each command that follows output; one line of prose follows. Prose
+  saying what the output shows is the tell. Every typed line starts with `$`:
+  a command wider than the block gets shorter, through an alias or a variable
+  set on the line before, never a `\` and `>` continuation.
+- Files a reader downloads are fetched in one command per source folder, each
+  file still named on the line, `curl -fsSL --remote-name-all $RAW/dir/{a,b}`,
+  never one `curl` per file and never a fetch script that hides which files a
+  stack is made of.
+- Put what a command is for in a comment above it in the block, never at the
+  line's end, and keep every code line narrower than the block: a comment or a
+  command past the edge is hidden behind a scroll bar.
+- Before asking the reader to fill placeholders, name each one and the file it
+  sits in. Placeholders a script could fill are filled by the script, extended
+  if it falls short, never by hand-typed `sed` lines.
 - Open a sentence with a question only where the answer sends the reader one
   of two ways, `Already run a reverse proxy? Skip to Stack 2.` A question the
   page itself answers, `No proxy yet?` on the proxy page, is cut.
@@ -103,10 +136,11 @@ named thing and on pitching to the audience included.
   searchable and a screen reader reads it, the picture neither.
 - A page for mouse users names the button and its icon, never the keyboard
   shortcut. Shortcuts belong on the page for keyboard and screen-reader users.
-- A walkthrough of discrete clicks is a GIF of one still per step, each held one
-  to two seconds, with the key or the click named on the frame. A recording of
-  continuous motion is sped up until nothing on screen argues for its length.
-  Both read as lagging when a frame is shown for its capture interval.
+- A walkthrough of a few clicks is a recording of the real motion, the pointer
+  drawn and routed over no other control, sped up until nothing on screen argues
+  for its length. It ends on half a second more of live footage, never a frozen
+  last frame. A long sequence of keys is a GIF of one still per step, each held
+  one to two seconds, with the key named on the frame.
 - A browser dialog, a share picker or a permission prompt, is drawn outside the
   page, so headless screenshots never show it: film a headed browser on a
   virtual display, per the headful rule in `skills/try.md`, and record the

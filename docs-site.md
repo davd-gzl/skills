@@ -63,8 +63,9 @@ named thing and on pitching to the audience included.
   or embed the viewer in one: a reader knows the viewer, and a box inside the
   content column reads as an iframe.
 - A navigation entry leading off the docs pages, to another site or a
-  standalone page such as that viewer, ends with `↗`, added by one stylesheet
-  rule matching the link's target, never typed into its title.
+  standalone page such as that viewer, ends with `↗`, and so does every link to
+  the viewer, a home-page card's included. One stylesheet rule matching the
+  link's target adds it, never the link's text.
 - Feature support across browsers or devices is one table, a row per place and
   a column per feature that varies, ✅ and ❌ in the cells, under one line saying
   what works everywhere. An all-❌ row without that line reads as nothing working.

@@ -44,6 +44,10 @@ named thing and on pitching to the audience included.
   product cannot do for them. Each guide is one click from the home page, from
   the getting-started page and from the reference page it extends; a page that
   only lists the guides is cut.
+- When a page is added or moved, link it in the same turn from every page a
+  reader passes through to reach it: the home page card of its reader, the
+  overview page of its section, and each page it summarises or extends. The
+  tell is a new page whose only way in is the navigation.
 - An install overview opens on the fastest path, a tip with one button, then the
   other paths as a list saying when each fits. What each path needs lives in its
   own prerequisites page, never in the overview, since it differs per path.
@@ -81,6 +85,12 @@ named thing and on pitching to the audience included.
   what the screen already shows, an intro listing the headings, a sentence
   restating its table or diagram, and every detail written only for
   completeness.
+- A docs page reads as documentation, never in the clipped register of a chat
+  reply or a review comment: an opening paragraph saying what the page covers
+  and for whom, full sentences with their connecting words, and a heading over
+  each step. `Most rows below are settings. To change one, by install method:`
+  is the tell; `Most changes are settings of Meet's backend. Where you write
+  them depends on how Meet is installed:` is the fix.
 - Prefer one plain sentence to a precise paragraph: `One script installs Meet and
   everything it needs on a fresh Linux server.` beat a sentence naming each
   piece it installs. A first line that repeats its page's or its box's title is

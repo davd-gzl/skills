@@ -114,6 +114,11 @@ named thing and on pitching to the audience included.
   changes, filled by a command where one can. Never a file pasted from blocks on
   the page, one `curl` per file, or a fetch script that hides which files a
   stack is made of.
+- An optional feature lives in the shipped template, complete and switched
+  off: a Compose service under a profile the reader names in `COMPOSE_PROFILES`,
+  a Helm block behind the chart's own flag or commented out. Its page says what
+  to switch on and which lines to edit, never a block to paste into a file the
+  reader already has. The tell is a guide building a file up section by section.
 - A block holding a file's contents carries the file's name as its title,
   ` ```yaml title="values.yaml" `, never a comment naming it inside the block.
 - Every mention of a variable outside code blocks and headings links to its row

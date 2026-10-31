@@ -196,6 +196,10 @@ and 329k output. `stop` kills them.
   block reading `still running` above a word to type.
 - Re-dispatch every agent that died, before anything else, on `continue` and on
   any turn that resumes the work.
+- Before dispatching agents, project the request's spend in dollars from the
+  last comparable run, `./scripts/session-tokens.py <session>` reading it, and
+  past $50 ask before launching: the projection, what a cheaper shape drops,
+  and the question. Past $50 spent mid-request, stop and report the total.
 - Dispatching agents ends the reply with one forecast line: what went out and
   how many, the minutes and tokens the last measured round of that shape took,
   when to expect them back, and that `stop` kills them. Their return gets the

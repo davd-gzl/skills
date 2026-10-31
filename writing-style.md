@@ -34,7 +34,7 @@ of measuring again.
 - Use a precise term over a hedge, naming the state rather than the range of states it might be in. Spell out an abbreviation a reader outside the project could not expand, and leave the ones they read daily alone.
 - Cut filler: delete any clause the reader can infer from the rest of the sentence. A clause carrying a fact, a number or the reason to care is not filler however redundant it reads, and cutting it is deletion rather than shortening.
 - Never sign-post from inside the document: no "see below", no "as mentioned above". Restructure instead.
-- **Two rejections of one sentence end the guessing.** Offer three or four labelled variants, shortest first, and let the reader pick.
+- **Two rejections of one sentence or one layout end the guessing.** Offer three or four labelled variants, shortest first, each shown on the same few real lines, and let the reader pick.
 - No em-dashes, no parentheticals, no "This page" openers. Short sentences, one idea each. A separator dash mandated by a template, `skills/review.md` for one, is structure, not prose.
 - Wrap committed docs and comments around 80 columns, no trailing whitespace. Never hard-wrap text destined for a GitHub PR body, issue, or comment, which render every newline: write one unwrapped line per paragraph. A `comment_<model>.md` or `pr-body.md` draft is that text and not a committed doc, so it stays unwrapped in the file too.
 - Never vouch for code with a bare adjective or a bare absence. State the checks run and what each showed, or locate the findings.

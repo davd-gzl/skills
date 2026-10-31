@@ -70,6 +70,30 @@ named thing and on pitching to the audience included.
   standalone page such as that viewer, ends with `↗`, and so does every link to
   the viewer, a home-page card's included. One stylesheet rule matching the
   link's target adds it, never the link's text.
+- A page listing many settings opens on a short table of the few a new install
+  changes first, then one closed block per area under that area's heading, the
+  block's title naming what it holds and how many: `Colours, logo and the
+  footer, 9 settings`. Every table has two columns, the setting as a link and its
+  default; the variable's name sits on the linked page. The tell is a reader
+  reading every row to learn they need none of them.
+- An install path ends on one copyable command that checks the result: one line
+  per check, ✓ or ✗ with its cause, a verdict, and a non-zero exit on a failure.
+  The check page shows that command, a real passing output, and only what no
+  command proves, a call across two networks. A script the site ships for this
+  only reads.
+- The site helps an AI assistant without a script of its own: an `llms.txt` at
+  its root indexing the pages, and a request to copy with no placeholders, which
+  tells the assistant to ask for the reader's choices and to end on the check
+  command. Never a form or page script for it.
+- The site runs no script of its own where the theme's components do the job,
+  and a file loaded from a CDN carries `integrity` and `crossorigin="anonymous"`.
+  The tell is a scanner's missing-integrity finding.
+- A file the repository already renders on its forge, `CONTRIBUTING.md` or
+  `CHANGELOG.md`, is a menu entry leading to it, never a page copying it.
+- A guide for one need keeps its own copy of the settings and shortcuts its
+  reader uses, and the general page links the guide instead of holding them;
+  this overrides the one-link rule of *A page* for guides. The tell is a reader
+  sent back to a general page halfway through their guide.
 - Feature support across browsers or devices is one table, a row per place and
   a column per feature that varies, ✅ and ❌ in the cells, under one line saying
   what works everywhere. An all-❌ row without that line reads as nothing working.
@@ -182,11 +206,21 @@ named thing and on pitching to the audience included.
   page, so headless screenshots never show it: film a headed browser on a
   virtual display, per the headful rule in `skills/try.md`, and record the
   display.
-- Capture with the browser's fake camera and microphone and with test accounts,
-  and name the fake source when the user asks about a frame.
+- On a page a reader scans, a screenshot sits in a closed block at the top of
+  its group, `??? example "<what it shows>"`, never floated beside a list or in
+  a strip across the page.
+- Capture from the running app with the browser's fake camera and microphone
+  and test data only: test accounts, `example.com` addresses, fictional phone
+  numbers. A screenshot already shipped that shows a real person's name or
+  email is recaptured in the turn it is seen. Name the fake source when the
+  user asks about a frame.
 
 ## Facts
 
+- Before moving a page's code links to a newer commit, run
+  `./scripts/repin-links.py <page> <worktree> <old sha> <new sha>`: it carries
+  every anchor whose lines survived and exits 1 naming each range the change
+  touched, which is read against the code and re-anchored by hand.
 - After a pass of edits, check every claim the pass added against the code
   before pushing: read-only checkers per area, each sorting a claim into wrong,
   unverifiable here, or misleading, with the source line and the replacement
@@ -197,6 +231,9 @@ named thing and on pitching to the audience included.
   found, then run a fresh checker over the whole site again, until a full pass
   finds nothing. Report the fixes of every pass at once. The tell is the user
   meeting a new one in the next reply.
+- Check a rendered diagram with a screenshot, never by reading the page's DOM:
+  the theme draws Mermaid where a page script cannot see it, so an empty
+  element proves nothing.
 - A claim about a browser, an operating system or a provider carries the vendor
   page that settles it, or is made general, per the unproved-claims step of the
   pass in `skills/writing-style.md`. A wrong precise claim is worse than a

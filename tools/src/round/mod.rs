@@ -60,10 +60,11 @@ pub const USAGE: &str = "round <subcommand> ...
            [--title <text>] [--shape <text>]
       claims.md and findings.md from the round's verdicts as data: candidates/*.json, what
       each finder, the reflector and the critic returned, and verdicts/*.json, what each
-      verifier returned. claims.md holds the Candidates table, one row per verdict joined
+      verifier returned. claims.md opens on the Findings table, a block per row and the
+      rows the finders cleared, then the Record, one row per verdict joined
       to its candidate, its Check the one the judge says it ran, else the candidate's, its
-      last column the mechanism slug the judge named, and one per candidate no verifier reached, the rows a finder
-      settled, the hit rate per tier and an empty Completeness section; findings.md one
+      last column the mechanism slug the judge named, and one per candidate no verifier reached,
+      the hit rate per tier and an empty Completeness section; findings.md one
       block per anchor in posting order, two findings on one file:line sharing its block
       row after row, each header closed with the highest band of its rows as
       ' · <Band>', which is what post-review.sh --list and --band read, and SKIP in

@@ -117,6 +117,7 @@ after it: GitHub links the sha to its commit already.
 ### Repros (comment.md deltas)
 
 - Attempt a repro for every Critical and Warning before drafting. No run proof: word it as an observation, never "I ran X". Source-visible facts: cite the anchor, drop the block.
+- A repro whose check also fails at the merge base says so inside its block, with the base's output beside the head's: a reader who runs it on the base and watches it fail takes the finding for one the branch did not make.
 - A repro lives in exactly one file: the draft owns it for findings anchored there; `claims.md` states the result and links it. Line-specific repros stay with their comment; suite-wide ones go in a Body `<details>` block, pointed to.
 - A missing-test finding carries ready-to-add cases in a collapsed `<details><summary>test cases</summary>` block, in the file's own test style, paste-ready.
 - A table or repro no remaining sentence cites leaves the comment. Tightening a finding takes its number with it, and the evidence block outlives the claim it was proving: it then reads as support for an argument nobody is making. Re-read every collapsed block against the visible text on each revision, and move the orphan to `claims.md`.

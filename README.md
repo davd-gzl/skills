@@ -93,8 +93,9 @@ Everything starts with a review, on a PR, a branch, or a red CI.
    ships the test, paste-ready.
 7. **Write.** `overview.md` for the reader who knows nothing about the subject,
    `comment_<model>.md` with one anchored section per finding, posted or
-   `SKIP`, and `claims.md`, the record: the verdict, one row per candidate with
-   its run output, every claim linked to the reviewed line.
+   `SKIP`, and `claims.md`, the record: a table of every finding with where the
+   draft put it, then one block per candidate with its run output, every claim
+   linked to the reviewed line.
 8. **Text pass.** `round links` resolves every link of the draft and the
    overview at its sha and checks its range into `links.md`; one agent adds
    whether the landed lines carry each claim, then rewrites every line that
@@ -145,8 +146,9 @@ projects/<repo>/reviews/<slug>/
   <n>-<sha>/
     comment_<model>.md   Event, Verdict, Model, Commit, Overview, Open the code, Round; the Body;
                          one section per finding, posted or SKIP, its repro collapsed
-    claims.md            one row per candidate: state, band, file:line, the check,
-                         the output, the artifact, the tier; the completeness answers
+    claims.md            the Findings table: line, band, state, merge base, where the
+                         draft put it; a block per candidate with its check and output;
+                         the Record the round tools parse; the completeness answers
     findings.md          the draft's skeleton from round assemble, one block per anchored line
                          in posting order, the check on each
     links.md             every link of the draft and the overview, resolved at its sha,

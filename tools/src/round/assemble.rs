@@ -3,8 +3,9 @@
 //!
 //! Inputs, under the round directory: `candidates/*.json`, what each finder, the reflector and
 //! the critic returned, `{"candidates": [...], "dropped": [...]}`; `verdicts/*.json`, what each
-//! verifier returned, `{"verdicts": [...]}` or the bare list. Outputs: `claims.md`, the Candidates table, the
-//! rows the finders settled, the hit rate per tier and an empty Completeness section; and
+//! verifier returned, `{"verdicts": [...]}` or the bare list. Outputs: `claims.md`, the Findings table and one
+//! block per finding, the rows the finders cleared, the Record the round tools parse, the hit rate
+//! per tier and an empty Completeness section; and
 //! `findings.md`, one block per anchor in posting order with everything the writer needs.
 
 use std::collections::HashMap;
@@ -64,6 +65,8 @@ struct Verdict {
     /// The defect class the judge named for a Critical or Warning, a short slug, so `round stop`
     /// can tell a later round's Warning on the same mechanism from a new one.
     mechanism: String,
+    /// Whether the judge saw the merge base behave as the head does, when it said.
+    base: Option<bool>,
 }
 
 /// One row of the Candidates table, a verdict joined to its candidate or a candidate no
@@ -84,6 +87,7 @@ pub struct Row {
     pub details: String,
     pub unrun: bool,
     pub mechanism: String,
+    pub base: Option<bool>,
 }
 
 /// Every `.json` file of a directory, by name, so a run is deterministic; an absent
@@ -243,6 +247,7 @@ fn verdicts(files: &[(String, Value)]) -> Vec<Verdict> {
                 angle: text(v, "angle"),
                 verify_by: text(v, "verify_by"),
                 mechanism: text(v, "mechanism"),
+                base: v.get("base_behaves_the_same").and_then(Value::as_bool),
             };
             if verdict.file.is_empty() {
                 continue;
@@ -348,6 +353,7 @@ fn rows(
             details: v.details.clone(),
             unrun: false,
             mechanism: v.mechanism.clone(),
+            base: v.base,
         });
     }
     for (i, c) in cands.iter().enumerate() {
@@ -375,6 +381,7 @@ fn rows(
             details: String::new(),
             unrun: true,
             mechanism: String::new(),
+            base: None,
         });
     }
     number_rows(&mut out);
@@ -454,15 +461,126 @@ fn skips(row: &Row) -> bool {
             && (row.band == "Nit" || row.band == "Suggestion" || row.band == "Missing test"))
 }
 
-/// `claims.md`: the title and shape lines when given, the Candidates table, the hit rate per
-/// tier when a risk table was given, the rows the finders settled, and an empty Completeness
-/// section for the writer's answers.
+/// The sections `claims_md` writes, the old shape's `## Candidates` among them, which a rebuild
+/// replaces rather than keeps.
+const ASSEMBLED: [&str; 4] = ["## Candidates", "## Findings", "## Cleared by the finder", "## Record"];
+
+/// Where each anchor of the draft stands, read from `comment_*.md` beside `claims.md`: `SKIP`, the
+/// `[posted]` link the posting script wrote back, or `posts`, keyed by path and first line.
+fn draft_status(round: &Path) -> Option<(HashMap<(String, usize), String>, String)> {
+    let draft = fs::read_dir(round).ok()?.filter_map(Result::ok).map(|e| e.path()).find(|p| {
+        p.file_name().and_then(|n| n.to_str()).is_some_and(|n| n.starts_with("comment_") && n.ends_with(".md"))
+    })?;
+    let text = fs::read_to_string(draft).ok()?;
+    let mut out = HashMap::new();
+    for line in text.lines() {
+        let Some(rest) = line.strip_prefix("## ") else { continue };
+        let (skip, rest) = match rest.strip_prefix("SKIP ") {
+            Some(r) => (true, r),
+            None => (false, rest),
+        };
+        let anchor = rest.split_whitespace().next().unwrap_or("");
+        let Some((path, lines)) = anchor.rsplit_once(':') else { continue };
+        let Some(first) = lines.split('-').next().and_then(|l| l.parse::<usize>().ok()) else { continue };
+        let status = if skip {
+            "SKIP".to_string()
+        } else if let Some(at) = rest.find("[posted](") {
+            let url = &rest[at + 9..];
+            format!("[posted]({})", &url[..url.find(')').unwrap_or(url.len())])
+        } else {
+            "posts".to_string()
+        };
+        out.insert((path.to_string(), first), status);
+    }
+    Some((out, text))
+}
+
+/// What the draft does with each row: `with row <n>` for a row sharing its anchor with an earlier one,
+/// whose section carries it; else the draft's own status where a draft exists, `Body` for a row it
+/// cites outside any section and `not in the draft` for one it lacks; else what the row will do,
+/// `SKIP` or `posts`. A refuted row posts nothing.
+fn draft_cells<'a>(rows: &'a [Row], draft: &Option<(HashMap<(String, usize), String>, String)>) -> HashMap<usize, String> {
+    let mut out = HashMap::new();
+    for block in blocks(rows) {
+        let first = block[0];
+        for r in &block {
+            let cell = if r.index != first.index {
+                format!("with row {}", first.index)
+            } else if let Some((map, text)) = draft {
+                match map.get(&(r.file.clone(), r.line)) {
+                    Some(s) => s.clone(),
+                    None if text.contains(&format!("{}#L{}", r.file, r.line)) || text.contains(&format!("{}:{}", r.file, r.line)) => "Body".to_string(),
+                    None => "not in the draft".to_string(),
+                }
+            } else if skips(r) {
+                "SKIP".to_string()
+            } else {
+                "posts".to_string()
+            };
+            out.insert(r.index, cell);
+        }
+    }
+    for r in rows.iter().filter(|r| r.state == "REFUTED") {
+        out.insert(r.index, String::new());
+    }
+    out
+}
+
+/// A row's anchor as a link at the reviewed sha where the blob URL is known, its file's last
+/// segment in the text, else the bare anchor.
+/// The blob URL is cut to a 9-character sha, which the forge resolves the same.
+fn anchor_link(file: &str, line: usize, url: &str) -> String {
+    let shown = file.rsplit('/').next().unwrap_or(file);
+    if url.is_empty() || line == 0 {
+        return format!("`{shown}:{line}`");
+    }
+    let url = url.trim_end_matches('/');
+    let url = match url.rsplit_once('/') {
+        Some((head, sha)) if sha.len() == 40 && sha.bytes().all(|b| b.is_ascii_hexdigit()) => format!("{head}/{}", &sha[..9]),
+        _ => url.to_string(),
+    };
+    format!("[`{shown}:{line}`]({url}/{file}#L{line})")
+}
+
+/// A sentence as the judge wrote it, its first letter raised where its first word is a plain
+/// lowercase word, never a code name such as `parenEnd`.
+fn sentence(s: &str) -> String {
+    let s = cell(s);
+    let first = s.split_whitespace().next().unwrap_or("");
+    if first.is_empty() || !first.trim_end_matches([',', ':']).bytes().all(|b| b.is_ascii_lowercase()) {
+        return s;
+    }
+    let mut chars = s.chars();
+    match chars.next() {
+        Some(c) => c.to_uppercase().chain(chars).collect(),
+        None => s,
+    }
+}
+
+/// An artifact path as a link relative to `claims.md`: the round's `tests/` tail where the path
+/// carries one, so the link resolves on the forge as well as on disk.
+fn artifact_link(path: &str) -> String {
+    let rel = match path.find("/tests/") {
+        Some(at) => &path[at + 1..],
+        None => path,
+    };
+    format!("[`{rel}`]({rel})")
+}
+
+/// `claims.md`, written for a reader first: the Findings table, one row per finding with its link,
+/// its band and state, whether the merge base behaves the same, and what the draft does with it;
+/// then one block per finding in posting order, the refuted last, carrying the claim, the check,
+/// what it printed and the test, the judge's longer account staying in `verdicts/`; then what the finders cleared; then the Record, the slim
+/// table `round prior`, `round risk`, `round stop` and the scripts parse, folded since a reader
+/// has it above; then an empty Completeness section for the writer's answers.
 fn claims_md(
     title: &str,
     shape: &str,
     rows: &[Row],
     dropped: &[Dropped],
     tiers: &HashMap<String, String>,
+    url: &str,
+    draft: &Option<(HashMap<(String, usize), String>, String)>,
 ) -> String {
     let mut out = String::new();
     if !title.is_empty() {
@@ -471,37 +589,67 @@ fn claims_md(
     if !shape.is_empty() {
         out.push_str(&format!("Round shape: {shape}\n\n"));
     }
-    out.push_str("## Candidates\n\n| # | State | Band | file:line | Check | Observed | Artifact | Tier | Mechanism |\n| --- | --- | --- | --- | --- | --- | --- | --- | --- |\n");
+    let cells = draft_cells(rows, draft);
+    let mut order: Vec<&Row> = blocks(rows).into_iter().flatten().collect();
+    order.extend(table_order(rows).into_iter().filter(|r| r.state == "REFUTED"));
+    let base = |r: &Row| match (r.state.as_str(), r.base) {
+        ("REFUTED", _) | (_, None) => "",
+        (_, Some(true)) => "same",
+        (_, Some(false)) => "differs",
+    };
+    out.push_str("## Findings\n\n| Line | # | Band | State | Merge base | Draft |\n| --- | --- | --- | --- | --- | --- |\n");
+    for r in &order {
+        out.push_str(&format!(
+            "| {} | {} | {} | {} | {} | {} |\n",
+            anchor_link(&r.file, r.line, url),
+            r.index,
+            cell(&r.band),
+            r.state,
+            base(r),
+            cells.get(&r.index).map(String::as_str).unwrap_or("")
+        ));
+    }
+    for r in &order {
+        out.push_str(&format!("\n### {} · {} · {} · `{}:{}`\n\n", r.index, cell(&r.band), r.state, r.file, r.line));
+        if !r.tldr.is_empty() {
+            out.push_str(&format!("{}\n\n", sentence(&r.tldr)));
+        }
+        out.push_str(&format!("- Check: {}\n", cell(&r.check)));
+        let label = if r.state == "REFUTED" { "Refuted by" } else { "Observed" };
+        out.push_str(&format!("- {label}: {}\n", cell(&r.observed)));
+        if !r.artifact.is_empty() {
+            out.push_str(&format!("- Test: {}\n", artifact_link(&r.artifact)));
+        }
+    }
+    if !dropped.is_empty() {
+        out.push_str("\n## Cleared by the finder\n\nNo verifier ran these: the finder's own read or run settled each.\n\n| Line | Angle | Suspected | Cleared by |\n| --- | --- | --- | --- |\n");
+        for d in dropped {
+            out.push_str(&format!(
+                "| {} | {} | {} | {} |\n",
+                anchor_link(&d.file, d.line, url),
+                cell(&d.angle),
+                cell(&d.summary),
+                cell(&d.settled_by)
+            ));
+        }
+    }
+    out.push_str("\n## Record\n\n<details><summary>One row per candidate, the table the round tools parse</summary>\n\n| # | State | Band | file:line | Check | Tier | Mechanism |\n| --- | --- | --- | --- | --- | --- | --- |\n");
     for r in table_order(rows) {
         out.push_str(&format!(
-            "| {} | {} | {} | {}:{} | {} | {} | {} | {} | {} |\n",
+            "| {} | {} | {} | {}:{} | {} | {} | {} |\n",
             r.index,
             r.state,
             cell(&r.band),
             r.file,
             r.line,
             cell(&r.check),
-            cell(&r.observed),
-            cell(&r.artifact),
             r.tier,
             cell(&r.mechanism)
         ));
     }
+    out.push_str("\n</details>\n");
     if !tiers.is_empty() {
         out.push_str(&format!("\n{}\n", hit_rate(rows, tiers)));
-    }
-    if !dropped.is_empty() {
-        out.push_str("\n### Settled by the finder, no verifier\n\n| Angle | file:line | Suspected | Settled by |\n| --- | --- | --- | --- |\n");
-        for d in dropped {
-            out.push_str(&format!(
-                "| {} | {}:{} | {} | {} |\n",
-                cell(&d.angle),
-                d.file,
-                d.line,
-                cell(&d.summary),
-                cell(&d.settled_by)
-            ));
-        }
     }
     out.push_str("\n## Completeness\n\n(the writer's answers)\n");
     out
@@ -533,6 +681,9 @@ fn keep_written_claims(new: &str, old: &str) -> String {
     let (head, mut fresh) = sections(new);
     let (_, kept) = sections(old);
     for (heading, body) in &kept {
+        if ASSEMBLED.contains(&heading.as_str()) {
+            continue;
+        }
         match fresh.iter_mut().find(|(h, _)| h == heading) {
             Some((h, b)) if h == "## Completeness" && !body.contains("(the writer's answers)") && !body.trim().is_empty() => {
                 *b = body.clone();
@@ -597,7 +748,7 @@ fn hit_rate(rows: &[Row], tiers: &HashMap<String, String>) -> String {
         })
         .collect();
     format!(
-        "Hit rate per tier, from the rows above: {}.",
+        "Hit rate per tier, from the record: {}.",
         parts.join(", ")
     )
 }
@@ -917,6 +1068,8 @@ fn run(args: &[String]) -> Result<(String, Vec<String>, Option<String>, Vec<Stri
         &rows,
         &dropped,
         &tiers,
+        opts.get("url").unwrap_or(&empty),
+        &draft_status(round),
     );
     let hunks = match (opts.get("repo"), opts.get("base")) {
         (Some(repo), Some(base)) => diff_hunks(repo, base, opts.get("sha").map_or("HEAD", |s| s))?,
@@ -1056,8 +1209,9 @@ mod tests {
         .unwrap();
         let (_, claims, _) = run_on(&round, &[]);
         assert!(claims.contains("| Tier | Mechanism |\n"), "{claims}");
-        assert!(claims.contains("| 1 | CONFIRMED | Warning | pkg/a.go:12 | go test -run 'A\\|B' | TestTTL: FAIL |  |  | ttl-clamp |\n"), "{claims}");
-        assert!(claims.contains("| UNVERIFIED | Nit | pkg/b.go:4 | grep -n 'err' pkg/b.go | not run: on the finder's read |  |  |  |\n"), "a row no judge ran names no mechanism: {claims}");
+        assert!(claims.contains("| 1 | CONFIRMED | Warning | pkg/a.go:12 | go test -run 'A\\|B' |  | ttl-clamp |\n"), "{claims}");
+        assert!(claims.contains("- Observed: TestTTL: FAIL\n"), "{claims}");
+        assert!(claims.contains("| UNVERIFIED | Nit | pkg/b.go:4 | grep -n 'err' pkg/b.go |  |  |\n"), "a row no judge ran names no mechanism: {claims}");
         let blocking = super::super::blocking_rows(&claims).unwrap();
         assert_eq!(blocking.len(), 1, "{blocking:?}");
         assert_eq!(blocking[0].mechanism, "ttl-clamp");
@@ -1125,21 +1279,49 @@ mod tests {
         let (code, claims, _) = run_on(&round, &[]);
         assert_eq!(code, 0);
         assert!(
-            claims.contains("| 1 | CONFIRMED | Warning | pkg/a.go:12 | go test ./pkg -run TestTTL \\| mutate TTL to 0 | go test -run TestTTL: FAIL, entry alive at 5m | tests/01-ttl.go |  |"),
+            claims.contains("| 1 | CONFIRMED | Warning | pkg/a.go:12 | go test ./pkg -run TestTTL \\| mutate TTL to 0 |  |")
+                && claims.contains("- Observed: go test -run TestTTL: FAIL, entry alive at 5m\n- Test: [`tests/01-ttl.go`](tests/01-ttl.go)\n"),
             "{claims}"
         );
+    }
+
+    #[test]
+    fn the_findings_table_reads_the_draft_and_a_rebuild_drops_the_old_table() {
+        let (round, _) = fixture("draft-status");
+        fs::write(
+            round.join("comment_m.md"),
+            "## Body\n\n## pkg/a.go:12 [gh](x) · Warning [posted](https://forge/c/1)\n\nText.\n\n## SKIP pkg/b.go:60 · Nit\n\nText.\n",
+        )
+        .unwrap();
+        fs::write(
+            round.join("claims.md"),
+            "# old\n\n## Candidates\n\n| 9 | CONFIRMED | Warning | old.go:1 | x | | | | |\n\n## Retro\n\nkept\n",
+        )
+        .unwrap();
+        let (_, claims, _) = run_on(&round, &["--url", "https://forge/o/r/blob/0123456789abcdef0123456789abcdef01234567"]);
+        assert!(
+            claims.contains("| [`a.go:12`](https://forge/o/r/blob/012345678/pkg/a.go#L12) | 1 | Warning | CONFIRMED | differs | [posted](https://forge/c/1) |\n"),
+            "{claims}"
+        );
+        assert!(claims.contains("| 3 | Nit | PLAUSIBLE | same | SKIP |\n"), "{claims}");
+        assert!(claims.contains("| Nit | UNVERIFIED |  | not in the draft |\n"), "a row the draft lacks is named: {claims}");
+        assert!(claims.contains("### 1 · Warning · CONFIRMED · `pkg/a.go:12`\n\nA zero TTL never expires\n"), "{claims}");
+        assert!(!claims.contains("old.go:1") && !claims.contains("## Candidates"), "the old table is replaced: {claims}");
+        assert!(claims.contains("## Retro\n\nkept\n"), "{claims}");
     }
 
     #[test]
     fn a_refuted_row_keeps_its_proving_line_and_sits_last() {
         let (round, _) = fixture("refuted");
         let (_, claims, findings) = run_on(&round, &[]);
-        let candidates = claims.split("### Settled").next().unwrap();
+        let candidates = claims.split("## Record").nth(1).unwrap();
         let table: Vec<&str> = candidates
             .lines()
             .filter(|l| l.starts_with("| ") && !l.starts_with("| #"))
             .collect();
-        assert!(table.last().unwrap().starts_with("| 2 | REFUTED | Nit | pkg/a.go:30 | grep -n 'ttl :=' pkg/a.go | a.go:30 declares ttl once |"), "{claims}");
+        assert!(table.last().unwrap().starts_with("| 2 | REFUTED | Nit | pkg/a.go:30 | grep -n 'ttl :=' pkg/a.go |"), "{claims}");
+        assert!(claims.contains("- Refuted by: a.go:30 declares ttl once\n"), "{claims}");
+        assert!(claims.contains("| `a.go:30` | 2 | Nit | REFUTED |  |  |\n"), "a refuted row posts nothing and names no base: {claims}");
         assert!(!findings.contains("pkg/a.go:30"), "{findings}");
     }
 
@@ -1166,9 +1348,10 @@ mod tests {
         )
         .unwrap();
         let (_, claims, findings) = run_on(&round, &[]);
-        assert!(claims.contains("| 5 | PLAUSIBLE | Warning | pkg/b.go:2 | go test -run TestEmpty | not run: no verifier reached it; the check is still to run |  |  |"), "{claims}");
+        assert!(claims.contains("| 5 | PLAUSIBLE | Warning | pkg/b.go:2 | go test -run TestEmpty |  |  |"), "{claims}");
+        assert!(claims.contains("- Observed: not run: no verifier reached it; the check is still to run\n"), "{claims}");
         assert!(
-            claims.contains("| lines | pkg/a.go:40 | missing guard | a.go:38 guards it |"),
+            claims.contains("| `a.go:40` | lines | missing guard | a.go:38 guards it |"),
             "{claims}"
         );
         assert!(!claims.contains("pkg/a.go:40 | grep"), "{claims}");
@@ -1223,11 +1406,11 @@ mod tests {
             ],
         );
         assert!(
-            claims.starts_with("# Claims: PR 1 round 1\n\nRound shape: 2 finders\n\n## Candidates"),
+            claims.starts_with("# Claims: PR 1 round 1\n\nRound shape: 2 finders\n\n## Findings"),
             "{claims}"
         );
-        assert!(claims.contains("| tests/01-ttl.go | hot |"), "{claims}");
-        assert!(claims.contains("Hit rate per tier, from the rows above: hot 1/2 confirmed over 1 files, warm 0/0 confirmed over 0 files, cold 0/2 confirmed over 2 files."), "{claims}");
+        assert!(claims.contains("| mutate TTL to 0 | hot |"), "{claims}");
+        assert!(claims.contains("Hit rate per tier, from the record: hot 1/2 confirmed over 1 files, warm 0/0 confirmed over 0 files, cold 0/2 confirmed over 2 files."), "{claims}");
     }
 
     #[test]
@@ -1264,7 +1447,8 @@ mod tests {
         .unwrap();
         let (code, claims, _) = run_on(&round, &[]);
         assert_eq!(code, 0, "{claims}");
-        assert!(claims.contains("| 2 | CONFIRMED | Warning | pkg/pool.go:228 | go test -run TestBound | TestBound: FAIL |"), "{claims}");
+        assert!(claims.contains("| 2 | CONFIRMED | Warning | pkg/pool.go:228 | go test -run TestBound |"), "{claims}");
+        assert!(claims.contains("- Observed: TestBound: FAIL\n"), "{claims}");
         assert!(claims.contains("| UNVERIFIED | Suggestion | pkg/pool.go:227 | apply the rename patch |"), "{claims}");
     }
 
@@ -1297,10 +1481,12 @@ mod tests {
         )
         .unwrap();
         let (_, claims, _) = run_on(&round, &[]);
-        let rows: Vec<&str> = claims.lines().filter(|l| l.starts_with("| ") && !l.starts_with("| #") && !l.starts_with("| -")).collect();
+        let record = claims.split("## Record").nth(1).unwrap();
+        let rows: Vec<&str> = record.lines().filter(|l| l.starts_with("| ") && !l.starts_with("| #") && !l.starts_with("| -")).collect();
         assert_eq!(rows.len(), 2, "{claims}");
-        assert!(claims.contains("| 1 | CONFIRMED | Warning | pkg/render.go:96 | go test -run TestQuadratic | TestQuadratic: FAIL |"), "{claims}");
-        assert!(claims.contains("| 2 | REFUTED | Warning | pkg/render.go:96 | go test -run TestFenceToml | TestFenceToml: PASS |"), "{claims}");
+        assert!(claims.contains("| 1 | CONFIRMED | Warning | pkg/render.go:96 | go test -run TestQuadratic |"), "{claims}");
+        assert!(claims.contains("| 2 | REFUTED | Warning | pkg/render.go:96 | go test -run TestFenceToml |"), "{claims}");
+        assert!(claims.contains("- Observed: TestQuadratic: FAIL\n") && claims.contains("- Refuted by: TestFenceToml: PASS\n"), "{claims}");
     }
 
     #[test]
@@ -1422,7 +1608,8 @@ mod tests {
         )
         .unwrap();
         let (_, claims, findings) = run_on(&round, &[]);
-        assert!(claims.contains("| 5 | CONFIRMED | Warning | chart/values.yaml:336 | grep -rn oldKey over the chart; helm template not run, no helm on this host | grep: no hit at the head |"), "{claims}");
+        assert!(claims.contains("| 5 | CONFIRMED | Warning | chart/values.yaml:336 | grep -rn oldKey over the chart; helm template not run, no helm on this host |"), "{claims}");
+        assert!(claims.contains("- Observed: grep: no hit at the head\n"), "{claims}");
         assert!(!findings.contains("Check: helm template"), "{findings}");
     }
 }

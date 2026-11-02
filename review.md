@@ -225,8 +225,8 @@ file and one merge pass assembling the whole.
 
 - `overview.md` is never the writer's: the parent's overview agent wrote it at step 1, or the runner's, started beside the finders when the launch came without `overview_exists`; the writer links it.
 - `comment_<model>.md` per `skills/review-comment.md`, its header the Format block of `skills/review-comment.md`: the `# Review:` title on line 1, then the `Event:` line its *General rules* default from the verdict, then `Verdict:`; every finding a section, posted or `SKIP`. A PLAUSIBLE Warning names the check still to run as a statement, never a question; a PLAUSIBLE Nit or Suggestion ships `SKIP`, since a read that cannot settle it is no ground to post.
-- `./scripts/round assemble <round dir> --repo <head worktree> --sha <sha> --base <merge base> --risk <risk.json> --url <blob url base> --title <text> --shape <text>` first: it writes `claims.md` whole, the Candidates table from the verdicts as data, the rows the finders settled, the hit rate per tier and an empty Completeness section, and `findings.md`, one block per anchored line in posting order with `SKIP` in front of a block whose every row is a PLAUSIBLE Nit, Suggestion or Missing test or an UNVERIFIED row, which no judge ran, and a block whose line no hunk of the diff covers as a bullet under `## Body`, since GitHub refuses the whole review for that anchor. It exits 1 listing every anchor not at the head; such a row is settled by reading the code and moving the anchor, never by dropping the finding.
-- `claims.md` per *Output*: the table is the tool's and stays as written; the writer replaces the Completeness placeholder with its answers.
+- `./scripts/round assemble <round dir> --repo <head worktree> --sha <sha> --base <merge base> --risk <risk.json> --url <blob url base> --title <text> --shape <text>` first: it writes `claims.md` whole, the Findings table and one block per finding from the verdicts as data, the rows the finders cleared, the Record the round tools parse, the hit rate per tier and an empty Completeness section, and `findings.md`, one block per anchored line in posting order with `SKIP` in front of a block whose every row is a PLAUSIBLE Nit, Suggestion or Missing test or an UNVERIFIED row, which no judge ran, and a block whose line no hunk of the diff covers as a bullet under `## Body`, since GitHub refuses the whole review for that anchor. It exits 1 listing every anchor not at the head; such a row is settled by reading the code and moving the anchor, never by dropping the finding.
+- `claims.md` per *Output*: everything above Completeness is the tool's and stays as written; the writer replaces the Completeness placeholder with its answers.
 - The draft's sections come from `findings.md`, never from the JSON under `candidates/` or `verdicts/`.
 - `./scripts/round check <round dir>` last, before returning, into `check.md`; then `./scripts/prose-check.py <draft>`. The writer clears both lists, since the two gates do not overlap and a round whose text pass is skipped ships what the writer returned.
 - The `Round:` line names the shape: how many finders, whether a reflector ran, how many candidates, and that each was run from scratch by an agent that was not its finder, the Nits in their batches counted apart.
@@ -546,7 +546,7 @@ projects/<repo>/reviews/<slug>/
   <n>-<sha>/
     comment_<model>.md   the draft: Verdict, Event, Model, Commit, Overview, Open the code, Round;
                          the Body; one section per finding, posted or SKIP, its repro collapsed
-    claims.md            one row per candidate, then the completeness answers, then Outcomes
+    claims.md            the Findings table, a block per finding, the Record; then Completeness, Outcomes
     findings.md          the draft's skeleton, one block per anchored line in posting order, from `round assemble`
     links.md             one row per link of the draft and the overview
     tests/               every artifact a verifier ran
@@ -554,16 +554,16 @@ projects/<repo>/reviews/<slug>/
     verdicts/            what each verifier returned, as JSON
 ```
 
-A row of `claims.md`, and the round note above it in the draft:
+A row of the Findings table in `claims.md`, and the round note above it in the draft:
 
 ```markdown
-| 7 | REFUTED | Warning | pkg/store/cache.go:88 | go test ./pkg/store -run TestTTL, 0 TTL case | evicts after 5m, PASS; cache.go:31 clamps ttl <= 0 | | hot |
+| [`cache.go:88`](https://github.com/acme/app/blob/0123abcd9/pkg/store/cache.go#L88) | 7 | Warning | CONFIRMED | differs | [posted](https://github.com/acme/app/pull/42#discussion_r1) |
 
 Round: 1. 7 finders, one reflector, 58 candidates, 23 of them Nits on the finder's own read and the rest run from scratch by an agent that was not its finder.
 ```
 
 - `comment_<model>.md`, the draft, per `skills/review-comment.md`: every finding as a section, posted or `SKIP`, with its repro. Its header carries the verdict, the model and effort, the reviewed sha, the overview link and the round note, and `./scripts/post-review.sh` sends nothing above the first section, so the round's judgement and its shape live in the one file the user opens.
-- `claims.md`, the record, written by `./scripts/round assemble <round dir>` from `candidates/` and `verdicts/`: one row per candidate the verifiers ran, and one at state `UNVERIFIED` per Nit the round's ceiling left unrun: state, band, `file:line`, the check, the observed output, the artifact under `tests/`, and the tier the risk table gave its file. A refuted candidate keeps its row with the proving line, so a later round reads what was cleared and why. Then the completeness answers.
+- `claims.md`, the record, written by `./scripts/round assemble <round dir>` from `candidates/` and `verdicts/`, one row per candidate the verifiers ran and one at state `UNVERIFIED` per Nit the round's ceiling left unrun. The Findings table opens it: the line linked at the reviewed sha, the number, band and state, whether the merge base behaves the same, and what the draft does with the row, read from `comment_<model>.md` once it exists: `[posted]`, `SKIP`, `with row <n>` where another row's section carries it, or `not in the draft`, which is a finding the draft dropped. One block per row follows with the claim, the check, what it printed and the test under `tests/`; then what the finders cleared; then the Record, the folded table `round prior`, `round risk` and `round stop` parse. A refuted candidate keeps its block with the proving line, so a later round reads what was cleared and why. Then the completeness answers. A rebuild after the post, the same `round assemble` command, fills the Draft column with the posted links.
 - `tests/`, every artifact a verifier ran, per *Write tests for test-shaped findings*.
 - `links.md`, the text pass's row per link, which is the pass's own coverage proof and not a finding.
 - `candidates/` and `verdicts/`, one JSON file per agent, the same object it returned, so the record is on disk before the writer runs and a stage that dies loses its own file and nothing else.

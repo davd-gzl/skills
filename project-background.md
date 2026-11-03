@@ -64,10 +64,19 @@ its sections, then add what this project has and that one did not.
   through its screenshot read before it stays.
 - What it does takes screenshots of the app running at the pinned sha. Boot it
   per `skills/try.md`, moving any port another stack holds to one the project's
-  auth config already whitelists. Seed a fixture that shows each feature with
-  invented names and contents, capture each screen headless with
-  `./scripts/capture-web.mjs`, and upload it per the connector's uploads guide.
-  Each picture gets a caption naming the feature and the route it was taken on.
+  auth config already whitelists, then reading every origin list back from the
+  running containers, the bucket's CORS and the backend's trusted origins
+  among them: an override that did not take shows up later as a 403 or a failed
+  upload, never at boot.
+- Seed through the app's own API from inside the signed-in page, so the
+  session, the CSRF token and any signed upload behave as the browser's do, with
+  invented names and contents and the project's own fixture users. Capture each
+  screen headless with `./scripts/capture-web.mjs --script <walkthrough>`, with
+  a first-run dialog turned off by its setting and dev-only overlays hidden.
+- Open every screenshot before it is uploaded and retake the one whose screen
+  shows a dialog, a blank preview or an error instead of the feature. Upload it
+  per the connector's uploads guide under a caption naming the feature and the
+  route it was taken on.
 - A feature the local stack cannot show, a third-party service it needs, is
   named under the screenshots as not shown, with the reason.
 

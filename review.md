@@ -460,14 +460,14 @@ PR: [<owner>/<repo>#<n>](<url>)
 ## How <the mechanism> works        <- a complex fix
 ## Before and after                  <- a change to existing behaviour
 ## What a user notices               <- someone else's change
-## What it leaves open              <- someone else's change
+## Not fixed                       <- someone else's change
 ## Upgrading
 ## Words used here
 <details> Read the code in this order
 ```
 
 - **After the TLDR, give every concept the change uses its own `##` section, whatever the body already says.** A concept is a value, a check or a mechanism the reader must hold to follow the change: what it is, how it behaves, and what the change does to it, in the order the reader needs them, each building on the one above. The body argues the merge and the overview teaches, so a body that states the fix in full cuts no concept section. The tell is an overview that is a TLDR and a glossary table: each row of that table was a section. The why and how sections are for a change whose mechanism is new to that reader or whose parts interact, and a section restating the body's Problem or Fix is cut whole, never shortened.
-- On a change of our own, `What a user notices` and `What it leaves open` are design and live in the pull request body, per `skills/pr-body.md`.
+- On a change of our own, `What a user notices` and `Not fixed` are design and live in the pull request body, per `skills/pr-body.md`.
 
 - Below the TLDR, name things as the code does, the function, the class, the setting, the endpoint, so the reader finds each one in the diff after reading. For those sections that overrides the reader's-words bullet of *The rules* in `skills/writing-style.md`. Every name a reader new to the change would look up gets one row in `## Words used here`, the last section: the name, then what it is in one sentence, with the condition a reader can check, an endpoint's method and path, a setting's default, how often a client calls it.
 - The TLDR is two or three very simple sentences a reader understands without opening the code or knowing any concept below it: what was wrong or missing, what the change does about it, and what that means for whoever uses it, in the reader's words, per *Write the reader's words* in `skills/writing-style.md`. A code name goes in it only where no plain word names the thing. The tell is a TLDR the user asks to have explained: it was written for the diff, not the reader.
@@ -488,7 +488,7 @@ PR: [<owner>/<repo>#<n>](<url>)
 - `## Before and after` is two short paragraphs, one opening `**Before:**` and one `**After:**`, each a sentence or two naming what happens and through which code, never a table: "**Before:** a guest joins the room as soon as the link opens, through `request_entry`." What the sections above already explain is not repeated here.
 - `## Why <the old behaviour> was not enough` walks the reader through the defect: what the code assumed, where the assumption breaks, and what nothing else stopped.
 - `## How <the mechanism> works` is one short paragraph per part, led by a bold phrase naming it, saying what it does and why it is built that way, the trade-off it makes included. A diagram goes beside the paragraphs only where a flow crosses more parts than prose holds in one read.
-- `## What it leaves open` is one bullet per case the change does not reach, each with what does reach it or that nothing does yet.
+- `## Not fixed` is one bullet per case the change does not reach, each with what does reach it or that nothing does yet.
 - `## What a user notices` gives each visible effect with what decides its scope, per browser, per account, never per IP unless the code reads one.
 - `## Upgrading` appears only where the change touches stored state, a cookie, a setting or a migration.
 - Write it as `overview.md`, never `overview.html`: GitHub serves an `.html` blob as source, so the reader downloads the file to read it.

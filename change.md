@@ -57,8 +57,8 @@ Written before any fix code, split by audience per
 - `plan.md` is how: root cause, approach, the files, how it is tested, a
   `## Paths walked` section naming every path that reaches each absolute the
   title, the body or the diff states about the code, a cap, a never, a cannot,
-  an at most, each with the run showing it holds or the body's leaves-out line
-  naming it, enumerated before the first push and checked by
+  an at most, each with the run showing it holds or the body's `## Not fixed`
+  bullet naming it, enumerated before the first push and checked by
   `./scripts/absolutes-check.py`, the commit split, the threat model and the
   module inventory where the change is large enough to need them, and an
   Iterations section naming every round and what caught it, failures included.
@@ -184,8 +184,8 @@ makes the rest of the session pay for its test output and file reads.
    `./scripts/snapshot <worktree>`: its sha is the fix's base for step 10.
 5. **Weigh each finding before building it.** Name what implementing one costs in files and what
    it buys in cases a user actually hits: a suggestion covering a transition
-   nobody has been through yet goes to the pull request body's leaves-out
-   sentence, where the maintainer can ask for it, never to a second issue,
+   nobody has been through yet goes to the pull request body's `## Not fixed`
+   section, where the maintainer can ask for it, never to a second issue,
    which puts a tracker item in front of maintainers who did not ask for one. A
    finding whose absence makes the feature not work is never in this class.
 6. **Implement** inside the worktree. A defect met on the way is fixed in the

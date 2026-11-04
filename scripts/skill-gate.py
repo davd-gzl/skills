@@ -1387,6 +1387,14 @@ def standing_publish_draft():
         return set()
 
 
+def standing_issue_edit():
+    """The issues, each `owner/repo#number`, whose body goes up unasked."""
+    try:
+        return {x.lower() for x in json.loads((root() / 'workspace.json').read_text()).get('standing_issue_edit', [])}
+    except (OSError, ValueError):
+        return set()
+
+
 def _own_draft(repo, number):
     """Whether a pull request is an open draft the user authored; a failed read keeps the word."""
     out = _gh_api(f'repos/{repo}/pulls/{number}', '[.state, .draft, .user.login] | map(tostring | ascii_downcase) | @tsv')
@@ -1480,6 +1488,10 @@ def publish_words(cmd, cwd=None):
                 continue
         if verb in {('pr', 'comment'), ('pr', 'edit'), ('issue', 'comment')} and _drafts_only(t, cwd, cmd):
             continue
+        if verb == ('issue', 'edit') and not _edits_beyond_body(t):
+            repos, number = _gh_repos(t, cwd, cmd), _gh_target(t)
+            if number and repos and all(f'{r}#{number}' in standing_issue_edit() for r in repos):
+                continue
         if verb in {('pr', 'create'), ('pr', 'comment'), ('pr', 'review'), ('pr', 'reopen'), ('issue', 'create'),
                     ('issue', 'comment'), ('issue', 'reopen'), ('issue', 'edit'), ('issue', 'lock'), ('issue', 'transfer'),
                     ('release', 'create'), ('release', 'upload'), ('gist', 'create'), ('repo', 'create'), ('repo', 'edit')}:

@@ -747,6 +747,15 @@ class PublishWordsEdges(PublishWords):
         with mock.patch.object(gate, '_gh_api', lambda path, jq: None):
             self.assertEqual(self.hook('gh pr comment 5 -R up/fixes -b x')[0], 2)
 
+    def test_a_listed_issues_body_goes_up_without_post(self):
+        (self.root / 'workspace.json').write_text(json.dumps({'standing_issue_edit': ['Up/Fixes#5']}))
+        for cmd in ('gh issue edit 5 -R up/fixes --body-file b.md', 'gh issue edit 5 -R up/fixes -b x'):
+            self.assertEqual(self.hook(cmd)[0], 0, cmd)
+        for cmd in ('gh issue edit 6 -R up/fixes --body-file b.md', 'gh issue edit 5 -R other/repo --body-file b.md',
+                    'gh issue edit 5 -R up/fixes --title x', 'gh issue edit 5 -R up/fixes --add-label x',
+                    'gh issue close 5 -R up/fixes', 'gh issue comment 5 -R up/fixes -b x'):
+            self.assertEqual(self.hook(cmd)[0], 2, cmd)
+
     def test_every_change_still_waits_on_an_own_repository_that_asks_for_it(self):
         (self.root / 'workspace.json').write_text(
             json.dumps({'standing_publish': ['me/fork'], 'word_for_every_change': ['me/fork']}))

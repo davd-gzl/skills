@@ -1379,6 +1379,49 @@ def _closes_own_quietly(t, cwd, line=''):
     return bool(login and repos) and not loud and all(r.split('/')[0] == login for r in repos)
 
 
+def standing_publish_draft():
+    """The repositories where the user's own draft pull request, its text and its comments go up unasked."""
+    try:
+        return {norm_repo(r) for r in json.loads((root() / 'workspace.json').read_text()).get('standing_publish_draft', [])}
+    except (OSError, ValueError):
+        return set()
+
+
+def _own_draft(repo, number):
+    """Whether a pull request is an open draft the user authored; a failed read keeps the word."""
+    out = _gh_api(f'repos/{repo}/pulls/{number}', '[.state, .draft, .user.login] | map(tostring | ascii_downcase) | @tsv')
+    return bool(out) and out.split() == ['open', 'true', own_login()]
+
+
+def _gh_target(t):
+    """The pull request or issue number a gh verb names: its URL, or its first argument that no flag takes."""
+    for x in t:
+        m = re.match(r'https://github\.com/[^/\s]+/[^/\s]+/(?:pull|issues)/(\d+)', x)
+        if m:
+            return m.group(1)
+    r = _gh_verb(t)
+    return next((x for i, x in enumerate(r) if i > 1 and x.isdigit() and not r[i - 1].startswith('-')), None)
+
+
+def _drafts_only(t, cwd, line=''):
+    """Whether a gh verb posts only on the user's own draft, on a repository whose standing word covers one."""
+    repos, number = _gh_repos(t, cwd, line), _gh_target(t)
+    return bool(number and repos) and repos <= standing_publish_draft() and all(_own_draft(r, number) for r in repos)
+
+
+def _post_fix_opens_draft(t, cwd):
+    """Whether post-fix.sh opens a pull request alone, on a repository whose standing word covers a draft."""
+    dirs = [Path(cwd or os.getcwd(), x) for x in t[1:] if not x.startswith('-')]
+    if not dirs or ('--pr-only' not in t and any((d / 'issue.md').is_file() for d in dirs)):
+        return False
+    try:
+        bodies = [d / 'pr-body.md' for d in dirs if (d / 'pr-body.md').is_file()]
+        heads = [re.search(r'^Target:\s*https://github\.com/([^/\s]+/[^/\s]+)/compare/', b.read_text(), re.M) for b in bodies]
+    except OSError:
+        return False
+    return bool(heads) and all(m and norm_repo(m.group(1)) in standing_publish_draft() for m in heads)
+
+
 def _edits_beyond_body(t):
     """Whether a gh pr edit sets anything but the body: a flag's value, `-` for stdin among them, is skipped."""
     free, i = ('--body', '-b', '--body-file', '-F', '-R', '--repo'), 3
@@ -1407,6 +1450,13 @@ def publish_words(cmd, cwd=None):
             cwd = os.path.join(cwd or os.getcwd(), os.path.expanduser(t[1].strip('"\'')))
             continue
         name = os.path.basename(t[0])
+        # A draft on a repository listed in standing_publish_draft waits for no word, per Consent in AGENTS.md.
+        pos = [x for x in t[1:] if not x.startswith('-')]
+        if name == 'post-fix.sh' and _post_fix_opens_draft(t, cwd):
+            continue
+        if name == 'post-replies' and len(pos) >= 2 and norm_repo(pos[0]) in standing_publish_draft() \
+                and _own_draft(norm_repo(pos[0]), pos[1]):
+            continue
         if name in POST_SCRIPTS - {'pr-body-apply'} and not _dry(t):
             needs.append({'post', 'upload'})
         # pr-body-apply needs no word: it refuses a pull request the signed-in account
@@ -1424,6 +1474,12 @@ def publish_words(cmd, cwd=None):
             repos = _gh_repos(t, cwd, cmd)
             if repos and repos <= own:
                 continue
+        if verb == ('pr', 'create') and {'--draft', '-d'} & set(t):
+            repos = _gh_repos(t, cwd, cmd)
+            if repos and repos <= standing_publish_draft():
+                continue
+        if verb in {('pr', 'comment'), ('pr', 'edit'), ('issue', 'comment')} and _drafts_only(t, cwd, cmd):
+            continue
         if verb in {('pr', 'create'), ('pr', 'comment'), ('pr', 'review'), ('pr', 'reopen'), ('issue', 'create'),
                     ('issue', 'comment'), ('issue', 'reopen'), ('issue', 'edit'), ('issue', 'lock'), ('issue', 'transfer'),
                     ('release', 'create'), ('release', 'upload'), ('gist', 'create'), ('repo', 'create'), ('repo', 'edit')}:
@@ -1509,6 +1565,10 @@ def publish_words(cmd, cwd=None):
             if method == 'DELETE' and not edit:
                 needs.append({'delete'})
             elif repo in own and re.search(r'/(pulls|issues)(/|$)', path) and not re.search(r'/merge/?$', path):
+                continue
+            elif repo in standing_publish_draft() and not keys & {'state', 'draft', 'base'} \
+                    and (m := re.search(r'/(?:pulls|issues)/(\d+)(?:/(?:comments(?:/\d+/replies)?|labels(?:/[^/]+)?))?/?$', path)) \
+                    and _own_draft(repo, m.group(1)):
                 continue
             else:
                 needs.append({'post'})

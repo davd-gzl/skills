@@ -709,6 +709,44 @@ class PublishWordsEdges(PublishWords):
                     'gh api -X PUT repos/me/fork/pulls/5/merge', 'gh api -X POST repos/other/repo/pulls -f title=x'):
             self.assertEqual(self.hook(cmd)[0], 2, cmd)
 
+    def test_the_users_own_draft_goes_up_without_post_on_a_listed_repository(self):
+        (self.root / 'workspace.json').write_text(json.dumps({
+            'standing_publish_draft': ['up/fixes'], 'identities': {'public': {'name': 'me'}}}))
+        pr = lambda n: {5: 'open\ttrue\tme', 6: 'open\tfalse\tme', 7: 'open\ttrue\tother'}.get(n)
+        fake = lambda path, jq: pr(int(path.rsplit('/', 1)[1]))
+        change = self.root / 'change'
+        change.mkdir()
+        (change / 'pr-body.md').write_text('Target: https://github.com/up/fixes/compare/develop...me:fixes:b\n')
+        with mock.patch.object(gate, '_gh_api', fake):
+            for cmd in ('gh pr create -R up/fixes --draft -t x -b y', 'gh pr comment 5 -R up/fixes -b x',
+                        'gh pr comment https://github.com/up/fixes/pull/5 -b x', 'gh pr edit 5 -R up/fixes --title x',
+                        'gh pr edit 5 -R up/fixes --add-label x', 'gh issue comment 5 -R up/fixes -b x',
+                        'gh api -X POST repos/up/fixes/issues/5/comments -f body=x',
+                        'gh api -X POST repos/up/fixes/issues/5/labels -f labels[]=x',
+                        'gh api -X POST repos/up/fixes/pulls/5/comments/9/replies -f body=x',
+                        'gh api -X PATCH repos/up/fixes/pulls/5 -f title=x',
+                        './scripts/post-replies up/fixes 5 /tmp/replies', f'./scripts/post-fix.sh {change} --pr-only',
+                        f'./scripts/post-fix.sh {change}'):
+                self.assertEqual(self.hook(cmd)[0], 0, cmd)
+            (change / 'issue.md').write_text('x')
+            for cmd in ('gh pr create -R up/fixes -t x -b y', 'gh pr create -R other/repo --draft -t x -b y',
+                        'gh pr comment 6 -R up/fixes -b x', 'gh pr comment 7 -R up/fixes -b x',
+                        'gh pr comment -R up/fixes -b 5', 'gh pr comment 5 -R other/repo -b x',
+                        'gh pr comment 5 -R up/fixes -b x && gh pr comment 6 -R up/fixes -b x',
+                        'gh pr review 5 -R up/fixes --comment -b x', 'gh api -X POST repos/up/fixes/pulls/5/reviews -f event=COMMENT',
+                        './scripts/post-review.sh d.md', 'gh pr ready 5 -R up/fixes', 'gh pr merge 5 -R up/fixes', 'gh pr close 5 -R up/fixes',
+                        'gh issue create -R up/fixes -t x -b y', 'gh api -X PATCH repos/up/fixes/pulls/5 -f state=closed',
+                        'gh api -X PATCH repos/up/fixes/pulls/5 -F draft=false', 'gh api -X PUT repos/up/fixes/pulls/5/merge',
+                        'gh api -X POST repos/up/fixes/issues/6/comments -f body=x', './scripts/post-replies up/fixes 6 /tmp/replies',
+                        f'./scripts/post-fix.sh {change}'):
+                self.assertEqual(self.hook(cmd)[0], 2, cmd)
+
+    def test_a_failed_read_keeps_the_word_on_a_draft(self):
+        (self.root / 'workspace.json').write_text(json.dumps({
+            'standing_publish_draft': ['up/fixes'], 'identities': {'public': {'name': 'me'}}}))
+        with mock.patch.object(gate, '_gh_api', lambda path, jq: None):
+            self.assertEqual(self.hook('gh pr comment 5 -R up/fixes -b x')[0], 2)
+
     def test_every_change_still_waits_on_an_own_repository_that_asks_for_it(self):
         (self.root / 'workspace.json').write_text(
             json.dumps({'standing_publish': ['me/fork'], 'word_for_every_change': ['me/fork']}))

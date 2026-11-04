@@ -106,3 +106,25 @@ its sections, then add what this project has and that one did not.
 
 A trap the boot or the measuring cost goes into `projects/<repo>/AGENTS.md`
 where the project has one, with its symptom, per `skills/authoring.md`.
+
+## When the user also asks what works and what to work on
+
+A second tab, pinned to the head of the day and naming the sha the first tab
+describes, opens on the pick and then gives what works, what does not, what needs
+upgrading, the comparison, and the pull requests worth reviewing.
+
+- Read `df -h /` before the boot and during it, and stop what this session built
+  when the disk nears full. Read a failing test's error before reporting it: a
+  full disk fails a suite in the shape of a defect.
+- Run what the project's CI runs, plus what no job measures, such as coverage and
+  migration drift. Skip a suite the upstream CI ran green at the same sha when
+  rerunning it costs gigabytes, and name it as not rerun.
+- Rank gaps by who asks, then read who already owns each: the assignee, the
+  milestone and the comments on any open pull request. The pick is the most
+  important gap nobody owns, and each higher one names why it lost.
+- List a pull request as simple by its lines outside tests, lock files and the
+  changelog, and as important from its diff. Read `main` at the line it changes
+  first, since a small old pull request is often already superseded.
+- A pull request labelled security names what it reaches: a build-only advisory
+  ranks below a runtime fix no pull request covers yet. Check the runtime's own
+  release notes as well as a scanner, which can report nothing while one exists.

@@ -42,6 +42,7 @@ as the skill defines it; ask when the reading changes what gets built.
 | `pr`, `p r`, `push review` | the round over the change's whole branch, step 10 of *Fix*, its fixes applied, then everything `p` sends; a bare `p` runs no further round | `skills/change.md` |
 | `r` | the same round over the change's branch, its fixes applied, nothing committed or pushed | `skills/change.md` |
 | `rlp`, `review loop push` | the loop `review <target>` runs on a pull request the user authored, on the one the session works on, then everything `p` sends; one word, never the letters `r`, `l` and `p` | *Own PR* in `skills/review-modes.md`, *Consent* in `AGENTS.md` |
+| `sweep` | a project's security backlog, as many runs at once as the machine holds: the loop `review <target>` runs on each of the user's top-severity pull requests with no round yet, then a round on colleagues' recent high-severity ones, then `fix` on the next findings from its tracker; every comment draft and new pull request waits for its own word | *Sweep* in the project's delta |
 | `pf`, `p f`, `push force` | everything `p` sends, the branch it names replaced on its remote with `--force-with-lease`: Invariant 8's approval, for that push alone | Invariant 8 |
 | `post` | the shown draft goes to its target where nothing waits to be pushed, and `p` sends it the same; `post as an AI` adds the marker; `upload` sends media | `skills/review-comment.md`, `skills/issue.md`, `skills/change.md` |
 | `m`, `x`, `d` | merge, close or delete: that one action on the named target | Invariant 2 |

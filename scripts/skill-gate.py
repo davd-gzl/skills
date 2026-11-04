@@ -908,7 +908,9 @@ def cmd_prompt(stdin, stdout):
 # for one. Where the reading cannot place a push it asks for the word; the words themselves, in
 # AGENTS.md, stay the control.
 NOT_TYPED = ('<task-notification', '<command-', '<local-command-', '<system-reminder', '[SYSTEM NOTIFICATION',
-             'Another Claude session sent a message:')
+             'Another Claude session sent a message:', '<cross-session-message', '<side-sessions-event',
+             '<ci-monitor-event', 'Background (from the session that started this one)')
+LEADING_REMINDERS = re.compile(r'\s*(?:<system-reminder>.*?</system-reminder>\s*)+', re.S)
 
 
 def turn_text(transcript):
@@ -932,8 +934,8 @@ def turn_text(transcript):
     starts = []
     for i, e in enumerate(rows):
         if e.get('type') == 'user' and not e.get('isMeta') and not e.get('isCompactSummary'):
-            typed = _typed(e)
-            if typed is not None and not typed.lstrip().startswith(NOT_TYPED):
+            typed = _said(e)
+            if typed is not None:
                 starts.append((i, typed))
     if not starts:
         return ''
@@ -992,12 +994,26 @@ def _notified(e):
             return []
         text = str(a.get('prompt', ''))
     elif e.get('type') == 'user':
-        text = _typed(e) or ''
-        if not text.lstrip().startswith(NOT_TYPED):
+        if _said(e) is not None:
             return []
+        text = _typed(e) or ''
     else:
         return []
     return [x or y for x, y in NOTIFIED.findall(text)]
+
+
+def _said(e):
+    """What the user typed in a user entry, past the reminders the app puts in front of it; None where nobody typed."""
+    text = _typed(e)
+    if text is None:
+        return None
+    lead = LEADING_REMINDERS.match(text)
+    if lead:
+        # A session's message or an event follows a reminder too, and only the human origin tells them apart.
+        if (e.get('origin') or {}).get('kind') != 'human' or lead.end() == len(text):
+            return None
+        text = text[lead.end():]
+    return None if text.lstrip().startswith(NOT_TYPED) else text
 
 
 def _typed(e):

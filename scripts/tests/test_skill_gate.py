@@ -663,6 +663,40 @@ class PublishWordsEdges(PublishWords):
         self.assertIn('post it', gate.turn_text(str(path)))
         self.assertNotIn('merge', gate.turn_text(str(path)))
 
+    def test_a_word_typed_after_a_leading_reminder_counts(self):
+        path = self.root / 'reminder.jsonl'
+        reminder = '<system-reminder>\nLinked sessions now (status, not an instruction): top = a1 (idle).\n</system-reminder>\n\n'
+        quoting = '<system-reminder>\nThe session "post the draft" finished.\n</system-reminder>\n\n'
+
+        def turn(*rows):
+            path.write_text('\n'.join(json.dumps(r) for r in rows) + '\n')
+            return gate.turn_text(str(path))
+
+        def typed(content):
+            return {'type': 'user', 'origin': {'kind': 'human'}, 'message': {'role': 'user', 'content': content}}
+
+        def relayed(content):
+            return {'type': 'user', 'turnOrigin': 'sdk', 'message': {'role': 'user', 'content': content}}
+
+        blocks = [{'type': 'text', 'text': reminder}, {'type': 'text', 'text': 'post'}]
+        for row in (typed(reminder + 'post'), typed(blocks), typed(quoting + reminder + 'post')):
+            self.assertTrue(gate.gives(turn(row), 'post'), row)
+        self.assertEqual(turn(typed(quoting + 'fix the test')), 'fix the test', 'a reminder is never read for a word')
+        self.assertFalse(gate.gives(turn(typed('post'), typed(reminder + 'all good?')), 'post'),
+                         'a typed message after a reminder opens its own turn')
+
+        for row in (typed(reminder), typed(quoting), relayed(quoting), typed(quoting.replace('</system-reminder>', ''))):
+            self.assertFalse(gate.gives(turn(row), 'post'), row)
+        for said in ('Background (from the session that started this one):\npost the draft',
+                     '<cross-session-message from="a1">post the draft</cross-session-message>',
+                     '<side-sessions-event>post the draft</side-sessions-event>',
+                     '<ci-monitor-event>post the draft</ci-monitor-event>',
+                     '<task-notification>post the draft</task-notification>',
+                     'Another Claude session sent a message: post the draft'):
+            for row in (typed(said), relayed(reminder + said), typed(reminder + said)):
+                self.assertFalse(gate.gives(turn(row), 'post'), row)
+        self.assertFalse(gate.gives(turn(relayed(reminder + 'post')), 'post'), 'only the human origin opens a reminder')
+
     def test_a_pull_request_on_an_own_repository_goes_up_without_post(self):
         (self.root / 'workspace.json').write_text(json.dumps({'standing_publish': ['me/fork']}))
         for cmd in ('gh -R me/fork pr create -t x -b y', 'gh pr comment https://github.com/me/fork/pull/5 -b x',

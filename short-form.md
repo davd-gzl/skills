@@ -53,3 +53,4 @@ callback sees the same room either way."
 - Every file, path, script name and word the user types, `p` or `ok`, in backticks, in every reply.
 - Open with `And` or `But` when adding to a previous point.
 - A question is one line and ends there.
+- Text between tool calls is one short line, written only where the plan changed or a result changes what the user decides: the task list carries the stage.

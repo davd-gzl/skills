@@ -66,6 +66,8 @@ This job runs on a schedule only, and GitHub disables those after 60 days.
 - Where work remains, a reply finishing a piece of work names it on one `Left:`
   line above the closing block. Steps the turn ran stay out unless one changes
   what the user decides.
+- Where the agent settled a decision per *Consent* in the workspace `AGENTS.md`,
+  one `Decided:` line above `Left:` names each default it took.
 - When a reply reports or offers work that holds something back, a finding left
   out, a `SKIP` section or a step skipped, explain each one before asking anything
   about it: what it is, why it is held, whether a rule or the agent chose that,
@@ -79,17 +81,16 @@ This job runs on a schedule only, and GitHub disables those after 60 days.
 
 ## The closing block
 
-- When the work needs a decision only the user can make, an open call, a pick
-  between designs, a reading of their words that changes what gets built, ask
-  it through the harness's question tool where it has one: every such decision
-  of the turn in one call, the recommended option first and marked. The reply
-  then names the asked decisions in one line and carries no word for them.
-  Where the harness has no such tool, the question is one line, per
-  `skills/short-form.md`.
-- Before the first question about something new to build, restate it in one
-  sentence that keeps the user's own nouns, and ask whether that is the thing.
-  The tell is a question already using a different noun for it: the user says
-  their apps, and the question asks about documents.
+- When the work needs a decision only the user can make, per *Consent* in the
+  workspace `AGENTS.md`, ask it through the harness's question tool where it has
+  one: every such decision of the turn in one call, the recommended option first
+  and marked. The reply then names the asked decisions in one line and carries
+  no word for them. Where the harness has no such tool, the question is one
+  line, per `skills/short-form.md`.
+- A first question about something new to build opens by restating it in one
+  sentence that keeps the user's own nouns, in that same question and never in a
+  turn of its own. The tell is a question already using a different noun for it:
+  the user says their apps, and the question asks about documents.
 - A decision label, `P4` or `S2` per `skills/change.md`, carries its heading
   beside it the first time a reply names it: `P4, keep the escrow as funded`. The
   user reads the reply, never the plan, and a bare label costs a turn asking
@@ -120,7 +121,10 @@ This job runs on a schedule only, and GitHub disables those after 60 days.
   closed or merged target keeps its link and loses its verb. Each is a
   `[label](<url>)` into the workspace repo's `blob/main`, never a local path or a
   command. Emoji: 📋 ▶ only.
-- Under it, the `TL;DR:` line, where `skills/short-form.md` asks for one.
+- Under it, the `TL;DR:` line, where `skills/short-form.md` asks for one. A turn
+  waiting on the user ends that line on `` waits on `<word>` ``, and only such a
+  turn does, since the desktop notification is that line and stays silent
+  without it.
 
 ## Links
 
@@ -205,7 +209,7 @@ and 329k output. `stop` kills them.
   when to expect them back, and that `stop` kills them. Their return gets the
   same line with what was spent.
 - **Report long work on its own stage boundaries, a background command of your
-  own and a long foreground turn included, one line at each task boundary, and set the fallback timer at a quarter of the forecast, never
+  own and a long foreground turn included, on the harness's task list where it has one, else one line at each task boundary, and set the fallback timer at a quarter of the forecast, never
   under twenty minutes.** A wake-up re-reads the whole conversation, so frequent
   polling costs more than the work it reports on. Each wake says which stage and
   what it wrote, never a percentage:

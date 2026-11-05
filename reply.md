@@ -69,7 +69,13 @@ This job runs on a schedule only, and GitHub disables those after 60 days.
   it did**, above the closing block, as plain lines, never fenced or quoted:
   one numbered line per step in order, a clause and never a sentence, carrying
   the step, what it produced, and what it put in context, so the heavy step
-  shows. Then `Left:`, dropped when nothing is left.
+  shows. Then `Left:` naming what remains, or `Finished.` when nothing does, so
+  the reply always says which.
+- When a reply reports or offers work that holds something back, a finding left
+  out, a `SKIP` section or a step skipped, explain each one before asking anything
+  about it: what it is, why it is held, whether a rule or the agent chose that,
+  and the other option. A count, `left out` in a word line or a question that
+  assumes the choice has told the reader nothing.
 - The prose above never retells a listed step: it carries the decisions to make
   and the word to give.
 - A commit, a push or a sha is not a step. Name what changed and leave the shas

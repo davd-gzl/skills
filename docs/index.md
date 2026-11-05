@@ -218,7 +218,7 @@ own argument and waits for the outcome table to measure it.
 | [`writing-style.md`](https://github.com/davd-gzl/skills/blob/main/writing-style.md) | any visible prose, in any project | the rules every other skill defers to, the closing Pass, the chat register, the posted-comment shape |
 | [`thinking.md`](https://github.com/davd-gzl/skills/blob/main/thinking.md) | every reply on a model no effort setting controls | how the thinking before it is written |
 | [`shortcuts.md`](https://github.com/davd-gzl/skills/blob/main/shortcuts.md) | the user types a word | what each word starts, the one place a word is defined |
-| [`reply.md`](https://github.com/davd-gzl/skills/blob/main/reply.md) | every reply, in any workspace | what it opens with, the `Did:` block, the closing block, its links |
+| [`reply.md`](https://github.com/davd-gzl/skills/blob/main/reply.md) | every reply, in any workspace | what it opens with, the closing block, its links |
 | [`authoring.md`](https://github.com/davd-gzl/skills/blob/main/authoring.md) | a rule is added, edited or removed | where it lives, the shape it takes, what it displaces, the turns it must not add; its sources sit in `knowledge/`, never in the rule |
 | [`archive/`](https://github.com/davd-gzl/skills/blob/main/archive) | nothing loads it | snapshots of a skill before a change that altered its voice, the advisory shape for a disclosure, and the harness that chose the Short form wording |
 | [`TODO.md`](https://github.com/davd-gzl/skills/blob/main/TODO.md) | skill work I own but have not started | one line per item, newest last |
@@ -248,11 +248,10 @@ plugin's own benchmark prompts, with a blind judge ranking every answer.
 
 [`scripts/reply-check.py`](https://github.com/davd-gzl/skills/blob/main/scripts/reply-check.py) is what keeps it: it reads
 the turn's final reply off the transcript, drops fenced code, inline code,
-blockquotes, table rows, link targets, anything between two `---` rules and the
-`Did:` account, and measures what is left. It prints the words, the articles per
+blockquotes, table rows, link targets and anything between two `---` rules, and
+measures what is left. It prints the words, the articles per
 hundred and the words per sentence, and none of the three is a reason; the reasons
-are a hedge, a pleasantry, a path named with no link, an account missing above
-a closing block or sitting in a code fence, a coined letter the `TL;DR:` line names
+are a hedge, a pleasantry, a path named with no link, a coined letter the `TL;DR:` line names
 with no definition beside it, and a letter coined over one
 [`shortcuts.md`](https://github.com/davd-gzl/skills/blob/main/shortcuts.md) already gives. A reply under 30 prose words, or one
 answering a `+` prompt, is not measured. It is a command a person runs over a file

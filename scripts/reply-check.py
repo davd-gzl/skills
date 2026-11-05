@@ -22,10 +22,7 @@ quoted in a reply stays as written. Under MIN_WORDS nothing is measured, and a
 prompt opening or closing on `+` exempts its reply, as does one asking for an
 explanation, EXPLAIN naming the triggers; --last says which one lifted it. Every
 line carries the thinking tokens the turn spent, from the transcript's usage
-block, so a rule on the thinking has a number. A reply carrying a closing
-block, the artifact lines, carries the `Did:` account above it, as plain lines:
-an account inside a code fence is named, as is one with no `---` rule above it.
-The account, quotes, tables and code
+block, so a rule on the thinking has a number. Quotes, tables and code
 do not count toward WORDS. A coined letter, per skills/shortcuts.md, is defined
 on the TL;DR line that names it and never takes a letter the table gives, and
 a phrase offered to type is one the table quotes.
@@ -43,8 +40,6 @@ ART = re.compile(r"\b(a|an|the)\b", re.I)
 HEDGE = re.compile(r"\b(might|maybe|perhaps|probably|likely|i think|i believe|it seems|could be|possibly)\b", re.I)
 PLEAS = re.compile(r"\b(sure|certainly|of course|happy to|glad to|great question|absolutely|no problem)\b", re.I)
 WORD = re.compile(r"[A-Za-z][A-Za-z'’-]*")
-CLOSING = re.compile(r'^\s*[📋▶]')
-DID = re.compile(r'^\s*\**Did:')
 
 REGISTER = ('Rewrite in Short form, per skills/short-form.md: no filler, no pleasantries, '
             'no hedging, lead with the answer, one idea per paragraph, stop when it lands. Drop an '
@@ -56,7 +51,7 @@ REGISTER = ('Rewrite in Short form, per skills/short-form.md: no filler, no plea
 
 def prose(text):
     """The lines a reader takes as the reply's own voice."""
-    out, fence, rule, account = [], False, False, False
+    out, fence, rule = [], False, False
     for line in text.splitlines():
         s = line.strip()
         if s.startswith('```'):
@@ -65,11 +60,7 @@ def prose(text):
         if s == '---':
             rule = not rule
             continue
-        if DID.match(line):
-            account = True
-        if account and not s:
-            account = False
-        if fence or rule or account or s.startswith('>') or s.startswith('|'):
+        if fence or rule or s.startswith('>') or s.startswith('|'):
             continue
         line = re.sub(r'`[^`]*`', ' ', line)
         line = re.sub(r'\]\([^)]*\)', ']', line)
@@ -170,18 +161,6 @@ def measure(text):
         'pleasantries': [h.group(0) for h in PLEAS.finditer(p)],
     }
     reasons = []
-    lines = text.splitlines()
-    if any(CLOSING.match(l) for l in lines) and not any(DID.match(l) for l in lines):
-        reasons.append('a closing block with no Did: account above it')
-    if re.search(r'```[^\n]*\n\s*\**Did:', text):
-        reasons.append('the Did: account sits in a code fence, write it as plain lines')
-    did_i = next((i for i, l in enumerate(lines) if DID.match(l)), None)
-    if did_i is not None:
-        j = did_i - 1
-        while j >= 0 and not lines[j].strip():
-            j -= 1
-        if j < 0 or lines[j].strip() != '---':
-            reasons.append('the Did: account with no --- rule above it')
     # The counts stay in the metrics a reader may look at and are never a reason:
     # a cap on words, articles or sentence length is a number to write toward, and
     # the register is a reply that reads once, which no count settles.

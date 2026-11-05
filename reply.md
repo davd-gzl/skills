@@ -1,6 +1,6 @@
 ---
 name: reply
-description: The shape of every reply to the user: what it opens with, how it handles a draft, the `Did:` block it ends on, its closing block, its links. Read by path at the turn that finishes work, since nothing imports it. The words the user types are skills/shortcuts.md and the register is skills/short-form.md.
+description: The shape of every reply to the user: what it opens with, how it handles a draft, its closing block, its links. Read by path at the turn that finishes work, since nothing imports it. The words the user types are skills/shortcuts.md and the register is skills/short-form.md.
 ---
 
 # The shape of a reply
@@ -11,16 +11,11 @@ of it:
 ```text
 Standard preset, not quick. The reflector is what buys recall, and it costs $7.
 
-Did:
-1. Round 2 launched, 7 finders, ~12k in context
-2. Draft and claims.md written, links checked, 40 lines rewritten
-Left: the Nit at line 88, which needs your call on the band
+Left: the Nit at line 88, which needs your call on the band.
 
 `post`: send the draft to acme/app#42 as REQUEST_CHANGES; its commit and the workspace backup are already up.
 
-| Target | Round |
-| --- | --- |
-| [#42](https://github.com/acme/app/pull/42) | [comment](https://github.com/acme/workspace/blob/main/projects/app/reviews/42-cache/1-0123456/comment_<model>.md) |
+[#42](https://github.com/acme/app/pull/42), [comment](https://github.com/acme/workspace/blob/main/projects/app/reviews/42-cache/1-0123456/comment_<model>.md)
 
 TL;DR: seven findings, one Warning; waits on `post`.
 ```
@@ -65,23 +60,16 @@ This job runs on a schedule only, and GitHub disables those after 60 days.
 
 ## What the turn did
 
-- **A reply finishing a piece of work ends on a `Did:` block listing everything
-  it did**, above the closing block, as plain lines, never fenced or quoted:
-  one numbered line per step in order, a clause and never a sentence, carrying
-  the step, what it produced, and what it put in context, so the heavy step
-  shows. Then `Left:` naming what remains, or `Finished.` when nothing does, so
-  the reply always says which.
+- Where work remains, a reply finishing a piece of work names it on one `Left:`
+  line above the closing block. Steps the turn ran stay out unless one changes
+  what the user decides.
 - When a reply reports or offers work that holds something back, a finding left
   out, a `SKIP` section or a step skipped, explain each one before asking anything
   about it: what it is, why it is held, whether a rule or the agent chose that,
   and the other option. A count, `left out` in a word line or a question that
   assumes the choice has told the reader nothing.
-- The prose above never retells a listed step: it carries the decisions to make
-  and the word to give.
-- A commit, a push or a sha is not a step. Name what changed and leave the shas
-  to the prose and the closing block.
 - A reply covering more than one topic rules them off with `---`, one before
-  each topic after the first, and one above the `Did:` block.
+  each topic after the first.
 - **A list of lines landed or asked is one line per item: the file in backticks,
   a colon, then the fewest words that say what changes**, the question last:
   `` `skills/tools/src/lint.rs`: copied rules by opening clause. Build? ``
@@ -100,9 +88,9 @@ This job runs on a schedule only, and GitHub disables those after 60 days.
   The tell is a question already using a different noun for it: the user says
   their apps, and the question asks about documents.
 - A decision label, `P4` or `S2` per `skills/change.md`, carries its heading
-  beside it every time a reply names it: `P4, keep the escrow as funded`. The
+  beside it the first time a reply names it: `P4, keep the escrow as funded`. The
   user reads the reply, never the plan, and a bare label costs a turn asking
-  what it is.
+  what it is. After that the label alone reads faster.
 - A publish never goes through the question tool: its word is typed, per
   Invariant 2 in the workspace `AGENTS.md`.
 - Every word a reply offers, anywhere in it, is its own line with the word
@@ -125,11 +113,11 @@ This job runs on a schedule only, and GitHub disables those after 60 days.
   left, list every topic the session opened, from the summary and from the
   commits the session made, `git log --since=<session start> --format=%s`,
   never the current task alone.
-- Then the artifacts, one line each, in the order *Layout* in `workspace.md`
-  gives them. A closed or merged target keeps its link and loses its verb. Each
-  is a `[label](<url>)` into the workspace repo's `blob/main`, never a local
-  path or a command. Emoji: 📋 ▶ only.
-- Under it, the `TL;DR:` line every reply ends on, per `skills/short-form.md`.
+- Then the artifacts, in the order *Layout* in `workspace.md` gives them. A
+  closed or merged target keeps its link and loses its verb. Each is a
+  `[label](<url>)` into the workspace repo's `blob/main`, never a local path or a
+  command. Emoji: 📋 ▶ only.
+- Under it, the `TL;DR:` line, where `skills/short-form.md` asks for one.
 
 ## Links
 
@@ -137,9 +125,9 @@ This job runs on a schedule only, and GitHub disables those after 60 days.
   ends on the links, pushed or not. A file whose push has not landed
   keeps its link and says so beside it, since that URL 404s until the sha is
   reported.
-- **Group them one table column per target**, or per category where the work had
-  no target, the links running inline inside each cell. A row per file turns four
-  artifacts into a screen the reader scrolls past.
+- **One target's links run on one line. Several take a table, one column per
+  target**, or per category where the work had no target, the links inline in each
+  cell.
 - The target is a link every time it is written, a table header included. A
   bare `#42` autolinks against whichever repository renders the reply, which
   is the workspace and not the target, so it resolves to an issue nobody opened.

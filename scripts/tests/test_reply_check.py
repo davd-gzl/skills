@@ -67,26 +67,11 @@ class Measure(unittest.TestCase):
         m = rc.measure(CLIPPED + ' I think keep them, since they cost three lines and carry skim.')
         self.assertTrue(any(r.startswith('hedge') for r in m['reasons']))
 
-    def test_a_closing_block_needs_the_did_account(self):
-        tail = '\n\n📋 [file](https://x)\n\nTL;DR: done.'
-        self.assertIn('a closing block with no Did: account above it', rc.measure(CLIPPED + tail)['reasons'])
-        self.assertEqual(rc.measure(CLIPPED + '\n\n---\n\nDid:\n1. Lint, clean.' + tail)['reasons'], [])
-        self.assertEqual(rc.measure(CLIPPED)['reasons'], [])
-
-    def test_a_fenced_account_is_named(self):
-        m = rc.measure(CLIPPED + '\n\n```\nDid:\n1. Lint, clean.\n```\n\n📋 [file](https://x)')
-        self.assertIn('the Did: account sits in a code fence, write it as plain lines', m['reasons'])
-        self.assertNotIn('a closing block with no Did: account above it', m['reasons'])
-
-    def test_length_alone_is_no_reason_and_the_account_does_not_count(self):
+    def test_length_alone_is_no_reason(self):
         long = ' '.join([CLIPPED] * 5)
         body = rc.measure(CLIPPED)['words']
         self.assertEqual(rc.measure(long)['reasons'], [])
         self.assertEqual(rc.measure(long)['words'], 5 * body)
-        account = '---\n\nDid:\n' + '\n'.join(f'{i}. Step {i}, ' + ' '.join(['done'] * 40) + '.' for i in range(1, 6))
-        m = rc.measure(CLIPPED + '\n\n' + account + '\n\n📋 [file](https://x)')
-        self.assertEqual(m['reasons'], [])
-        self.assertEqual(m['words'], body, 'the Did: account does not count toward the word total')
 
     def test_a_short_reply_is_not_measured(self):
         self.assertEqual(rc.measure('The fix is in the tree, the tests are green.')['reasons'], [])

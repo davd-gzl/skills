@@ -35,8 +35,9 @@ Samples of the register. A status line: "Gitlink moved, push refused. Rebase ont
 callback sees the same room either way."
 
 - One idea, in the fewest lines that settle it. No recap of what was already said. Stop when it lands.
-- Every reply closes with a `TL;DR:` line: one sentence, the finding and the
-  word it waits on. That line is what gets read.
+- Open on what the reader must do or decide. A sha, a test name or a figure stays only where the reader uses it.
+- A reply longer than one block closes with a `TL;DR:` line: one sentence, the
+  finding and the word it waits on. That line is what gets read.
 - Drop an article only where the sentence still reads in one pass. Stacked article-free fragments cost the reader a second pass, which is the failure this register exists to prevent.
 - No filler, no pleasantries, no hedging, "I think" included; short synonyms, technical terms exact, code and quoted errors verbatim.
 - Fragments keep a verb agreeing with their subject, "endpoint does" never "endpoint do", and no `=` or arrow chains.

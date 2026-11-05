@@ -709,6 +709,17 @@ class PublishWordsEdges(PublishWords):
                     'gh api -X PUT repos/me/fork/pulls/5/merge', 'gh api -X POST repos/other/repo/pulls -f title=x'):
             self.assertEqual(self.hook(cmd)[0], 2, cmd)
 
+    def test_a_finished_round_goes_up_without_post_on_a_listed_repository(self):
+        (self.root / 'workspace.json').write_text(json.dumps({'standing_publish_review': ['up/fixes']}))
+        listed, other = self.root / 'listed.md', self.root / 'other.md'
+        listed.write_text('# Review: [#5](https://github.com/up/fixes/pull/5)\n')
+        other.write_text('# Review: [#5](https://github.com/other/repo/pull/5)\n')
+        self.assertEqual(gate.publish_words(f'./scripts/post-review.sh {listed} --as-ai'), [])
+        for cmd in (f'./scripts/post-review.sh {listed}', f'./scripts/post-review.sh {other} --as-ai',
+                    f'./scripts/post-review.sh {listed} --as-ai --event APPROVE',
+                    f'./scripts/post-review.sh {self.root}/absent.md --as-ai'):
+            self.assertEqual(gate.publish_words(cmd), [{'post', 'upload'}], cmd)
+
     def test_the_users_own_draft_goes_up_without_post_on_a_listed_repository(self):
         (self.root / 'workspace.json').write_text(json.dumps({
             'standing_publish_draft': ['up/fixes'], 'identities': {'public': {'name': 'me'}}}))

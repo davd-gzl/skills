@@ -1387,6 +1387,14 @@ def standing_publish_draft():
         return set()
 
 
+def standing_publish_review():
+    """The repositories where a finished review round's draft goes up unasked, behind the AI marker."""
+    try:
+        return {norm_repo(r) for r in json.loads((root() / 'workspace.json').read_text()).get('standing_publish_review', [])}
+    except (OSError, ValueError):
+        return set()
+
+
 def standing_issue_edit():
     """The issues, each `owner/repo#number`, whose body goes up unasked."""
     try:
@@ -1430,6 +1438,20 @@ def _post_fix_opens_draft(t, cwd):
     return bool(heads) and all(m and norm_repo(m.group(1)) in standing_publish_draft() for m in heads)
 
 
+def _sends_finished_round(t, cwd):
+    """Whether post-review.sh sends one draft with `--as-ai` its one flag, to a repository whose standing word covers a round."""
+    args = [x for x in t[1:] if not re.fullmatch(r'\d*>\S*', x)]
+    drafts = [x for x in args if x != '--as-ai']
+    if len(args) != 2 or len(drafts) != 1 or drafts[0].startswith('-'):
+        return False
+    try:
+        title = Path(cwd or os.getcwd(), drafts[0]).read_text().split('\n', 1)[0]
+    except OSError:
+        return False
+    m = re.search(r'\(https://github\.com/([^/\s]+/[^/\s]+)/pull/\d+\)', title)
+    return bool(m) and norm_repo(m.group(1)) in standing_publish_review()
+
+
 def _edits_beyond_body(t):
     """Whether a gh pr edit sets anything but the body: a flag's value, `-` for stdin among them, is skipped."""
     free, i = ('--body', '-b', '--body-file', '-F', '-R', '--repo'), 3
@@ -1464,6 +1486,8 @@ def publish_words(cmd, cwd=None):
             continue
         if name == 'post-replies' and len(pos) >= 2 and norm_repo(pos[0]) in standing_publish_draft() \
                 and _own_draft(norm_repo(pos[0]), pos[1]):
+            continue
+        if name == 'post-review.sh' and _sends_finished_round(t, cwd):
             continue
         if name in POST_SCRIPTS - {'pr-body-apply'} and not _dry(t):
             needs.append({'post', 'upload'})

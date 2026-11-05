@@ -24,6 +24,9 @@ TL;DR: seven findings, one Warning; waits on `post`.
 
 - **Lead with the recommendation, and never offer an option you have just argued
   against.** The reader picks the thing you meant to rule out.
+- Asked whether something is finished, answer for the work, what is unfinished
+  first: an idle session is not finished work. The tell is `yes` followed by
+  what is still open.
 - Run the action; the user only says the word. They never open a terminal, so a
   command in a reply is a dead end.
 - Say what the code does, not what it took to get there. What was tried and

@@ -374,7 +374,7 @@ git diff $(git merge-base <remote>/<base-branch> <new-sha>) <new-sha> | git patc
 ```
 
 - **Equal**: base-only move. Do NOT re-author: copy the latest round's `.md` files into `<n+1>-<new-sha>/`, rewrite shas, remap anchors, reading the checkout to fix any that no longer map, add a one-line round note saying the head advanced with content unchanged, anchors re-cut, verdict unchanged, then commit. Skip the rest of the workflow.
-- **Differ**: full re-review round, focused on what changed since `<old-sha>`. A file the head adds gets first-round depth, whatever round it lands in.
+- **Differ**: full re-review round, focused on what changed since `<old-sha>`. A file the head adds gets first-round depth, whatever round it lands in. Before the launch, pass the commits since `<old-sha>`, which setup prints, as `--own-commits`: the shape, the risk table and the bundles then measure what moved, and the finders follow callers out of it.
 - **New head is a merge of the base branch**: never base-only. Run `git show <new-sha> --cc`; any hunk it prints is conflict-resolution content, reviewed like any diff. Base commits may add tests the branch now fails: run the affected suite on the new head.
 - **`<old-sha>` unreachable**: skip the gate, run a full round against the merge-base, note the fallback.
 

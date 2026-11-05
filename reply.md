@@ -200,6 +200,9 @@ and 329k output. `stop` kills them.
   decision. Every question and every word goes in the one reply after the last
   of them returns, so one `p` covers the whole request. The tell is a closing
   block reading `still running` above a word to type.
+- Before relaying a linked session's note, check that it reports a pull request
+  opened, a result, or something the user must decide. A note saying the work
+  is still running gets no relay.
 - Re-dispatch every agent that died, before anything else, on `continue` and on
   any turn that resumes the work.
 - Before dispatching agents, project the request's spend in dollars from the

@@ -8,7 +8,9 @@
 //! CI, a flake or a rebase, a verdict or a sha in `overview.md`, and an `overview.md` without its
 //! `## TLDR` section are hits too, and so is a review draft whose line 1 is not its title, whose
 //! event is not the verdict's default, or whose Body names an anchored `path:line`. A round with
-//! no draft, an Own PR round, gets the record checks alone. One row per hit
+//! no draft, an Own PR round, gets the record checks alone. A line of `claims.md` naming a defect
+//! older than the branch with no issue, no pull request and no disclosure beside it is a hit, since
+//! a row there is where such a finding dies, per *Calibration* in review.md. One row per hit
 //! into `<round dir>/check.md`,
 //! exit 1 when any hit.
 
@@ -240,6 +242,9 @@ fn run(args: &[String]) -> Result<Vec<Hit>, String> {
         let wanted = name == "claims.md" || name == "overview.md";
         if let (true, Ok(text)) = (wanted, fs::read_to_string(&file)) {
             hits.extend(bare_refs(&name, &text));
+            if name == "claims.md" {
+                hits.extend(older_defects(&text));
+            }
         }
     }
     let out = opts
@@ -407,6 +412,28 @@ fn bare_refs(name: &str, text: &str) -> Vec<Hit> {
         .collect()
 }
 
+/// A bullet saying a defect is older than the branch, and what accounts for one: its issue draft,
+/// its issue, the pull request fixing it, a disclosure, or the word that none was found.
+static OLDER_DEFECT: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)older than the branch|predates? the (branch|diff|change)|pre-existing|no issue draft").unwrap()
+});
+static ACCOUNTED: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)\bnone\b|disclosure|issue\.md|/issues/\d+|/pull/\d+|[\w-]+/[\w-]+#\d+").unwrap()
+});
+
+/// Every bullet of `claims.md` naming an older defect that nothing accounts for.
+fn older_defects(text: &str) -> Vec<Hit> {
+    prose_lines(text)
+        .into_iter()
+        .filter(|(_, c)| c.starts_with("- ") && OLDER_DEFECT.is_match(c) && !ACCOUNTED.is_match(c))
+        .map(|(line, _)| Hit {
+            file: "claims.md".to_string(),
+            line,
+            what: "a defect older than the branch with no issue: draft issue.md, or link the pull request fixing it".to_string(),
+        })
+        .collect()
+}
+
 static LOCAL_PATH: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r#"(^|[^A-Za-z0-9_./-])((/home/|/Users/|/root/|/tmp/claude|/tmp/agent-workspace|(/[^\s"'`)]*)?/\.worktrees/)[^\s"'`)]*)"#).unwrap()
 });
@@ -472,6 +499,22 @@ mod tests {
         let table = fs::read_to_string(round.join("check.md")).unwrap();
         assert!(table.contains("claims.md") && table.contains("bare #<number>"), "{table}");
         assert!(!table.contains("comment_x.md") && !table.contains("overview.md"), "a draft, a link, a qualified or a code-span number is not a hit: {table}");
+    }
+
+    #[test]
+    fn an_older_defect_with_nothing_accounting_for_it_is_a_hit() {
+        let what: Vec<_> = older_defects(
+            "- Found while judging, older than the branch: a repr overflows. No issue draft was written.\n\
+             - Pre-existing defects: none.\n\
+             - Predates the diff, drafted in [`issue.md`](issue.md).\n\
+             - Pre-existing, fixed by [the fix](https://x/pull/12).\n\
+             - Candidate 1 predates the branch, so it goes to the disclosure path.\n\
+             | 1 | CONFIRMED | Warning | a table row predates the branch |\n",
+        )
+        .into_iter()
+        .map(|h| h.line)
+        .collect();
+        assert_eq!(what, vec![1]);
     }
 
     #[test]

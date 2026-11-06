@@ -59,7 +59,9 @@ Written before any fix code, split by audience per
   title, the body or the diff states about the code, a cap, a never, a cannot,
   an at most, each with the run showing it holds or the body's `## Not fixed`
   bullet naming it, enumerated before the first push and checked by
-  `./scripts/absolutes-check.py`, the commit split, the threat model and the
+  `./scripts/absolutes-check.py`; a path the walk finds the absolute exempts, a
+  transfer to the sender itself for one, narrows the sentence in that same
+  commit, in every doc and comment stating it; the commit split, the threat model and the
   module inventory where the change is large enough to need them, and an
   Iterations section naming every round and what caught it, failures included.
   Write one where the fix has a second
@@ -219,7 +221,9 @@ makes the rest of the session pay for its test output and file reads.
    restore ships with the next commit. A mutation weakens the guard rather than
    deleting it, a bound off by one or a check on the wrong length, and lands at
    the call site as well as in the helper: a test only a deleted guard turns red
-   passes a guard that is wrong. One mutation per guard reproduces the defect
+   passes a guard that is wrong. A cap takes a second mutation at several times
+   its value, and the test asserts the cap's own figure or what it produces: two
+   inputs past the cap compared to each other match at any cap below them. One mutation per guard reproduces the defect
    class the fix closes, a truncation, an alias, a copy nothing reads, and the
    test meets it with an input the right code accepts: an input every version
    refuses, all-zero bytes for one, reddens no mutation. A guard choosing

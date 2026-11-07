@@ -9,7 +9,7 @@ A reply that finished a piece of work, whole. Every section below is one part
 of it:
 
 ```text
-Standard preset, not quick. The reflector is what buys recall, and it costs $7.
+Done: the review draft for #42, on the standard preset, not quick. The reflector, the agent rereading every candidate, buys recall for $7.
 
 Left: the Nit at line 88, which needs your call on the band.
 
@@ -27,6 +27,9 @@ TL;DR: seven findings, one Warning; waits on `post`.
 - Asked whether something is finished, answer for the work, what is unfinished
   first: an idle session is not finished work. The tell is `yes` followed by
   what is still open.
+- **A reply ending a request's work opens on `Done:` and what landed, or on
+  `Not done:` and what stopped it**, then each item held back per *What the turn
+  did*. The user learns the request ended from that word, never by asking.
 - Run the action; the user only says the word. They never open a terminal, so a
   command in a reply is a dead end.
 - Say what the code does, not what it took to get there. What was tried and
@@ -121,6 +124,9 @@ This job runs on a schedule only, and GitHub disables those after 60 days.
   closed or merged target keeps its link and loses its verb. Each is a
   `[label](<url>)` into the workspace repo's `blob/main`, never a local path or a
   command. Emoji: 📋 ▶ only.
+- Each fact is stated once. The opening line, `Left:`, `Decided:`, the word
+  lines and the TL;DR each say something the others do not, and a later line
+  repeating an earlier one is cut, the TL;DR excepted.
 - Under it, the `TL;DR:` line, where `skills/short-form.md` asks for one. A turn
   waiting on the user ends that line on `` waits on `<word>` ``, and only such a
   turn does, since the desktop notification is that line and stays silent
@@ -142,9 +148,8 @@ This job runs on a schedule only, and GitHub disables those after 60 days.
   names the pull request, a table row and a table header included, read from
   `gh pr view <n> --json headRefName`: the user reaches the work through the
   branch, in the editor or a checkout, and a number alone costs them a lookup.
-- **A reply reporting a publish opens with one line per commit that went out**,
-  before any of it: `[acme/app/3f680fa](<url>)`, then about five words saying
-  what the commit holds.
+- A commit is reached through the links, never listed: a sha goes in a reply
+  only where the user acts on it, a revert or a pin.
 
 ## A status table
 

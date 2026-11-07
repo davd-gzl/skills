@@ -339,6 +339,13 @@ from it is measured here before it is trusted.
   same-turn commit rule, since a commit on `main` goes up with the next push
   any session sends; the reply to the Stop hook asking to commit `skills/`
   names the open loop.
+- In that loop, when a round's defect sits in the same function, flag or rule
+  bullet as a defect an earlier round of it fixed, stop the rounds and read
+  that part whole. Drop it where the user's request never asked for it, naming
+  the drop on the reply's `Decided:` line, and otherwise change its shape so
+  that kind of defect cannot occur; the next round reads the diff after the
+  drop or the redesign. The tell is each round fixing the case it was shown
+  while the next finds its neighbour.
 
 ## A deterministic step is a tool
 

@@ -329,19 +329,25 @@ from it is measured here before it is trusted.
   root `AGENTS.md`, and fix what it reports rather than narrowing what it reads.
   It warns and never blocks: a rough rule lands, and a later pass fixes it.
 - **Before a change to a rule file, or a script or hook a rule names, is
-  pushed, review it in a loop.** A fresh agent gets the diff and the files it
-  touches, never the author's conclusions, and returns each defect with the
-  command that shows it: a contradiction with another rule, a false positive or
-  a crash in a script, a sentence that no longer matches the code. Verify each
+  pushed, review it in a loop.** A fresh agent gets the diff, the files it
+  touches, the change's purpose in one line, taken from the user's request or
+  an unasked fix's own aim, and every command earlier rounds of this loop
+  settled a defect with, never the author's conclusions. It re-runs those
+  commands, then returns each defect with the command that shows it: a
+  contradiction with another rule, a false positive or a crash in a script, a
+  sentence that no longer matches the code. A part the purpose never asked for
+  comes back quoted beside the purpose line instead. Verify each
   defect, fix the real ones, and hand the new diff to another fresh agent; the
-  loop ends on the first round that finds nothing real, and the reply names the
-  rounds run. Until it ends, the change stays uncommitted, overriding every
+  loop ends on the first round whose real defects are all low, a wording or a
+  comment, fixed with no further round, since a loop waiting for an empty round
+  keeps sampling new nits rather than converging. The reply names the rounds
+  run. Until it ends, the change stays uncommitted, overriding every
   same-turn commit rule, since a commit on `main` goes up with the next push
   any session sends; the reply to the Stop hook asking to commit `skills/`
   names the open loop.
 - In that loop, when a round's defect sits in the same function, flag or rule
   bullet as a defect an earlier round of it fixed, stop the rounds and read
-  that part whole. Drop it where the user's request never asked for it, naming
+  that part whole. Drop it where the purpose never asked for it, naming
   the drop on the reply's `Decided:` line, and otherwise change its shape so
   that kind of defect cannot occur; the next round reads the diff after the
   drop or the redesign. The tell is each round fixing the case it was shown
@@ -362,6 +368,12 @@ the model is trusted to have done costs the reader.
 - When a skill's step reads as "list", "resolve", "rank", "cut", "join", "count" or "check that", ask what the input and the output are; if both are files, it is a tool.
 - The tool exits non-zero on what it finds and the skill says what the agent does with the exit, so a miss is never a line in prose the next stage may skip.
 - The skill names the command with its arguments and reads nothing the tool already settled; the crate's README carries the contract and the tests carry the examples.
+
+When writing a script that deletes what someone else may have made, have it
+delete only what it shows exists elsewhere, a commit on a remote or a file a
+build recreates, and keep everything it cannot show: a list of cases to spare
+misses the case nobody listed. Its header names every kind of file it deletes
+unshown.
 
 A write gets a verb; a read stays free. Changing a tracked artifact goes
 through a named script under `scripts/`, never a shell line composed in the

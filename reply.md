@@ -9,7 +9,7 @@ A reply that finished a piece of work, whole. Every section below is one part
 of it:
 
 ```text
-Done: the review draft for #42, on the standard preset, not quick. The reflector, the agent rereading every candidate, buys recall for $7.
+Done: the review draft, on the standard preset, not quick. The reflector, the agent rereading every candidate, buys recall for $7.
 
 Left: the Nit at line 88, which needs your call on the band.
 
@@ -22,8 +22,9 @@ TL;DR: seven findings, one Warning; waits on `post`.
 
 ## What it opens with
 
-- **Lead with the recommendation, and never offer an option you have just argued
-  against.** The reader picks the thing you meant to rule out.
+- **Lead with the recommendation, after the `Done:` line where one opens the
+  reply, and never offer an option you have just argued against.** The reader
+  picks the thing you meant to rule out.
 - Asked whether something is finished, answer for the work, what is unfinished
   first: an idle session is not finished work. The tell is `yes` followed by
   what is still open.
@@ -127,10 +128,10 @@ This job runs on a schedule only, and GitHub disables those after 60 days.
 - Each fact is stated once. The opening line, `Left:`, `Decided:`, the word
   lines and the TL;DR each say something the others do not, and a later line
   repeating an earlier one is cut, the TL;DR excepted.
-- Under it, the `TL;DR:` line, where `skills/short-form.md` asks for one. A turn
+- Under the links, the `TL;DR:` line, where `skills/short-form.md` asks for one. A turn
   waiting on the user ends that line on `` waits on `<word>` ``, and only such a
-  turn does, since the desktop notification is that line and stays silent
-  without it.
+  turn does, since the desktop notification for a waiting turn shows that
+  line.
 
 ## Links
 
@@ -148,8 +149,8 @@ This job runs on a schedule only, and GitHub disables those after 60 days.
   names the pull request, a table row and a table header included, read from
   `gh pr view <n> --json headRefName`: the user reaches the work through the
   branch, in the editor or a checkout, and a number alone costs them a lookup.
-- A commit is reached through the links, never listed: a sha goes in a reply
-  only where the user acts on it, a revert or a pin.
+- A commit is reported as its link in the closing links,
+  `[acme/app/3f680fa](<url>)`, never as a list of its own above them.
 
 ## A status table
 

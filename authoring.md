@@ -319,7 +319,7 @@ from it is measured here before it is trusted.
 - During other work, a rule that proves unclear, missing or wrong, or a step
   the work showed a skill should obviously have taken, is fixed in the skill in
   that turn, unasked, per *Where it goes* and *The shape*, in a commit of its
-  own. Never offer the edit as a next step.
+  own once the review loop below ends. Never offer the edit as a next step.
 - A rule resting on a published result from outside this workspace gets that
   finding into `skills/knowledge/` in the same commit, per *Where it goes*.
 - A knob, a stage or a word that a change renames is grepped across `skills/`,
@@ -328,6 +328,17 @@ from it is measured here before it is trusted.
 - Run `./scripts/rules lint` over every file the edit touched, plus the workspace
   root `AGENTS.md`, and fix what it reports rather than narrowing what it reads.
   It warns and never blocks: a rough rule lands, and a later pass fixes it.
+- **Before a change to a rule file, or a script or hook a rule names, is
+  pushed, review it in a loop.** A fresh agent gets the diff and the files it
+  touches, never the author's conclusions, and returns each defect with the
+  command that shows it: a contradiction with another rule, a false positive or
+  a crash in a script, a sentence that no longer matches the code. Verify each
+  defect, fix the real ones, and hand the new diff to another fresh agent; the
+  loop ends on the first round that finds nothing real, and the reply names the
+  rounds run. Until it ends, the change stays uncommitted, overriding every
+  same-turn commit rule, since a commit on `main` goes up with the next push
+  any session sends; the reply to the Stop hook asking to commit `skills/`
+  names the open loop.
 
 ## A deterministic step is a tool
 

@@ -373,7 +373,8 @@ When writing a script that deletes what someone else may have made, have it
 delete only what it shows exists elsewhere, a commit on a remote or a file a
 build recreates, and keep everything it cannot show: a list of cases to spare
 misses the case nobody listed. Its header names every kind of file it deletes
-unshown.
+unshown, and its delete runs only on the user's word, per Invariant 10 in the
+workspace `AGENTS.md`.
 
 A write gets a verb; a read stays free. Changing a tracked artifact goes
 through a named script under `scripts/`, never a shell line composed in the

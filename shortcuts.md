@@ -37,6 +37,7 @@ as the skill defines it; ask when the reading changes what gets built.
 | `try <pr> on <repo>` | the project booted locally, ready to click through | `skills/try.md` |
 | `video` | the clip, only once the finding's text is frozen | `skills/try.md` |
 | `stop` | the stack and the worktree torn down | `skills/try.md` |
+| `prune` | the worktrees the reply's fresh dry run listed removed, `./scripts/prune-worktrees.sh --apply` | *The scratch directory* in `workspace.md` |
 | `report [date]` | the period's status report | `skills/report.md` |
 | `upgrade skills` | the corpus checked and made better: the lint over every rule file, each real hit, stale name, copy and contradiction fixed, then every `TODO.md` line no word or pending run holds, fixed or its line updated; committed and pushed on each repository's standing word | `skills/authoring.md`, *Writing it down* in `workspace.md` |
 | `p`, `push` | everything the closing block names, once: every commit and push the work needs, then the post, upload, title or body it links | *Consent*, workspace `AGENTS.md` |

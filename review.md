@@ -379,6 +379,8 @@ git diff $(git merge-base <remote>/<base-branch> <new-sha>) <new-sha> | git patc
 - **New head is a merge of the base branch**: never base-only. Run `git show <new-sha> --cc`; any hunk it prints is conflict-resolution content, reviewed like any diff. Base commits may add tests the branch now fails: run the affected suite on the new head.
 - **`<old-sha>` unreachable**: skip the gate, run a full round against the merge-base, note the fallback.
 
+Before a re-review round's draft ships, run `./scripts/round stop <round dir>/claims.md --repo <head worktree> --prev <old-sha> --head <new-sha> --prior <slug dir>`. A Warning it prints `on the fix`, on lines an earlier round's finding asked the author to change, is that answer failing on its next case: write the section on the condition every answer so far fails, with a change that holds for all of them, run per step 4 of *Building each inline comment* in `skills/review-comment.md`, never on the one value this head chose. The tell is a fix that swaps one fixed value for another, a constant, a fallback or a limit, after an earlier round refused the first.
+
 Open every full re-review round with a `Round:` line in the draft's header: `Round <n>.`, how the head moved, what changed, which prior findings and `SKIP` sections were resolved or carried.
 
 ### Reproduce the failure

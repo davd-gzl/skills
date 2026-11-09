@@ -485,6 +485,14 @@ class PublishWords(GateCase):
         post = './scripts/post-review.sh r/comment_m.md --as-ai'
         self.assertEqual(self.hook(post, prompt='review as ai https://github.com/o/r/pull/5')[0], 0)
         self.assertEqual(self.hook(post, prompt='deep review as an AI o/r#5')[0], 0, 'a preset in front keeps it')
+        self.assertEqual(self.hook(post, prompt='rai https://github.com/o/r/pull/5')[0], 0, 'rai is the same word')
+        self.assertEqual(self.hook(post, prompt='quick rai o/r#5')[0], 0)
+        self.assertEqual(self.hook(post, prompt='braid o/r#5')[0], 2, 'rai inside a word gives nothing')
+        self.assertEqual(self.hook(post, prompt='rai gno 105')[0], 0, 'any target shape')
+        self.assertEqual(self.hook(post, prompt='/rai 105')[0], 0, 'leading punctuation, as prompt_reads strips it')
+        for stray in ('what does rai mean', 'edit rai.md', 'see /x/rai/foo', 'sudo rai', 'RAI', 'fix this\nrai o/r#5',
+                      'rai 105?'):
+            self.assertEqual(self.hook(post, prompt=stray)[0], 2, f'{stray!r}: rai not opening the message gives nothing')
         self.assertEqual(self.hook(post, prompt='review https://github.com/o/r/pull/5')[0], 2, 'a plain review posts nothing')
         self.assertEqual(self.hook(post, prompt="don't review as ai yet")[0], 2, 'a negation gives nothing')
         self.assertEqual(self.hook('gh pr merge 5', prompt='review as ai o/r#5')[0], 2, 'it carries the post alone')
@@ -1439,6 +1447,12 @@ class Prompt(HookCase):
             self.assertNotIn(piece, context)
         self.assertNotIn('# review', context)
         self.assertFalse(gate.is_read('meet'))
+
+    def test_rai_names_the_review_skill_and_rai_in_prose_does_not(self):
+        self.assertIn('review', gate.prompt_reads('rai https://github.com/o/r/pull/5'))
+        self.assertIn('review', gate.prompt_reads('quick rai 105'))
+        self.assertIn('review', gate.prompt_reads('rai gno 105'))
+        self.assertNotIn('review', gate.prompt_reads('edit rai.md now'))
 
     def test_a_repo_with_a_context_file_names_it_beside_the_delta(self):
         (self.root / 'projects' / 'meet' / 'CONTEXT.md').write_text('# meet context\n')

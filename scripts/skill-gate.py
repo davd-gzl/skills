@@ -620,8 +620,11 @@ BASH_BOUND = 28000
 # alone: the drafting rules are the writer stage's, per its step 4, and the write hook
 # names them when the draft is written.
 PROMPT_HEAD = 6
+# `rai <target>` is `review as ai`, per skills/shortcuts.md: the word opens the message, a preset may lead
+# it and a target follows, so `edit rai.md`, `what is rai` or a message ending in `?` gives nothing.
+RAI = r'\A(?![\s\S]*\?\s*\Z)\W*(?:(?:quick|deep)\W+)?rai\s+\S'
 PROMPT_SKILLS = [
-    (r'\breview|\blgtm\b', ['review']),
+    (r'\breview|' + RAI + r'|\blgtm\b', ['review']),
     # (?<!-) on fixes alone: a repository name ending in -fixes is not a request to fix.
     (r'\bfix(ed|ing)?\b|(?<!-)\bfixes\b|\bimplement|\bsimplif|\bfeature\b', ['change', 'pr-body', 'issue']),
     (r'\bissue', ['issue']),
@@ -1085,8 +1088,8 @@ def gives(text, word):
     words = {w for line in text.splitlines() for w in letter_words(line)}
     if 'push' in words or has_word(text, 'push'):
         words |= PUSH_COVERS
-    # `review as ai` carries the post of the draft it finishes, per skills/shortcuts.md.
-    if _typed_as(text, r'(?<![\w-])review as (?:an )?ai(?![\w-])'):
+    # `review as ai`, or `rai`, carries the post of the draft it finishes, per skills/shortcuts.md.
+    if _typed_as(text, r'(?<![\w-])review as (?:an )?ai(?![\w-])|' + RAI):
         words.add('post')
     return word in words or has_word(text, word)
 

@@ -55,6 +55,7 @@ as the skill defines it; ask when the reading changes what gets built.
 | `links <target>` | three markdown hyperlinks on one line, each to its page on the remote hosting it, never a bare URL or a local path: the pull request, its latest round's `overview.md`, and that round's `comment_<model>.md` | here |
 | "a comment" | the `comment_<model>.md` draft and the text for the target, never an explanation | `skills/review-comment.md` |
 | `TLDR` | the answer in one line, and the word it waits on | here |
+| `ag`, `all good?` | the work in flight in one or two lines, no list: running, stuck or failed, and what comes next; a question asked mid-work, so the work carries on under the request's word; one word, never the letters `a` and `g` | *Consent*, workspace `AGENTS.md` |
 | `continue` | the local work resumed, dead agents re-dispatched first; nothing published | here |
 | `pause`, `can I pause?`, `I have <n> min` | the laptop closes soon and every local agent, stack and server stops with it: in one reply, what stops, that the worktree keeps every edit, what restarts on return, and `p` offered for what is finished; nothing published unasked | here |
 | `go`, `ok`, `yes`, `sure`, anything else | local work only, never a publish | Invariant 2 |

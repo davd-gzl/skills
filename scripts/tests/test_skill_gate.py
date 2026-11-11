@@ -634,9 +634,11 @@ class PublishWords(GateCase):
         def handed_back(task):
             return user(f'Another Claude session sent a message: <agent-message from="{task}">done', meta=True)
 
-        for question in ("why it's so long", 'all good?', 'wyd'):
+        for question in ("why it's so long", 'all good?', 'wyd', 'ag'):
             self.assertIn('push once', turn(user('push once you good'), launched('a1b2'), replied, user(question),
                                             notified('a1b2')), question)
+        for task in ('again with the other flag', 'agree on the name and rename it'):
+            self.assertFalse(gate._status_question(task), task)
         self.assertIn('push once', turn(user('push once you good'), launched('a1b2'), replied, user('all good?'),
                                         handed_back('a1b2')))
         self.assertNotIn('push once', turn(user('push once you good'), launched('a1b2'), notified('a1b2'), replied,

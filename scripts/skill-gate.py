@@ -971,7 +971,7 @@ def _died(rows):
 
 
 # A question about the work in flight: one line, ending on `?` or opening on a word that asks.
-ASKS = re.compile(r'(?i)(?:why|what|how|did|does|is|are|where|when|wyd|hello|status|all good|still)\b')
+ASKS = re.compile(r'(?i)(?:why|what|how|did|does|is|are|where|when|wyd|hello|status|all good|ag|still)\b')
 NOTIFIED = re.compile(r'<task-id>([\w-]+)</task-id>|<agent-message from="([\w-]+)"')
 
 

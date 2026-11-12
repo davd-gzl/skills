@@ -17,7 +17,7 @@ Left: the Nit at line 88, which needs your call on the band.
 
 [#42](https://github.com/acme/app/pull/42), [comment](https://github.com/acme/workspace/blob/main/projects/app/reviews/42-cache/1-0123456/comment_<model>.md)
 
-TL;DR: seven findings, one Warning; waits on `post`.
+TL;DR: All good: seven findings, one Warning; waits on `post`.
 ```
 
 ## What it opens with
@@ -127,11 +127,20 @@ This job runs on a schedule only, and GitHub disables those after 60 days.
   command. Emoji: 📋 ▶ only.
 - Each fact is stated once. The opening line, `Left:`, `Decided:`, the word
   lines and the TL;DR each say something the others do not, and a later line
-  repeating an earlier one is cut, the TL;DR excepted.
+  repeating an earlier one is cut, the TL;DR and the closing status excepted.
 - Under the links, the `TL;DR:` line, where `skills/short-form.md` asks for one. A turn
   waiting on the user ends that line on `` waits on `<word>` ``, and only such a
   turn does, since the desktop notification for a waiting turn shows that
   line.
+- A reply ending a request's work closes on its status: `All good` when
+  nothing failed, went unchecked or was left open, else `Not all good` and
+  which. A word or a decision waited on is no fault: the word stays on the
+  `` waits on `<word>` `` tail, the decision on `Left:`, while other work on
+  `Left:` makes it `Not all good`. The status opens the
+  `TL;DR:` line where the reply carries one, followed by a colon, and is its
+  last line otherwise, under the links, so the user never has to ask whether
+  everything is fine. A turn ending while an agent still runs, on its forecast
+  line, carries none.
 
 ## Links
 

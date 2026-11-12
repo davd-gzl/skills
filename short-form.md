@@ -36,7 +36,7 @@ callback sees the same room either way."
 
 - One idea, in the fewest lines that settle it. No recap of what was already said. Stop when it lands.
 - Open on what the reader must do or decide, after the `Done:` or `Not done:` line a reply ending a request's work opens on, per `skills/reply.md`. A sha, a test name or a figure stays only where the reader uses it.
-- A reply longer than one block closes with a `TL;DR:` line: one sentence, the
+- A reply longer than one block closes with a `TL;DR:` line: one sentence, opening on the status `skills/reply.md` names where it asks for one, then the
   finding and the word it waits on. That line is what gets read.
 - Drop an article only where the sentence still reads in one pass. Stacked article-free fragments cost the reader a second pass, which is the failure this register exists to prevent.
 - No filler, no pleasantries, no hedging, "I think" included; short synonyms, technical terms exact, code and quoted errors verbatim.

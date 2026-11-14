@@ -27,7 +27,7 @@ Fixes #<issue>
 <What breaks, in the reader's terms, under the condition that triggers it.>
 
 ```<language>
-<The fewest lines a caller writes to trigger it, from the branch's own test where one exists, a comment on the call that goes wrong.>
+<The fewest lines a caller writes to trigger it, from the branch's own test where one exists, a comment on the call that goes wrong, an import line for every package it uses beyond its own.>
 ```
 
 <The mechanism, named by symbol and linked into the branch.> <The change that introduced it.>

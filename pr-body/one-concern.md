@@ -8,7 +8,7 @@ description: The pull request body for one concern, which is every bug fix, what
 Short paragraphs under `## Problem` and `## Fix`, one per part of the fix, each saying what that part does and why it is built that way.
 
 - The first line is the severity, `6/10, medium`, per `skills/writing-style.md`, above `Fixes #n` and every heading.
-- `## Problem`, one or two paragraphs: the symptom first, in the reader's terms, under the condition that triggers it, then the mechanism named by symbol with a link into the code on the branch, then the change that introduced it.
+- `## Problem`, one or two paragraphs: the symptom first, in the reader's terms, under the condition that triggers it, then the code block that triggers it, per `skills/pr-body.md`, then the mechanism named by symbol with a link into the code on the branch, then the change that introduced it.
 - `## Fix`: the new code's property in a clause, never a narration of the edit. Then the riders in one paragraph, each with its own why. Then the one runtime check no job shows, stated as a claim, and nothing after it but the closing blocks of `skills/pr-body.md`: no line naming the ADR or wherever else the decisions are recorded, which the reviewer finds in the diff.
 - `## Not fixed`, after `## Fix`, per `skills/pr-body.md`.
 - No `## Design`, whatever the number of decisions behind the fix: a decision a reviewer could have made differently is a clause of the fix paragraph, with what it costs.
@@ -17,14 +17,20 @@ Why: a reviewer of a fix wants the defect and the property that removes it, and 
 
 ## Skeleton
 
-```markdown
+````markdown
 6/10, medium
 
 Fixes #<issue>
 
 ## Problem
 
-<What breaks, in the reader's terms, under the condition that triggers it.> <The mechanism, named by symbol and linked into the branch.> <The change that introduced it.>
+<What breaks, in the reader's terms, under the condition that triggers it.>
+
+```<language>
+<The fewest lines a caller writes to trigger it, from the branch's own test where one exists, a comment on the call that goes wrong.>
+```
+
+<The mechanism, named by symbol and linked into the branch.> <The change that introduced it.>
 
 ## Fix
 
@@ -43,4 +49,4 @@ Fixes #<issue>
 <The stops, hot then warm then cold, per skills/pr-body.md.>
 
 </details>
-```
+````

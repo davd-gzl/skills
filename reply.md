@@ -123,8 +123,9 @@ This job runs on a schedule only, and GitHub disables those after 60 days.
   never the current task alone.
 - Then the artifacts, in the order *Layout* in `workspace.md` gives them. A
   closed or merged target keeps its link and loses its verb. Each is a
-  `[label](<url>)` into the workspace repo's `blob/main`, never a local path or a
-  command. Emoji: 📋 ▶ only.
+  `[label](<url>)` into the workspace repo's `blob/main`, or a `[label](<path>)`
+  relative to the working directory where the harness opens such a link in its
+  own pane; never a bare path or a command. Emoji: 📋 ▶ only.
 - Each fact is stated once. The opening line, `Left:`, `Decided:`, the word
   lines and the TL;DR each say something the others do not, and a later line
   repeating an earlier one is cut, the TL;DR and the closing status excepted.

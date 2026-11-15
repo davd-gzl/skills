@@ -197,6 +197,27 @@ makes the rest of the session pay for its test output and file reads.
    plan, written where none exists yet, with the line and what the issue says
    against it, never to turn a job green: the issue outranks the tests. A
    rename or a moved fixture carrying the same expectation is no call.
+   Before step 7, and over every line a later step adds, read the change as a
+   newcomer who knows the codebase's vocabulary and nothing of the change, and
+   rewrite each line where they cannot tell what it does from the code and its
+   comments alone: code that needs the pull request body, the plan or the chat
+   for that is badly written, and the lines a rewrite adds are lines the fix
+   needs under the first Principle of the workspace `AGENTS.md`. Once per fix,
+   before step 7, hand a fresh agent the diff, the worktree path and this
+   file's path, and nothing of the body, the plan or the chat, for the same
+   read, told to return lines and edit nothing, since the author no longer
+   sees the change's jargon; rewrite each line it returns once its claim holds
+   against the code.
+   - A block of statements the change adds inside a function it did not
+     write, where that function is too long to read on one screen, moves into
+     a named function beside it, called from the site; a guard and its exit,
+     a `return`, `continue`, `break` or panic, stay at the site.
+   - A function the change adds and calls directly, whose name does not say
+     what calling it does, so a reader of the call site opens the body to
+     learn it, is renamed until it says, or inlined where no name would.
+   - A name the change adds is whole words, `paramTypes` rather than `pts`,
+     unless the short form is the codebase's convention for that thing, as a
+     method receiver or Go's `err` and `ctx` are.
 7. **Run the CI locally.** While iterating, after each edit run only the test
    files and linters that cover the files it touched, step 2's list first,
    and leave the whole suite to CI, read from the pull request's checks,
@@ -280,7 +301,8 @@ makes the rest of the session pay for its test output and file reads.
    `skills/review-comment.md`.
 9. **Simplify, last.** Once the loop closes, run the harness simplification
    pass, `/simplify`, over the whole final diff: reuse, fewer lines for the
-   same behaviour, a value computed once. A subagent running the fix does this
+   same behaviour, a value computed once. A hunk that undoes a step 6 rewrite
+   is reverted, whichever finding made it. A subagent running the fix does this
    read in its own thread: reviewer agents it launches in the background are
    cut off when it hands back, before any of them reports. The pass's agents
    may edit the tree to test a finding, so save `git diff HEAD --binary > <scratch>/pre-simplify.patch` and

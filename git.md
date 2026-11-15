@@ -1,6 +1,6 @@
 ---
 name: git
-description: Use when a turn will commit, push, sync a checkout, resolve a stale branch, or touch a submodule or worktree in this workspace. Covers the identity every commit takes, where a push goes, and what git does silently and reports as success.
+description: Use when a turn will commit, push, sync a checkout, check out a branch or clone a repository again, resolve a stale branch, or touch a submodule or worktree in this workspace. Covers the identity every commit takes, where a push goes, and what git does silently and reports as success.
 ---
 
 # Git in this workspace
@@ -75,6 +75,28 @@ hunk left.
 When the tree you tested carries another session's uncommitted edits, run the
 suites again on the commits alone before the push: a worktree at the new HEAD,
 `git -C <checkout> worktree add --detach <path> <sha>`, removed after.
+
+## One branch, one worktree
+
+Git refuses a second checkout of a branch only inside one clone, so the same
+branch checked out in another clone goes unnoticed, and the copy the user's
+editor has open falls behind.
+
+- Before checking out a branch other than a default one, by `git worktree
+  add`, `git checkout`, `git switch`, `gh pr checkout` or a new clone, run
+  `./scripts/branch-holders <branch> --repo <a checkout of the repository>`,
+  `gh pr view <n> --json headRefName` naming a pull request's branch. It lists
+  each worktree holding the branch, with its last commit's age and its count
+  of changed files, in every clone under its root, five levels down, that
+  shares the repository's history.
+- On exit 1, check out nothing: show the user the list and ask which copy to
+  work in. A `here` line alone is the tree `--repo` names, already on the
+  branch: work there. Their uncommitted edits are the user's or another
+  session's, so never stash, clean or revert them.
+- The `checkout/` submodule that *The change directory* in `skills/change.md`
+  pins to a fix branch is a record, never a working copy: adding it needs no
+  check, and the script lists it as `pinned` without counting it.
+- On exit 2, fix the call it names and run it again.
 
 ## Where a push goes
 

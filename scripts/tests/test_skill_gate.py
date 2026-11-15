@@ -228,6 +228,17 @@ class ReadRecord(GateCase):
             gate.main(['read', 'git'])
         self.assertEqual(out.getvalue(), '# git\n\nchanged\n')
 
+    def test_a_stale_read_of_a_file_over_the_bash_bound_prints_its_diff(self):
+        big = '# review\n' + 'x\n' * gate.BASH_BOUND
+        (self.root / 'skills' / 'review.md').write_text(big)
+        gate.record_read('review')
+        (self.root / 'skills' / 'review.md').write_text(big + 'A new rule.\n')
+        out = io.StringIO()
+        rc = gate.main(['read', 'review'], stdout=out)
+        self.assertEqual(rc, 0)
+        self.assertIn('+A new rule.', out.getvalue())
+        self.assertTrue(gate.is_read('review'))
+
     def test_a_file_over_the_bash_bound_is_named_not_printed(self):
         (self.root / 'skills' / 'review.md').write_text('# review\n' + 'x' * (gate.BASH_BOUND + 1))
         out = io.StringIO()
@@ -1411,6 +1422,31 @@ class SessionStart(HookCase):
         self.assertNotIn('- shortcuts: Read', context)
         self.assertFalse(gate.is_read('review'))
         self.assertTrue(gate.is_read('shortcuts'))
+
+    def test_resume_keeps_the_reads(self):
+        gate.record_read('review')
+        rc, context = self.run_hook('session-start', json.dumps({'source': 'resume'}))
+        self.assertEqual(rc, 0)
+        self.assertNotIn('- review:', context)
+        self.assertTrue(gate.is_read('review'))
+
+    def test_a_changed_file_this_session_read_is_named_for_its_diff(self):
+        gate.record_read('git')
+        (self.root / 'skills' / 'git.md').write_text('# git\n\nchanged\n')
+        self.run_hook('session-start', json.dumps({'source': 'resume'}))
+        out = io.StringIO()
+        gate.point([n for n in ('git', 'workspace') if not gate.is_read(n)], 'Rules', 'PreToolUse', out)
+        self.assertIn('./scripts/skill git', out.getvalue())
+        self.assertIn('where this agent never read it', out.getvalue())
+        self.assertIn('Read `workspace.md` whole', out.getvalue())
+
+    def test_compact_drops_the_copies_so_a_reread_is_whole(self):
+        gate.record_read('git')
+        self.run_hook('session-start', json.dumps({'source': 'compact'}))
+        (self.root / 'skills' / 'git.md').write_text('# git\n\nchanged\n')
+        out = io.StringIO()
+        gate.main(['read', 'git'], stdout=out)
+        self.assertEqual(out.getvalue(), '# git\n\nchanged\n')
 
     def test_a_failing_sync_still_reports(self):
         self.sync.write_text('#!/bin/sh\necho no network >&2\nexit 1\n')

@@ -16,13 +16,14 @@ with a warning. Nothing here blocks: a rough draft lands, a later pass fixes it.
   ./scripts/skill-gate.py pre-push          check every path the pushed commits touch, plus `git`; git's
                                             pre-push lines on stdin
   ./scripts/skill-gate.py hook-claude       Claude Code PreToolUse adapter, hook JSON on stdin: the missing
-                                            skills named by path, to Read whole first; the write goes ahead
+                                            skills named by path, to Read whole first, or by their diff where the
+                                            session read an older copy; the write goes ahead
   ./scripts/skill-gate.py hook-read         Claude Code PreToolUse adapter on the Read tool: a whole read of a
                                             skill, a shape, a delta or a root file is recorded; a partial one is not
   ./scripts/skill-gate.py session-start     Claude Code SessionStart adapter, hook JSON on stdin: runs
                                             scripts/sync.sh on a new session and records the files the
-                                            session opens with, shortcuts, short-form and thinking, as read; after a compaction
-                                            or a resume, forgets the session's reads and names them by path
+                                            session opens with, shortcuts, short-form and thinking, as read; after a compaction,
+                                            forgets the session's reads and names them by path; a resume keeps them
   ./scripts/skill-gate.py prompt            Claude Code UserPromptSubmit adapter: the skills the prompt's
                                             words and the repositories it names call for, named by path
                                             until read
@@ -496,16 +497,16 @@ def cmd_read(name, stdout):
     if is_read(name):
         stdout.write(f'{name}: unchanged since this session read it, {path}\n')
         return 0
-    if path.stat().st_size > BASH_BOUND:
-        stdout.write(f'{name}: {path.stat().st_size} bytes, over the Bash result bound; Read {path} whole with the Read tool, which records the read.\n')
-        return 0
     copy = copy_path(name)
+    text = path.read_text()
     if copy.is_file():
-        old, new = copy.read_text().splitlines(keepends=True), path.read_text().splitlines(keepends=True)
+        old, new = copy.read_text().splitlines(keepends=True), text.splitlines(keepends=True)
         diff = ''.join(difflib.unified_diff(old, new, f'{name} as read', f'{name} now', n=2))
-        stdout.write(f'{name}: changed since this session read it; the diff, then the record is refreshed\n{diff}')
-    else:
-        stdout.write(path.read_text())
+        text = f'{name}: changed since this session read it; the diff, then the record is refreshed\n{diff}'
+    if len(text.encode()) > BASH_BOUND:
+        stdout.write(f'{name}: {len(text.encode())} bytes, over the Bash result bound; Read {path} whole with the Read tool, which records the read.\n')
+        return 0
+    stdout.write(text)
     record_read(name)
     return 0
 
@@ -754,12 +755,16 @@ def name_of(path, base=None):
 
 
 def point(names, header, event, stdout, extra=()):
-    """Name each file to read whole with the Read tool. Nothing is recorded here: the Read hook records."""
+    """Name each file to read whole with the Read tool, or its diff where this session holds an older copy. Nothing is recorded here: the Read hook and the read verb record."""
     parts = list(extra)
     lines = []
     for name in names:
         path = resolve(name)
         if path is None:
+            continue
+        if copy_path(name).is_file():
+            lines.append(f'- {name}: changed since this session read it; run `./scripts/skill {name}`, which prints only the diff, '
+                         f'or Read `{path.relative_to(root()).as_posix()}` whole where this agent never read it.')
             continue
         lines.append(f'- {name}: Read `{path.relative_to(root()).as_posix()}` whole, with the Read tool.')
     if lines:
@@ -851,9 +856,10 @@ def model_note(payload):
 
 
 def forget_session():
-    """Drop every read this session recorded; a compaction took them out of context."""
+    """Drop every read this session recorded, and its copies, so no diff stands in for text a compaction took out of context."""
     prefix = f'{session_key()}:'
     save({k: v for k, v in load().items() if not k.startswith(prefix)})
+    shutil.rmtree(root() / COPIES / session_key().replace('/', '_'), ignore_errors=True)
 
 
 INTRO = ('Principles, Invariants and the register are in context through `CLAUDE.md`, which imports '
@@ -865,7 +871,7 @@ INTRO = ('Principles, Invariants and the register are in context through `CLAUDE
 
 
 def cmd_session_start(stdin, stdout):
-    """Sync on startup and clear, and record the CLAUDE.md imports as read; after a compaction or a resume, forget the session's reads and name them for re-reading."""
+    """Sync on startup and clear, and record the CLAUDE.md imports as read; after a compaction, forget the session's reads and name them for re-reading. A resume restores the whole transcript, so its reads stand."""
     payload = _payload(stdin)
     source = payload.get('source', 'startup')
     extra = []
@@ -876,7 +882,7 @@ def cmd_session_start(stdin, stdout):
             extra.append(('Sync ran: ' if r.returncode == 0 else 'Sync failed: ') + (r.stdout + r.stderr).strip())
         except (OSError, subprocess.TimeoutExpired) as e:
             extra.append(f'Sync failed: {e}')
-    else:
+    elif source == 'compact':
         names = [n for n in session_reads() if n not in IMPORTED]
         forget_session()
     for name in IMPORTED:
@@ -897,7 +903,7 @@ def cmd_prompt(stdin, stdout):
     names = [n for n in prompt_reads(prompt) if not is_read(n)] if not prompt.lstrip().startswith(NOT_TYPED) else []
     note = model_note(payload)
     extra = [note] if note else []
-    point(names, 'Rules this prompt calls for, unread this session. Read each whole with the Read tool '
+    point(names, 'Rules this prompt calls for, unread this session. Read each as its line says '
                  'before the first command; the read is recorded then.', 'UserPromptSubmit', stdout, extra)
     return 0
 
@@ -1904,7 +1910,7 @@ def cmd_hook_claude(stdin, stdout):
     for p in paths:
         wanted = [n for n in COMMIT_READS if not is_read(n)] if p == 'git' else missing_reads(p, base)
         names += [n for n in wanted if n not in names]
-    point(names, 'Rules this write calls for, unread this session. Read each whole with the Read tool '
+    point(names, 'Rules this write calls for, unread this session. Read each as its line says '
                  'and then write; the write goes ahead.', 'PreToolUse', stdout)
     return 0
 

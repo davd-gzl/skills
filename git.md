@@ -133,8 +133,10 @@ Another machine pushes to this workspace mid-turn, so a push refused as
 non-fast-forward is the normal case and not an error.
 `./scripts/sync-push.sh '<subject>' <path>...` commits the named paths, rebases
 over what landed, retries, and carries the other session's uncommitted files
-across the rebase. Stop on a conflict rather than resolving it, and report the
-files.
+across the rebase. A directory git tracks nothing under goes whole; one it
+tracks a file under goes only where every changed path beneath it is named too,
+else the script exits 2 listing the rest, so name each file the turn wrote
+there. Stop on a conflict rather than resolving it, and report the files.
 
 ## Submodules
 

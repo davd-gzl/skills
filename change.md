@@ -301,11 +301,12 @@ makes the rest of the session pay for its test output and file reads.
    `comment_<model>.md` stays the postable artifact, per
    `skills/review-comment.md`.
 9. **Simplify, last.** Once the loop closes, run the harness simplification
-   pass, `/simplify`, over the whole final diff: reuse, fewer lines for the
-   same behaviour, a value computed once. A hunk that undoes a step 6 rewrite
-   is reverted, whichever finding made it. A subagent running the fix does this
-   read in its own thread: reviewer agents it launches in the background are
-   cut off when it hands back, before any of them reports. The pass's agents
+   pass, `/simplify` with the worktree's absolute path in its argument, over
+   the whole final diff: reuse, fewer lines for the same behaviour, a value
+   computed once. A hunk that undoes a step 6 rewrite is reverted, whichever
+   finding made it. A subagent running the fix calls `/simplify` itself and
+   follows it in its own thread: reviewer agents it launches in the background
+   are cut off when it hands back, before any of them reports. The pass's agents
    may edit the tree to test a finding, so save `git diff HEAD --binary > <scratch>/pre-simplify.patch` and
    `git status --porcelain > <scratch>/pre-simplify.status` before it and read
    every hunk and new file after: one that no applied finding names is a probe
@@ -332,9 +333,13 @@ makes the rest of the session pay for its test output and file reads.
     the loop of *Own PR* in `skills/review-modes.md` instead, whose rounds
     already read the fixes alone.
 11. **Report** the changed files and what each change does. Before the
-    report, run `./scripts/dropped-findings.py <each round's claims.md>
-    <plan.md>`; on exit 1, apply each row it prints or cite its `file:line` in
-    a numbered open call, then run it again.
+    report, run `./scripts/dropped-findings.py --worktree <worktree> <each
+    round's claims.md> <plan.md>`; on exit 1, apply each `claims.md` row it
+    prints or cite its `file:line` in a numbered open call, and where it
+    prints a `plan.md` line, a simplify pass no `/simplify` call on that
+    worktree backs, run step 9 once, then run it again. Exit 2 for want of a
+    session id, a harness that sets none, leaves the pass unchecked: name it so
+    in the report.
 12. **Keep the worktree.** It carries review feedback, rebases and follow-up
     work until the pull request merges.
 

@@ -86,13 +86,15 @@ editor has open falls behind.
   add`, `git checkout`, `git switch`, `gh pr checkout` or a new clone, run
   `./scripts/branch-holders <branch> --repo <a checkout of the repository>`,
   `gh pr view <n> --json headRefName` naming a pull request's branch. It lists
-  each worktree holding the branch, with its last commit's age and its count
-  of changed files, in every clone under its root, five levels down, that
-  shares the repository's history.
+  each worktree holding the branch, a rebase or bisect of it in progress
+  included, in every clone it reaches that shares the repository's history,
+  with its last commit's age and its count of changed files; the script's
+  header comment names the directory it scans and what it follows from there.
 - On exit 1, check out nothing: show the user the list and ask which copy to
-  work in. A `here` line alone is the tree `--repo` names, already on the
-  branch: work there. Their uncommitted edits are the user's or another
-  session's, so never stash, clean or revert them.
+  work in, or, in a subagent, return the list to the parent. When `here` is the
+  only line besides `pinned` ones, the tree `--repo` names is already on the
+  branch: work there. The uncommitted edits in a listed copy are the user's or
+  another session's, so never stash, clean or revert them.
 - The `checkout/` submodule that *The change directory* in `skills/change.md`
   pins to a fix branch is a record, never a working copy: adding it needs no
   check, and the script lists it as `pinned` without counting it.

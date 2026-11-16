@@ -369,9 +369,16 @@ class BashTargets(unittest.TestCase):
     def test_an_unresolvable_cd_resets_the_base(self):
         self.assertEqual(gate.bash_targets('cd "$(git rev-parse --show-toplevel)" && echo x > projects/a/changes/s/plan.md'), {'projects/a/changes/s/plan.md'})
 
-    def test_branch_switches_are_not_writes(self):
-        self.assertEqual(gate.bash_targets('git checkout -q -b topic'), set())
-        self.assertEqual(gate.bash_targets('git checkout main'), set())
+    def test_a_branch_put_in_a_tree_reads_git_and_a_restore_names_its_paths(self):
+        for cmd in ('git checkout -q -b topic', 'git checkout fix', 'git switch -c fix', 'git -C c worktree add /w/x origin/fix',
+                    'git worktree add -b fix /w/x 0123abc', 'git clone https://github.com/o/r', 'gh pr checkout 5 -R o/r',
+                    'gh repo clone o/r', 'git switch --create fix 0123abc', 'git checkout 0123abc', 'gh pr co 5'):
+            self.assertEqual(gate.bash_targets(cmd), {'checkout'}, cmd)
+        for cmd in ('git worktree list', 'gh pr view 5', 'git -C /s/head worktree add --detach /s/judge-1 0123abc',
+                    'git -C c checkout -q --detach 0123abc', 'git switch -d 0123abc', 'git checkout -d',
+                    'gh pr checkout 5 --detach'):
+            self.assertEqual(gate.bash_targets(cmd), set(), cmd)
+        self.assertEqual(gate.check(['checkout']), ['Run ./scripts/skill git before checking out a branch'])
         self.assertEqual(gate.bash_targets('git checkout -- projects/a/changes/s/plan.md'), {'projects/a/changes/s/plan.md'})
         self.assertEqual(gate.bash_targets('git restore --staged skills/review.md'), set())
         self.assertEqual(gate.bash_targets('git restore skills/review.md'), {'skills/review.md'})
@@ -428,6 +435,13 @@ class ClaudeHook(GateCase):
             rc = gate.main(['hook-claude'], stdin=io.StringIO(json.dumps(payload)), stdout=out)
         text = out.getvalue()
         return rc, json.loads(text)['hookSpecificOutput']['additionalContext'] if text else ''
+
+    def test_a_checkout_names_git_alone(self):
+        rc, context = self.run_hook({'tool_name': 'Bash', 'tool_input': {'command': 'git checkout fix'},
+                                     'cwd': str(self.root)})
+        self.assertEqual(rc, 0)
+        self.assertIn('skills/git.md', context)
+        self.assertNotIn('workspace.md', context)
 
     def test_write_of_an_unread_artifact_names_its_skills_by_path(self):
         rc, context = self.run_hook({'tool_name': 'Write', 'tool_input': {
@@ -551,12 +565,14 @@ class PublishWords(GateCase):
     def test_reads_dry_runs_and_an_open_pr_body_edit_pass(self):
         for cmd in ('gh pr view 5 -R o/r', 'gh api repos/o/r/pulls/5/comments --paginate',
                     "gh api graphql -f query='query{viewer{login}}'", 'gh api -X PATCH repos/o/r/pulls/5 -F body=@b.md',
-                    './scripts/post-review.sh d.md --dry-run', 'git commit -m "quote gh pr comment | x"'):
+                    './scripts/post-review.sh d.md --dry-run', 'git commit -m "quote gh pr comment | x"',
+                    './scripts/post-fix.sh c --record-read'):
             self.assertEqual(self.hook(cmd)[0], 0, cmd)
 
     def test_writes_through_the_api_and_the_post_scripts_wait(self):
         for cmd in ('gh api repos/o/r/issues/1/comments -f body=x', "gh api graphql -f query='mutation{x}'",
-                    './scripts/post-review.sh d.md', './scripts/post-replies o/r 5 d', 'gh issue create -R o/r -t t -b b'):
+                    './scripts/post-review.sh d.md', './scripts/post-replies o/r 5 d', 'gh issue create -R o/r -t t -b b',
+                    './scripts/post-fix.sh c', './scripts/post-fix.sh c --pr-only'):
             self.assertEqual(self.hook(cmd)[0], 2, cmd)
         self.assertEqual(self.hook('gh pr merge 5', prompt='post')[0], 2, 'a merge takes merge, not post')
         for cmd in ('gh api -X DELETE repos/o/r/issues/5/labels/class:hardfork',

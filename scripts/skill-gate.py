@@ -58,6 +58,7 @@ RECORD = '.skill-gate.json'
 COPIES = '.skill-gate'  # <root>/.skill-gate/<session>/<name>.md, the text as read
 KEEP_DAYS = 7
 COMMIT_READS = ['git', 'workspace']
+CHECKOUT_READS = ['git']
 
 # Processes that stand between a command and the harness that ran it.
 PASS_THROUGH = {'bash', 'sh', 'zsh', 'fish', 'dash', 'git', 'env', 'sudo', 'xargs', 'nice',
@@ -380,8 +381,15 @@ def _git_subcommand(tokens):
     return None, []
 
 
+def _puts_branch(sub, args):
+    """Whether a checkout, switch, clone or worktree add may put a branch in a tree, per *One branch,
+    one worktree* in skills/git.md: every one may, unless it asks for a detached tree."""
+    return sub == 'clone' or not {'--detach', '-d'} & set(args)
+
+
 def bash_targets(command, base=''):
-    """Paths a shell command writes, plus `git` for anything that makes or moves history."""
+    """Paths a shell command writes, plus `git` for anything that makes or moves history and
+    `checkout` for anything that puts a branch in a tree."""
     targets = set()
 
     def add(t):
@@ -417,18 +425,25 @@ def bash_targets(command, base=''):
                 sub, rest = _git_subcommand(tokens)
                 if sub in GIT_HISTORY:
                     targets.add('git')
+                elif sub in ('switch', 'clone') or (sub == 'worktree' and rest[:1] == ['add']) \
+                        or (sub == 'checkout' and '--' not in rest):
+                    if _puts_branch(sub, rest[1:] if sub == 'worktree' else rest):
+                        targets.add('checkout')
                 elif sub == 'mv' and rest:
                     add(rest[-1])
                 elif sub == 'checkout':
-                    if '--' in rest:
-                        for t in rest[rest.index('--') + 1:]:
-                            add(t)
+                    for t in rest[rest.index('--') + 1:]:
+                        add(t)
                 elif sub == 'restore':
                     if '--staged' in rest and '--worktree' not in rest:
                         continue
                     for t in rest:
                         if t != '--' and not t.startswith('-'):
                             add(t)
+                continue
+            if cmd == 'gh' and tokens[1:3] in (['pr', 'checkout'], ['pr', 'co'], ['repo', 'clone']):
+                if '--detach' not in tokens:
+                    targets.add('checkout')
                 continue
             inplace = cmd == 'perl' and any(PERL_INPLACE.match(t) for t in tokens[1:])
             if cmd in SCRIPT_RUNNERS and not inplace:
@@ -466,6 +481,11 @@ def check(paths, base=None):
             for name in COMMIT_READS:
                 if not is_read(name):
                     messages.append(f'Run ./scripts/skill {name} before a commit or push')
+            continue
+        if p == 'checkout':
+            for name in CHECKOUT_READS:
+                if not is_read(name):
+                    messages.append(f'Run ./scripts/skill {name} before checking out a branch')
             continue
         for name in missing_reads(p, base):
             messages.append(f'Run ./scripts/skill {name} before writing {p}')
@@ -1493,6 +1513,9 @@ def publish_words(cmd, cwd=None):
         pos = [x for x in t[1:] if not x.startswith('-')]
         if name == 'post-fix.sh' and _post_fix_opens_draft(t, cwd):
             continue
+        # --record-read writes the body's hash into the local draft and exits before any call to GitHub.
+        if name == 'post-fix.sh' and '--record-read' in t:
+            continue
         if name == 'post-replies' and len(pos) >= 2 and norm_repo(pos[0]) in standing_publish_draft() \
                 and _own_draft(norm_repo(pos[0]), pos[1]):
             continue
@@ -1908,7 +1931,8 @@ def cmd_hook_claude(stdin, stdout):
         return 0
     names = []
     for p in paths:
-        wanted = [n for n in COMMIT_READS if not is_read(n)] if p == 'git' else missing_reads(p, base)
+        reads = {'git': COMMIT_READS, 'checkout': CHECKOUT_READS}.get(p)
+        wanted = [n for n in reads if not is_read(n)] if reads else missing_reads(p, base)
         names += [n for n in wanted if n not in names]
     point(names, 'Rules this write calls for, unread this session. Read each as its line says '
                  'and then write; the write goes ahead.', 'PreToolUse', stdout)

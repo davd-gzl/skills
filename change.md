@@ -209,9 +209,10 @@ makes the rest of the session pay for its test output and file reads.
    sees the change's jargon; rewrite each line it returns once its claim holds
    against the code.
    - A block of statements the change adds inside a function it did not
-     write, where that function is too long to read on one screen, moves into
-     a named function beside it, called from the site; a guard and its exit,
-     a `return`, `continue`, `break` or panic, stay at the site.
+     write, where the newcomer read loses that function's own flow across it,
+     moves into a function beside it whose name says what the block does,
+     called from the site, wherever the move changes nothing but the site. A
+     block no name describes, or one the move would change, stays.
    - A function the change adds and calls directly, whose name does not say
      what calling it does, so a reader of the call site opens the body to
      learn it, is renamed until it says, or inlined where no name would.

@@ -31,7 +31,7 @@ Read the timeline of any issue already covering the problem for cross-references
 
 ## File
 
-Put `issue.md` in the review directory, `projects/<repo>/reviews/<slug>/<n>-<sha>/`, beside the review file: an issue can exist when no fix does. It opens with a header block, `Target:` holding the opened issue URL, or else `https://github.com/<repo>/issues/new` and `Status:`, then `## Title` and `## Body`.
+Put `issue.md` in the review directory, `projects/<repo>/reviews/<slug>/<n>-<sha>/`, beside the review file: an issue can exist when no fix does. Its first lines are a header block, `Target:` holding the opened issue URL, or else `https://github.com/<repo>/issues/new` and `Status:`, then `## Title` and `## Body`.
 
 ## Two kinds
 

@@ -16,16 +16,29 @@ pub struct ProseLine {
 pub fn prose_lines(text: &str) -> Vec<ProseLine> {
     let mut lines = Vec::new();
     let mut in_fence = false;
+    // A code span may wrap onto the next line of its paragraph: an odd backtick count leaves one
+    // open, closed on this line's end and reopened on the next line's start.
+    let mut open_code = false;
     for (i, raw) in text.lines().enumerate() {
         if FENCE.is_match(raw) {
             in_fence = !in_fence;
+            open_code = false;
             continue;
         }
         if in_fence {
             continue;
         }
-        let clean = INLINE_CODE.replace_all(raw, "``");
+        if raw.trim().is_empty() {
+            open_code = false;
+        }
+        let mut spanned = if open_code { format!("`{raw}") } else { raw.to_string() };
+        open_code = spanned.matches('`').count() % 2 == 1;
+        if open_code {
+            spanned.push('`');
+        }
+        let clean = INLINE_CODE.replace_all(&spanned, "``");
         let clean = LINK_TARGET.replace_all(&clean, "]");
+        let clean = LINK_DEFINITION.replace_all(&clean, "$1");
         let clean = HTML_TAG.replace_all(&clean, "");
         lines.push(ProseLine {
             number: i + 1,

@@ -1,7 +1,7 @@
 // NOT AUDITED — AI-generated tooling. Review before executing in any privileged context.
 //! A run over many files: each file's findings in argument order, the rules stated in two files,
 //! the health table, the count.
-use super::file::{check_file, index};
+use super::file::{check_file, classify, index, Kind};
 use super::{Finding, FirstSeen, Health, Place};
 use std::collections::HashSet;
 use std::io::Write;
@@ -56,10 +56,14 @@ fn print_findings(out: &mut dyn Write, path: &str, mut findings: Vec<Finding>) -
 
 /// The sentences seen in more than one file, the most spread first and first-seen among ties,
 /// at most `DUPES_SHOWN`. An opening clause is skipped where a whole sentence already covers it.
+/// A sentence stated in two files. Project files are each a log of what was measured about one
+/// repository, so the same fact recorded about two repositories is two measurements, not one rule
+/// in two homes; a copy reaching a skill or the workspace root is still one.
 fn print_duplicates(out: &mut dyn Write, seen: &FirstSeen) {
     let mut dupes: Vec<(&str, &[Place])> = seen
         .iter()
         .filter(|(_, places)| files_of(places) > 1)
+        .filter(|(_, places)| !places.iter().all(|p| matches!(classify(&p.path), Kind::Project)))
         .collect();
     let whole: Vec<&str> = dupes
         .iter()
@@ -184,6 +188,20 @@ mod tests {
         assert!(text.contains(&format!("{:<34}{:>7}", path, 3)));
         assert!(text.ends_with("\nnothing to report\n"));
         assert!(text.contains("total"));
+    }
+
+    #[test]
+    fn a_fact_two_project_files_record_and_a_readme_are_no_dupe() {
+        let dir = tmp("dupes-projects");
+        let line = "the subject is one capitalised sentence on the why with no prefix at all.\n";
+        let a = file(&dir, "projects/a/AGENTS.md", line);
+        let b = file(&dir, "projects/b/AGENTS.md", line);
+        let readme = file(&dir, "skills/README.md", line);
+        let (_, text) = run_to_string(&["--quiet".to_string(), a.clone(), b.clone(), readme]);
+        assert_eq!(text.matches("[dupe]").count(), 0, "{text}");
+        let skill = file(&dir, "skills/s.md", line);
+        let (_, text) = run_to_string(&["--quiet".to_string(), a, b, skill]);
+        assert_eq!(text.matches("[dupe]").count(), 1, "a copy reaching a skill still counts: {text}");
     }
 
     #[test]

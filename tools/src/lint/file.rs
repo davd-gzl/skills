@@ -90,9 +90,10 @@ pub fn check_file(path: &str, corpus: &Corpus) -> FileReport {
     let density = text::median_words(&rules);
     findings.extend(checks::density(density));
     let health = health_of(words, &lines, rules.len(), density);
-    // A CLAUDE.md carries the same seven-line pointer everywhere on purpose, so it never enters
-    // the duplicate set.
-    let sentences = if pointer_file {
+    // A CLAUDE.md carries the same seven-line pointer everywhere on purpose, and a README explains
+    // the rules to a person who reads no skill, per *Editing this corpus* in skills/authoring.md,
+    // so neither enters the duplicate set.
+    let sentences = if pointer_file || basename(path) == "README.md" {
         FirstSeen::default()
     } else {
         sentence_keys(path, &lines)
@@ -314,9 +315,22 @@ mod tests {
         let report = lint_of(
             &dir,
             "AGENTS.md",
-            "a (b)\n# head (x)\n| cell (x) |\nmarker (s) and (2)\n[t](http://x/(y))\n",
+            "a (b)\n# head (x)\n| cell (x) |\nmarker (s) and (2)\n[t](http://x/(y))\n\
+             see (`a.go:3`) and ([x#1](http://u))\nthey wrote \"call us (here)\" today\n\
+             run `jq\n'(.a)'` now\n\nand (a clause) after a blank line\n",
         );
-        assert_eq!(lines_with(&report.findings, "paren"), vec![1]);
+        assert_eq!(lines_with(&report.findings, "paren"), vec![1, 11]);
+    }
+
+    #[test]
+    fn a_source_line_and_a_link_definition_carry_their_dates() {
+        let dir = tmp("dated-source");
+        let report = lint_of(
+            &dir,
+            "skills/knowledge/k.md",
+            "Source: a paper, 2026-09-17.\n[r]: https://x/2026-09-30/y\nmeasured on 2026-09-17 here\n",
+        );
+        assert_eq!(lines_with(&report.findings, "dated"), vec![3]);
     }
 
     #[test]
@@ -510,7 +524,13 @@ mod tests {
             "`./scripts/own.sh` resolves inside skills/ too\n",
         );
         file(&dir, "projects/p/skills/catalog.md", "");
-        file(&dir, "projects/p/AGENTS.md", "see `scripts/nope.sh`\nand `skills/catalog.md` beside this file\n");
+        file(&dir, "projects/p/checkout/scripts/setup.sh", "");
+        file(
+            &dir,
+            "projects/p/AGENTS.md",
+            "see `scripts/nope.sh`\nand `skills/catalog.md` beside this file\nand `scripts/setup.sh` in its checkout\n\
+             and [`scripts/remote.sh`](https://x/scripts/remote.sh) on the web\n",
+        );
         let (core, delta, skill) = in_dir(&dir, || {
             (
                 lint_rel(&["AGENTS.md"], "AGENTS.md"),
@@ -564,7 +584,12 @@ mod tests {
     fn section_ref_takes_the_file_named_on_its_line() {
         let dir = tmp("sections-line");
         file(&dir, "skills/a.md", "# A\n## Setup\n");
-        file(&dir, "AGENTS.md", "run *Setup*, per `skills/a.md`, first\nand *Setup* alone names this file, which has no such heading\n");
+        file(
+            &dir,
+            "AGENTS.md",
+            "run *Setup*, per `skills/a.md`, first\nand *Setup* alone names this file, which has no such heading\n\
+             *Sweep* in the project's delta names a place\nthe *Identity* table in `workspace.md` is outside the run\n",
+        );
         let findings = in_dir(&dir, || {
             lint_rel(&["skills/a.md", "AGENTS.md"], "AGENTS.md")
         });

@@ -101,6 +101,10 @@ pattern! {
     LINK_TARGET = r"\]\([^)]*\)";
 }
 pattern! {
+    /// A reference-style link definition, `[label]: url`, whose URL is blanked the same way.
+    LINK_DEFINITION = r"^(\s*\[[^\]]+\]:)\s+\S+";
+}
+pattern! {
     /// An HTML tag, removed from the clean line.
     HTML_TAG = r"<[^>]{1,60}>";
 }
@@ -130,7 +134,11 @@ pattern! {
 }
 pattern! {
     /// A rule file named in a code span on the same line as a section reference.
-    NAMED_FILE = r"`((?:skills|projects)/[A-Za-z0-9_./<>-]+\.md|AGENTS\.md)`";
+    NAMED_FILE = r"`((?:skills|projects)/[A-Za-z0-9_./<>-]+\.md|AGENTS\.md|workspace\.md)`";
+}
+pattern! {
+    /// What follows a section reference that names its file in words, `in the project's delta`.
+    PLACE_IN_WORDS = r"^\s+(?:in|of|under)\s+(?:the|a|an|its|their|each|every)\s+[a-z]";
 }
 pattern! {
     /// A markdown heading, whose text is indexed lowercased.
@@ -140,6 +148,12 @@ pattern! {
 // The parenthetical check.
 
 pattern! {
-    /// A numbered marker or a plural `(s)`, which is not a parenthetical.
-    PAREN_EXEMPT = r"\(\d\)|\(s\)";
+    /// A quotation in double quotes, another author's words, blanked before the check.
+    QUOTATION = r#""[^"]*""#;
+}
+
+pattern! {
+    /// A numbered marker, a plural `(s)`, and parentheses holding a code span or a link alone, a
+    /// citation rather than a clause.
+    PAREN_EXEMPT = r"\(\d\)|\(s\)|\(\s*``\s*\)|\(\s*\[[^\]]*\]\s*\)";
 }

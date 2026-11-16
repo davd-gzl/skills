@@ -80,6 +80,10 @@ fn dated(line: &ProseLine, log: bool) -> Option<Finding> {
         return None;
     }
     let clean = &line.clean;
+    // A knowledge file's `Source:` line dates the published result, one of its conditions.
+    if clean.trim_start().starts_with("Source:") {
+        return None;
+    }
     let dated = DATED.is_match(clean) || ISO_DATE.is_match(clean) || CLOCK.is_match(clean);
     if !dated {
         return None;
@@ -150,12 +154,14 @@ fn env_claim(line: &ProseLine) -> Option<Finding> {
     ))
 }
 
-/// A parenthetical in prose. A heading, a table row, a numbered marker and a plural `(s)` pass.
+/// A parenthetical in prose. A heading, a table row, a numbered marker, a plural `(s)`, a
+/// citation and a parenthesis inside a quotation, whose author is not the rule's, pass.
 fn paren(line: &ProseLine) -> Option<Finding> {
     if is_heading(line) || line.clean.trim_start().starts_with('|') {
         return None;
     }
-    let stripped = PAREN_EXEMPT.replace_all(&line.clean, "");
+    let unquoted = QUOTATION.replace_all(&line.clean, "\"\"");
+    let stripped = PAREN_EXEMPT.replace_all(&unquoted, "");
     if !stripped.contains('(') {
         return None;
     }
@@ -170,13 +176,16 @@ fn paren(line: &ProseLine) -> Option<Finding> {
 /// Every file a rule points at, over `bare`, the text with its fences blanked. A file inside
 /// skills/ names its own repository's scripts by their path there, which renders on that
 /// repository's page: the workspace's scripts/ is tried first, that one second, then the path
-/// from the file's own directory, which a relative markdown link names. A delta's paths
-/// are read from inside its own checkout, so a miss there is a lead rather than a defect.
+/// from the file's own directory, which a relative markdown link names, then, for a delta, from
+/// its project's `checkout/`, where its own repository's paths live. A path that labels a link
+/// to a web page is that page's, and the lint has no copy of it to read.
 pub fn file_refs(path: &str, bare: &str, kind: Kind) -> Vec<Finding> {
     let mut out = Vec::new();
     for caps in FILE_REF.captures_iter(bare) {
+        let whole = caps.get(0).unwrap();
         let target = &caps[1];
-        if target.contains('<') || file_exists(path, target) {
+        let linked = bare[..whole.start()].ends_with('[') && bare[whole.end()..].starts_with("](http");
+        if target.contains('<') || linked || file_exists(path, target) {
             continue;
         }
         out.push(finding(
@@ -192,7 +201,9 @@ pub fn file_refs(path: &str, bare: &str, kind: Kind) -> Vec<Finding> {
 fn file_exists(from: &str, target: &str) -> bool {
     Path::new(target).exists()
         || (from.starts_with("skills/") && Path::new("skills").join(target).exists())
-        || Path::new(from).parent().is_some_and(|dir| dir.join(target).exists())
+        || Path::new(from).parent().is_some_and(|dir| {
+            dir.join(target).exists() || (from.starts_with("projects/") && dir.join("checkout").join(target).exists())
+        })
 }
 
 /// Every section a rule points at, `*Name*` alone or `*Name* in `file``. The star before the
@@ -218,6 +229,8 @@ pub fn section_refs(path: &str, bare: &str, corpus: &Corpus) -> Vec<Finding> {
             Some(file) if corpus.headings.contains_key(&file) => file,
             // A placeholder path, or a file outside the linted set, holds headings this run never read.
             Some(_) => continue,
+            // `*Name* in the project's delta`: a place named in words, which no path resolves.
+            None if PLACE_IN_WORDS.is_match(&bare[whole.end()..]) => continue,
             None => path.to_string(),
         };
         // A file guessed from the line that lacks the heading leaves the reference to its own file.

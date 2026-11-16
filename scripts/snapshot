@@ -3,20 +3,51 @@
 #
 # Commit a worktree's uncommitted build over its HEAD and print the commit's sha, so a review round
 # reads the build before anything is committed. Tracked edits, staged or not, deletions and untracked
-# files go in; ignored files stay out. The commit is dangling: no branch or ref moves, and the
-# worktree's files and index are left as they were, since the tree is built in a temporary index.
+# files go in; ignored files stay out, and so does an untracked compiled executable, a file in no index
+# that opens on ELF, Mach-O or PE magic bytes, since it is a build output: each one left out is named
+# on stderr, one line each, and stdout stays the sha alone. A tracked file goes in whatever it holds.
+# The commit is dangling: no branch or ref moves, and the worktree's files and index are left as they
+# were, since the tree is built in a temporary index.
 #
 #   ./scripts/snapshot <worktree>
 #   git -C <worktree> worktree add --detach <path> "$(./scripts/snapshot <worktree>)"
 set -euo pipefail
 wt=${1:?usage: snapshot <worktree>}
+# From the top, so the untracked listing below covers the whole tree, as `add -A` does.
+wt=$(git -C "$wt" rev-parse --show-toplevel)
 g() { git -C "$wt" "$@"; }
+
+# Exits 0 when the file opens on an executable's magic bytes: ELF; Mach-O, thin in either byte order
+# or fat, whose magic a Java class file shares, a build output too; PE, an MZ header whose offset at
+# 0x3c reaches "PE\0\0", so a text file opening on "MZ" stays a text file.
+compiled() {
+  local m b0 b1 b2 b3
+  m=$(od -An -tx1 -N4 -- "$1" 2>/dev/null) || return 1
+  case ${m//[[:space:]]/} in
+    7f454c46 | feedface | feedfacf | cefaedfe | cffaedfe | cafebabe | cafebabf) return 0 ;;
+    4d5a*) ;;
+    *) return 1 ;;
+  esac
+  read -r b0 b1 b2 b3 < <(od -An -tu1 -j60 -N4 -- "$1" 2>/dev/null) && [ -n "$b3" ] || return 1
+  m=$(od -An -tx1 -j$((b0 | b1 << 8 | b2 << 16 | b3 << 24)) -N4 -- "$1" 2>/dev/null) || return 1
+  [ "${m//[[:space:]]/}" = 50450000 ]
+}
+
 head=$(g rev-parse --verify HEAD)
 index=$(g rev-parse --path-format=absolute --git-path index)
 tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
 export GIT_INDEX_FILE="$tmp/index"
 # Starting from a copy keeps the stat cache, so only changed files are hashed again.
 if [ -f "$index" ]; then cp "$index" "$GIT_INDEX_FILE"; else g read-tree "$head"; fi
-g add -A
+# An untracked executable is excluded from the add rather than removed after it, so its blob is
+# never written. A symlink is stored as a link whatever it points at, so only a regular file is read.
+skip=()
+while IFS= read -r -d '' p; do
+  if [ ! -L "$wt/$p" ] && [ -f "$wt/$p" ] && compiled "$wt/$p"; then
+    skip+=(":(literal,exclude)$p")
+    echo "snapshot: left out an untracked compiled executable: $p" >&2
+  fi
+done < <(g ls-files -z --others --exclude-standard)
+g add -A -- . ${skip[@]+"${skip[@]}"}
 tree=$(g write-tree)
 g commit-tree "$tree" -p "$head" -m "snapshot: uncommitted work over $head"

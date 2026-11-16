@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # NOT AUDITED — AI-generated tooling. Review before executing in any privileged context.
 """scripts/snapshot over a linked worktree in a scratch repository: the printed commit holds every
-uncommitted edit over HEAD, ignored files left out, and the worktree's files, index and HEAD stay as
-they were."""
+uncommitted edit over HEAD, ignored files and untracked compiled executables left out, and the
+worktree's files, index and HEAD stay as they were."""
 import os
 import subprocess
 import tempfile
@@ -63,6 +63,53 @@ class Snapshot(unittest.TestCase):
         self.assertNotIn('gone.txt', files, 'a deletion in the worktree is a deletion in the snapshot')
         self.assertNotIn('build/out.bin', files, 'an ignored file stays out')
         self.assertEqual(git(self.wt, 'branch', '--contains', sha), '', 'no branch points at it')
+
+    def snapshot(self):
+        run = subprocess.run([str(SNAPSHOT), str(self.wt)], capture_output=True, text=True, env=ENV)
+        self.assertEqual(run.returncode, 0, run.stderr)
+        self.assertRegex(run.stdout, r'^[0-9a-f]{40}\n$', 'stdout is the sha alone')
+        return run.stdout.strip(), run.stderr
+
+    def blob(self, rev):
+        return subprocess.run(['git', '-C', str(self.wt), 'cat-file', 'blob', rev], check=True,
+                              capture_output=True, env=ENV).stdout
+
+    def test_an_untracked_compiled_executable_stays_out_and_is_named_on_stderr(self):
+        pe = bytearray(128)
+        pe[:2], pe[0x3c:0x40], pe[0x40:0x44] = b'MZ', (0x40).to_bytes(4, 'little'), b'PE\0\0'
+        builds = {'bin/tool': b'\x7fELF' + bytes(60), 'tool.macho': b'\xcf\xfa\xed\xfe' + bytes(60),
+                  'tool.exe': bytes(pe)}
+        for name, data in builds.items():
+            (self.wt / name).parent.mkdir(exist_ok=True)
+            (self.wt / name).write_bytes(data)
+        sha, err = self.snapshot()
+        files = git(self.wt, 'ls-tree', '-r', '--name-only', sha).splitlines()
+        changed = git(self.wt, 'diff', '--name-only', 'HEAD', sha).splitlines()
+        for name in builds:
+            self.assertNotIn(name, files, 'a build output stays out of the commit')
+            self.assertNotIn(name, changed, 'and out of its diff')
+        self.assertEqual(sorted(line.rsplit(': ', 1)[1] for line in err.splitlines()), sorted(builds),
+                         'each left-out path is named on stderr, one line each')
+        self.assertIn('untracked.txt', files, 'every other untracked file still goes in')
+
+    def test_an_untracked_binary_that_is_not_an_executable_goes_in(self):
+        fixtures = {'golden.png': b'\x89PNG\r\n\x1a\n' + bytes(56), 'codes.csv': b'MZ,Mozambique\n'}
+        for name, data in fixtures.items():
+            (self.wt / name).write_bytes(data)
+        sha, err = self.snapshot()
+        for name, data in fixtures.items():
+            self.assertEqual(self.blob(f'{sha}:{name}'), data)
+        self.assertEqual(err, '', 'nothing is left out')
+
+    def test_a_tracked_executable_that_changed_goes_in(self):
+        tool = self.wt / 'tool'
+        tool.write_bytes(b'\x7fELF' + bytes(60))
+        git(self.wt, 'add', 'tool')
+        git(self.wt, 'commit', '-qm', 'track a binary')
+        tool.write_bytes(b'\x7fELF' + b'\x01' * 60)
+        sha, err = self.snapshot()
+        self.assertEqual(self.blob(f'{sha}:tool'), b'\x7fELF' + b'\x01' * 60)
+        self.assertEqual(err, '', 'a tracked file is never filtered')
 
     def test_a_path_outside_a_repository_exits_non_zero(self):
         run = subprocess.run([str(SNAPSHOT), self.tmp.name], capture_output=True, text=True, env=ENV)

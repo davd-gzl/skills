@@ -68,7 +68,8 @@ Findings land as commits on the branch, never as a review to post.
 - Launch with `args.own_pr` true, which `./scripts/review-setup.sh` sets from the pull request's author and `--own-pr yes|no` overrides, and print its cost with `./scripts/review-plan.py --own-pr`: a solo round's judge then writes `findings.md` itself, and a pipeline round runs no writer and stops at the verdicts, where the parent runs the `round assemble` command the run returns, since an agent there would run that one command and nothing else.
 - Where the build is uncommitted, the round reads a snapshot of it:
   `./scripts/snapshot <worktree>` prints a dangling commit holding every
-  uncommitted edit over HEAD, the worktree and its index left as they were, and
+  uncommitted edit over HEAD, an untracked compiled executable aside, the
+  worktree and its index left as they were, and
   `git -C <worktree> worktree add --detach <path> <sha>` gives
   `./scripts/review-setup.sh` its head worktree, removed once the round ends.
 - Write `overview.md`, which the next round on the target reads.

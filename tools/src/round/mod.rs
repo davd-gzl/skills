@@ -70,10 +70,10 @@ pub const USAGE: &str = "round <subcommand> ...
       ' · <Band>', which is what post-review.sh --list and --band read, and SKIP in
       front where every row is a PLAUSIBLE Nit, Suggestion or Missing test or an UNVERIFIED
       row, which no judge ran.
-      A block on a file the --risk table does not list sits outside the diff, and goes
-      under ## Body as a bullet with no anchor; with --repo and --base, so does a block
-      whose line no hunk of git diff <base> <sha> covers. Exit 1 when a row's file:line is not at
-      the head.
+      A block whose line no hunk of git diff <base> <sha> covers sits outside the diff, and
+      goes under ## Body as a bullet with no anchor; where that diff yields no hunk, a block
+      on a file the --risk table does not list does. A block outside the diff that ships SKIP
+      keeps its own ## SKIP section. Exit 1 when a row's file:line is not at the head.
 
   check <round dir> [--overview <file>] [--out <file>] [--private <file>]
       --private names, one per line, that the draft, claims.md, candidates/ and verdicts/

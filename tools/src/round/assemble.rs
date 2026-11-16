@@ -756,10 +756,12 @@ fn hit_rate(rows: &[Row], tiers: &HashMap<String, String>) -> String {
 /// `findings.md`: one block per anchor in posting order, the header the draft will carry,
 /// SKIP in front where no row of it posts, and every field the writer composes from, row
 /// after row where two findings share the line; the check is on every row, since an unrun
-/// row is one the reader runs by hand. Where the risk table lists the diff's files, a block on
-/// a file outside them is a bullet under `## Body` instead, since GitHub refuses the whole
-/// review for an anchor off the diff; where `hunks` holds the diff's line ranges, so is a
-/// block on a listed file whose line no hunk covers.
+/// row is one the reader runs by hand. A block whose line no hunk of `hunks` covers is a
+/// bullet under `## Body` instead, since GitHub refuses the whole review for an anchor off the
+/// diff; where the diff yields no hunk, a block on a file the risk table does not list is. The
+/// risk table measures only the commits a re-review round names, so it never overrides a hunk.
+/// A block outside the diff that ships SKIP keeps its `## SKIP` section, since the Body posts
+/// whole and `./scripts/post-review.sh` refuses a Body bullet opening on SKIP.
 fn findings_md(
     rows: &[Row],
     url: &str,
@@ -780,15 +782,16 @@ fn findings_md(
             out.push_str(&format!("- {m}\n"));
         }
     }
-    let in_hunk = |r: &Row| {
-        hunks.is_empty()
-            || hunks
-                .get(&r.file)
-                .is_some_and(|rs| rs.iter().any(|&(a, z)| a <= r.line && r.line <= z))
-    };
     let in_diff = |b: &&Vec<&Row>| {
-        (diff_files.is_empty() || diff_files.contains_key(&b[0].file)) && in_hunk(b[0])
+        let r = b[0];
+        if hunks.is_empty() {
+            return diff_files.is_empty() || diff_files.contains_key(&r.file);
+        }
+        hunks
+            .get(&r.file)
+            .is_some_and(|rs| rs.iter().any(|&(a, z)| a <= r.line && r.line <= z))
     };
+    let section = |b: &&Vec<&Row>| in_diff(b) || block_skips(b);
     let link = |r: &Row| {
         if url.is_empty() {
             String::new()
@@ -801,14 +804,13 @@ fn findings_md(
             )
         }
     };
-    let outside: Vec<&Vec<&Row>> = blocks.iter().filter(|b| !in_diff(b)).collect();
+    let outside: Vec<&Vec<&Row>> = blocks.iter().filter(|b| !section(b)).collect();
     if !outside.is_empty() {
         out.push_str("\n## Body\n\n");
         for block in outside {
             let r = block[0];
-            let skip = if block_skips(block) { "SKIP " } else { "" };
             out.push_str(&format!(
-                "- {skip}{}: {}:{}{}, outside the diff, so no anchor\n",
+                "- {}: {}:{}{}, outside the diff, so no anchor\n",
                 r.band, r.file, r.line, link(r)
             ));
             for r in block {
@@ -816,7 +818,7 @@ fn findings_md(
             }
         }
     }
-    for block in blocks.iter().filter(in_diff) {
+    for block in blocks.iter().filter(section) {
         let r = block[0];
         let skip = if block_skips(block) { "SKIP " } else { "" };
         let link = link(r);
@@ -1575,6 +1577,47 @@ mod tests {
         assert!(findings.contains("\n## pkg/a.go:12"), "{findings}");
         assert!(findings.contains("- Nit: pkg/a.go:40, outside the diff, so no anchor"), "{findings}");
         assert!(!findings.contains("\n## pkg/a.go:40"), "{findings}");
+    }
+
+    /// The fixture's head made a git repository whose one commit after the base changes
+    /// `pkg/a.go:12`; returns the base sha.
+    fn change_line_twelve(head: &Path) -> String {
+        git(head, &["init", "-q"]);
+        git(head, &["add", "."]);
+        git(head, &["commit", "-q", "-m", "base"]);
+        let base = git(head, &["rev-parse", "HEAD"]).trim().to_string();
+        let mut lines: Vec<String> = "package a\n".repeat(50).lines().map(str::to_string).collect();
+        lines[11] = "package changed".to_string();
+        fs::write(head.join("pkg/a.go"), lines.join("\n") + "\n").unwrap();
+        git(head, &["commit", "-q", "-am", "head"]);
+        base
+    }
+
+    #[test]
+    fn a_hunk_covered_line_anchors_though_the_risk_table_lacks_its_file() {
+        let (round, head) = fixture("hunk-over-risk");
+        let base = change_line_twelve(&head);
+        // A re-review round's risk table: only the files its own commits touched, pkg/a.go changed
+        // through a base merge alone.
+        let risk = round.join("risk.json");
+        fs::write(&risk, r#"{"hot": ["pkg/b.go"], "warm": [], "cold": []}"#).unwrap();
+        let (_, _, findings) = run_on(
+            &round,
+            &["--repo", &head.display().to_string(), "--base", &base, "--risk", &risk.display().to_string()],
+        );
+        assert!(findings.contains("\n## pkg/a.go:12 · Warning\n"), "{findings}");
+        assert!(!findings.contains("- Warning: pkg/a.go:12"), "{findings}");
+    }
+
+    #[test]
+    fn a_skipped_finding_outside_the_diff_is_a_skip_section_never_a_body_bullet() {
+        let (round, head) = fixture("skip-outside");
+        let base = change_line_twelve(&head);
+        let (_, _, findings) = run_on(&round, &["--repo", &head.display().to_string(), "--base", &base]);
+        assert!(findings.contains("\n## SKIP pkg/b.go:4 · Nit\n"), "{findings}");
+        assert!(findings.contains("\n## SKIP pkg/b.go:60 · Nit\n"), "{findings}");
+        assert!(!findings.lines().any(|l| l.starts_with("- SKIP")), "{findings}");
+        assert!(!findings.contains("\n## Body\n"), "only skipped blocks lie outside the diff: {findings}");
     }
 
     #[test]

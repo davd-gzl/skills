@@ -345,6 +345,23 @@ from it is measured here before it is trusted.
   same-turn commit rule, since a commit on `main` goes up with the next push
   any session sends; the reply to the Stop hook asking to commit `skills/`
   names the open loop.
+- In that loop, each round runs every command a rule line in the diff adds,
+  within the next bullet, on the kind of target the rule fires on, and returns
+  as a defect any whose output does not show what its sentence says.
+- In that loop, a round runs only a command that writes nothing, here or on a
+  remote, beyond `FETCH_HEAD`, remote-tracking refs, the git object store, a
+  build or test cache and its temporary directory, and new files of its own
+  under `<scratch>`, and that no rule in the corpus forbids there.
+  Every other command, a push, a post, a commit, a delete, an overwrite, a
+  kill or a reset, standing word or not, is not run, and comes back unverified
+  beside its `--help` and the defaults it relies on.
+- In that loop, where a command the diff adds lists items, each round checks
+  its row count against an independent count of the same set, since a default
+  cap prints plausible rows.
+- In that loop, each round greps the corpus for rules naming each command the
+  diff adds, by the command's name, since a rule may require a flag the
+  command leaves out: `grep -nwF "<command>" AGENTS.md
+  workspace.md skills/*.md skills/*/*.md projects/*/*.md projects/*/skills/*.md`.
 - In that loop, when a round's defect sits in the same function, flag or rule
   bullet as a defect an earlier round of it fixed, stop the rounds and read
   that part whole. Drop it where the purpose never asked for it, naming

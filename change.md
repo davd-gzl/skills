@@ -158,14 +158,13 @@ re-read on each later call there, so a fix run in the session's own thread
 makes the rest of the session pay for its test output and file reads.
 
 1. **Check that nothing already covers the problem**, before the branch exists,
-   and again before the pull request opens and before the user's `ready`.
+   and again before the pull request opens and before acting on `o`, `ready`
+   or `open`.
    Search the target repo's open and merged pull requests and its issues for the
    symbol the finding names and for the behaviour the fix changes, then the
-   review corpus on disk and the upstream the repo forks. A duplicate found after
-   the diff is a diff thrown away; one found at the later searches goes to the
-   user before the pull request opens or goes ready, with
-   `git fetch <remote> pull/<n>/head` and
-   `git diff FETCH_HEAD <this head> --stat`.
+   review corpus on disk and the upstream the repo forks. A duplicate found
+   after the diff is a diff thrown away; one found at the later searches goes to
+   the user, linked, before the pull request opens or goes ready.
 2. **Understand.** `gh issue view <n> -R <repo>`, then read the code it names
    and run the repro it carries. Before editing, `git grep` the callers of the
    function the issue names, or every page stating the fact a docs change
@@ -242,9 +241,10 @@ makes the rest of the session pay for its test output and file reads.
    that cannot run locally as not run, never as passing, naming the missing
    dependency and the closest real substitute. Before a job goes green by a
    skip, an allow-list entry or a loosened threshold, settle what the flagged
-   value should be from the system it names, a DNS lookup or the deployment's
-   config for a host, and correct the value where it is wrong: the skip ships
-   only where the value is right and the check errs. A check whose reach the diff
+   value should be from its source, a DNS lookup, the deployment's
+   config for a host, or the same line on the canonical remote's other
+   branches, and correct the value where it is wrong: the skip ships only
+   where the value is right and the check errs. A check whose reach the diff
    changes, a linter now walking new files or a suppression that moved, is
    proved by breaking what it covers, watching it fire, and restoring it. For a
    behaviour-preserving refactor of a pure function, ship an equivalence proof
@@ -262,7 +262,8 @@ makes the rest of the session pay for its test output and file reads.
    class the fix closes, a truncation, an alias, a copy nothing reads, and the
    test meets it with an input the right code accepts: an input every version
    refuses, all-zero bytes for one, reddens no mutation. A guard choosing
-   between two behaviours is mutated toward each. A guard a mutation turned
+   between two behaviours is mutated toward each. A test of a refusal asserts
+   the guard's own error, never only that one occurred. A guard a mutation turned
    red stays proven until a fix changes it: a later pass mutates only the
    guards its own fix changed.
    Once green, run the issue's own repro from step 2 again, the way its
@@ -277,8 +278,18 @@ makes the rest of the session pay for its test output and file reads.
    callers at once; state that never expires; every return and call shape that
    reaches the guard; the largest input the deployed configuration admits, its
    configured limit or size cap, never one workload's figure. An axis it cannot
-   run goes to the plan as an open call with its measured cost. Apply each,
-   re-run the checks, read again. The
+   run goes to the plan as an open call with its measured cost, except the
+   deployed limit, which runs or has its growth curve run per *Repro rules* in
+   `skills/review.md`. A fix that caps, charges, adds work per call or per byte,
+   or changes who waits on a lock times itself against its merge base with the
+   canonical branch: time and allocations per operation, and wall time under
+   the load it targets, at a small and a typical size, at the deployed limit or
+   its growth curve, and at the shape that costs most per byte, many minimal
+   items or content colliding in a hash or substring search, each a benchmark
+   run several times per side and compared statistically, `benchstat` in Go. A
+   rise is fixed, or, where only the user can weigh it against what the fix
+   buys, becomes a numbered open call carrying its numbers. Apply
+   each, re-run the checks, read again. The
    first pass reads in this session; every later pass, one step 9 reopens
    included, runs in a fresh agent given only the diff and this file's
    path, told to return findings and edit nothing; the parent applies them.
@@ -377,9 +388,6 @@ Before proposing to close a pull request another one replaces, diff each
 closed head against the replacement, `git diff <replacement head> <closed head> --stat`
 then the hunks, and name in the reply proposing the close every user-visible
 feature the replacement drops: each is carried over, or named as dropped.
-
-Before `./scripts/post-fix.sh` runs, and before the user's `ready`, run step 1
-of *Fix* again.
 
 On the word `post`, run `./scripts/post-fix.sh <review-dir> <change-dir>`: it
 reads `issue.md` and `pr-body.md`, creates what is missing, links the pull

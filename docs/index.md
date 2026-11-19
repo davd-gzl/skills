@@ -98,8 +98,9 @@ Everything starts with a review, on a PR, a branch, or a red CI.
    ships the test, paste-ready.
 7. **Write.** `overview.md` for the reader who knows nothing about the subject,
    `comment_<model>.md` with one anchored section per finding, posted or
-   `SKIP`, and `claims.md`, the record: the verdict, one row per candidate with
-   its run output, every claim linked to the reviewed line.
+   `SKIP`, and `claims.md`, the record: a table of every finding with where the
+   draft put it, then one block per candidate with its run output, every claim
+   linked to the reviewed line.
 8. **Text pass.** `round links` resolves every link of the draft and the
    overview at its sha and checks its range into `links.md`; one agent adds
    whether the landed lines carry each claim, then rewrites every line that
@@ -125,7 +126,7 @@ flowchart TD
   T --> O[overview agent: the subject for a reader who knows nothing,<br/>on disk beside the finders, never at the end]
   F[finders, one per bundle per angle the bundle has material for,<br/>the hot bundles' twice under deep, read only] --> M[merge per file:line]
   M --> R[reflector: one read of every candidate against the diff,<br/>drops what a quoted line contradicts, asks what is missing]
-  R -->|Critical, Warning, a rewrite: the finder ran it| J[judges, six per agent, own worktree, xhigh:<br/>the artifact rerun, the code read, the base where causal]
+  R -->|Critical, Warning, a rewrite: the finder ran it| J[judges, six per agent, own worktree, high:<br/>the artifact rerun, the code read, the base where causal]
   R -->|Missing test, Suggestion, Nit| K[judges by read, twelve per agent:<br/>an absence a grep settles, a read settles a Nit]
   J --> A[round assemble: claims.md and findings.md<br/>from candidates/ and verdicts/ on disk]
   K --> A
@@ -137,10 +138,10 @@ flowchart TD
 
 | Stage | Reads | Returns | Tier |
 | --- | --- | --- | --- |
-| finder, one per angle with material, every angle twice under `deep` | the diff with its comments blanked for five angles, its angle's rule sections, the catalog | candidates: `file:line`, failure scenario, the check, the band, whether the finder ran the read-shaped half itself | xhigh, cap 6 per finder and 12 above Nit; `deep` 16 and 16 |
-| verifier, the judges | six run-shaped candidates of one bundle per agent, the finder's artifact and evidence in hand, a tool-call budget; twelve read-shaped per agent | CONFIRMED, PLAUSIBLE or REFUTED on the judge's own rerun and read, the exact lines or a concrete input quoted, the base compared where the claim is causal | xhigh |
+| finder, one per angle with material, every angle twice under `deep` | the diff with its comments blanked for five angles, its angle's rule sections, the catalog | candidates: `file:line`, failure scenario, the check, the band, whether the finder ran the read-shaped half itself | high, cap 6 per finder and 12 above Nit; `deep` 16 and 16 |
+| verifier, the judges | six run-shaped candidates of one bundle per agent, the finder's artifact and evidence in hand, a tool-call budget; twelve read-shaped per agent | CONFIRMED, PLAUSIBLE or REFUTED on the judge's own rerun and read, the exact lines or a concrete input quoted, the base compared where the claim is causal | high |
 | writer | verified findings, prior rounds, the candidate rows already tabled | `overview.md`, `comment_<model>.md`, `claims.md` | high |
-| text pass | the draft, the overview, `links.md` from `round links` | the claim column, the rewrites applied | xhigh |
+| text pass | the draft, the overview, `links.md` from `round links` | the claim column, the rewrites applied | high |
 
 The round on disk:
 
@@ -150,8 +151,9 @@ projects/<repo>/reviews/<slug>/
   <n>-<sha>/
     comment_<model>.md   Event, Verdict, Model, Commit, Overview, Open the code, Round; the Body;
                          one section per finding, posted or SKIP, its repro collapsed
-    claims.md            one row per candidate: state, band, file:line, the check,
-                         the output, the artifact, the tier; the completeness answers
+    claims.md            the Findings table: line, band, state, merge base, where the
+                         draft put it; a block per candidate with its check and output;
+                         the Record the round tools parse; the completeness answers
     findings.md          the draft's skeleton from round assemble, one block per anchored line
                          in posting order, the check on each
     links.md             every link of the draft and the overview, resolved at its sha,
@@ -181,12 +183,12 @@ own argument and waits for the outcome table to measure it.
 | Decision | Why | Evidence |
 | --- | --- | --- |
 | The finder runs its own Warning checks; a judge reruns and decides | Reading is not verifying: a tool-running agent identified 95 % of false positives in static-analysis warnings against 36 % for prompt-only, and 80 agents agreed on a nonexistent OpenSSL bug that one test killed; over six of our rounds fresh verifiers rebuilding the finder's work refuted none of 52 Warnings, while a lone agent running its own checks refuted three of its six | [Sifting the Noise 2026](https://arxiv.org/abs/2601.22952), the rounds' claims tables |
-| A judge in a fresh context, filing no finding of its own | Refuters holding the claim and none of the finder's reasoning killed 79 % of candidates; a validator that cannot log findings is the shape Cloudflare's harness keeps behind hunters that produce the proof | [Refute-or-Promote 2026](https://arxiv.org/abs/2604.19049), Cloudflare, *Build your own vulnerability harness*, 2026 |
+| A judge in a fresh context, filing no finding of its own | Refuters holding the claim and none of the finder's reasoning killed 79 % of candidates; a validator that cannot log findings is the shape Cloudflare's harness keeps behind hunters that produce the proof | [Refute-or-Promote 2026](https://arxiv.org/abs/2604.19049), Cloudflare, "Build your own vulnerability harness", 2026 |
 | Run-shaped candidates six per judge, reads twelve | A scoring judge lost 45 % of human agreement at two items; an auditor held to seven and fabricated at eight; plain answer extraction held to fifteen, so a rerun-and-read batch stays at six and a read batch at twelve | [BatchGEM 2026](https://arxiv.org/abs/2603.11009) |
 | Routing by band: the Warning band and a rewrite get the rerun, the rest a read | A Missing test is an absence a grep settles and a read settles a Nit; on 6187 and 6177 every Nit the verifiers refuted was refuted by reading | the rounds' claims tables |
 | Small verifiers on the cheaper family tier | Their checks open with grep, count, ls or wc, or run a refactor's tests, and a weak verdict escalates to a full-tier agent, so a miss there costs one escalation while the stage costs a fifth; the next round's confirmed count against the last measures it | *reason* |
 | One vote per claim | Nine same-family judges carry 2.2 independent votes and the best single judge beat the panel; a cross-family refuter caught 16 % of same-family misses, and every model here is one family | [Nine Judges, Two Effective Votes 2026](https://arxiv.org/html/2605.29800), [Refute-or-Promote 2026](https://arxiv.org/abs/2604.19049) |
-| Finders and hard verifiers at `xhigh` | On gno#6187 finders at xhigh returned all six known Warnings and finders at high three, for a sixth less output; a miss at the verifier is final | *measured, one run each* |
+| Finders at `xhigh`, every other stage at `high` | The user's call. On gno#6187 finders at xhigh returned all six known Warnings and finders at high three, for a sixth less output, so a missed Warning names the effort in its retro | *user's word; the xhigh run measured once* |
 | Code before the description; the claims angle alone reads the description first | "Bug-free" framing on vulnerable code cut detection by 16.2 to 93.5 points across six models; "vulnerable" framing on clean code raised false positives by 0.8 to 13.6 | [Mitropoulos et al. 2026](https://arxiv.org/abs/2603.18740) |
 | Five finders read a copy of head with comment lines blanked | The same framing sits inside the code, in a godoc calling something bounded or safe; the claims angle keeps the comments as its subject, the refactor angle as its lines | [Mitropoulos et al. 2026](https://arxiv.org/abs/2603.18740); *reason* for the extension |
 | One reflector, before the verifiers, drops and asks what is missing | It reads every candidate once against the diff, drops only what a code line contradicts, and asks the completeness question the critic used to ask beside the verifiers at three times the cost; its candidates verify in the first wave | *measured: 5 of 75 dropped, 3 on a comment's word, 3 added* |
@@ -206,7 +208,7 @@ own argument and waits for the outcome table to measure it.
 | [`review-modes.md`](https://github.com/davd-gzl/skills/blob/main/review-modes.md) | a run covers many targets, or the reviewer authored the target | the deltas of that case |
 | [`review-comment.md`](https://github.com/davd-gzl/skills/blob/main/review-comment.md) | `comment_<model>.md` is drafted, regenerated or posted | the Body, the inline-comment shape, the final check, posting |
 | [`issue.md`](https://github.com/davd-gzl/skills/blob/main/issue.md) | a fix needs an upstream issue nobody has filed | `issue.md`, the problem and never the remedy |
-| [`change.md`](https://github.com/davd-gzl/skills/blob/main/change.md) | an issue or a finding goes to a pull request | `spec.md` and `plan.md` with their numbered open calls, the worktree, the fix, the local CI run, the pull request on my fork |
+| [`change.md`](https://github.com/davd-gzl/skills/blob/main/change.md) | an issue, a finding, or a docs or test-only change goes to a pull request | `spec.md` and `plan.md` with their numbered open calls, the worktree, the fix, the local CI run, the pull request on my fork |
 | [`pr-body.md`](https://github.com/davd-gzl/skills/blob/main/pr-body.md) | a change is proposed, before the pull request opens | the title and body, in one of four shapes, looping until a full pass changes nothing |
 | [`pr-body/docs.md`](https://github.com/davd-gzl/skills/blob/main/pr-body/docs.md) | the change is documentation pages | no headers, the fact the pages had wrong first, a skeleton |
 | [`pr-body/one-concern.md`](https://github.com/davd-gzl/skills/blob/main/pr-body/one-concern.md) | one concern, which is every bug fix | `## Problem` and `## Fix`, four short paragraphs, a skeleton |

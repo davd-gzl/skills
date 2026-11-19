@@ -114,7 +114,7 @@ The settled shape, in order:
 2. **A collapsed `<details>` repro**, in the harness the repo already uses, paste-and-run, header per `skills/review.md`.
 3. **One line above the output** saying what failed and why the failure is the finding.
 4. **The output**, pasted from a run of that exact block.
-5. **Mechanism and any sweep table**, after the output, still inside the `<details>`.
+5. **Mechanism the visible sentence leaves out, one sentence, and any sweep table**, after the output, still inside the `<details>`, the sentence only where the output does not show why.
 6. **Inline findings**, each `## <path>:<line> [gh](<url>)` with the path a bare token, then a band prefix and plain sentences.
 
 Everything a reader needs to act sits above the fold; everything they need to check sits below it. Write the visible part first, then move each surviving sentence down until one remains above.

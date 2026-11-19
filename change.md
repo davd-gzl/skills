@@ -1,6 +1,6 @@
 ---
 name: change
-description: Use when taking an issue or a review finding to a pull request. Covers the change directory, spec.md and plan.md with their numbered open calls, the worktree, the fix, the CI run, and the pull request upstream.
+description: Use when taking an issue, a review finding, or a docs or test-only change to a pull request. Covers the change directory, spec.md and plan.md with their numbered open calls, the worktree, the fix, the CI run, and the pull request upstream.
 argument-hint: <issue-number|url|description>
 ---
 
@@ -146,6 +146,10 @@ gh repo fork <owner>/<repo> --remote-only --remote-name fork
 
 ## Fix
 
+A docs or test-only change runs every step below like a fix: a page's claims
+and examples meet step 10's claims angle, and each guard a test pins is
+mutated in the code under test per step 7.
+
 Before step 2, dispatch steps 2 to 9 to one agent, given the finding, this
 file's path and the project's `AGENTS.md`, and keep only its report: the diff
 stat, the class evidence, each test with the mutation that turned it red, and
@@ -153,10 +157,15 @@ the open calls. Every tool result stays in the thread that called it and is
 re-read on each later call there, so a fix run in the session's own thread
 makes the rest of the session pay for its test output and file reads.
 
-1. **Check that nothing already covers the problem**, before the branch exists.
+1. **Check that nothing already covers the problem**, before the branch exists,
+   and again before the pull request opens and before the user's `ready`.
    Search the target repo's open and merged pull requests and its issues for the
-   symbol the finding names, then the review corpus on disk and the upstream the
-   repo forks. A duplicate found after the diff is a diff thrown away.
+   symbol the finding names and for the behaviour the fix changes, then the
+   review corpus on disk and the upstream the repo forks. A duplicate found after
+   the diff is a diff thrown away; one found at the later searches goes to the
+   user before the pull request opens or goes ready, with
+   `git fetch <remote> pull/<n>/head` and
+   `git diff FETCH_HEAD <this head> --stat`.
 2. **Understand.** `gh issue view <n> -R <repo>`, then read the code it names
    and run the repro it carries. Before editing, `git grep` the callers of the
    function the issue names, or every page stating the fact a docs change
@@ -231,7 +240,11 @@ makes the rest of the session pay for its test output and file reads.
    target may be formatting only, and a local container's env file may set what
    the job leaves at its default. Report a job
    that cannot run locally as not run, never as passing, naming the missing
-   dependency and the closest real substitute. A check whose reach the diff
+   dependency and the closest real substitute. Before a job goes green by a
+   skip, an allow-list entry or a loosened threshold, settle what the flagged
+   value should be from the system it names, a DNS lookup or the deployment's
+   config for a host, and correct the value where it is wrong: the skip ships
+   only where the value is right and the check errs. A check whose reach the diff
    changes, a linter now walking new files or a suppression that moved, is
    proved by breaking what it covers, watching it fire, and restoring it. For a
    behaviour-preserving refactor of a pure function, ship an equivalence proof
@@ -262,8 +275,10 @@ makes the rest of the session pay for its test output and file reads.
    each, never argues it, on every axis that reaches it: summed over a batch, a
    loop or a value shared at many places; many identities from one host; two
    callers at once; state that never expires; every return and call shape that
-   reaches the guard. An axis it cannot run goes to the plan as an open call
-   with its measured cost. Apply each, re-run the checks, read again. The
+   reaches the guard; the largest input the deployed configuration admits, its
+   configured limit or size cap, never one workload's figure. An axis it cannot
+   run goes to the plan as an open call with its measured cost. Apply each,
+   re-run the checks, read again. The
    first pass reads in this session; every later pass, one step 9 reopens
    included, runs in a fresh agent given only the diff and this file's
    path, told to return findings and edit nothing; the parent applies them.
@@ -362,6 +377,9 @@ Before proposing to close a pull request another one replaces, diff each
 closed head against the replacement, `git diff <replacement head> <closed head> --stat`
 then the hunks, and name in the reply proposing the close every user-visible
 feature the replacement drops: each is carried over, or named as dropped.
+
+Before `./scripts/post-fix.sh` runs, and before the user's `ready`, run step 1
+of *Fix* again.
 
 On the word `post`, run `./scripts/post-fix.sh <review-dir> <change-dir>`: it
 reads `issue.md` and `pr-body.md`, creates what is missing, links the pull

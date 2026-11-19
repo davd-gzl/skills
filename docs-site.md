@@ -217,6 +217,8 @@ named thing and on pitching to the audience included.
 
 ## Facts
 
+- A page edit going to a pull request also takes *Fix* in `skills/change.md`
+  whole.
 - Before moving a page's code links to a newer commit, run
   `./scripts/repin-links.py <page> <worktree> <old sha> <new sha>`: it carries
   every anchor whose lines survived and exits 1 naming each range the change

@@ -17,7 +17,9 @@ Left: the Nit at line 88, which needs your call on the band.
 
 [#42](https://github.com/acme/app/pull/42), [comment](https://github.com/acme/workspace/blob/main/projects/app/reviews/42-cache/1-0123456/comment_<model>.md)
 
-TL;DR: All good: seven findings, one Warning; waits on `post`.
+TL;DR: seven findings, one Warning; waits on `post`.
+
+All good
 ```
 
 ## What it opens with
@@ -138,11 +140,11 @@ This job runs on a schedule only, and GitHub disables those after 60 days.
   which. CI not yet finished on a push, queued, running or awaiting approval,
   leaves it `All good`, named on `Left:`. A word or a decision waited on is no
   fault: the word stays on the `` waits on `<word>` `` tail, the decision on
-  `Left:`, while other work on `Left:` makes it `Not all good`. The status
-  opens the `TL;DR:` line where the reply carries one, followed by a colon, and
-  is its last line otherwise, under the links, so the user never has to ask
-  whether everything is fine. A turn ending while an agent still runs, on its
-  forecast line, carries none.
+  `Left:`, while other work on `Left:` makes it `Not all good`. The status is
+  the reply's last line, alone, under the links and the `TL;DR:` line where
+  the reply carries one, so the user never has to ask whether everything is
+  fine. A turn ending while an agent still runs, on its forecast line, carries
+  none.
 
 ## Links
 

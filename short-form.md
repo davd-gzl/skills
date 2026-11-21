@@ -38,6 +38,7 @@ callback sees the same room either way."
 - Open on what the reader must do or decide, after the `Done:` or `Not done:` line a reply ending a request's work opens on, per `skills/reply.md`. A sha, a test name or a figure stays only where the reader uses it.
 - A reply longer than one block closes with a `TL;DR:` line, one sentence carrying the
   finding and the word it waits on and no status, with the status `skills/reply.md` asks for alone under it. The `TL;DR:` line is what gets read.
+- A long explanation puts its summary only on that closing `TL;DR:` line, never in a `TLDR` heading on top.
 - Drop an article only where the sentence still reads in one pass. Stacked article-free fragments cost the reader a second pass, which is the failure this register exists to prevent.
 - No filler, no pleasantries, no hedging, "I think" included; short synonyms, technical terms exact, code and quoted errors verbatim.
 - Fragments keep a verb agreeing with their subject, "endpoint does" never "endpoint do", and no `=` or arrow chains.

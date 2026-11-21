@@ -57,10 +57,13 @@ This job runs on a schedule only, and GitHub disables those after 60 days.
 ---
 ```
 
-- Show the text before creating anything, and again every time it is asked for,
-  a question about where it lives included. A body, a reply, an inline comment,
-  a commit message, a label, a rename. Show the whole artifact, never only the
-  part that goes out.
+- Show the text before creating anything, again in the reply of every turn that
+  edits it, or in the reply after the last agent returns where one still runs,
+  and every time it is asked for, a question about where it lives included. A
+  body, a reply, an inline comment, a commit message, a label, a rename. Show
+  the whole artifact, never only the part that goes out and never only the line
+  the edit changed: a draft shown again is what the user approves, never a
+  recap.
 - Answer a question about a draft in the reply, and leave the draft alone. Edit
   it when they say what to change, or when answering turns up a defect, which is
   applied and reported rather than offered.

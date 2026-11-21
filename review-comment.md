@@ -98,6 +98,7 @@ Governed by the *Posted comments* section of `skills/writing-style.md`. The rule
 
 - Essentials only: the problem and why it matters. No stacked clauses, no symbol-chain walkthroughs, no scenario-painting.
 - Lead with the specific gap. Never open by explaining the author's own code or restating what the change claims.
+- Rule out only a design the author raised, in the code, the description or a thread. Arguing against one they never raised reads as assuming they would pick it.
 - **Every term in a finding is one a maintainer who has not seen the code can expand**, and a cut that leaves one they cannot has deleted the claim rather than shortened it. Name the expression, the guard or the call, never its position: `the line below` and `this comparison` have no referent under a range anchor, and a word coined to compress, a link that `names no package` for one pointing at a path no package occupies, reads as jargon the reader looks up and does not find.
 - A latent-risk finding states the current safety in one clause and stops.
 - State the position as the reviewer's own, in one line. This covers design and layering calls.

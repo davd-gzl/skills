@@ -135,13 +135,14 @@ This job runs on a schedule only, and GitHub disables those after 60 days.
   line.
 - A reply ending a request's work closes on its status: `All good` when
   nothing failed, went unchecked or was left open, else `Not all good` and
-  which. A word or a decision waited on is no fault: the word stays on the
-  `` waits on `<word>` `` tail, the decision on `Left:`, while other work on
-  `Left:` makes it `Not all good`. The status opens the
-  `TL;DR:` line where the reply carries one, followed by a colon, and is its
-  last line otherwise, under the links, so the user never has to ask whether
-  everything is fine. A turn ending while an agent still runs, on its forecast
-  line, carries none.
+  which. CI not yet finished on a push, queued, running or awaiting approval,
+  leaves it `All good`, named on `Left:`. A word or a decision waited on is no
+  fault: the word stays on the `` waits on `<word>` `` tail, the decision on
+  `Left:`, while other work on `Left:` makes it `Not all good`. The status
+  opens the `TL;DR:` line where the reply carries one, followed by a colon, and
+  is its last line otherwise, under the links, so the user never has to ask
+  whether everything is fine. A turn ending while an agent still runs, on its
+  forecast line, carries none.
 
 ## Links
 

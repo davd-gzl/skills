@@ -152,8 +152,9 @@ mutated in the code under test per step 7.
 
 Before step 2, dispatch steps 2 to 9 to one agent, given the finding, this
 file's path and the project's `AGENTS.md`, and keep only its report: the diff
-stat, the class evidence, each test with the mutation that turned it red, and
-the open calls. Every tool result stays in the thread that called it and is
+stat, the class evidence, each test with the mutation that turned it red, the
+items step 5 fixed instead of leaving under `## Not fixed` and those it left,
+and the open calls. Every tool result stays in the thread that called it and is
 re-read on each later call there, so a fix run in the session's own thread
 makes the rest of the session pay for its test output and file reads.
 
@@ -217,6 +218,23 @@ makes the rest of the session pay for its test output and file reads.
    section, where the maintainer can ask for it, never to a second issue,
    which puts a tracker item in front of maintainers who did not ask for one. A
    finding whose absence makes the feature not work is never in this class.
+
+   Whenever an item would go to `## Not fixed` before the pull request opens,
+   here, in steps 8 to 10 or while the first body is written, a sibling with
+   the same defect, a limit of the fix or a cost it leaves, fix it on this
+   branch where the fix adds no new type, option, field or dependency, sits in
+   the area the title names, keeps the pull request's class label, and no
+   other open pull request covers that path, step 1's search run on the
+   sibling's own symbol. On an open pull request it runs only where the user
+   asks for that item. A fix added after step 7 reopens steps 7 and 8. For
+   that item this overrides the sentence above on transitions nobody has met, the smallest-diff sizing under *Spec and plan*,
+   step 8's sentence sending out-of-scope code to its own branch, the line of
+   *Own PR* in `skills/review-modes.md` holding back an observable behaviour
+   change and a fix to a defect predating the branch, which its *Consent*
+   bullet in the workspace `AGENTS.md` lifts for this item too, and any delta
+   sending a follow-up to an issue draft. What needs new machinery or a design
+   call stays a `## Not fixed` bullet. The tell is a `## Not fixed` bullet
+   whose fix is a few lines in a file the pull request already changes.
 6. **Implement** inside the worktree. A defect met on the way is fixed in the
    same worktree and named in the body. Comments follow `skills/writing-style.md`,
    and a comment stating what the code does is a claim, run before it is written.

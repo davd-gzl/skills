@@ -165,6 +165,25 @@ makes the rest of the session pay for its test output and file reads.
    review corpus on disk and the upstream the repo forks. A duplicate found
    after the diff is a diff thrown away; one found at the later searches goes to
    the user, linked, before the pull request opens or goes ready.
+
+   Among what the search before opening finds, each of the user's own open
+   pull requests on the same repository that fixes the same defect on another
+   code path, the same unbounded work reached through a second caller for
+   one, is named by number in the new body's `## Not fixed` bullet for that
+   path.
+
+   In the turn the new pull request opens, each of those gets a bullet naming
+   the new one and the path it fixes, under its `## Not fixed` or the heading
+   it uses for what the fix leaves standing, added to the live body
+   rather than re-derived, overriding check 6 of *Loop* in
+   `skills/pr-body.md` for that bullet. Write it in the `pr-body.md` whose
+   `Target:` line is that pull request's URL, else in a scratch file holding
+   that line and a `## Body` line, then a newline; run
+   `./scripts/pr-body-apply --pull <file>` before the edit and
+   `./scripts/pr-body-apply <file>` after it.
+   ```bash
+   grep -rlx 'Target: <url>' projects --include=pr-body.md
+   ```
 2. **Understand.** `gh issue view <n> -R <repo>`, then read the code it names
    and run the repro it carries. Before editing, `git grep` the callers of the
    function the issue names, or every page stating the fact a docs change

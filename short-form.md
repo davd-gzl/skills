@@ -35,6 +35,7 @@ Samples of the register. A status line: "Gitlink moved, push refused. Rebase ont
 callback sees the same room either way."
 
 - One idea, in the fewest lines that settle it. No recap of what was already said. Stop when it lands.
+- An explanation of how something works runs top down in one flow: what the thing is for, in the user's words, then how it works, then the code names, each sentence resting on the one before. Never split it into a high-level part and a low-level part; the closing `TL;DR:` line stays. The tell is an explanation whose first line names a symbol the user has not met.
 - Open on what the reader must do or decide, after the `Done:` or `Not done:` line a reply ending a request's work opens on, per `skills/reply.md`. A sha, a test name or a figure stays only where the reader uses it.
 - A reply longer than one block closes with a `TL;DR:` line, one sentence carrying the
   finding and the word it waits on and no status, with the status `skills/reply.md` asks for alone under it. The `TL;DR:` line is what gets read.

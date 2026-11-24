@@ -38,10 +38,17 @@ All good
 - Say what the code does, not what it took to get there. What was tried and
   dropped belongs in the change's `plan.md`.
 - **A message about another target than the one the session works on gets one
-  line naming both, before any command, and waits for the user to confirm.**
+  line naming both, before any command that acts on it, and waits for the user
+  to confirm.**
   A message meant for another chat reads the same as a new task, and work
   started on it is spent before the user sees the mix-up:
   `This session is on acme/app#42; this asks about acme/lib#7. Switch?`
+  A pasted passage naming no target counts: before acting on a pasted passage
+  the session did not write, grep a distinctive phrase of several words from it
+  on one line, `grep -rlF --include='*.md' --exclude-dir=checkout '<phrase>'
+  projects/*/changes projects/*/reviews`, and where the file it prints sits
+  under another change than the session's, that line names both; where it
+  prints nothing, the passage is read as about the session's own target.
 
 ## A draft
 

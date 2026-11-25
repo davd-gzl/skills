@@ -122,6 +122,11 @@ This job runs on a schedule only, and GitHub disables those after 60 days.
   the colon is imperative and names every destination it covers: what opens,
   in which repository, against which base, and whether it opens as a draft or
   ready.
+- Before offering a word that pushes, `p`, `pr`, `pf` or `rlp`, write one
+  `Trust:` line directly above the first such word line: `high, no need to
+  reverify` where this session itself opened every diff, test run and capture
+  going out, else `low, reverify` and each one it did not open, which `Left:`
+  then does not repeat.
 - When a reply ends on a status or links table, put the word lines directly
   above it, one for every action that table leaves pending: `p` while anything
   in it is unpushed, and the coined word of every next step the reply proposed.

@@ -2,7 +2,7 @@
 name: review
 description: Use whenever a pull request, a branch, a working diff or a red CI is to be reviewed, in any project, and whenever the user says `review <target>`, `quick review`, `deep review`, `plan review`, `review all`, pastes a pull request URL alone, or asks what to think of a change or why CI is red. One round, finders per angle, judges batched by band, a reflector, a writer, a text pass, producing overview.md, comment_<model>.md per skills/review-comment.md, claims.md and links.md. Several targets at once and a target the reviewer wrote are skills/review-modes.md.
 argument-hint: <repo>#<pr-number> | <url> | <repo> <subject>
-prompt-sections: [Words and sections, The round, Launch, Triage, Fetch & understand, Re-review rounds, Reproduce the failure, Output, Retro, Handover]
+prompt-sections: [Words and sections, The round, Design first, Launch, Triage, Fetch & understand, Re-review rounds, Reproduce the failure, Output, Retro, Handover]
 ---
 
 # Review
@@ -23,7 +23,7 @@ every reference clickable, every file readable without the chat, and the one
 number or word that carries the decision in bold.
 
 Sections, and the moment each is read: *Workflow*, the parent, every round;
-*Launch*, the parent at step 4; *Triage*, the parent naming a class at step 4; *Finders*, *Reflector*, *Verifiers*,
+*Design first*, the parent at the end of step 2; *Launch*, the parent at step 4; *Triage*, the parent naming a class at step 4; *Finders*, *Reflector*, *Verifiers*,
 *Writer* and *Text pass*, the stage of that name; *The critical pass*, a vulnerability
 fix; *Subjects*, a branch or a red CI; *Modes*, several targets, an authored
 target, `plan review`; *Fetch & understand*, the parent at step 1; *Re-review
@@ -61,7 +61,7 @@ Inside the word, whether one careful read holds the diff sets how many agents ru
 | pipeline | one read does not hold it | the triage where no class is named, the finders, the reflector, the judges, the writer, the text pass and the overview, each as the word configures it |
 
 1. Prepare, per *Fetch & understand*, and dispatch the overview agent the moment the head worktree exists.
-2. Run the *Re-review rounds* gate when a prior round exists.
+2. Run the *Re-review rounds* gate when a prior round exists, then answer *Design first*, which may end the turn here.
 3. *Reproduce the failure*: each suite once per tree state, the project's tool built once from the head worktree, named in `args.prebuilt`; a tool whose source lives in another repository is pinned there, per that section.
 4. Print the plan and launch, per *Launch*; the parent names the class, the triage only where the parent has not read the diff whole, and the stages read *Finders*, *Reflector*, *Verifiers*, *Writer* and *Text pass*. A target fixing a reported vulnerability launches with its bounds as `args.topics`, per *The critical pass*.
 5. Run the *Final check* of `skills/review-comment.md`, then the `skills/writing-style.md` Pass over `overview.md` and the draft, `./scripts/prose-check.py <file>` first; re-run it after any later edit to that prose, an edit made in answer to a question included; the handover lists every row it still prints, each with the reason it stays.
@@ -69,6 +69,23 @@ Inside the word, whether one careful read holds the diff sets how many agents ru
 7. One commit covering everything, to the repository holding the round directory, plus the workspace commit recording its gitlink where that repository is a submodule; it is pushed as *Consent* in the workspace `AGENTS.md` says for that repository.
 8. Retro, per *Retro*.
 9. Hand over, per *Handover*.
+
+### Design first
+
+The first round on a change, one with no earlier round directory beside it,
+asks one question before any finder: is the design a good idea? Judge it from
+the problem the change sets out to fix and from the fix itself: whether the
+problem is real and worth fixing here, whether the fix acts where the problem
+starts, and whether a simpler or more standard design covers it. The session
+the user talks to answers it, per target, before any finder launches; no stage
+or subagent answers it. The round step 10 of *Fix* in `skills/change.md` runs,
+on `pr` too, skips it, the design being the fix's own, and so does a pass run
+after a round per *The critical pass*.
+
+- Answer from the description, its linked issue and the diff, and run the check that settles each doubt: the problem reproduced at the merge base, the alternative tried where one run shows it.
+- A sound design gets one line in the reply, `Design: sound`, then why in one clause, and the round runs as configured.
+- **A doubtful or wrong design turns the review that way and holds that target's launch, and every step the word names after it, for a talk with the user, whatever word started the round.** The review in that direction is the problem measured, what the design gets wrong, the alternative and what each costs, every claim beside the command that settled it, carried by the reply that ends the request's turn; nothing is drafted for the author and nothing is posted. Other targets of the same request launch as configured. The overview agent step 1 dispatched still finishes, its `overview.md` committed, pushed and linked as *Fetch & understand* says, in the talk or in the reply after it lands, and a turn its notification opens before the user answers launches nothing for the held target. Under `plan review` steps 1 to 3 still run and the case goes ahead of the questions, taking no topic. This overrides the same-turn launch of *Launch*, the `nothing asked on the way` of `review as ai` and the `no question on the way` of `sweep` in `skills/shortcuts.md`, the loop of *Own PR* in `skills/review-modes.md`, and the turn-ending cases of *Consent* in the workspace `AGENTS.md`, for the held target alone.
+- The user's answer to the talk ends the `post` a `review as ai` carried, per *Consent* in the workspace `AGENTS.md`; the round then runs as their word sets it, a design objection they uphold reaching the stages through `--notes`.
 
 ### Launch
 
@@ -84,7 +101,7 @@ What the parent hands the runner, and what every stage gets from it.
 - `args.bundles` is what `round dispatch` wrote, and its table goes in the launch reply beside the plan's: the finder count is read off it, one per bundle per angle with material, or one carrying every angle for a bundle under the floor.
 - **The tests angle runs under `deep` alone, refactor only when named, and claims outside `deep` only where the diff carries a doc.** They return what the author acts on later, a Suggestion, a Nit, a missing test, and a round on the defect angles still reaches the defects. A doc asserts what the code does at runtime and a code comment's wording ships `SKIP` either way, so `finder.claims_docs_only` earns the claims finder on a bundle carrying a `.md`, a `docs/` or an `adr/` path and on no other.
 - **A Critical or a Warning is run before it ships, always.** No preset cap, output ceiling or budget floor reaches one: the judges take the bands in order and a batch holding either is dispatched whatever is left. A round that truly cannot run one drops the band and says which check is missing, so a PLAUSIBLE Warning never reaches an author.
-- **Size the round by what the target is worth, and print what it costs before it runs.** Developer tooling, a docs page and a CI script take `quick` unless the user names another word; the triage class raises the shape inside a word and never the word itself. `./scripts/review-plan.py` prints the projection in dollars from the rates in `workspace.json`, the launch reply carries that figure, and the round launches on the review word in the same turn, whatever the figure: no question about cost, shape or preset goes to the user before a launch, since the only word a round waits for is the publish.
+- **Size the round by what the target is worth, and print what it costs before it runs.** Developer tooling, a docs page and a CI script take `quick` unless the user names another word; the triage class raises the shape inside a word and never the word itself. `./scripts/review-plan.py` prints the projection in dollars from the rates in `workspace.json`, the launch reply carries that figure, and the round launches on the review word in the same turn, whatever the figure: no question about cost, shape or preset goes to the user before a launch, since the only word a round waits for is the publish; a doubtful design talks first, per *Design first*.
 - On a pull request that combines several pull requests reviewed apart, a backport or a release branch, the round keeps Criticals and Warnings alone. Every finding in any other band ships as `## SKIP <path>:<line>` with `Not posted: a combined pull request carries its Criticals and Warnings alone`, whichever stage filed it, a Body bullet moving to a section of its own and one no line owns staying in `claims.md`; pass the rule to the stages through `--notes`. On one the reviewer authored, apply the Critical and Warning fixes alone. Each part had its own review, so a lower band on its code costs the reader of a large draft more than it buys. This overrides `skills/review-comment.md` where severity never gates a post and where a finding held at posting writes no marker, and *Own PR* in `skills/review-modes.md` where every mechanical fix is applied.
 - **Ask what one agent would miss before taking the plan's agent count.** The preset's table sizes the stages and never the target: a diff one read holds whole, callers included, runs solo, and the class sizes a pipeline alone. The plan projects a shape; it does not choose one.
 - To spend less where a round keeps a finder stage, cut the finder count, the caps or the angles rather than the finder's effort, each of which drops reading the round chose to skip rather than reading it did badly.

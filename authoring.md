@@ -227,9 +227,12 @@ project looked like before.
 
 ## What a new rule displaces
 
-Adding is the easy half. The corpus grows on its own and shrinks only on
-purpose, so every edit that adds a rule answers one question in its commit
-message: what came out, or why nothing did.
+The corpus grows on its own and shrinks only on purpose. A commit adding words
+to the rule files removes as many, whole rules that leave for a reason below,
+never words shaved off the rules that stay. `skills/scripts/rule-growth.py`
+refuses one that does not, merges aside. Where nothing can go,
+only the user's answer this turn, the rule they stated or their reply when
+asked, puts `Grows: <why>` on the commit, unasked fixes included.
 
 A rule leaves when any of these holds:
 
@@ -251,22 +254,18 @@ sooner.
 A file splits on its trigger, never on its size. A section that fires at a
 different moment from the rest of its file, a reply beside repository rules,
 booting beside reviewing, is its own file, read when that moment comes and
-named in the index. A rule leaves only for the reasons above, never for the
-count, since a cut for length cannot tell the fact from the filler.
-
-`./scripts/rules lint` prints every file's word count and its median words per
-rule. Neither is a cap: a rule that is all trigger, action and tell stays
-however long.
+named in the index.
 
 A number in a rule is read by what it counts. A count of words rations them, and
 the only way to meet it is to delete words that carry meaning: never write a
 ceiling on words, in a skill or in a script, for a rule, a reply, a pull request
 body or any other artifact, and delete one wherever it is found, a ratio like
-articles per hundred included. A
-count of sentences, lines or items sets the shape of a bounded artifact, where
-meeting it means writing a different thing rather than shaving the same one:
-`1-3 sentences` in a draft's template, two lines for a code comment, three or four
-for a fixture's header and one visible sentence per review section all stay.
+articles per hundred included. The rule files' total is the one exception,
+met by removing whole rules as above. A count of sentences, lines or items sets
+the shape of a bounded artifact, where meeting it means writing a different
+thing rather than shaving the same one: `1-3 sentences` in a draft's template,
+two lines for a code comment, three or four for a fixture's header and one
+visible sentence per review section all stay.
 
 ## Contradictions
 

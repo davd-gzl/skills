@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# NOT AUDITED — AI-generated tooling. Review before executing in any privileged context.
+#
+# Refuse a commit adding words to the rule files unless its message carries a `Grows:` line giving a reason.
+exec "$(dirname "$(readlink -f "$0")")/../rule-growth.py" commit-msg "$1"

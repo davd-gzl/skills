@@ -221,6 +221,7 @@ own argument and waits for the outcome table to measure it.
 | [`TODO.md`](TODO.md) | skill work I own but have not started | one line per item, newest last |
 | [`knowledge/`](knowledge/) | a design question about the workflow comes up | one published result per file, from outside this workspace: what holds, the numbers, the paper or post behind it, what it changes. A round's own measurement stays in that round's `claims.md` |
 | [`scripts/scrub.sh`](scripts/scrub.sh) | a push of this repository, from `scripts/git-hooks/pre-push` | a refusal when a pushed line or a commit message carries a secret shape or a name the consumer's `workspace.json` lists |
+| [`scripts/rule-growth.py`](scripts/rule-growth.py) | a commit or a push of this repository, from `scripts/git-hooks/commit-msg` and `pre-push` | a refusal when a commit, merges aside, adds words to the rule files and its message carries no `Grows:` line giving a reason, which only my answer puts there |
 | [`tools/`](tools/) | one Rust crate, two binaries: `round links`, `round prior`, `round risk`, `round dispatch` and `round assemble` for a review round's fixed steps, `rules lint` for this corpus | `links.md` with every link resolved at its sha and its range checked; the earlier rounds' checks re-anchored to the head; the lint below; built by the consumer's sync onto `~/bin` and reached through its `scripts/round` and `scripts/rules` shims, tested by `cargo test --manifest-path tools/Cargo.toml`, a golden fixture under `tools/tests/lint` holding the lint's whole output |
 
 ## The chat register
@@ -276,8 +277,9 @@ since it was made.
 
 [`scripts/git-hooks/`](scripts/git-hooks/) holds the commit, merge-commit and
 push hooks, which warn on a mapped artifact whose skill was not read, whatever
-made the commit. [`scripts/tests/`](scripts/tests/) holds the tests of the gate
-and of the register check.
+made the commit, and refuse a commit adding words to the rules with no
+`Grows:` line giving a reason. [`scripts/tests/`](scripts/tests/) holds the tests of the gate,
+of the register check and of `rule-growth.py`.
 
 ```bash
 git config core.hooksPath skills/scripts/git-hooks

@@ -184,7 +184,7 @@ makes the rest of the session pay for its test output and file reads.
    In the turn the new pull request opens, each of those gets a bullet naming
    the new one and the path it fixes, under its `## Not fixed` or the heading
    it uses for what the fix leaves standing, added to the live body
-   rather than re-derived, overriding check 6 of *Loop* in
+   rather than re-derived, overriding check 5 of *Loop* in
    `skills/pr-body.md` for that bullet. Write it in the `pr-body.md` whose
    `Target:` line is that pull request's URL, else in a scratch file holding
    that line and a `## Body` line, then a newline; run

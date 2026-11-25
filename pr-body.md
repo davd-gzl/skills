@@ -113,7 +113,7 @@ commit 8cbcad76 on main
 
 ## Loop
 
-Do not ship the first draft. Re-read against checks 1 to 6, revise, repeat until a full pass changes nothing, then run step 7. Record the rounds in `plan.md`.
+Do not ship the first draft. Re-read against checks 1 to 6, revise, repeat until a full pass changes nothing, then run step 12 of the Pass in `skills/writing-style.md`, then step 7. Record the rounds in `plan.md`.
 
 1. Read it as the maintainer who wrote the code it describes, before the user ever sees it. Open the file behind every sentence about what the code does today. A claim of absence is the one that breaks: where the thing exists in a weaker form, name the form and what it fails to do, never call it missing.
 2. Would someone with no context understand the first sentence? If it needs a symbol they have not met, rewrite in observable terms.

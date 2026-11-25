@@ -82,9 +82,7 @@ only where `plan.md` shows by a command that the entry point cannot hold it,
 and reject a shape for its cost only on that cost measured. The
 tell is a guard each new reader of the value has to remember.
 
-When a fix limits how many entries a web page shows, add a pager rather than
-cutting the list: the pager is part of the fix, whatever step 5 and the
-sizing below say.
+Code that displays a list with no limit is better with a pager.
 
 Size the first pull request to the smallest diff that closes the ask, and send
 every further capability to the out row with the decision it needs.

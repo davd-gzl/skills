@@ -75,6 +75,8 @@ the sha it was found on, the date, what was tried first, the knowledge file or
 the paper behind it. That record is the artifact's, a `plan.md`, a `claims.md`,
 a commit message.
 
+Keep a rule general and leave the how to the agent's judgment.
+
 **A rule is read by someone with only the rule.** The command that settles it
 stays, since they can run it; the story around it goes, since they cannot reach
 it. A pull request number, a round, a draft that once anchored wrongly, who

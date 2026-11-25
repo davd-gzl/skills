@@ -53,7 +53,7 @@ Written before any fix code, split by audience per
 
 - `spec.md` is what and why: the problem, the scenarios, the numbered
   requirements, the acceptance criteria, what is out of scope. No technology is
-  named in it. Write one where no review has settled the behaviour.
+  named in it. Write one for every change, before any code.
 - `plan.md` is how: root cause, approach, the files, how it is tested, a
   `## Paths walked` section naming every path that reaches each absolute the
   title, the body or the diff states about the code, a cap, a never, a cannot,
@@ -414,7 +414,9 @@ makes the rest of the session pay for its test output and file reads.
     the whole branch diff instead, at the `quick` or `critical` preset, before
     the push; a bare `p` runs no further round. A review round's fixes take
     the loop of *Own PR* in `skills/review-modes.md` instead, whose rounds
-    already read the fixes alone.
+    already read the fixes alone. Its verdict goes on a `Verdict: <verdict> at
+    <snapshot sha>` line of the change's `README.md`, beside a `Worktree:` line
+    naming the worktree it read.
 11. **Report** the changed files and what each change does. Before the
     report, run `./scripts/dropped-findings.py --worktree <worktree> <each
     round's claims.md> <plan.md>`; on exit 1, apply each `claims.md` row it

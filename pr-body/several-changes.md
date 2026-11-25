@@ -5,14 +5,14 @@ description: The pull request body for several independent changes sharing one p
 
 # Several independent changes
 
-One `### <symbol>: <one-line diagnosis>` section per change, separated by `---`, each readable alone.
+One `### <symbol>: <one-line diagnosis>` section per change, separated by `---`.
 
 - Two or three framing paragraphs after the `In short:` part of `skills/pr-body.md`: what the changes share and what none of them is, in the reader's terms. Then a one-line bridge counting what follows.
 - Each section carries its own symptom, mechanism and fix as a property of the new code, and a diagram where the reader would otherwise assemble the shape in their head, per *Diagrams* in `skills/pr-body.md`.
 - What was proved goes in the section it belongs to. Where several sections share one method, one closing section names the method once and gives one row per section.
 - A section naming another change, in this pull request or another, says what the two have in common in one sentence and stops.
 
-Why: a reviewer reads the section for the file they own and skips the rest, so a section that depends on its neighbour is read without it.
+Why: a reviewer reads the section for the file they own and skips the rest, so a fact two sections share goes in the framing paragraphs every reader reads, never in either section.
 
 ## Skeleton
 
@@ -35,7 +35,7 @@ In short: <What breaks and when, the one term a newcomer needs, how each fix wor
 
 ### <symbol>: <one-line diagnosis>
 
-<The same parts, readable without the section above.>
+<The same parts.>
 
 ---
 

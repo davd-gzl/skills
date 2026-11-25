@@ -74,6 +74,14 @@ finding with its effect on the failing signal; what is out, with the decision
 each excluded item needs; and one row per CI job with its real command and
 result, the checks beyond the jobs included.
 
+Before choosing where a guard sits, find the one place the value it guards
+enters the system or is first written, a peer message at its decode or a value
+where it is created or stored, and put the guard there. Keep a guard on every
+reader or at the output, a copy on each read or a cut on each logged error,
+only where `plan.md` shows by a command that the entry point cannot hold it,
+and reject a shape for its cost only on that cost measured. The
+tell is a guard each new reader of the value has to remember.
+
 Size the first pull request to the smallest diff that closes the ask, and send
 every further capability to the out row with the decision it needs.
 

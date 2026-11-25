@@ -1620,6 +1620,9 @@ class Prompt(HookCase):
                     'review of meet done, the gno fix landed; push it when ready\n</agent-message>')
         rc, context = self.run_hook('prompt', json.dumps({'prompt': handback}))
         self.assertEqual((rc, context), (0, ''), 'a hand-back names no project and no skill')
+        bare = handback.split('\n', 1)[1]
+        rc, context = self.run_hook('prompt', json.dumps({'prompt': bare}))
+        self.assertEqual((rc, context), (0, ''), 'nor as the hook receives it, with no line above the tag')
         transcript = self.root / 't.jsonl'
         transcript.write_text(json.dumps({'type': 'user', 'message': {'content': 'fix it'}}) + '\n'
                               + json.dumps({'type': 'user', 'message': {'content': handback}}) + '\n')

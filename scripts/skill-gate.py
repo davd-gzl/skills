@@ -920,7 +920,9 @@ def cmd_prompt(stdin, stdout):
     payload = _payload(stdin)
     prompt = str(payload.get('prompt', ''))
     # A hand-back or a notification is the harness's message, never the user's prompt: its words call for nothing.
-    names = [n for n in prompt_reads(prompt) if not is_read(n)] if not prompt.lstrip().startswith(NOT_TYPED) else []
+    # A hand-back reaches this hook as `<agent-message`, without the line the transcript puts above it.
+    names = ([n for n in prompt_reads(prompt) if not is_read(n)]
+             if not prompt.lstrip().startswith(NOT_TYPED + ('<agent-message',)) else [])
     note = model_note(payload)
     extra = [note] if note else []
     point(names, 'Rules this prompt calls for, unread this session. Read each as its line says '

@@ -195,13 +195,11 @@ makes the rest of the session pay for its test output and file reads.
 
    In the turn the new pull request opens, each of those gets a bullet naming
    the new one and the path it fixes, under its `## Not fixed` or the heading
-   it uses for what the fix leaves standing, added to the live body
-   rather than re-derived, overriding check 5 of *Loop* in
-   `skills/pr-body.md` for that bullet. Write it in the `pr-body.md` whose
-   `Target:` line is that pull request's URL, else in a scratch file holding
-   that line and a `## Body` line, then a newline; run
-   `./scripts/pr-body-apply --pull <file>` before the edit and
-   `./scripts/pr-body-apply <file>` after it.
+   it uses for what the fix leaves standing, overriding check 5 of *Loop* in
+   `skills/pr-body.md` for that bullet: `./scripts/pr-body-apply --pull
+   <file>`, the edit, then `./scripts/pr-body-apply <file>`, the file being
+   the `pr-body.md` whose `Target:` line is that pull request's URL, else a
+   scratch file holding that line and a `## Body` line, then a newline.
    ```bash
    grep -rlx 'Target: <url>' projects --include=pr-body.md
    ```
@@ -250,9 +248,8 @@ makes the rest of the session pay for its test output and file reads.
    that item this overrides the sentence above on transitions nobody has met, the smallest-diff sizing under *Spec and plan*,
    step 8's sentence sending out-of-scope code to its own branch, the line of
    *Own PR* in `skills/review-modes.md` holding back an observable behaviour
-   change and a fix to a defect predating the branch, which its *Consent*
-   bullet in the workspace `AGENTS.md` lifts for this item too, and any delta
-   sending a follow-up to an issue draft. What needs new machinery or a design
+   change and a fix to a defect predating the branch, and any delta sending a
+   follow-up to an issue draft. What needs new machinery or a design
    call stays a `## Not fixed` bullet. The tell is a `## Not fixed` bullet
    whose fix is a few lines in a file the pull request already changes.
 6. **Implement** inside the worktree. A defect met on the way is fixed in the

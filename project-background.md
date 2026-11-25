@@ -55,8 +55,6 @@ its sections, then add what this project has and that one did not.
   every exception the code holds and narrow the sentence to the scope that has
   none.** The TL;DR is where the absolute hides, and a later section then
   contradicts it.
-- Before a line range goes into a link, print its first and last lines: a range
-  copied from a grep is off by the decorator or the blank line above it.
 
 ## Pictures
 
@@ -93,19 +91,13 @@ its sections, then add what this project has and that one did not.
    scratch directory and run `round links <dir> --repo <clone>`; exit 1 names
    each link whose file or range is missing. A `tree` link is checked with
    `git cat-file -t <sha>:<path>`.
-2. Read the whole doc back as text, once, as a newcomer, and fix each sentence
-   that needed a second read.
-3. Hand the rendered text, the clone path and the sibling doc to an agent with
+2. Hand the rendered text, the clone path and the sibling doc to an agent with
    no context of this work. It returns where a newcomer stumbles and which of
    these the doc misses, each grounded in a file it opened: sign-in and
    sessions, frontend structure and data fetching, the data model, every async
    job, every entry point, configuration, deployment and releases,
    translations, theming, analytics, quotas, the test layout and how to run one
    test. Apply what it finds and read the changed sections back.
-4. Run the Pass of `skills/writing-style.md` over the result.
-
-A trap the boot or the measuring cost goes into `projects/<repo>/AGENTS.md`
-where the project has one, with its symptom, per `skills/authoring.md`.
 
 ## When the user also asks what works and what to work on
 

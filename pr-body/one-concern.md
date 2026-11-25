@@ -26,6 +26,12 @@ Fixes #<issue>
 
 In short: <What breaks and when, the one term a newcomer needs, how the fix works as a before and after, per *In short* in skills/pr-body.md.>
 
+<details><summary>Topics you should know</summary>
+
+<Each topic the reader needs, a few sentences each, per skills/pr-body.md.>
+
+</details>
+
 ## Problem
 
 <For each kind of defect: what breaks, in the reader's terms, under the condition that triggers it, then its block.>

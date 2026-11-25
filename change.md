@@ -36,8 +36,8 @@ the same files minus the review links, and the kind of change goes in its
   directory, the link to the review.
 - `spec.md` and `plan.md`, below.
 - `pr-body.md`, per `skills/pr-body.md`.
-- `overview.md`, for every change, per *Overview* in `skills/review.md`, kept
-  beside the body and never pasted into it, per `skills/pr-body.md`.
+- `overview.md`, for every change, per *Overview* in `skills/review.md`; the
+  body's `Topics you should know` block draws on it, per `skills/pr-body.md`.
 - `issue.md`, only where no upstream issue covers the problem, stays in the
   review directory per `skills/issue.md` and is linked from `README.md`.
 - `checkout/`: a submodule pinned to the branch,

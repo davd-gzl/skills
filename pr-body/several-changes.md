@@ -19,6 +19,12 @@ Why: a reviewer reads the section for the file they own and skips the rest, so a
 ```markdown
 In short: <What breaks and when, the one term a newcomer needs, how each fix works as a before and after, per *In short* in skills/pr-body.md.>
 
+<details><summary>Topics you should know</summary>
+
+<Each topic the reader needs, a few sentences each, per skills/pr-body.md.>
+
+</details>
+
 <What the changes share and what none of them is, in the reader's terms: two or three paragraphs.>
 
 <One line counting the sections that follow.>

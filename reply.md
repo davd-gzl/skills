@@ -123,10 +123,14 @@ This job runs on a schedule only, and GitHub disables those after 60 days.
   in which repository, against which base, and whether it opens as a draft or
   ready.
 - Before offering a word that pushes, `p`, `pr`, `pf` or `rlp`, write one
-  `Trust:` line directly above the first such word line: `high, no need to
-  reverify` where this session itself opened every diff, test run and capture
-  going out, else `low, reverify` and each one it did not open, which `Left:`
-  then does not repeat.
+  `Trust:` line directly above the first such word line: how sure this session
+  is, out of 10, that what goes out is right, then `no need to reverify`, or
+  `reverify` and each diff, test run, CI job or capture going out that this
+  session never opened itself, whoever ran it, or opened and could not
+  confirm. Any such part holds the score
+  at 7 or below, closes the reply on `Not all good` and goes on no `Left:`
+  line. `Trust: 9/10 sure, no need to reverify`; `Trust: 6/10 sure, reverify
+  the lint job, whose output this session never opened`.
 - When a reply ends on a status or links table, put the word lines directly
   above it, one for every action that table leaves pending: `p` while anything
   in it is unpushed, and the coined word of every next step the reply proposed.

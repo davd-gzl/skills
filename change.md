@@ -327,7 +327,7 @@ makes the rest of the session pay for its test output and file reads.
    rise is fixed, or, where only the user can weigh it against what the fix
    buys, becomes a numbered open call carrying its numbers. Apply
    each, re-run the checks, read again. The
-   first pass reads in this session; every later pass, one step 9 reopens
+   first pass reads in this session; every later pass, one step 10's round reopens
    included, runs in a fresh agent given only the diff and this file's
    path, told to return findings and edit nothing; the parent applies them.
    Each pass starts by snapshotting the worktree, `./scripts/snapshot
@@ -378,9 +378,9 @@ makes the rest of the session pay for its test output and file reads.
    the code it covers turns it red, run per step 7; drop the rest. Apply what
    holds, re-run the checks,
    and report the behaviour unchanged only from the suite and the issue's
-   repro run after the pass, never from a read of the diff. Read the diff once
-   more; a pass that changes anything reopens step 8,
-   and the empty one is recorded in the plan's Iterations. It runs unasked, and
+   repro run after the pass, never from a read of the diff. It runs once per hand-back: step
+   10's round reads the diff it leaves, so what the pass changed reopens step 8
+   only through a finding of that round. It runs unasked, and
    its trigger is every fix handed back rather than a change's end alone: a turn
    reporting a behaviour change done runs this pass before reporting it.
 10. **After the simplify pass, run a `quick review` round over the fix's own
@@ -400,7 +400,7 @@ makes the rest of the session pay for its test output and file reads.
     round's claims.md> <plan.md>`; on exit 1, apply each `claims.md` row it
     prints or cite its `file:line` in a numbered open call, and where it
     prints a `plan.md` line, a simplify pass no `/simplify` call on that
-    worktree backs, run step 9 once, then run it again. Exit 2 for want of a
+    worktree backs, run step 9 once, then run the script again. Exit 2 for want of a
     session id, a harness that sets none, leaves the pass unchecked: name it so
     in the report.
 12. **Keep the worktree.** It carries review feedback, rebases and follow-up

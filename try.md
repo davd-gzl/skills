@@ -67,7 +67,15 @@ Playwright's bundled ffmpeg writes webm only, and a `.gif` or `.mp4` output fail
 
 ## Teardown
 
-The worktree and the stack survive the turn. On `stop`, kill the processes, remove the worktree, and leave the checkout as it was found.
+- Where the agent booted the stack to check a change itself and handed over no
+  URL, stop it in the turn that check ends unless the user asked to keep it:
+  kill the processes it started this session, `docker compose down` the
+  compose project it brought up, never one already running, without `-v`,
+  and close its browser tab. Every file stays, the worktree
+  included. The reply names what stopped.
+- A stack whose URL was handed over survives the turn.
+- On `stop`, kill its processes, remove the worktree, and leave the checkout as
+  it was found.
 
 ## Rules
 

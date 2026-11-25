@@ -82,6 +82,18 @@ only where `plan.md` shows by a command that the entry point cannot hold it,
 and reject a shape for its cost only on that cost measured. The
 tell is a guard each new reader of the value has to remember.
 
+When a fix bounds how many entries a web page renders from a list, one per
+item, the bound is pages, never a cut: a fixed number of entries each, next
+and previous links, each page costing the same time whatever its number,
+timed at the last page in step 8, and a pointer to the search that finds any
+item by name where the product has one. The pages are the fix, needing no
+proof that the entry point cannot hold them, while a bound on how many items
+the list may hold stays at the entry point the guard-placement rule above
+names. They are never a `## Not fixed`
+item, so this overrides the smallest-diff sizing below and every gate step 5
+puts on fixing an item on the branch. The tell is a list that stops, with a
+notice or without one, and no link reaching the rest.
+
 Size the first pull request to the smallest diff that closes the ask, and send
 every further capability to the out row with the decision it needs.
 

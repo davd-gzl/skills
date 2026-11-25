@@ -12,4 +12,4 @@ Review agents on real pull requests find a minority of what human reviewers foun
 
 Source: [c-CRAB](https://arxiv.org/abs/2603.23448), [SWR-Bench](https://arxiv.org/abs/2509.01494), [CR-Bench](https://arxiv.org/abs/2603.11078), [Self-Refine](https://arxiv.org/abs/2303.17651), [Cannot Self-Correct](https://arxiv.org/abs/2310.01798).
 
-Changes: *Fix* step 8 in `skills/change.md`, the Own PR round loop in `skills/review-modes.md` and the rule-change review loop in *Editing this corpus* of `skills/authoring.md` stop on a pass or round with no Critical or Warning, or one whose Criticals and Warnings all sit on the previous one's fix. Porting each applied Critical's and Warning's repro into the branch's suite comes from the workspace's own rounds, not from these sources.
+Changes: *Fix* step 8 in `skills/change.md` and the Own PR round loop in `skills/review-modes.md` stop on a pass or round with no Critical or Warning, or one whose Criticals and Warnings all sit on the previous one's fix. Porting each applied Critical's and Warning's repro into the branch's suite comes from the workspace's own rounds, not from these sources.

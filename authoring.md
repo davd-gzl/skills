@@ -75,7 +75,9 @@ the sha it was found on, the date, what was tried first, the knowledge file or
 the paper behind it. That record is the artifact's, a `plan.md`, a `claims.md`,
 a commit message.
 
-Keep a rule general and leave the how to the agent's judgment.
+Keep a rule general and leave the how to the agent's judgment. A fact the
+agent cannot measure alone, a choice the user made and a guard on what cannot
+be undone stay specific.
 
 **A rule is read by someone with only the rule.** The command that settles it
 stays, since they can run it; the story around it goes, since they cannot reach
@@ -331,46 +333,13 @@ from it is measured here before it is trusted.
   root `AGENTS.md`, and fix what it reports rather than narrowing what it reads.
   It warns and never blocks: a rough rule lands, and a later pass fixes it.
 - **Before a change to a rule file, or a script or hook a rule names, is
-  pushed, review it in a loop.** A fresh agent gets the diff, the files it
-  touches, the change's purpose in one line, taken from the user's request or
-  an unasked fix's own aim, and every command earlier rounds of this loop
-  settled a defect with, never the author's conclusions. It re-runs those
-  commands, then returns each defect with the command that shows it: a
-  contradiction with another rule, a false positive or a crash in a script, a
-  sentence that no longer matches the code. A part the purpose never asked for
-  comes back quoted beside the purpose line instead. Verify each
-  defect, fix the real ones, and hand the new diff to another fresh agent; the
-  loop ends on the first round whose real defects are all low, a wording or a
-  comment, fixed with no further round, since a loop waiting for an empty round
-  keeps sampling new nits rather than converging. The reply names the rounds
-  run. Until it ends, the change stays uncommitted, overriding every
-  same-turn commit rule, since a commit on `main` goes up with the next push
-  any session sends; the reply to the Stop hook asking to commit `skills/`
-  names the open loop.
-- In that loop, each round runs every command a rule line in the diff adds,
-  within the next bullet, on the kind of target the rule fires on, and returns
-  as a defect any whose output does not show what its sentence says.
-- In that loop, a round runs only a command that writes nothing, here or on a
-  remote, beyond `FETCH_HEAD`, remote-tracking refs, the git object store, a
-  build or test cache and its temporary directory, and new files of its own
-  under `<scratch>`, and that no rule in the corpus forbids there.
-  Every other command, a push, a post, a commit, a delete, an overwrite, a
-  kill or a reset, standing word or not, is not run, and comes back unverified
-  beside its `--help` and the defaults it relies on.
-- In that loop, where a command the diff adds lists items, each round checks
-  its row count against an independent count of the same set, since a default
-  cap prints plausible rows.
-- In that loop, each round greps the corpus for rules naming each command the
-  diff adds, by the command's name, since a rule may require a flag the
-  command leaves out: `grep -nwF "<command>" AGENTS.md
-  workspace.md skills/*.md skills/*/*.md projects/*/*.md projects/*/skills/*.md`.
-- In that loop, when a round's defect sits in the same function, flag or rule
-  bullet as a defect an earlier round of it fixed, stop the rounds and read
-  that part whole. Drop it where the purpose never asked for it, naming
-  the drop on the reply's `Decided:` line, and otherwise change its shape so
-  that kind of defect cannot occur; the next round reads the diff after the
-  drop or the redesign. The tell is each round fixing the case it was shown
-  while the next finds its neighbour.
+  pushed, review it in a loop.** Hand a fresh agent the diff and the change's
+  purpose, never the author's conclusions; it runs only commands that write
+  nothing and returns each defect with the command that shows it. Fix the real
+  defects and repeat with another fresh agent until the ones left are minor.
+  Until then the change stays uncommitted, overriding every same-turn commit
+  rule, and the reply to the Stop hook asking to commit `skills/` names the
+  open loop.
 
 ## A deterministic step is a tool
 

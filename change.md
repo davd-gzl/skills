@@ -125,7 +125,8 @@ make differently. A document listing none is hiding them, so list every one. The
    open, and what is settled, then one `###` section per open call, never a
    table and never one block. The heading is the action, numbered `S1` upward
    in the spec and `P1` upward in the plan so "P3 other way" is a complete
-   instruction. Under it, three short paragraphs: `Now:` what the code does and
+   instruction. Under it, three short paragraphs: `Now:` what the code does,
+   what the project or the code it forked from does in the same case, and
    what it costs, `Other way:` and what that costs, `Pick:` the author's
    choice, in numbers, so a reader who has read the overview and the pull
    request decides without opening anything else. A settled call leaves its

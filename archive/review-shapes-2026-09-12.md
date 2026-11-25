@@ -2,7 +2,7 @@
 
 Three shapes the review has run as, each measured on one private target, a
 27-file fix. A record, nothing loads it: the current shape is in
-`README.md` under *The architecture*.
+`README.md`, in its section headed The review.
 
 ## Lens shape, August 2026
 

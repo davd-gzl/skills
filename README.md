@@ -1,310 +1,341 @@
 # Skills
 
-My skills: the instruction sets my agents load before working on my projects.
+The instruction sets my coding agents load before they write anything on my
+projects, and the tools that hold the agents to them. A skill is one Markdown
+file per kind of artifact: a review, a pull request body, an issue, a commit, a
+reply to me. The tools are a gate that records which skill an agent read, git
+hooks that fire whatever tool or model made the commit, and a Rust crate
+holding the lint over the rules and the steps a program does better than a
+model.
 
-## Three reviews
+The corpus is written for Claude Code and mounted as a `skills/` submodule in a
+workspace. The workspace holds the consent rules, one rules file per
+repository, the scripts the skills call and the review workflow, so the skills
+run there and nowhere bare.
 
-| Word | For | Cost, projected today |
+## TL;DR
+
+```bash
+# 1. Point git at the hooks, from a workspace that mounts this repository as skills/
+git config core.hooksPath skills/scripts/git-hooks
+git -C skills config core.hooksPath scripts/git-hooks
+# 2. Print a skill and record the read
+skills/scripts/skill review
+# 3. Build the tools, then lint the rule files
+cargo build --release --manifest-path skills/tools/Cargo.toml
+skills/tools/target/release/rules lint AGENTS.md skills/*.md skills/pr-body/*.md skills/knowledge/*.md
+# 4. Measure a chat reply
+skills/scripts/reply-check.py <file>
+# 5. Run every test
+python3 -m unittest discover -s skills/scripts/tests
+skills/scripts/tests/test_scrub.sh
+cargo test --manifest-path skills/tools/Cargo.toml
+# 6. Rebuild the site after editing this README
+skills/scripts/site.py
+```
+
+## The idea
+
+A rule matters at the moment an agent writes, and a rule it read an hour ago
+is one it may skip. So every artifact has one skill, the skill goes into
+context whole before the artifact's first line, and a command records that it
+did. An agent writing or committing an artifact whose skill it never read gets
+the skill's path and a warning, never a refusal. A repository's own rules
+file, `projects/<repo>/AGENTS.md` in the workspace, wins over a skill where the
+two disagree.
+
+Four principles outrank every rule. They sit in the workspace's `AGENTS.md`,
+since they bind whoever acts:
+
+- Build what the task asks for and nothing speculative.
+- Read the rule before writing the artifact.
+- Measure, never assume: every claim about an artifact comes from a command run
+  this session, never from memory.
+- Read the artifact back after editing it, before reporting it done.
+
+Nothing reaches anyone without my word, `post`, `push` or `merge`, typed in the
+turn or given ahead for one repository and one kind of action. `go`, `ok` and
+`yes` authorise nothing, and every draft is shown before it goes. Those rules
+sit in the workspace's `AGENTS.md` too, and [`shortcuts.md`](shortcuts.md) is
+the one place a word is defined.
+
+Every skill has a second goal beside its task: the same decision in fewer
+turns. A turn re-sends the whole context, so the turn count times the context
+is the cost, and output tokens are the minor term.
+
+## The corpus stays flat
+
+A model given many rules at once follows fewer of them: in one test of five
+models, none followed all of 80, per
+[`knowledge/rules-decay-past-eighty.md`](knowledge/rules-decay-past-eighty.md).
+A corpus that grows by one rule per mistake ends up enforcing none, so this one
+is held flat.
+
+- A commit adding words to the rule files removes as many, as whole rules: one
+  a script now enforces, one another rule already covers, one naming something
+  gone.
+- [`scripts/rule-growth.py`](scripts/rule-growth.py) refuses a commit that grows
+  them, at commit time and again at push, whatever model or command made it.
+- Where nothing can go, my answer in the turn puts a `Grows: <why>` line on the
+  commit, and the hook lets it through.
+- A mistake a rule already forbids gets a check, a hook or a lint, never more
+  words.
+
+The rule files are the Markdown files at the root and under `pr-body/`, this
+README and `TODO.md` aside; a workspace's own hook passes its own list.
+[`authoring.md`](authoring.md) holds where a rule lives, the shape it takes and
+what it displaces.
+
+## The skills
+
+| File | Read when | Produces |
 | --- | --- | --- |
-| `quick review <target>` | the overview of what a change is worth: one finder per bundle on the Warning-finding angles, each running its own Warning checks, judges in short parallel batches, no reflector, the text pass past 120 visible words of findings | about 8 agents, 360k output, 45 minutes, estimate |
-| `review <target>` | any change; the parent names the class, a triage only where the parent has not read the diff whole; a diff one read holds runs solo, one finder or several side by side, then one agent that judges and writes; a target the reviewer wrote stops at the findings and takes them as commits; a simple change runs one finder per bundle, one judge and the writer; every cold bundle folds into one finder; the normal round: one finder per bundle per angle, or one per bundle past six bundles, each running its own Warning checks, the reflector, judges by six over the run-shaped candidates and by twelve over the reads, the writer, the text pass | about 24 agents, 1.1M output, 60 minutes |
-| `deep review <target>` | code that is complex or unknown: finders at 60 calls, hot bundles split by code file, judges by three, the ceiling | about 28 agents, 1.1M output, 70 minutes |
+| [`review.md`](review.md) | a pull request, a branch, a working diff or a red CI is reviewed | the review round |
+| [`review-modes.md`](review-modes.md) | a run covers several targets, or I wrote the target | what that case changes in the round |
+| [`review-comment.md`](review-comment.md) | the review's comment draft is written or posted | the body, the inline-comment shape, the final check, posting |
+| [`issue.md`](issue.md) | a fix needs an upstream issue nobody has filed | `issue.md`, the problem and never the remedy |
+| [`change.md`](change.md) | an issue, a finding, or a docs or test-only change goes to a pull request | `spec.md` and `plan.md` with their open calls, the worktree, the fix, the local CI run, the pull request |
+| [`pr-body.md`](pr-body.md) | a change is proposed, before its pull request opens | the title and body, looped until a full pass changes nothing |
+| [`pr-body/`](pr-body/) | `pr-body.md` has picked a shape | one body shape per file, each closing on a skeleton: [docs](pr-body/docs.md), [one concern](pr-body/one-concern.md), [several changes](pr-body/several-changes.md), [a visible surface](pr-body/surface.md) |
+| [`try.md`](try.md) | a project boots at a pull request, a branch or its default branch | a URL, a login and the click path to the change |
+| [`report.md`](report.md) | a periodic status report over several repositories | the report, written once I have edited its context |
+| [`docs-site.md`](docs-site.md) | a project's user-facing documentation site is written or reviewed | its home page, guides, FAQ and install pages, with their screenshots |
+| [`project-background.md`](project-background.md) | someone needs to know how a repository works without reading its code | a background doc pinned to one upstream commit, kept current |
+| [`git.md`](git.md) | a turn commits, pushes, syncs a checkout, or touches a submodule or worktree | the commit identity, where a push goes, the commands that report success and move nothing |
+| [`writing-style.md`](writing-style.md) | any visible prose, in any project | the rules every other skill defers to, and the closing pass over every draft |
+| [`short-form.md`](short-form.md) | every chat reply | the register: clipped, read once, left to right |
+| [`reply.md`](reply.md) | a reply finishes a piece of work | what it opens with, its closing block, its links |
+| [`shortcuts.md`](shortcuts.md) | I type a word | what each word starts |
+| [`thinking.md`](thinking.md) | every reply, on a model whose thinking depth no setting controls | how the thinking before the reply is written |
+| [`authoring.md`](authoring.md) | a rule is added, edited or removed | where it lives, the shape it takes, what it displaces |
+| [`knowledge/`](knowledge/) | a design question about the workflow comes up | one published result per file: what holds, the numbers, the source, the rule it shaped |
+| [`knowledge/models/`](knowledge/models/) | a stage is sized for the model it runs on | one note per model: its limits and prices, and the effort per stage, inferred until a round measures it |
+| [`archive/`](archive/) | nothing loads it | snapshots of a skill before a change of voice, the advisory shape for a disclosure, the harness that chose the chat register's wording |
+| [`TODO.md`](TODO.md) | skill work I own and have not started | one line per item |
 
-### The shape follows the change
+Three files open every session: `shortcuts.md` and `thinking.md` through a
+session-start hook, and `short-form.md` through the workspace's `CLAUDE.md`,
+which every subagent inherits too, since its rules on what a claim must rest
+on bind every agent. Every other skill is read when the task names it, through
+the Read tool or `scripts/skill <name>`. A file whose sections fire at
+different moments lists the ones its first reader needs on a `prompt-sections`
+line, and the gate hands over that cut. A subagent gets the skills its own
+artifact needs and no others.
 
-A triage agent runs before any stage is sized: one short read of the diff, the risk table and the material, naming the change's class. The class moves the knobs; the word only caps it, `quick` at simple, `deep` at complex. Size is one factor and never the trigger.
+## Models
 
-| Class | The change | The round | Seven lines, projected |
-| --- | --- | --- | --- |
-| trivial | no behaviour changes: a doc, a comment, a rename, a version bump | one solo agent finds, runs what it bands Warning, judges and writes | 2 agents, ~64k output, about 8 minutes |
-| simple | one local behaviour change, one function and its direct callers | one finder per bundle carrying every angle, one judge, the writer; no reflector, no text pass | 5 agents, ~80k, about 17 minutes |
-| normal | more than one reach, a new invariant, a guard removed, a test that must turn red | the word's shape | 7 agents, ~113k, about 25 minutes |
-| complex | concurrency, consensus, gas, funds, permissions, cryptography, a state machine, unknown code | finders at 60 calls, hot bundles split by code file, the word's judge batches, the text pass | |
+One file binds only some models: [`thinking.md`](thinking.md), how the
+thinking before a reply is written, binds a model whose thinking depth no
+setting controls. Its `effort-set`
+frontmatter names the models the gate exempts; the gate reads the running
+model from the harness's session-start payload or the transcript, and a model
+it cannot name keeps the rules. [`knowledge/models/`](knowledge/models/) holds a
+note per model a stage runs on, which the review reads to decide whether one
+agent can hold a diff.
 
-The useless steps go by themselves: a round that finds nothing runs no judge, no reflector and no text pass; the reflector is skipped under six candidates and the text pass under four findings; the overview is a dozen lines for a simple change. A 1,200-line change on `review` still projects at 24 agents and about 1.1M output, so a seven-line fix costs a tenth of it rather than half.
+## The review
 
-Every word carries its own output ceiling in `review-pipeline.json`, 400k to 2.5M, past which no verifier is dispatched and the writer still runs; it binds only with `+<n>` on the word, the harness's counter, and stands as a projection otherwise. The finders run at xhigh in every word: on gno#6187 they returned all six known Warnings at xhigh and three at high, for a sixth less output. The finder runs the checks of its own Criticals and Warnings and writes the artifact; a judge reruns it, reads the code and answers, which is the shape every production reviewer read for this keeps, since over six rounds fresh verifiers rebuilding the work refuted none of 52 Warnings.
+My work on a change starts as a review, of a pull request, a branch or a red
+CI. [`review.md`](review.md) drives it. The workspace runs it as one workflow
+per target: a parent prepares and ships, and agents find, judge and write, each
+reading only the rule sections its own output needs.
 
-The word is how well I know the code, and the cost climbs with it; the plan a
-round prints before it launches gives the figures for that diff. What each word
-starts is its row in [`shortcuts.md`](shortcuts.md).
+A finder reads one bundle, a group of changed files, for one angle, a kind of
+defect to hunt. What it returns is a candidate, banded Critical, Warning,
+Suggestion, Nit or Missing test. A judge reruns the candidate's check or reads
+the code, and keeps it as a finding or refutes it.
 
-## The concept
+| Word | For | What changes |
+| --- | --- | --- |
+| `quick review <target>` | code I know | a smaller finding budget per round, no reflector, smaller judge batches |
+| `review <target>` | any change | the standard round |
+| `deep review <target>` | code that is complex or unknown | finders with more tool calls, a higher Warning cap and the tests angle, smaller judge batches |
 
-Rules matter at the moment an agent writes, and a rule it read an hour ago is
-a rule it samples. So every artifact has one skill, the skill is put in context
-whole before the first line of the artifact, and a command records that it was.
-The hooks do the putting; the gate warns on anything written unread.
+[`shortcuts.md`](shortcuts.md) defines each word, and the workspace's `plan`
+word prints a round's stages and projected cost for a given diff before
+anything runs.
 
-Four principles outrank every rule. Build what the task asks for and nothing
-speculative. Read the rule before writing the artifact. Measure, never assume:
-every claim about an artifact comes from a command run this session,
-never from memory or from a file that recorded it once. Read the artifact back
-after editing it, before reporting it done. Every skill has a
-second goal beside its task: the same decision in fewer turns, since a turn
-re-sends the whole context and output tokens are the minor term.
+The word sets the most a round may run, and the change's class decides how
+much of that it does. The parent names the class from its own read of the
+diff, or a triage agent does:
 
-Nothing reaches anyone without my word, typed in the current turn: `post`,
-`push`, `merge`. `go`, `ok` and `yes` authorise nothing, and every draft is shown
-before it goes. A claim carries the run that proves it. A posted comment says
-the problem, its stake and the line it sits on, and stops, so a maintainer who
-did not ask for it reads it once; the depth lives in `claims.md`. Replies
-to me are clipped and end on an account of everything the turn did.
+| Class | The change | The round |
+| --- | --- | --- |
+| trivial | no behaviour change: a comment, a rename, a version bump | one agent finds, runs what it bands Warning, judges and writes |
+| simple | one local behaviour change, one function and its direct callers | one finder per bundle carrying every angle, one judge batch, the writer |
+| normal | a behaviour change with more than one reach, a new invariant, a guard removed | the word's shape |
+| complex | a line one finder's reading cannot settle: a new mechanism, or two that interact | more tool calls per finder, the word's judge batches, the text pass |
 
-The corpus shrinks on purpose. A rule has one home; it leaves when a script
-enforces it or a broader rule covers it; a wording in doubt is measured against
-its alternatives before it lands; the lint prints what each file costs. A
-workspace mounts this repository as a `skills/` submodule on `main`, live on
-the next sync with no bump, and keeps one measured delta per repository in
-`projects/<repo>/AGENTS.md`, which wins where the two disagree.
+A round, in the order [`review.md`](review.md) runs it:
 
-## The words
-
-What I type and what each word starts is the table in [`shortcuts.md`](shortcuts.md), the one place a word is defined; `push`, `post` and `merge` are the ones that reach anyone.
-
-## How I work
-
-Everything starts with a review, on a PR, a branch, or a red CI.
-[`review.md`](review.md) drives it:
-
-1. **Fetch and understand.** Sync the checkout, work from a worktree, pull the
-   diff, read every comment and past review, then read every changed file in
-   full and map its callers. A branch from outside the project gets a static
-   danger pass before it is fetched.
-2. **Re-review gate.** When a prior round exists, compare patch-ids to tell new
-   code from a branch that just moved on its base. A base-only move copies the
-   old round forward; nobody re-reviews unchanged code.
-3. **Reproduce.** Run the project's own CI commands locally. Every failure is
-   re-run on the merge base before the diff gets the blame.
-4. **Find.** One finder per angle the diff has material for, every angle
-   twice under `deep`, read only: line by line; removed and rewritten behaviour, swept by shape;
-   the claims the diff writes about itself; the tests it adds, with the
-   mutation that must redden each; reachability and extremes; the refactor
-   pass, every added block rewritten shorter and run; the invariant catalog
-   walked. An angle with nothing to walk is skipped, the plan saying which.
-   Each returns candidates with the check that would prove it false,
-   half-believed ones included, the read-shaped half of the check run by the
-   finder itself, high bands first.
-5. **Verify.** A hard claim gets one agent on a fresh context in its own
-   worktree, under a tool-call budget, the check run at the head and, when
-   the claim is causal, at the merge base; small claims share an agent, four
-   to a file; a Nit outside `deep` gets no agent and ships on the finder's
-   read, marked unverified. A verdict quotes its run, and a finding whose fix is a test
-   ships the test, paste-ready.
-7. **Write.** `overview.md` for the reader who knows nothing about the subject,
-   `comment_<model>.md` with one anchored section per finding, posted or
-   `SKIP`, and `claims.md`, the record: a table of every finding with where the
-   draft put it, then one block per candidate with its run output, every claim
-   linked to the reviewed line.
-8. **Text pass.** `round links` resolves every link of the draft and the
-   overview at its sha and checks its range into `links.md`; one agent adds
-   whether the landed lines carry each claim, then rewrites every line that
-   reads shorter without losing fact, stake or fix.
-9. **Style pass.** The closing Pass of [`writing-style.md`](writing-style.md),
-   run against the file and not from memory. Never skipped.
-10. **Commit.** The record lands in my workspace on the word `push`, nothing else moves.
-11. **Hand over.** I read the draft and decide.
-
-## The architecture
-
-One workflow per target, whatever its size: the workspace's
-`scripts/workflows/review-pipeline.js`, its stages scaled by
-`review-pipeline.json`. The parent prepares and ships; agents find, verify,
-criticise and write, each reading only the rule sections its artifact needs,
-none reading another's reasoning.
+1. **Prepare.** Sync the checkout, open worktrees at the head and the merge
+   base, read every comment and earlier round, and read each changed file whole
+   with its callers. A branch from outside the project gets a static danger
+   pass before it is fetched. The overview agent starts once the head worktree
+   exists.
+2. **Re-review gate and design.** Where an earlier round exists, a patch-id,
+   git's hash of a diff, tells new code from a branch that only moved on its
+   base, and a base-only move copies the old round forward. A first round asks
+   whether the design is a good idea before any finder runs, and a doubtful
+   one waits for a talk with me.
+3. **Reproduce.** The project's own suites, once per tree state.
+4. **Launch.** The plan prints, then the workflow runs the finders, the
+   reflector, the judges, the writer and the text pass. A change fixing a
+   reported vulnerability gets a critical pass bounded to that fix.
+5. **Check.** The comment's final check, then the closing pass of
+   [`writing-style.md`](writing-style.md) over the overview and the draft.
+6. **Critic read.** The finished round, read back against its own claims table.
+7. **Commit.** One commit for the round; its push and the post go out as the
+   workspace's consent rules say for that repository.
+8. **Retro and handover.** What the round cost and found, then the draft for me
+   to read.
 
 ```mermaid
 flowchart TD
-  P[parent: sync, worktrees at head and merge base,<br/>check runs, suites once per tree, catalog, prior rounds] --> F
-  P --> T[triage: one short read names the change's class,<br/>trivial, simple, normal or complex, and the class sets the shape]
-  T -->|trivial| X[solo: one agent finds, runs, judges and writes]
-  T --> O[overview agent: the subject for a reader who knows nothing,<br/>on disk beside the finders, never at the end]
-  F[finders, one per bundle per angle the bundle has material for,<br/>the hot bundles' twice under deep, read only] --> M[merge per file:line]
-  M --> R[reflector: one read of every candidate against the diff,<br/>drops what a quoted line contradicts, asks what is missing]
-  R -->|Critical, Warning, a rewrite: the finder ran it| J[judges, six per agent, own worktree, high:<br/>the artifact rerun, the code read, the base where causal]
-  R -->|Missing test, Suggestion, Nit| K[judges by read, twelve per agent:<br/>an absence a grep settles, a read settles a Nit]
-  J --> A[round assemble: claims.md and findings.md<br/>from candidates/ and verdicts/ on disk]
+  P[parent: worktrees at head and merge base,<br/>suites run, invariant catalog, earlier rounds] --> C{does one read hold the diff?}
+  P --> O[overview agent: the change, for a reader<br/>who knows the project and has not seen it]
+  C -->|yes| S[solo: a finder, then one agent<br/>that judges, runs and writes]
+  C -->|no| F[finders: one per bundle per angle<br/>the bundle has material for]
+  F --> R[reflector: drops what a code line contradicts,<br/>asks what is missing]
+  R -->|Critical, Warning, a rewrite| J[judges by six, each in its own worktree:<br/>the check rerun, the code read]
+  R -->|Missing test, Suggestion, Nit| K[judges by twelve:<br/>a read settles it]
+  J --> A[round assemble: claims.md and findings.md<br/>from the verdicts on disk]
   K --> A
-  A --> W[writer: overview.md, the comment draft from findings.md,<br/>the completeness answers]
-  W --> T[text pass: round links, the claim column, rewrites]
-  T --> Q[parent: final check, style pass, one commit, one push]
+  A --> W[writer: the comment draft, round check]
+  O --> W
+  W --> T[text pass: round links, rewrites]
+  T --> Q[parent: final check, style pass, one commit]
+  S --> Q
   Q -->|post| G[the GitHub review]
 ```
-
-| Stage | Reads | Returns | Tier |
-| --- | --- | --- | --- |
-| finder, one per angle with material, every angle twice under `deep` | the diff with its comments blanked for five angles, its angle's rule sections, the catalog | candidates: `file:line`, failure scenario, the check, the band, whether the finder ran the read-shaped half itself | high, cap 6 per finder and 12 above Nit; `deep` 16 and 16 |
-| verifier, the judges | six run-shaped candidates of one bundle per agent, the finder's artifact and evidence in hand, a tool-call budget; twelve read-shaped per agent | CONFIRMED, PLAUSIBLE or REFUTED on the judge's own rerun and read, the exact lines or a concrete input quoted, the base compared where the claim is causal | high |
-| writer | verified findings, prior rounds, the candidate rows already tabled | `overview.md`, `comment_<model>.md`, `claims.md` | high |
-| text pass | the draft, the overview, `links.md` from `round links` | the claim column, the rewrites applied | high |
 
 The round on disk:
 
 ```text
 projects/<repo>/reviews/<slug>/
-  overview.md            the subject for a reader who knows nothing, no review state
+  overview.md            the change, for a reader who knows the project and has not seen it
   <n>-<sha>/
-    comment_<model>.md   Event, Verdict, Model, Commit, Overview, Open the code, Round; the Body;
-                         one section per finding, posted or SKIP, its repro collapsed
-    claims.md            the Findings table: line, band, state, merge base, where the
-                         draft put it; a block per candidate with its check and output;
-                         the Record the round tools parse; the completeness answers
-    findings.md          the draft's skeleton from round assemble, one block per anchored line
-                         in posting order, the check on each
-    links.md             every link of the draft and the overview, resolved at its sha,
-                         its range checked, the claim column
-    tests/               every artifact a verifier ran
+    comment_<model>.md   the review as posted: the body, then one section per finding,
+                         posted or SKIP, its repro collapsed
+    claims.md            the record: every finding with its band, state and where the
+                         draft put it, then each candidate with its check and output
+    findings.md          the draft's skeleton, one block per anchored line in posting order
+    links.md             every link of the draft and the overview, resolved at its sha
+    check.md             the mechanical hits the writer cleared
+    tests/               every artifact a judge ran
     candidates/          what each finder and the reflector returned, as JSON
-    verdicts/            what each verifier returned, as JSON
+    verdicts/            what each judge returned, as JSON
 ```
 
-What the round carries in:
+What a round carries in, beside the diff:
 
-- **The invariant catalog**, `projects/<repo>/skills/invariant-catalog.md`: one class per entry with the check that settles it, proposed before a project's first round and extended in the round by every confirmed finding of a class it lacked, so the next round's finders walk it.
-- **The context file**, `projects/<repo>/CONTEXT.md`, private: sets the round's pace and shape, and no posted line quotes it or names it.
-- **The re-review gate**: patch-ids at the old and new head; equal means the base moved and the round copies forward, different means a full round over what changed, a merge commit means its conflict hunks are diff.
-- **Parallel dispatch**: one workflow per target, launched together; a security fix leaves the batch and runs alone first.
-- **A target I authored**: no draft, no posting; `claims.md` and `overview.md` still written.
-
-What leaves: nothing without `post`. The commit of the record is automatic and its push waits for `push`; a public destination gets the whole diff read as an adversary first.
+- **The invariant catalog**, `projects/<repo>/skills/invariant-catalog.md`: one
+  class of defect per entry with the check that settles it, walked by the
+  finders and extended by every confirmed finding of a class it lacked.
+- **A target I wrote**: no draft and no posting; the round fixes what it finds
+  and runs again until it stops finding, per
+  [`review-modes.md`](review-modes.md).
 
 ## Why each piece
 
-Every decision in the architecture, the reason it was made, and the evidence
-behind it. Sources are from 2025 and 2026, since the field moves fast enough
-that older ones are not cited. A row marked *reason* rests on this corpus's
-own argument and waits for the outcome table to measure it.
+Each decision, the reason for it and the evidence. Sources are from 2025 and
+2026, since the field moves fast enough that older ones are not cited. A row
+marked *measured* rests on this workspace's own rounds, and one marked *reason*
+on the corpus's own argument until the outcome table measures it.
 
 | Decision | Why | Evidence |
 | --- | --- | --- |
-| The finder runs its own Warning checks; a judge reruns and decides | Reading is not verifying: a tool-running agent identified 95 % of false positives in static-analysis warnings against 36 % for prompt-only, and 80 agents agreed on a nonexistent OpenSSL bug that one test killed; over six of our rounds fresh verifiers rebuilding the finder's work refuted none of 52 Warnings, while a lone agent running its own checks refuted three of its six | [Sifting the Noise 2026](https://arxiv.org/abs/2601.22952), the rounds' claims tables |
-| A judge in a fresh context, filing no finding of its own | Refuters holding the claim and none of the finder's reasoning killed 79 % of candidates; a validator that cannot log findings is the shape Cloudflare's harness keeps behind hunters that produce the proof | [Refute-or-Promote 2026](https://arxiv.org/abs/2604.19049), Cloudflare, "Build your own vulnerability harness", 2026 |
-| Run-shaped candidates six per judge, reads twelve | A scoring judge lost 45 % of human agreement at two items; an auditor held to seven and fabricated at eight; plain answer extraction held to fifteen, so a rerun-and-read batch stays at six and a read batch at twelve | [BatchGEM 2026](https://arxiv.org/abs/2603.11009) |
-| Routing by band: the Warning band and a rewrite get the rerun, the rest a read | A Missing test is an absence a grep settles and a read settles a Nit; on 6187 and 6177 every Nit the verifiers refuted was refuted by reading | the rounds' claims tables |
-| Small verifiers on the cheaper family tier | Their checks open with grep, count, ls or wc, or run a refactor's tests, and a weak verdict escalates to a full-tier agent, so a miss there costs one escalation while the stage costs a fifth; the next round's confirmed count against the last measures it | *reason* |
-| One vote per claim | Nine same-family judges carry 2.2 independent votes and the best single judge beat the panel; a cross-family refuter caught 16 % of same-family misses, and every model here is one family | [Nine Judges, Two Effective Votes 2026](https://arxiv.org/html/2605.29800), [Refute-or-Promote 2026](https://arxiv.org/abs/2604.19049) |
-| Finders at `xhigh`, every other stage at `high` | The user's call. On gno#6187 finders at xhigh returned all six known Warnings and finders at high three, for a sixth less output, so a missed Warning names the effort in its retro | *user's word; the xhigh run measured once* |
-| Code before the description; the claims angle alone reads the description first | "Bug-free" framing on vulnerable code cut detection by 16.2 to 93.5 points across six models; "vulnerable" framing on clean code raised false positives by 0.8 to 13.6 | [Mitropoulos et al. 2026](https://arxiv.org/abs/2603.18740) |
-| Five finders read a copy of head with comment lines blanked | The same framing sits inside the code, in a godoc calling something bounded or safe; the claims angle keeps the comments as its subject, the refactor angle as its lines | [Mitropoulos et al. 2026](https://arxiv.org/abs/2603.18740); *reason* for the extension |
-| One reflector, before the verifiers, drops and asks what is missing | It reads every candidate once against the diff, drops only what a code line contradicts, and asks the completeness question the critic used to ask beside the verifiers at three times the cost; its candidates verify in the first wave | *measured: 5 of 75 dropped, 3 on a comment's word, 3 added* |
-| Angles gated on the diff's material | An angle with nothing to walk costs a full read and returns nothing: no test file, no tests angle | *reason* |
-| A tool-call budget per verifier | One verifier ran 42 minutes and held four stages behind it; a budget ends it PLAUSIBLE with the check named, which the next round runs | *measured* |
-| `quick` bounds the wall clock and `cheap` the tokens | A round's minutes are its serial chain, finders, the slowest verifier, the writer, the text pass, and a lower cap or effort leaves that chain as long; quick caps the verifier's tool calls, batches two, and drops the reflector and the text pass | *reason* |
-| The catalog walked and extended each round | A finder walking no catalog walks nothing; a confirmed class the catalog lacked is the class it misses next time | *reason* |
-| The re-review gate by patch-id | Nobody re-reviews code that did not change; a merge commit's conflict hunks are diff | *reason* |
-| Outcome table per posted round | Every number above comes from someone else's task; which threads authors resolved, whose lines changed and which stayed open per angle, band and tier is what tunes the next batch size, cap and tier | [When Auditors Fabricate 2026](https://arxiv.org/abs/2609.09696) on mechanical verification of every reported finding; *reason* |
-| What the newest design adds and this one lacks | A refuter from another model family on each hard claim; every model this harness runs is one family, so it waits for a second provider | [Refute-or-Promote 2026](https://arxiv.org/abs/2604.19049) |
+| The finder runs its own Warning checks, and a judge reruns them | Reading is not verifying: a tool-running agent caught 95 % of the false positives in static-analysis warnings, against 36 % for a prompt alone. Over six rounds here, fresh verifiers rebuilding the finder's work refuted none of 52 Warnings | [Sifting the Noise 2026](https://arxiv.org/abs/2601.22952); *measured* |
+| One judge per claim, in a fresh context, filing no finding of its own | Refuters holding the claim and none of the finder's reasoning killed 79 % of candidates; nine same-family judges carried 2.2 independent votes, and the best single judge beat the panel | [Refute-or-Promote 2026](https://arxiv.org/abs/2604.19049), [Nine Judges, Two Effective Votes 2026](https://arxiv.org/html/2605.29800) |
+| Six candidates per judge where each needs its check rerun, twelve where a read settles each | A scoring judge lost 45 % of human agreement at two items, an auditor held to seven and fabricated at eight, and plain answer extraction held to fifteen | [BatchGEM 2026](https://arxiv.org/abs/2603.11009) |
+| A Missing test or a Nit gets a read, never a rerun | A Missing test is an absence a grep settles; every Nit the verifiers refuted in two rounds was refuted by reading | *measured* |
+| Finders at `xhigh`, every other stage at `high` | My call: on one round, finders at `xhigh` returned all six known Warnings and finders at `high` three, while `high` spent a sixth less output | *measured once* |
+| Code before the description, and five angles read the code with its comments blanked | "Bug-free" framing on vulnerable code cut detection by 16.2 to 93.5 points across six models, and a doc comment calling something safe is the same framing inside the code | [Mitropoulos et al. 2026](https://arxiv.org/abs/2603.18740); *reason* for the comments |
+| One reflector, before the judges | It reads every candidate once against the diff, drops what a code line contradicts, and asks what is missing, the question a critic agent running beside the judges used to ask at three times the cost | *measured: 5 of 75 dropped, 3 added* |
+| An angle runs only where the diff has material for it | An angle with nothing to walk costs a full read and returns nothing | *reason* |
+| A tool-call budget per judge | One verifier ran 42 minutes and held four stages behind it; the budget ends it unsettled with the check named | *measured* |
+| The invariant catalog, walked and extended each round | A confirmed class the catalog lacked is the class the next round misses | *reason* |
+| The re-review gate, by patch-id | Nobody re-reviews code that did not change | *reason* |
+| An outcome table per posted round, recording which threads the authors resolved | Every number above comes from someone else's task; what the authors resolved tunes the next batch size, cap and effort | [When Auditors Fabricate 2026](https://arxiv.org/abs/2609.09696); *reason* |
+| Not yet: a refuter from another model family | A cross-family refuter caught 16 % of the misses a same-family one let through, and every stage here runs one family | [Refute-or-Promote 2026](https://arxiv.org/abs/2604.19049) |
 
-## The files
+## What enforces it
 
-| File | Fires when | Produces |
-| --- | --- | --- |
-| [`review.md`](review.md) | a pull request, a branch or a repository-level failure is reviewed | the review round |
-| [`review-modes.md`](review-modes.md) | a run covers many targets, or the reviewer authored the target | the deltas of that case |
-| [`review-comment.md`](review-comment.md) | `comment_<model>.md` is drafted, regenerated or posted | the Body, the inline-comment shape, the final check, posting |
-| [`issue.md`](issue.md) | a fix needs an upstream issue nobody has filed | `issue.md`, the problem and never the remedy |
-| [`change.md`](change.md) | an issue, a finding, or a docs or test-only change goes to a pull request | `spec.md` and `plan.md` with their numbered open calls, the worktree, the fix, the local CI run, the pull request on my fork |
-| [`pr-body.md`](pr-body.md) | a change is proposed, before the pull request opens | the title and body, in one of four shapes, looping until a full pass changes nothing |
-| [`pr-body/docs.md`](pr-body/docs.md) | the change is documentation pages | no headers, the fact the pages had wrong first, a skeleton |
-| [`pr-body/one-concern.md`](pr-body/one-concern.md) | one concern, which is every bug fix | `## Problem` and `## Fix`, four short paragraphs, a skeleton |
-| [`pr-body/several-changes.md`](pr-body/several-changes.md) | several independent changes share one pull request | one `###` section per change, each readable alone, a skeleton |
-| [`pr-body/surface.md`](pr-body/surface.md) | one change with a surface someone sees | `## Problem` with the shot, `## Design` with one bold lead-in per decision, a skeleton |
-| [`try.md`](try.md) | a project is booted at a pull request, a branch or its default branch | a URL, a login, the click path; the clip once the claim is settled |
-| [`report.md`](report.md) | a periodic status report over a set of repositories | the report, generated only after I have edited its context file |
-| [`git.md`](git.md) | a turn will commit, push, sync a checkout, or touch a submodule or worktree | the identity every commit takes, where a push goes, the commands that report success and move nothing |
-| [`writing-style.md`](writing-style.md) | any visible prose, in any project | the rules every other skill defers to, the closing Pass, the chat register, the posted-comment shape |
-| [`thinking.md`](thinking.md) | every reply on a model no effort setting controls | how the thinking before it is written |
-| [`shortcuts.md`](shortcuts.md) | the user types a word | what each word starts, the one place a word is defined |
-| [`reply.md`](reply.md) | every reply, in any workspace | what it opens with, the closing block, its links |
-| [`authoring.md`](authoring.md) | a rule is added, edited or removed | where it lives, the shape it takes, what it displaces, the turns it must not add; its sources sit in `knowledge/`, never in the rule |
-| [`archive/`](archive/) | nothing loads it | snapshots of a skill before a change that altered its voice, the advisory shape for a disclosure, and the harness that chose the Short form wording |
-| [`TODO.md`](TODO.md) | skill work I own but have not started | one line per item, newest last |
-| [`knowledge/`](knowledge/) | a design question about the workflow comes up | one published result per file, from outside this workspace: what holds, the numbers, the paper or post behind it, what it changes. A round's own measurement stays in that round's `claims.md` |
-| [`scripts/scrub.sh`](scripts/scrub.sh) | a push of this repository, from `scripts/git-hooks/pre-push` | a refusal when a pushed line or a commit message carries a secret shape or a name the consumer's `workspace.json` lists |
-| [`scripts/rule-growth.py`](scripts/rule-growth.py) | a commit or a push of this repository, from `scripts/git-hooks/commit-msg` and `pre-push` | a refusal when a commit, merges aside, adds words to the rule files and its message carries no `Grows:` line giving a reason, which only my answer puts there |
-| [`tools/`](tools/) | one Rust crate, two binaries: `round links`, `round prior`, `round risk`, `round dispatch` and `round assemble` for a review round's fixed steps, `rules lint` for this corpus | `links.md` with every link resolved at its sha and its range checked; the earlier rounds' checks re-anchored to the head; the lint below; built by the consumer's sync onto `~/bin` and reached through its `scripts/round` and `scripts/rules` shims, tested by `cargo test --manifest-path tools/Cargo.toml`, a golden fixture under `tools/tests/lint` holding the lint's whole output |
+### The read gate
 
-## The chat register
+[`scripts/skill-gate.py`](scripts/skill-gate.py) records every read of a skill,
+by the Read tool or by [`scripts/skill`](scripts/skill): `scripts/skill review`
+for a skill, `scripts/skill pr-body/docs` for a body shape, `scripts/skill
+<project>` for a project's own rules file. Before a write, it puts the skills
+that write still lacks into context with a warning, names each by path, and
+lets the write through. A read holds while the file's hash matches and the
+session is the same; a stale read prints only the diff since it was made.
 
-Short form is the register every chat reply takes, defined in
-[`short-form.md`](short-form.md), the short form of
-[`writing-style.md`](writing-style.md). The rules live there and are not
-restated here.
+The same hook refuses the few commands that cannot be taken back without my
+word: a publish the turn carries no word for, a sync that resets a remote
+branch, an AI-authorship marker in a message, a commit identity set by hand.
 
-How the thinking before a reply is written is [`thinking.md`](thinking.md),
-loaded as every session opens. The gate reads the running model from the harness,
-the `SessionStart` payload or the transcript's last assistant entry, and on a
-model its `effort-set` patterns match prints one line lifting it, since effort
-sets that model's thinking; a model it cannot name keeps the rules. The
-evidence is in [`knowledge/thinking-length-follows-difficulty.md`](knowledge/thinking-length-follows-difficulty.md).
-`reply-check.py` measures the reply and not the thinking.
+In Claude Code, the workspace's settings file wires it: the before-write hook
+on `Write|Edit|MultiEdit|Bash` calls `skill-gate.py hook-claude`, the hook
+before `Read` calls `hook-read` to record the read, the session-start hook calls
+`session-start`, and the prompt hook `prompt`. Another harness runs
+`skill-gate.py check <path>` before writing and exports its session id as
+`CLAUDE_CODE_SESSION_ID`.
 
-[`archive/chat-register/`](archive/chat-register/) is the harness that chose the
-wording, archived with [`results.md`](archive/chat-register/results.md), its run:
-candidate wordings against no rule and against the caveman plugin on that
-plugin's own benchmark prompts, with a blind judge ranking every answer.
+### The git hooks
 
-[`scripts/reply-check.py`](scripts/reply-check.py) is what keeps it: it reads
-the turn's final reply off the transcript, drops fenced code, inline code,
-blockquotes, table rows, link targets and anything between two `---` rules, and
-measures what is left. It prints the words, the articles per
-hundred and the words per sentence, and none of the three is a reason; the reasons
-are a hedge, a pleasantry, a path named with no link, a coined letter the `TL;DR:` line names
-with no definition beside it, and a letter coined over one
-[`shortcuts.md`](shortcuts.md) already gives. A reply under 30 prose words, or one
-answering a `+` prompt, is not measured. It is a command a person runs over a file
-or a transcript: no hook calls it, and no count reaches the writer of the next reply.
+[`scripts/git-hooks/`](scripts/git-hooks/) holds them, and they run whatever
+made the commit, any model or none:
 
-```bash
-./skills/scripts/reply-check.py <file>                          # the numbers for a text file
-./skills/scripts/reply-check.py --scan <transcript>.jsonl... --since 2026-09-06   # replies measured and drifted, per session
-```
+| Hook | Does |
+| --- | --- |
+| `pre-commit`, `pre-merge-commit` | warns on a commit carrying an artifact whose skill was not read; refuses one recording a submodule commit no remote holds, or a workflow script that does not parse |
+| `commit-msg` | refuses a commit adding words to the rule files with no `Grows:` line giving a reason |
+| `pre-push` | refuses a pushed line or message carrying a secret shape or a name the workspace's `workspace.json` lists, through [`scrub.sh`](scripts/scrub.sh); refuses a pushed commit that grew the rules with no reason, one made by `--no-verify`, a rebase or a cherry-pick included; warns as `pre-commit` does |
 
-## The read gate
+### The lint
 
-[`scripts/skill-gate.py`](scripts/skill-gate.py) records every read made
-through [`scripts/skill`](scripts/skill), `./scripts/skill review` for a skill,
-`./scripts/skill pr-body/docs` for a shape, `./scripts/skill meet` for a
-project's delta. It puts the skills a write still lacks into the context with a
-warning and lets the write through, and names the rules by path for the Read
-tool: the files the session opens with, `shortcuts`, `short-form` and
-`thinking`, recorded as read; the task's and the
-repository's on the prompt
-that names them; everything the session had read, again after a compaction. A
-read holds while the file's
-hash matches and the session is the same; a stale read prints only the diff
-since it was made.
+[`rules lint`](tools/src/lint/) warns and never blocks: a rule telling the
+reader to stop measuring, a date or a sha inside a rule, an em-dash or a
+parenthetical in prose, a capability asserted without the command that reads
+it, a pointer at a file or a section that does not exist, one rule stated in
+two files. It closes on a health table per file: the word count, the words per
+rule, the negation density and the share of bullets in bold.
 
-[`scripts/git-hooks/`](scripts/git-hooks/) holds the commit, merge-commit and
-push hooks, which warn on a mapped artifact whose skill was not read, whatever
-made the commit, and refuse a commit adding words to the rules with no
-`Grows:` line giving a reason. [`scripts/tests/`](scripts/tests/) holds the tests of the gate,
-of the register check and of `rule-growth.py`.
+### The reply check
 
-```bash
-git config core.hooksPath skills/scripts/git-hooks
-git -C skills config core.hooksPath scripts/git-hooks
-python3 -m unittest discover -s skills/scripts/tests
-```
+Every chat reply takes [`short-form.md`](short-form.md). Its wording won a
+blind comparison, kept in [`archive/chat-register/`](archive/chat-register/):
+several candidate wordings, no rule at all and the caveman plugin each answered
+that plugin's own prompts, and a judge who could not see which was which
+ranked the answers.
 
-The harness adapter lives in the workspace's own settings file, never here:
-its before-write hook on `Write|Edit|MultiEdit|Bash` calls
-`skill-gate.py hook-claude`, its session-start hook `session-start`, and its
-prompt hook `prompt`. No stop hook measures a reply: `reply-check.py` stays a
-command a person runs over a file or a transcript, never a number handed to the
-writer of the next reply. Another harness wires its
-before-write hook to `skill-gate.py check <path>` and exports its session id as
-`CLAUDE_CODE_SESSION_ID`; the git hooks hold without any harness.
+[`scripts/reply-check.py`](scripts/reply-check.py) measures a reply or a
+transcript after the fact. It prints the words, the articles per hundred and
+the words per sentence, none of them a fault, and flags the faults: a hedge, a
+pleasantry, a path named with no link, a one-letter shortcut the reply made up
+without defining it. No hook calls it, since a writer shown a number writes to
+move the number.
 
-## The lint
+## The scripts and tools
 
-[`rules lint`](tools/src/lint.rs) warns and never blocks: a rule that tells the reader to
-stop measuring, a date or a sha inside a rule, an em-dash or a parenthetical in
-prose, a capability asserted without the command that reads it, a pointer at a
-file or a section that does not exist, one sentence living in two files, and a
-health table per file with its word count, words per rule, negation density and
-the share of bullets in bold.
+| Path | Does |
+| --- | --- |
+| [`scripts/skill`](scripts/skill) | prints a skill or a project's own rules file and records the read |
+| [`scripts/skill-gate.py`](scripts/skill-gate.py) | the read gate and its hooks |
+| [`scripts/sections.py`](scripts/sections.py) | cuts one `path#Heading` section out of a rule file; `check` lists every section name a pipeline config or a `prompt-sections` line gives that matches no heading or matches two |
+| [`scripts/rule-growth.py`](scripts/rule-growth.py) | the growth check behind `commit-msg` and `pre-push` |
+| [`scripts/scrub.sh`](scripts/scrub.sh) | the secret and private-name scan behind `pre-push`; `--tree` reads the whole tree |
+| [`scripts/snapshot`](scripts/snapshot) | commits a worktree's uncommitted build over its HEAD without moving a branch and prints the sha, so a round reviews a build before anything is committed |
+| [`scripts/reply-check.py`](scripts/reply-check.py) | measures a chat reply or a transcript |
+| [`scripts/site.py`](scripts/site.py) | builds the site under `docs/` |
+| [`scripts/tests/`](scripts/tests/) | the tests of the gate, the reply check, the growth check, the scrub and the snapshot |
+| [`tools/`](tools/) | one Rust crate, two binaries: `round`, a review round's fixed steps, from resolving every link at its sha to writing `claims.md` from the verdicts, and `rules lint`; [`tools/README.md`](tools/README.md) holds the contract |
 
-```bash
-rules lint AGENTS.md skills/*.md skills/pr-body/*.md skills/knowledge/*.md projects/*/AGENTS.md
-```
+## The site
+
+[davd-gzl.github.io/skills](https://davd-gzl.github.io/skills/) serves this
+README and the posts under [`knowledge/blog/`](knowledge/blog/).
+[`scripts/site.py`](scripts/site.py) builds them into `docs/`, each relative
+link rewritten to its GitHub URL, and `--check` exits 1 when `docs/` lags its
+sources.

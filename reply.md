@@ -127,14 +127,29 @@ This job runs on a schedule only, and GitHub disables those after 60 days.
   in which repository, against which base, and whether it opens as a draft or
   ready.
 - Before offering a word that pushes, `p`, `pr`, `pf` or `rlp`, write one
-  `Trust:` line directly above the first such word line: how sure this session
-  is, out of 10, that what goes out is right, then `no need to reverify`, or
+  `Confidence:` line directly above the first such word line: how sure this session
+  is, out of 10, that what goes out is right, as three scores, `total`, `fix`,
+  that the code does what it claims, and `design`, that its shape is the one
+  to keep. `fix` and `design` each read `-` where the push carries no code.
+  `total` is judged on its own, never their average. Then `no need to reverify`, or
   `reverify` and each diff, test run, CI job or capture going out that this
   session never opened itself, whoever ran it, or opened and could not
   confirm. Any such part holds the score
   at 7 or below, closes the reply on `Not all good` and goes on no `Left:`
-  line. `Trust: 9/10 sure, no need to reverify`; `Trust: 6/10 sure, reverify
-  the lint job, whose output this session never opened`.
+  line, the cap falling on `total`. `Confidence: total 9/10, fix 9/10, design
+  8/10, no need to reverify`; `Confidence: total 6/10, fix 8/10, design 7/10,
+  reverify the lint job, whose output this session never opened`.
+- When a reply leaves a design choice about code whose wrong pick costs more
+  than redoing the work, per *Consent* in the workspace `AGENTS.md`, open it
+  on a line of its own reading `**Your call:**`, then the choice, the current
+  pick and the other way with its cost, in place of the `Left:` line for that
+  choice and where `Left:` would sit, so it stands out from the defaults
+  `Decided:` names; the closing status reads it as a decision waited on.
+- When a reply hands over a reviewer's comments, give each two confidences in
+  the same form, `problem 9/10, fix 8/10`: that the problem it names is real
+  and worth the change, and that the fix applied for it is right, or for one
+  left unapplied that the reason holds, each with the run that shows it or the
+  check still missing.
 - When a reply ends on a status or links table, put the word lines directly
   above it, one for every action that table leaves pending: `p` while anything
   in it is unpushed, and the coined word of every next step the reply proposed.
@@ -161,7 +176,7 @@ This job runs on a schedule only, and GitHub disables those after 60 days.
   which. CI not yet finished on a push, queued, running or awaiting approval,
   leaves it `All good`, named on `Left:`. A word or a decision waited on is no
   fault: the word stays on the `` waits on `<word>` `` tail, the decision on
-  `Left:`, while other work on `Left:` makes it `Not all good`. The status is
+  `Left:` or `**Your call:**`, while other work on `Left:` makes it `Not all good`. The status is
   the reply's last line, alone, under the links and the `TL;DR:` line where
   the reply carries one, so the user never has to ask whether everything is
   fine.

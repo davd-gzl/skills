@@ -159,7 +159,9 @@ This job runs on a schedule only, and GitHub disables those after 60 days.
   commits and the transcript's tool results. It names the change and makes
   none in that reply. A session that was one review round alone takes that
   round's `## Retro` instead. This block is the one part *The reply* in
-  `skills/short-form.md` lets a reply carry unasked.
+  `skills/short-form.md` lets a reply carry unasked. A reply ending a
+  request's work, once nothing it started still runs, offers `retro` on the
+  last word line.
 - Under the links, the `TL;DR:` line, where `skills/short-form.md` asks for one. A turn
   waiting on the user ends that line on `` waits on `<word>` ``, and only such a
   turn does, since the desktop notification for a waiting turn shows that

@@ -780,8 +780,23 @@ class PublishWordsEdges(PublishWords):
             self.assertEqual(self.hook(cmd)[0], 0, cmd)
         for cmd in ('gh -R other/repo pr create -t x -b y', 'gh -R me/fork pr merge 5',
                     'gh -R me/fork pr comment 5 -b x && gh -R other/repo pr comment 5 -b x',
-                    'gh api -X PUT repos/me/fork/pulls/5/merge', 'gh api -X POST repos/other/repo/pulls -f title=x'):
+                    'gh api -X PUT repos/me/fork/pulls/5/merge', 'gh api -X POST repos/other/repo/pulls -f title=x',
+                    'gh api -X POST repos/me/fork/issues -f title=x', 'gh api -X PATCH repos/me/fork/pulls/5 -f state=closed'):
             self.assertEqual(self.hook(cmd)[0], 2, cmd)
+
+    def test_a_merge_a_close_and_an_issue_through_the_api_keep_their_own_words(self):
+        for cmd, word in (('gh api -X PUT repos/me/fork/pulls/5/merge', {'merge'}),
+                          ('gh api -X PUT repos/other/repo/pulls/5/merge', {'merge'}),
+                          ('gh api -X PATCH repos/me/fork/pulls/5 -f state=closed', {'close'}),
+                          ('gh api -X PATCH repos/me/fork/pulls/5 -F state=closed', {'close'}),
+                          ('gh api -X PATCH repos/me/fork/pulls/5 --field state=closed', {'close'}),
+                          ('gh api -X PATCH repos/me/fork/pulls/5 -f state=open', {'post'}),
+                          ('gh api -X PATCH repos/me/fork/pulls/5 --input /nonexistent/close.json', {'post'}),
+                          ('gh api -X POST repos/me/fork/issues -f title=x', {'post'})):
+            self.assertIn(word, gate.publish_words(cmd), cmd)
+        body = self.root / 'close.json'
+        body.write_text('{"state": "closed"}')
+        self.assertIn({'close'}, gate.publish_words(f'gh api -X PATCH repos/me/fork/pulls/5 --input {body}'))
 
     def test_a_finished_round_goes_up_without_post_on_a_listed_repository(self):
         (self.root / 'workspace.json').write_text(json.dumps({'standing_publish_review': ['up/fixes']}))
@@ -1360,6 +1375,22 @@ class PreCommitRefusals(GateCase):
         subprocess.run(['git', '-C', str(sub), 'update-ref', 'refs/remotes/origin/main', sha], check=True)
         with redirect_stderr(io.StringIO()):
             self.assertEqual(gate.main(['pre-commit'], cwd=str(repo)), 0, 'held by a remote branch, the pointer passes')
+
+    def test_a_gitlink_the_remote_holds_passes_once_stale_refs_are_fetched(self):
+        repo = self._repo()
+        env = {**os.environ, 'GIT_AUTHOR_NAME': 't', 'GIT_AUTHOR_EMAIL': 't@x', 'GIT_COMMITTER_NAME': 't', 'GIT_COMMITTER_EMAIL': 't@x'}
+        origin = self.root / 'origin'
+        subprocess.run(['git', 'init', '-q', '-b', 'main', str(origin)], check=True)
+        subprocess.run(['git', '-C', str(origin), 'commit', '-q', '--allow-empty', '-m', 'one'], check=True, env=env)
+        sub = repo / 'sub'
+        subprocess.run(['git', 'clone', '-q', str(origin), str(sub)], check=True)
+        # the remote moves after the clone: the submodule's refs do not know the new commit yet
+        subprocess.run(['git', '-C', str(origin), 'commit', '-q', '--allow-empty', '-m', 'two'], check=True, env=env)
+        sha = subprocess.run(['git', '-C', str(origin), 'rev-parse', 'HEAD'], capture_output=True, text=True, check=True).stdout.strip()
+        subprocess.run(['git', '-C', str(repo), 'update-index', '--add', '--cacheinfo', f'160000,{sha},sub'], check=True)
+        err = io.StringIO()
+        with redirect_stderr(err):
+            self.assertEqual(gate.main(['pre-commit'], cwd=str(repo)), 0, err.getvalue())
 
     def test_a_held_gitlink_passes_from_a_linked_worktree(self):
         repo = self._repo()

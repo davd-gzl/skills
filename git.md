@@ -107,7 +107,7 @@ before the push, never the URL it is browsed at. A 403 there is the wrong
 destination before it is a missing permission.
 
 1. The token can write it and the repo is the user's: straight to the default
-   branch, no feature branch, no `gh pr create`.
+   branch, no feature branch, no `gh pr create`, `skills/` excepted below.
 2. Refused, or not the user's repo: push a branch and open the pull request. A
    pushed branch is never left without one.
 3. Creation refused: give the `compare/...?expand=1` URL.
@@ -119,9 +119,12 @@ the maintainer squashes at merge. A squash the user asks for, `squash push`
 included, folds only the commits the remote lacks, onto the pushed tip; one
 reaching below that tip is a force push, named as one before it is built.
 
-The pin moves in the workspace commit after a skills push lands, `skills at
-<sha>: <what it carries>`, so a clone resolves to the rules the work wrote
-about; between pushes `git status` reading `M skills` is the expected state.
+**A change to `skills/` goes on a branch of its own in its own worktree,
+`git -C skills worktree add <scratch>/skills-<branch> -b <branch> origin/main`,
+pushed with `-u` and opened as a pull request, never straight to its `main`.**
+The workspace's own `skills/` stays on `main`, which its sync fast-forwards. The pin moves in the workspace commit after that pull request
+merges, `skills at <sha>: <what it carries>`, so a clone resolves to merged
+rules.
 
 ## The parent races other sessions
 
@@ -134,6 +137,7 @@ across the rebase. Stop on a conflict rather than resolving it, and report the f
 ## Submodules
 
 A submodule sits on a detached HEAD, and every failure here follows from that.
+`skills/` takes its own branch instead, per *Where a push goes*.
 
 - **Push a submodule commit in the command that makes it.** A detached-HEAD
   commit is referenced by nothing, so the parent's next `submodule update` checks
@@ -143,9 +147,7 @@ A submodule sits on a detached HEAD, and every failure here follows from that.
 - **Push it as `git push origin HEAD:main`.** A submodule's `main` is whatever
   the last update left, usually stale, so pushing that ref is refused as behind
   while the commit that matters sits on `HEAD`. On a detached HEAD, follow with
-  `git branch -f main origin/main`; a submodule checked out on `main`, as the
-  sync leaves `skills/`, is level once the push lands, and `git status -sb`
-  shows it.
+  `git branch -f main origin/main`.
 - Restore a checkout to its default branch after working in it, or the
   parent's gitlink moves and the tree is dirty.
 

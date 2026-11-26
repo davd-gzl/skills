@@ -114,6 +114,10 @@ destination before it is a missing permission.
 3. Creation refused: give the `compare/...?expand=1` URL.
 4. The canonical remote refuses: push to the fork, open across forks.
 
+Push a pull request's branch with `-u`, `git push -u <head remote> HEAD:<branch>`,
+so the branch tracks its head repository and the editor's pull request view
+links it; a branch pushed without it shows no pull request there.
+
 A commit stays on top of a pushed branch, whatever the repo's measured
 granularity: squashing an already-pushed branch costs a second force push, and
 the maintainer squashes at merge. A squash the user asks for, `squash push`

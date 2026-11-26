@@ -210,6 +210,10 @@ this turn, the rule they stated or their reply when asked, puts `Grows: <why>`
 on the commit, unasked fixes included. `skills/scripts/rule-growth.py` refuses
 a growing commit without one, merges aside.
 
+When the user proposes a rule, weigh its design before writing it: write the
+shape the agent would recommend, and in the same reply give each other shape
+with its cost, a gate against a line of prose for one, so one word swaps it.
+
 A rule leaves when any of these holds:
 
 - A script or a linter now enforces it. The rule becomes a line in that script.
@@ -343,7 +347,8 @@ workspace `AGENTS.md`.
 A write gets a verb; a read stays free. Changing a tracked artifact goes
 through a named script under `scripts/`, never a shell line composed in the
 turn: committing, pushing, posting, editing the `TODO.md`, tagging a draft,
-sweeping a round. A shell line is written once, from memory, under no test, and
+sweeping a round. A file's text changes through the Edit tool, so the user
+reads it as a diff, never through `sed`, a redirect or a Python write. A shell line is written once, from memory, under no test, and
 its next reader cannot tell a deliberate choice from a typo. Reading stays
 unrestricted, `grep`, `git log`, a count, a probe: the Principles ask for a
 measurement taken this session, and a verb nobody wrote yet is no reason to

@@ -43,9 +43,10 @@ LINE = re.compile(r'^\s*grows:(.*)$', re.I)
 TEMPLATE = 'whyitmaygrow'   # the reason the refusal prints, letters only; authoring.md prints its start
 BARE = {'no', 'none', 'nothing', 'yes', 'ok', 'todo', 'tbd'}
 SCISSORS = '------------------------ >8 ------------------------'   # `commit -v` puts the diff below it
-ASK = ('Ask the user whether the rules may grow, naming what the commit adds, per *What a new rule '
-       'displaces* in authoring.md; only their answer in the turn adds a `Grows: <why it may grow>` line '
-       'to the message. Never cut words from the rules that stay to avoid asking.')
+ASK = ('Ask the user whether the rules may grow, per *What a new rule displaces* in authoring.md, '
+       'one line per changed rule above the question: its file, then what it now says; '
+       'only their answer in the turn adds a `Grows: <why it may grow>` line to the message. '
+       'Never cut words from the rules that stay to avoid asking.')
 
 
 def die(msg):

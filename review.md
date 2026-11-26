@@ -204,6 +204,8 @@ A verdict, filled:
 - CONFIRMED needs the exact lines or a concrete triggering input in the judge's own words, never the finder's evidence alone. Rerun the artifact from the file and read its output; where none exists or it does not reproduce the claim, build the smallest check that would.
 - When the claim is that the diff causes the behaviour, run the same check at the merge base and report both; enumerate the case space first, both, first only, second only, neither.
 - State exactly one of CONFIRMED, the run or the read reproduced it with the key output or the lines quoted; PLAUSIBLE, the mechanism is real and no reproducer exists in this environment, with what would confirm it; REFUTED, the run or the read shows it guarded, covered or unreachable, with the proving line quoted.
+- Once every candidate of the batch has its verdict, apply the fix each confirmed Critical's or Warning's `Fix:` sentence names in your scratch worktree, rerun the artifact that failed, restore the tree, and end `evidence` on `fix: fixed`, `fix: still fails` or `fix: inconclusive` with the rerun's key line. A fix you could not apply, an artifact that already passes without the fix, or a check the calls left unrun is `inconclusive`.
+- On `fix: still fails`, rewrite the `Fix:` sentence to one the rerun passes, or say no fix was found.
 - Before a REFUTED rests on a crash, a panic or a refusal your fixture hit on a path other than the one the candidate names, change the fixture to get past it, an unexported field for an exported one, a smaller input, and run the candidate again: the crash refutes that fixture, never the shape.
 - Give each candidate its own verdict, borrowing from no other's; a batch that confirms every item has been read against that habit.
 - Band per *Calibration*. A refactor candidate whose rewrite passes the tests is a Suggestion carrying both line counts.
@@ -424,6 +426,8 @@ When findings suggest fragile or under-tested code, write edge-case tests, run t
 When a finding's fix is a test the author should add, ship the test: write it under `tests/`, assert the post-fix state, never the bug's current output, run it, and when it also proves a bug show it failing before the fix and passing after. Embed it in the `comment_<model>.md` finding.
 
 Pair the defect with the baseline it breaks in one assertion, and ship both expectations side by side, the current one active and the fixed one commented, each labelled. The commented line is what the author uncomments once the fix lands.
+
+A test that waits on async work polls the condition it needs under a timeout, never a fixed sleep. Sleep only where the behaviour under test is itself a delay, with a comment saying so.
 
 Start each test file with a comment block carrying exact repro commands runnable from a plain clone: no workspace paths, no `$HOME`. Pin `git checkout <hash>` in test-file headers only; a draft's repro blocks never pin. The header stands alone, shaped per *Repro rules*. Name code paths by their actual symbol. One-line in-test comments per non-obvious step.
 

@@ -278,7 +278,8 @@ from it is measured here before it is trusted.
 ## Editing this corpus
 
 - `skills/` is the canonical repository, `davd-gzl/skills`, mounted as a
-  submodule in every workspace. Edit here, never in a copy.
+  submodule in every workspace. Edit it on a branch and land it by pull
+  request, per *Where a push goes* in `skills/git.md`, never in a copy.
 - **`skills/` is public and generic: no secret, no private name and no local
   path in any file or commit message here.** A token, a hostname, a private
   repository, a person, a round number or an absolute path is disclosed the

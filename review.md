@@ -427,6 +427,8 @@ When a finding's fix is a test the author should add, ship the test: write it un
 
 Pair the defect with the baseline it breaks in one assertion, and ship both expectations side by side, the current one active and the fixed one commented, each labelled. The commented line is what the author uncomments once the fix lands.
 
+A test that waits on async work polls the condition it needs under a timeout, never a fixed sleep. Sleep only where the behaviour under test is itself a delay, with a comment saying so.
+
 Start each test file with a comment block carrying exact repro commands runnable from a plain clone: no workspace paths, no `$HOME`. Pin `git checkout <hash>` in test-file headers only; a draft's repro blocks never pin. The header stands alone, shaped per *Repro rules*. Name code paths by their actual symbol. One-line in-test comments per non-obvious step.
 
 ## Overview (`overview.md`)

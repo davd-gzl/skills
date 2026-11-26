@@ -470,43 +470,6 @@ class ClaudeHook(GateCase):
         rc, _ = self.run_hook({'tool_name': 'Read', 'tool_input': {'file_path': 'x'}})
         self.assertEqual(rc, 0)
 
-    def test_a_name_goes_to_each_agent_once_per_text_and_compaction(self):
-        write = {'tool_name': 'Write', 'tool_input': {'file_path': str(self.root / 'projects/meet/changes/x/spec.md')}}
-        self.assertIn('skills/change.md', self.run_hook(write)[1])
-        self.assertEqual(self.run_hook(write), (0, ''))
-        self.assertIn('skills/change.md', self.run_hook({**write, 'agent_id': 'a1'})[1])
-        (self.root / 'skills' / 'change.md').write_text('# change, edited\n')
-        context = self.run_hook(write)[1]
-        self.assertIn('skills/change.md', context)
-        self.assertNotIn('skills/writing-style.md', context)
-        gate.forget_session()
-        self.assertIn('skills/writing-style.md', self.run_hook(write)[1])
-
-    def test_a_text_edited_back_is_named_again(self):
-        write = {'tool_name': 'Write', 'tool_input': {'file_path': str(self.root / 'projects/meet/changes/x/spec.md')}}
-        change = self.root / 'skills' / 'change.md'
-        self.run_hook(write)
-        change.write_text('# change, edited\n')
-        self.assertIn('skills/change.md', self.run_hook(write)[1])
-        change.write_text('# change\n')
-        self.assertIn('skills/change.md', self.run_hook(write)[1])
-
-    def test_a_corrupt_naming_record_names_again(self):
-        write = {'tool_name': 'Write', 'tool_input': {'file_path': str(self.root / 'projects/meet/changes/x/spec.md')}}
-        self.run_hook(write)
-        (self.root / '.skill-gate' / 'session-a' / '.named').write_bytes(b'\xff\xfe\n')
-        self.assertIn('skills/change.md', self.run_hook(write)[1])
-
-    def test_a_compaction_names_each_read_once(self):
-        gate.record_read('change')
-        out = io.StringIO()
-        gate.main(['session-start'], stdin=io.StringIO(json.dumps({'source': 'compact'})), stdout=out)
-        self.assertIn('skills/change.md', out.getvalue())
-        context = self.run_hook({'tool_name': 'Write', 'tool_input': {
-            'file_path': str(self.root / 'projects/meet/changes/x/spec.md')}})[1]
-        self.assertNotIn('skills/change.md', context)
-        self.assertIn('skills/writing-style.md', context)
-
 
 class PublishWords(GateCase):
     """A publish, a push outside the standing list, a forced push and an AI marker wait for their word."""

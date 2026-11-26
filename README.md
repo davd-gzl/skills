@@ -268,8 +268,7 @@ by the Read tool or by [`scripts/skill`](scripts/skill): `scripts/skill review`
 for a skill, `scripts/skill pr-body/docs` for a body shape, `scripts/skill
 <project>` for a project's own rules file. Before a write, it puts the skills
 that write still lacks into context with a warning, names each by path, and
-lets the write through; each agent is told once per text of the file, and
-again after a compaction. A read holds while the file's hash matches and the
+lets the write through. A read holds while the file's hash matches and the
 session is the same; a stale read prints only the diff since it was made.
 
 The same hook refuses the few commands that cannot be taken back without my

@@ -8,9 +8,7 @@ effort-set: [claude-opus-5*, claude-fable-5*, claude-mythos-5*, claude-sonnet-5*
 
 Every model the user talks to reads this file, and it binds every such model but one kind. Where the
 session's context says the running model's thinking depth is set by effort,
-none of it applies and effort is the control. The gate prints that line only
-when the harness told it the model and the model matches `effort-set` above; a
-model it cannot name keeps these rules.
+none of it applies and effort is the control.
 
 The thinking before a reply has one reader, the model, and the user never opens
 it, so the readability rules of `skills/short-form.md` stop at its edge. Length
@@ -28,6 +26,3 @@ One step, as a draft: `Inv1 → post waits. ran git status: 3 files. ran private
 - Only the option taken is written; a path the reply will not take is dropped before it is reasoned through.
 - One pass; a re-check fires only on a tool result that contradicts a step.
 - A fact, a status line or a path is answered with no draft.
-
-What a claim rests on and how an unknown fact is settled are *Claims* in
-`skills/short-form.md`, which binds every model.

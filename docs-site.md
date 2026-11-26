@@ -26,8 +26,6 @@ Sign in before you create the room, so you own it. Then pick who can join.
 - No breakout rooms. In progress: [#123](<url>).
 ```
 
-Who it is for in the first line, the most useful action next, a picture beside
-every control the text names, the limits last with the upstream work linked.
 Every sentence follows `skills/writing-style.md`, its rules on linking every
 named thing and on pitching to the audience included.
 

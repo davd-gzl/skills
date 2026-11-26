@@ -1,6 +1,6 @@
 ---
 name: reply
-description: The shape of every reply to the user: what it opens with, how it handles a draft, its closing block, its links. Read by path at the turn that finishes work, since nothing imports it. The words the user types are skills/shortcuts.md and the register is skills/short-form.md.
+description: The shape of every reply to the user: what it opens with, how it handles a draft, its closing block, its links. Named by the gate on each typed prompt until read; nothing imports it. The words the user types are skills/shortcuts.md and the register is skills/short-form.md.
 ---
 
 # The shape of a reply
@@ -101,8 +101,7 @@ This job runs on a schedule only, and GitHub disables those after 60 days.
   workspace `AGENTS.md`, ask it through the harness's question tool where it has
   one: every such decision of the turn in one call, the recommended option first
   and marked. The reply then names the asked decisions in one line and carries
-  no word for them. Where the harness has no such tool, the question is one
-  line, per `skills/short-form.md`.
+  no word for them.
 - A first question about something new to build opens by restating it in one
   sentence that keeps the user's own nouns, in that same question and never in a
   turn of its own. The tell is a question already using a different noun for it:
@@ -136,8 +135,6 @@ This job runs on a schedule only, and GitHub disables those after 60 days.
   in it is unpushed, and the coined word of every next step the reply proposed.
   The user reads the table for where things stand and the lines beside it for
   what to type, so a word left in the prose costs a turn asking for it.
-- Where a publish and something already authorised are both pending, do the
-  latter and offer the publish alone.
 - Before a reply in a summarized session says nothing waits, or answers what is
   left, list every topic the session opened, from the summary and from the
   commits the session made, `git log --since=<session start> --format=%s`,
@@ -162,8 +159,7 @@ This job runs on a schedule only, and GitHub disables those after 60 days.
   `Left:`, while other work on `Left:` makes it `Not all good`. The status is
   the reply's last line, alone, under the links and the `TL;DR:` line where
   the reply carries one, so the user never has to ask whether everything is
-  fine. A turn ending while an agent still runs, on its forecast line, carries
-  none.
+  fine.
 
 ## Links
 
@@ -233,9 +229,8 @@ and 329k output. `stop` kills them.
   decision. Every question and every word goes in the one reply after the last
   of them returns, so one `p` covers the whole request. The tell is a closing
   block reading `still running` above a word to type.
-- Before relaying a linked session's note, check that it reports a pull request
-  opened, a result, or something the user must decide. A note saying the work
-  is still running gets no relay.
+- A linked session's note gets no relay: the user reads that session. Reply to
+  one only where its result unblocks a step of this session's own work.
 - Re-dispatch every agent that died, before anything else, on `continue` and on
   any turn that resumes the work.
 - Before dispatching agents, project the request's spend in dollars from the

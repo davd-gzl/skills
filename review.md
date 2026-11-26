@@ -17,8 +17,7 @@ the draft asserts; a *round* is one run over one head; a *pass* is one agent's
 sweep; the *draft* is `comment_<model>.md`; a *verdict* is CONFIRMED,
 PLAUSIBLE, REFUTED or UNVERIFIED.
 
-Write all visible prose per `skills/writing-style.md`, read when the writer
-stage opens. In every artifact, verdict first, then narrative, then findings;
+In every artifact, verdict first, then narrative, then findings;
 every reference clickable, every file readable without the chat, and the one
 number or word that carries the decision in bold.
 
@@ -32,8 +31,7 @@ and every verifier; *Review the diff*, the finders and the reflector; *Write
 tests for test-shaped findings*, the finders and the judges; *Overview*, the overview
 agent; *Links & citations*, the writer; *Repro rules*, the verifiers and the
 writer; *Output*, the writer; *Calibration*, every stage; *Rules*, the parent
-at the close; *GitHub review draft*, the writer, through
-`skills/review-comment.md`.
+at the close.
 
 ## Workflow
 
@@ -93,27 +91,21 @@ What the parent hands the runner, and what every stage gets from it.
 
 - `./scripts/review-setup.sh <head worktree> <base worktree> <scratch> --preset <word> --suite-min <minutes> --repo <owner/name> --target <text> --round-dir <dir> --catalog <file> --delta <project review.md> --prebuilt <tool>` does the fixed part of the launch in one command: the blanked copy of the head, the risk table, the bundles with their diffs, the rule files per stage, the diff and its material, the suggested shape, and `args.json` for the workflow; `--solo` and `--finders <n>` set the solo shape, and it sets `args.own_pr` itself where the pull request's author is the account `gh` is signed in as. A pull request stacked on an open parent whose head moved passes `--own-commits <sha> ...`, so the plan, the risk table and the bundles measure its own commits alone; a head worktree carrying `gradlew` runs `testDebugUnitTest` once in the background, another task with `--gradle-warm <task>`, none with `--gradle-warm no`. The round directory is numbered after the highest `<n>-<sha>/` beside it, and setup stops on any other number. `--shape <class, then why>`, `--notes <text>` and `--blind` fill the rest of `args`; setup reads `args.pr_head` and whether the pull request carries any thread from the forge, runs `round prior` over a slug holding earlier rounds, and writes the `args.js` the workflow loads.
 - Paste the table `./scripts/review-setup.sh` prints, its stages, topics and projection measured on the diff, in the reply that launches the run, and the whole table in every reply before the launch: every column and every stage the round runs, the triage included. A named target never gets the projection `./scripts/review-plan.py` prints with no `--diff`. Before setup runs, read the target's description for a tracker link and draft each bound from it as `--topic <bound>`, and name what each solo finder past the first reads that the others do not as `--brief <text>`.
-- Name each target's class in the reply that launches the run, from the *Triage* table, and pass it as `args.shape`: the class, the line that earns it, where a Warning would sit, what that class makes the round, and what `./scripts/review-plan.py --shape <class>` costs it. A parent that has not read the whole diff, callers included, leaves `args.shape` empty, and the triage names the class in the round note. A solo round passes its class too, `--shape <class>` beside `--solo` in the plan, for the round note; it moves no cost.
+- Name each target's class in the reply that launches the run, from the *Triage* table, and pass it as `args.shape`: the class, the line that earns it, where a Warning would sit, what that class makes the round, and what `./scripts/review-plan.py --shape <class>` costs it. A solo round passes its class too, `--shape <class>` beside `--solo` in the plan, for the round note; it moves no cost.
 - Where the parent drove the target before the launch, pass what it drove and what came back through `--notes`: no stage sees that run otherwise, and a stage reading the code alone states what a user can reach off a single guard.
 - `--preset` takes the word, `quick`, `review` or `deep`, and `--suite-min` the measured minutes a judge's checks take, from the project's `AGENTS.md`, so the projection's clock counts the test runs and not the model time alone.
-- Then call the Workflow tool: `scripts/workflows/review-pipeline.js` as `scriptPath`, and as `args` only `{"args_file": "<scratch>/args.js"}`, the script setup wrote; an edit to `args.json` after setup re-runs `./scripts/workflows/args-script.py <scratch>/args.js <scratch>/args.json`, with `prior_checks=<scratch>/prior.json prior_applied=<scratch>/applied.json` on a re-review round; a key passed inline beside `args_file` wins over the file's, and a resume passes the same `args`. The `review` word is the opt-in the harness's gate asks for, per *Consent* in the workspace `AGENTS.md`, and this sentence is the skill instruction it accepts.
-- `args.risk_json` is what `round risk --json` wrote and `args.blob_url` the head repository's blob base at the sha, `https://github.com/<owner>/<repo>/blob/<sha>`: `round assemble` puts the tier on every row and the `[gh]` link on every header from them.
+- Then call the Workflow tool: `scripts/workflows/review-pipeline.js` as `scriptPath`, and as `args` only `{"args_file": "<scratch>/args.js"}`, the script setup wrote; an edit to `args.json` after setup re-runs `./scripts/workflows/args-script.py <scratch>/args.js <scratch>/args.json`, with `prior_checks=<scratch>/prior.json prior_applied=<scratch>/applied.json` on a re-review round; a key passed inline beside `args_file` wins over the file's, and a resume passes the same `args`.
 - `args.bundles` is what `round dispatch` wrote, and its table goes in the launch reply beside the plan's: the finder count is read off it, one per bundle per angle with material, or one carrying every angle for a bundle under the floor.
-- **The tests angle runs under `deep` alone, refactor only when named, and claims outside `deep` only where the diff carries a doc.** They return what the author acts on later, a Suggestion, a Nit, a missing test, and a round on the defect angles still reaches the defects. A doc asserts what the code does at runtime and a code comment's wording ships `SKIP` either way, so `finder.claims_docs_only` earns the claims finder on a bundle carrying a `.md`, a `docs/` or an `adr/` path and on no other.
 - **A Critical or a Warning is run before it ships, always.** No preset cap, output ceiling or budget floor reaches one: the judges take the bands in order and a batch holding either is dispatched whatever is left. A round that truly cannot run one drops the band and says which check is missing, so a PLAUSIBLE Warning never reaches an author.
 - **Size the round by what the target is worth, and print what it costs before it runs.** Developer tooling, a docs page and a CI script take `quick` unless the user names another word; the triage class raises the shape inside a word and never the word itself. `./scripts/review-plan.py` prints the projection in dollars from the rates in `workspace.json`, the launch reply carries that figure, and the round launches on the review word in the same turn, whatever the figure: no question about cost, shape or preset goes to the user before a launch, since the only word a round waits for is the publish; a doubtful design talks first, per *Design first*.
 - On a pull request that combines several pull requests reviewed apart, a backport or a release branch, the round keeps Criticals and Warnings alone. Every finding in any other band ships as `## SKIP <path>:<line>` with `Not posted: a combined pull request carries its Criticals and Warnings alone`, whichever stage filed it, a Body bullet moving to a section of its own and one no line owns staying in `claims.md`; pass the rule to the stages through `--notes`. On one the reviewer authored, apply the Critical and Warning fixes alone. Each part had its own review, so a lower band on its code costs the reader of a large draft more than it buys. This overrides `skills/review-comment.md` where severity never gates a post and where a finding held at posting writes no marker, and *Own PR* in `skills/review-modes.md` where every mechanical fix is applied.
-- **Ask what one agent would miss before taking the plan's agent count.** The preset's table sizes the stages and never the target: a diff one read holds whole, callers included, runs solo, and the class sizes a pipeline alone. The plan projects a shape; it does not choose one.
 - Each stage runs at the `effort` its entry in `scripts/workflows/review-pipeline.json` sets: `xhigh` for the finders, the solo shape's finder included, and `high` for every other stage, a trivial round's single solo agent included, on the user's word. A blind round found every known Warning with finders at `xhigh` and half at `high`, so a retro whose round missed a Warning someone later found names the effort beside it. No stage moves off the config's value on a model note's inference; the triage's per-stage effort is the exception, the finder's never below its configured value.
-- **A stage the harness itself moved onto another model after a stopped reply, a cyber safeguard's included, finishes there**: no re-run on the session's model, no resume and no question to the user, per *Consent* in the workspace `AGENTS.md`. The retro names every stage that ran there.
 - Launch or resume the workflow only from a turn whose message asks for the round: the harness hands every stage that turn's message as the request it obeys over the runner's prompt, so a resume made while answering another message runs every stage on that message.
 - Hand a stage the lines it needs from a vulnerability write-up, a prior security round or an exploit, never the whole file: every call re-reads what the stage opened.
 - `./scripts/review-setup.sh --model <id>` names the session's model, so the triage reads the published note on it, `skills/knowledge/models/<id>.md`.
 - **An angle the user names in the launch turn runs, whatever the word.** The parent adds it to `args.stages.finder.angles` and clears `claims_docs_only` where claims is the one named, so `review <target> +claims` buys the deep angle without the deep round.
 - A preset moves knobs, the Warning cap never among them.
-- Every word names an output ceiling in the config, `budget_total`, binding only when the word carries `+<n>`: the suffix gives the harness the counter the runner reads, the finders stopping at their share and the judges at the floor. Without it the ceiling is a projection, every stage launches, and the runner says so at launch.
 - A candidate a budget left unrun arrives with its check named as a statement; the user runs it and flips the section to posted or `SKIP`.
-- Every stage carries a tool-call budget from the config and returns what it has when it runs out: a call re-reads everything the agent opened on and has read since, so a stage's cache cost is its calls times its context, `./scripts/review-retro.py` printing both per stage.
 - Each stage reads only the rule sections its artifact needs, the set per stage held beside the stage's model in `scripts/workflows/review-pipeline.json` and written out by the plan as one file per stage, since an agent told `path#Heading` reads the file whole. The parent never picks the list.
 - The two drafting rules, `skills/review-comment.md` and `skills/writing-style.md`, are read when the writer stage opens, by the agent or the parent running it, never at the prompt: no stage before the writer drafts prose, and a rule read at the prompt sits in the parent's context through every finder and verifier call.
 - The verify stage is the claim gate; no second gate runs.
@@ -137,18 +129,8 @@ from the file list or the subject is not one.
 
 - **The class measures one reading by the finder's model, never the change's subject.** The Inference section of `args.model_notes` says what that model holds in one pass, read before a class is named, so the same diff takes a lower class on a stronger model; where no note exists, the triage's own reading stands in. What the code is about and what is at stake set the bands, never the class.
 - `quick` caps the class at simple; `args.shape` names a class outright and no triage runs; `deep` takes complex for a pipeline, its triage planning the reading alone, while a solo round under `deep` names its own class for the round note; a round with topics, the critical pass, is never triaged.
-- A round that finds nothing runs no judge, no reflector and no text pass: the writer ships the header, the verdict and one true sentence, and `claims.md` the empty table.
 
 ### Finders
-
-One finder per bundle per angle the bundle has material for, the bundles from
-`round dispatch` as the triage regrouped them; a bundle under the floor gets one finder carrying every angle it
-has, and past `finder.fold_past_bundles` bundles every bundle does, so the count
-follows the diff by bundle and never by bundle times angle. Every cold bundle
-folds into one, read by one finder carrying every angle. A hot bundle over the floor is split by code
-file, so two finders of one angle read different material and never the same
-twice; a complex change buys a longer reading, `finder.tools`, not a second one.
-Every bundle is read once whatever its tier.
 
 A finder returns candidates as data, never prose. One, filled:
 
@@ -160,17 +142,15 @@ A finder returns candidates as data, never prose. One, filled:
  "band": "Warning", "fix_kind": "code", "checked": true}
 ```
 
-- Read the diff written out at `args.diff_file`, the head worktree and the catalog; run nothing that writes. Reads of at most 500 lines and searches of at most 100 hits.
+- Read the diff written out at `args.diff_file`, the head worktree and the catalog; run nothing that writes.
 - Read the code before the description, since a description calling something safe lowers what a reader finds. Five angles read the copy of head with comment lines blanked and the blanked twin of the diff; the claims angle reads the description and the comments first, its subject; the refactor and rollout angles read head, a comment being where a boot-time guarantee is stated, and the page angle reads head, since a blanked `#` line is a markdown heading.
 - Run the read-shaped half of your own `verify_by` before returning a candidate, the grep, the count, the file read. For a candidate banded Critical or Warning, and for a rewrite, run the check itself in your own scratch worktree, `git -C <head worktree> worktree add --detach <scratch>/find-<job> <sha>`, removed at the end; write the artifact under `tests/<job>-<slug>.<ext>` per *Write tests for test-shaped findings*, and return the candidate with `run` true, its evidence, the key output quoted, and `repro_path`. A check the run refutes goes under `dropped` with the output as its settling line; one the budget did not reach returns with `run` false. The merge-base comparison belongs to the judge. A Nit, a Suggestion and a Missing test are read, never run.
 - Work the bands in order: the checks of every Critical, Warning and Missing test candidate before any Nit's or Suggestion's, so a budget that runs out leaves a Nit unchecked and never a Warning. Mark each candidate `checked` or not; one you did not reach goes back with its check named, never dropped.
-- Work the files in the risk table's order, hot first, then warm, then cold: a budget that runs out leaves a cold file unread and never a hot one.
 - Drop only what the read settles beyond doubt, and return every dropped one under `dropped` with the command and the line that settled it: a claim killed with no row is one nobody can reopen. Unsure is not settled; it goes forward.
 - Print every candidate's anchored line before returning, `sed -n '<line>p' <file>` in the head worktree: a line past the file's end, or one not showing the code the summary names, is re-anchored or the candidate dropped with that output as its settling line.
 - Write the object you return to `<round dir>/candidates/find-<job>.json` before returning.
 - Return at most `cap_high` candidates banded Critical, Warning or Missing test and at most `cap` banded Nit or Suggestion, each list ordered by how likely a verifier confirms it, since everything past a cap is dropped unread; a Nit never takes a Warning's slot, and `cap` is the round's `finder.small_per_round` shared across its finders, so a wide diff spends those slots on its best.
 - Band on what a user loses when the line runs, never on the size of the fix: a read surface that aborts on ordinary input, a write that cannot be undone, a value another party can move, and **a reading that answers wrong and reports success** are Warnings whatever their patch size; Nit is polish a maintainer would not block on. The last one hides in Suggestion, since its patch is small and its sentence reads like a preference: a fallback that returns the host's figure for the container's, a parser that misses a shape and hands back a default with `ok` true. Where the caller cannot tell the wrong answer from the right one, it is a Warning.
-- A gap in the tests is a Missing test, never a Warning, per *Calibration*.
 - A cosmetic rule no enabled linter enforces takes `fix_kind` `none`. The code a comment misdescribes is the candidate where the code is wrong.
 
 | Angle | Walks | Runs when |
@@ -183,8 +163,6 @@ A finder returns candidates as data, never prose. One, filled:
 | refactor | every added block rewritten shorter and run, and the depth of each fix | named with `+refactor`, and the diff adds a block of twenty lines |
 | page | every page the diff changes, rendered at base and head as the project's delta says, read as a visitor: a label against its destination, link text, a heading out of context, a row that wraps, and each claim the copy makes about a third party against that party's own source | the diff changes a file a visitor sees rendered |
 | catalog | every class of the project's invariant catalog against the diff | the project has a catalog |
-
-`./scripts/review-plan.py --diff <head worktree> <base> <head>` prints which angles run and writes the measurement the workflow reads.
 
 ### Reflector
 
@@ -226,7 +204,7 @@ A verdict, filled:
 
 - CONFIRMED needs the exact lines or a concrete triggering input in the judge's own words, never the finder's evidence alone: a finder grades itself when the judge takes its word. Rerun the artifact from the file and read its output; where none exists or it does not reproduce the claim, build the smallest check that would.
 - When the claim is that the diff causes the behaviour, run the same check at the merge base and report both; enumerate the case space first, both, first only, second only, neither.
-- State exactly one of CONFIRMED, the run or the read reproduced it with the key output or the lines quoted; PLAUSIBLE, the mechanism is real and no reproducer exists in this environment, with what would confirm it; REFUTED, the run or the read shows it guarded, covered or unreachable, with the proving line quoted. A PLAUSIBLE Nit, Suggestion or Missing test ships `SKIP`.
+- State exactly one of CONFIRMED, the run or the read reproduced it with the key output or the lines quoted; PLAUSIBLE, the mechanism is real and no reproducer exists in this environment, with what would confirm it; REFUTED, the run or the read shows it guarded, covered or unreachable, with the proving line quoted.
 - Before a REFUTED rests on a crash, a panic or a refusal your fixture hit on a path other than the one the candidate names, change the fixture to get past it, an unexported field for an exported one, a smaller input, and run the candidate again: the crash refutes that fixture, never the shape.
 - Give each candidate its own verdict; no verdict borrows from another's, and a batch that confirms every item has been read against that habit.
 - Band per *Calibration*. A refactor candidate whose rewrite passes the tests is a Suggestion carrying both line counts.
@@ -234,8 +212,7 @@ A verdict, filled:
 - Report what the user loses, never the artifact that causes it.
 - Write the verdicts you return to `<round dir>/verdicts/<agent>.json`, each carrying its candidate's index, angle and check, so `round assemble` joins it to its row.
 - Give a Critical or a Warning `mechanism`, a short kebab-case slug naming the defect class and never its line or file, `code-fence-parse`: `round stop --prior` reads a later round's Warning naming the same slug as the loop patching one mechanism.
-- An earlier round's command for the same line arrives with the candidate, never its verdict; re-run it before building your own.
-- Every judge carries a tool-call budget and returns PLAUSIBLE with the check still to run when it runs out, since the slowest judge holds every stage behind it. The project's tool sits prebuilt on the PATH, so none builds one and none runs `go build`, `make` or `go run`, since a named test compiles what it needs; run named tests, never a module sweep.
+- The project's tool sits prebuilt on the PATH, so none builds one and none runs `go build`, `make` or `go run`, since a named test compiles what it needs; run named tests, never a module sweep.
 
 ### Writer
 
@@ -246,9 +223,6 @@ file and one merge pass assembling the whole.
 - `comment_<model>.md` per `skills/review-comment.md`, its header the Format block of `skills/review-comment.md`: the `# Review:` title on line 1, then the `Event:` line its *General rules* default from the verdict, then `Verdict:`; every finding a section, posted or `SKIP`. A PLAUSIBLE Warning names the check still to run as a statement, never a question; a PLAUSIBLE Nit or Suggestion ships `SKIP`, since a read that cannot settle it is no ground to post.
 - `./scripts/round assemble <round dir> --repo <head worktree> --sha <sha> --base <merge base> --risk <risk.json> --url <blob url base> --title <text> --shape <text>` first: it writes `claims.md` whole, the Findings table and one block per finding from the verdicts as data, the rows the finders cleared, the Record the round tools parse, the hit rate per tier and an empty Completeness section, and `findings.md`, one block per anchored line in posting order with `SKIP` in front of a block whose every row is a PLAUSIBLE Nit, Suggestion or Missing test or an UNVERIFIED row, which no judge ran, and a block whose line no hunk of the diff covers as a bullet under `## Body`, since GitHub refuses the whole review for that anchor; such a block that ships `SKIP` keeps its own `## SKIP` section instead. It exits 1 listing every anchor not at the head; such a row is settled by reading the code and moving the anchor, never by dropping the finding.
 - `claims.md` per *Output*: everything above Completeness is the tool's and stays as written; the writer replaces the Completeness placeholder with its answers.
-- The draft's sections come from `findings.md`, never from the JSON under `candidates/` or `verdicts/`.
-- `./scripts/round check <round dir>` last, before returning, into `check.md`; then `./scripts/prose-check.py <draft>`. The writer clears both lists, since the two gates do not overlap and a round whose text pass is skipped ships what the writer returned.
-- The `Round:` line names the shape: how many finders, whether a reflector ran, how many candidates, and that each was run from scratch by an agent that was not its finder, the Nits in their batches counted apart.
 
 ### Text pass
 
@@ -313,8 +287,6 @@ The subject is a PR by default. Two others recur; they change only *Fetch & unde
 - **Branch or working diff**: no PR yet. Anchor findings to `file:line` at the branch head.
 - **Repository-level failure**: red CI on the default branch, a failing gate, a broken release. The "diff" is the failing surface. Enumerate every failing condition from its authoritative source, attribute each to the code or config causing it, and separate what a PR can fix from what only a maintainer with project permissions can. `<slug>` names the failure, not a commit.
 
-Both live in `projects/<repo>/reviews/<slug>/`.
-
 ## Modes
 
 Two cases change part of this workflow: multi-target parallel dispatch, and a
@@ -343,12 +315,10 @@ What the parent prepares, each one line, each a value the runner takes:
 - the checkout synced, per *Sync a checkout* in `skills/git.md`: `git remote -v`, fetch every remote, compare `git rev-list --left-right --count HEAD...<remote>/<branch>`; the canonical remote is often `upstream`;
 - the head and merge-base worktrees, per the worktree rules below;
 - the blanked head, the diff and its blanked twin, the risk table, pasted in the launch reply, the bundles, the toolchain line, `args.free_mb` and each stage's config, all from `./scripts/review-setup.sh` per *Launch*; a launch by hand runs the steps in that script's source;
-- what earlier rounds ran on each line and what they already fixed, which setup reads with `./scripts/round prior <slug dir> --repo <head worktree> --sha <head sha> --json <scratch>/prior.json --applied <scratch>/applied.json`, as `args.prior_checks` and `args.prior_applied`: the checks reach the judge, the Check cell alone and never the verdict, which would anchor the one stage paid to decide for itself, and the applied commits reach the finder, which otherwise re-finds what an earlier round closed;
 - the overview agent, dispatched the moment the head worktree exists, one agent per *Overview*, so `overview.md` is committed, pushed and linked in the reply that launches the run; the workflow then gets `overview_exists`.
 
 Reading the target:
 
-- Never review from a dirty tree without saying so. Never write into the reviewed checkout outside a dedicated fix branch.
 - **Review from a worktree, never from the checkout itself.** A checkout tracked as a submodule sits on whatever detached HEAD the last update left, so a grep, a lint run or a test suite there answers about code nobody is reviewing. `git worktree add <scratch>/<repo>-review-<target> <canonical-remote>/<default-branch>`, check the target out inside it, and run every command of the review there.
 - **A worktree that already exists is reused, never cleaned.** `worktree add` fails on an existing path: re-run only the checkout. It may carry uncommitted edits from another session, so never stash, clean or revert; report them and work around them.
 - For a PR: `gh pr view <number> -R <repo> --json title,body,author,baseRefName,headRefName,files,additions,deletions,commits` and `gh pr diff <number> -R <repo>`.
@@ -411,7 +381,6 @@ Open every full re-review round with a `Round:` line in the draft's header: `Rou
 - Before attributing any failure to the diff, run the same check on the merge-base. A failure that also occurs there is pre-existing.
 - **Reproduce a pull request's red check on the merge with its base, never on the head alone**: the check ran on the merge commit its job log names, `HEAD is now at <sha> Merge <head> into <base>`. In a scratch worktree at the head, `git merge --no-commit --no-ff <remote>/<base>`, run the failing test, `git merge --abort`. A head that passes clears nothing while the merge fails.
 - **Where the head worktree carries no source for the project's tool, `make install` fetching it from another repository, pin that tool's revision before any run: install it from the revision the target names, record the revision in `claims.md`, and band no claim needing it CONFIRMED against a binary the round did not pin.**
-- **Run the project's own tool from the branch's source, never an installed binary.** An installed binary exercises the code it was built from, not the branch's, so a change to the tool tests itself out of the run.
 - A repository-level failure gets the same discipline: reproduce each condition on the default branch and identify the introducing commit where history allows.
 - When a target changes runtime behavior of a server or tool, boot it and exercise it live; record what was verified live as rows in `claims.md`.
 
@@ -431,7 +400,6 @@ Read every line. A reuse or simplification finding, a duplicated helper, foldabl
 
 **Verification discipline.** Every finding passes all of these before it enters the review:
 
-- **A finding or Open question carried from an earlier round is re-verified before it ships**, to the same standard as a new one: it arrived with a conclusion and no run attached, and the round that wrote it may have stopped one call short of the code that settles it.
 - Follow a carried finding's path to its end: the handler that queues the work, the store that debounces it, the default the framework already applies. Its `tests/*` headers run verbatim from a plain clone before the handover, since a fixture that cannot collect is a claim with no artifact.
 - **Browser behaviour needs a browser, and headless is not one.** Anything the browser itself does rather than the page, exiting fullscreen on Escape, a shortcut, a permission prompt, is absent from a headless run and a null result there proves nothing. Run it headful on a virtual display, `xvfb-run -a`, before writing that it cannot be measured.
 - Back every behavioral claim with an actual run, at every severity.
@@ -446,7 +414,6 @@ Read every line. A reuse or simplification finding, a duplicated helper, foldabl
 - A reachability claim is proved by construction, never by survey. Build the smallest artifact that would fail if the claim were false and run it, from outside the boundary the claim is about: never a test that builds its own victim, never a grep for existing instances.
 - Vary the conditions before naming them. A finding that holds under one shape and not another states which, having tried both.
 - When a second condition, tried once, changes no verdict, stop varying it: run the remaining cases under the first alone, and give the artifact one line naming what the try ruled out, never the doubled table.
-- Run greps and lint in the reviewed checkout at the reviewed commit.
 - **Sweep for callers or consumers over the whole tree, never the diff's own directory.** The consumer a change breaks sits where the diff was not looking, an integration fixture beside a package's own tests for one.
 - Confirm a symbol exists with the project's own linter or compiler, sanity-checked first with a bogus symbol.
 
@@ -515,14 +482,13 @@ PR: [<owner>/<repo>#<n>](<url>)
 - `## Upgrading` appears only where the change touches stored state, a cookie, a setting or a migration.
 - Write it as `overview.md`, never `overview.html`: GitHub serves an `.html` blob as source, so the reader downloads the file to read it.
 - **Every code block, diagram and table says whether it is the before or the after.** A reader who cannot tell which side they are looking at reads the defect as the fix. Put it in the prose introducing the block or in the block's own caption, never leave it to be inferred from the surrounding argument.
-- It goes at the review directory root, `projects/<repo>/reviews/<slug>/overview.md`, never inside a round directory: it explains the subject, not one commit.
-- Explainer only, carrying no review state: no verdict, no findings, no reviewed sha, no round. Name the generating model once, under the title.
+- Explainer only, carrying no review state: no verdict, no findings, no reviewed sha, no round.
 - Use anything GitHub renders: a `mermaid` diagram, a `$$` formula, a decision table, before and after values, a `> [!NOTE]`, a `<details>` fold, a committed image. No emoji, and nothing needing a script or a click, which the blob page strips.
 - Where a page would have used a simulator, compute the interesting inputs and put the results in a table. The reader gets the answer without moving a slider, and every number is checkable from the file.
 - Run the mirrored logic before publishing its numbers, against the project's own tests where they exist and against the mirrored source where they do not, and say which of the two it was.
 - A link to a line the pull request changes is its diff link, `https://github.com/<owner>/<repo>/pull/<n>/files#diff-<sha256 of the path>R<a>-R<b>`, `printf %s <path> | sha256sum` giving the hash: it opens the change highlighted, where a blob link shows the file with nothing marked. A blob link is only for code the diff leaves alone.
 - Every link pins one sha, the head the overview describes. When that head moves, `./scripts/repin-links.py <overview.md> <head worktree> <old sha> <new sha>` carries every link and anchor across, and exits 1 naming each range whose lines the change touched, which is read and re-anchored by hand; excerpts from a touched file are copied again.
-- Update it when new commits change the subject's own files, and, on a change of our own, in the same command as the push carrying those commits. A base-only head bump, a new finding, a verdict change and a new round never touch it. Link it from the draft's `Overview:` line.
+- Update it when new commits change the subject's own files, and, on a change of our own, in the same command as the push carrying those commits. A base-only head bump, a new finding, a verdict change and a new round never touch it.
 
 ## Links & citations
 
@@ -530,7 +496,6 @@ Shared by the draft, `claims.md` and `overview.md`.
 
 - A private reviewed repo does not strip links from `comment_<model>.md`; the no-blob-link rule covers artifacts living outside the reviewed repo. Strip links from `claims.md` and `overview.md` when a delta file says so, never from the draft.
 - Every `file:line` reference is a link to a blob at the reviewed sha: `` [`file:line`](https://github.com/<head-owner>/<repo>/blob/<sha>/<path>#L<line>) ``, ranges `#L<a>-L<b>`. Take the owner from `gh pr view <n> --json headRepositoryOwner`: a fork's commits live in the fork, so the upstream form can 404 on a cross-fork pull request. This covers every reference, including files and tests cited by name. Never a bare backticked `file:line`.
-- Pin the reviewed sha, never the branch: the link shows the code the finding was written against whatever the branch does next, and a new round cuts its anchors at its own sha.
 - A blob link into a rendered file such as `.md` needs `?plain=1` before the `#L` anchor.
 - A link must prove the exact clause it anchors. Read the cited lines and confirm the number, symbol, or behavior appears in the range. One claim per anchor: two numbers, two links. For a pinned tag, fetch the file at that tag.
 - Attribute a behavior to what guarantees it: a toolchain detail cites the toolchain, never a spec that does not require it. When the spec guarantees less than observed, say so.
@@ -544,16 +509,14 @@ Settle where the repro goes before writing one. A finding on a surface the reade
 
 - Every empirical claim ships a copy-pasteable repro: fenced `bash`, self-contained, one clear pass/fail signal, restoring modified files at the end. Pin env vars only when depended on.
 - Where no integration fixture covers the surface, write another program's output, a query answer or a file another tool writes, into a posted repro as text, and run the anchored code on it; that text is the repro's input, the prose quotes only what the anchored code prints, and the run that produced the text stays in `tests/` with its row in `claims.md`. The tell is a block the reader scrolls past to reach the output.
-- **No repro for a merge conflict.** State what the resolution costs and stop; the conflict itself is not the finding.
 - Start with `# from a local clone of <repo>:`, then the checkout command. Zero local paths, no trailing `git checkout <hash>` pin. Inline needed files with heredocs; never `curl`, never reference into the reviews tree. Clean up at the end.
 - Follow the block with the observed output in a second fenced block, trimmed to the signal-bearing 5-20 lines, `# …` marking omissions.
-- A repro whose output is a failure says so in one line directly above that output, naming what failed and why the failure is the finding.
 - A repro demonstrates behavior. Source inspection and greps are not repros.
 - A fixture's header comment is three or four lines: what it asserts, the measurement, and that it fails at the reviewed head. The mechanism belongs in the finding. Keep a measured table; cut the prose around it.
 - Write the repro in the harness the repo already uses for that surface, found by reading the test the diff itself adds. A defect on a surface the project covers with an integration fixture belongs in that fixture format, not a unit test poking an internal function. Copy the neighbouring fixture's structure, naming and assertions.
 - Size the fixture against the threshold it asserts. A repro claiming a bound is exceeded must exceed it: check the input against the real constant.
 - **A finding that a process runs out of memory, time or disk proves the growth, never the exhaustion.** Run the input at three small sizes, print the source size beside what grows, and state in one sentence where the curve crosses the limit; never build the input that kills the process. The curve settles the claim in seconds.
-- A measured number is committed with the artifact that produced it, in the round directory, before the number is written down anywhere. A number whose repro is gone: delete it or re-measure it, never carry it forward.
+- A measured number is committed with the artifact that produced it, in the round directory, before the number is written down anywhere.
 - Run the repro from the draft, verbatim: extract the block from the file and execute it. Every number in the prose comes from that run's output, pasted, never from an earlier run, a rounder figure, or memory.
 - Heredoc behavioral tests, asserting the post-fix state, fail now and pass fixed, for Critical and Warning only. Nits and Suggestions cite the anchor; a one-line "confirmed behaviorally: X" note is enough.
 - **Film every finding whose symptom shows on screen, in the round that finds it, unasked.** Ship the clip beside the finding in both artifacts, captured per the picture rule in `skills/writing-style.md`. Where the browser cannot reach the screen, name what stood in for it.
@@ -585,11 +548,8 @@ A row of the Findings table in `claims.md`, and the round note above it in the d
 Round: 1. 7 finders, one reflector, 58 candidates, 23 of them Nits on the finder's own read and the rest run from scratch by an agent that was not its finder.
 ```
 
-- `comment_<model>.md`, the draft, per `skills/review-comment.md`: every finding as a section, posted or `SKIP`, with its repro. Its header carries the verdict, the model and effort, the reviewed sha, the overview link and the round note, and `./scripts/post-review.sh` sends nothing above the first section, so the round's judgement and its shape live in the one file the user opens.
-- `claims.md`, the record, written by `./scripts/round assemble <round dir>` from `candidates/` and `verdicts/`, one row per candidate the verifiers ran and one at state `UNVERIFIED` per Nit the round's ceiling left unrun. The Findings table opens it: the line linked at the reviewed sha, the number, band and state, whether the merge base behaves the same, and what the draft does with the row, read from `comment_<model>.md` once it exists: `[posted]`, `SKIP`, `with row <n>` where another row's section carries it, or `not in the draft`, which is a finding the draft dropped. One block per row follows with the claim, the check, what it printed and the test under `tests/`; then what the finders cleared; then the Record, the folded table `round prior`, `round risk` and `round stop` parse. A refuted candidate keeps its block with the proving line, so a later round reads what was cleared and why. Then the completeness answers. A rebuild after the post, the same `round assemble` command, fills the Draft column with the posted links.
-- `tests/`, every artifact a verifier ran, per *Write tests for test-shaped findings*.
+- `claims.md`, the record, written by `./scripts/round assemble <round dir>` from `candidates/` and `verdicts/`, one row per candidate the verifiers ran and one at state `UNVERIFIED` per Nit the round's ceiling left unrun. The Findings table opens it: the line linked at the reviewed sha, the number, band and state, whether the merge base behaves the same, and what the draft does with the row, read from `comment_<model>.md` once it exists: `[posted]`, `SKIP`, `with row <n>` where another row's section carries it, or `not in the draft`, which is a finding the draft dropped. A rebuild after the post, the same `round assemble` command, fills the Draft column with the posted links.
 - `links.md`, the text pass's row per link, which is the pass's own coverage proof and not a finding.
-- `candidates/` and `verdicts/`, one JSON file per agent, the same object it returned, so the record is on disk before the writer runs and a stage that dies loses its own file and nothing else.
 
 When a posted round's target merges or closes, `./scripts/review-outcomes.py <draft> --write` adds an Outcomes table to `claims.md`: per posted finding, whether its thread was resolved and whether its lines changed since, `resolved, changed`, `resolved`, `changed` or `open`, and whether the author replied. No state says fixed, since a rebase or any later edit changes the lines too: whether a finding was fixed takes its own check rerun at the merge. That table is what a change to a tier, a cap or a batch is measured against.
 
@@ -618,15 +578,8 @@ When a posted round's target merges or closes, `./scripts/review-outcomes.py <dr
 
 ### Rules
 
-- One directory per round, per *Output*. `<slug>`: for a PR, `<number>-<3-4 words from the title>`, lowercase, hyphenated; otherwise a name for the subject. `<n>`: the round number, from the existing directories. `./scripts/review-setup.sh` names the slug holding the change's earlier rounds, by its pull request link, its head branch or its sha, and refuses a `--round-dir` in another; take the slug it prints. `<model>` in the draft's name: lowercase, hyphenated. Hash = reviewed head. A second round over a reviewed commit gets `<n+1>-<same-sha>`.
+- One directory per round, per *Output*. `<slug>`: for a PR, `<number>-<3-4 words from the title>`, lowercase, hyphenated; otherwise a name for the subject. `<model>` in the draft's name: lowercase, hyphenated. Hash = reviewed head.
 - On the first review for a repo, create `projects/<repo>/reviews/README.md` with the repo's GitHub link and one line.
 - Minimal bold. Every file renders in GitHub-flavored markdown: blank line after `<summary>`, continuation indented 2 spaces under list items, `<details>` nested at most one level.
 - Priority order: correctness > security > determinism > state safety > tests > docs > style.
 - A diff spanning several packages or directories is summarized by area first, then its critical paths in depth.
-- Fold a late finding into the draft and `claims.md`, verify it with a real run, and commit in the same turn without asking.
-
-## GitHub review draft (`comment_<model>.md`)
-
-The writer's artifact, step 4 of the workflow. The draft, its body rules, the shape of each inline
-comment, the final check and posting are in `skills/review-comment.md`.
-Draft it whether or not anything will be posted.

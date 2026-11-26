@@ -5,7 +5,7 @@ description: Write the title and body of a pull request. Use whenever a change i
 
 # PR body
 
-Write for a reader with no context who must decide whether to merge. Prose follows `skills/writing-style.md`; the rules below are the PR-body deltas.
+Prose follows `skills/writing-style.md`; the rules below are the PR-body deltas.
 
 Pick one of four shapes, by what the pull request carries, and read that shape's file whole through `./scripts/skill pr-body/<shape>` before drafting: it holds the headers in order, what goes under each, the length, how it opens and closes, and a skeleton of the body. Never mix them. A body closes on the `Read the code in this order` block below only where `round risk` ranks more than one file of the diff hot or warm, whatever the shape's own file lists; a change whose risk sits in one file drops the block. The real body each skeleton was drawn from sits in `skills/pr-body/examples/<shape>.md`, for whoever edits the shape.
 
@@ -20,7 +20,7 @@ Before picking a shape, ask whether every hunk explains itself: an escape call a
 
 ## File
 
-Put `pr-body.md` in the change directory, `projects/<repo>/changes/<slug>/`. It opens with a header block: `Target:` holding the opened PR URL, or else the `compare/...?expand=1` URL, `Head:` and `Base:` with shas, `Status:` when there is something to say, and the `Reader passes:` line step 6 of *Loop* records. Then `## Title` and `## Body`, and nothing after them: `./scripts/post-fix.sh` opens the PR from this file and pastes every line following the `## Body` heading into it, so a section added below goes out with the body. Media provenance and the inline comments posted beside the body belong in `plan.md`. Before a body already on GitHub is rewritten, `./scripts/pr-body-apply --pull <pr-body.md>` brings the live body into the file, since an edit made in the interface is invisible here. `./scripts/pr-body-apply <pr-body.md>` puts the file's Body up and reads it back, exiting 1 on any difference; before sending it lists every link, image and section the live body carries that the draft drops and sends nothing, and `--drop` sends once the reply showing the draft names each as dropped.
+Put `pr-body.md` in the change directory, `projects/<repo>/changes/<slug>/`. It opens with a header block: `Target:` holding the opened PR URL, or else the `compare/...?expand=1` URL, `Head:` and `Base:` with shas, `Status:` when there is something to say, and the `Reader passes:` line step 6 of *Loop* records. Then `## Title` and `## Body`, and nothing after them: `./scripts/post-fix.sh` opens the PR from this file and pastes every line following the `## Body` heading into it, so a section added below goes out with the body. Media provenance and the inline comments posted beside the body belong in `plan.md`. Before a body already on GitHub is rewritten, `./scripts/pr-body-apply --pull <pr-body.md>` brings the live body into the file, since an edit made in the interface is invisible here.
 
 A body carries, right under its `In short:` part, a collapsed `<details>` block titled `Topics you should know`: each topic a reader needs to follow the change, explained in a few sentences, drawn from `overview.md`. The text above uses those words and never re-explains them.
 
@@ -38,8 +38,6 @@ The design choices a reviewer could reasonably flip go in a collapsed `<details>
    **If wrong:** a realm puts shell text in the copied command.
 ```
 
-Write nothing about how the file was written: no shape label, no model PR, no round count; that record belongs in `plan.md`.
-
 ## In short
 
 Every body that changes code, in every shape but `skills/pr-body/docs.md`, opens on an `In short:` part, under the severity line and the `Fixes` line, or the lines a project's delta puts there, and above the problem. It is for a reader who has never opened the subsystem: what breaks and when, the one term they need, and how the fix works as a before and after, in whatever form lands it in one read: a few plain sentences, a sketch per *Diagrams*, a few lines of code on each side, the before side dropped where a defect block below shows it. What follows gives only the detail it leaves out. As a delta from `skills/writing-style.md`, a before and after of the fix is not cut for restating the diff; a false or unproved line in this part is fixed like any other.
@@ -50,10 +48,8 @@ Write prose, broken small.
 
 - Paragraphs of two to four sentences, one idea each. Five or more: split.
 - One-line paragraph for each turn in the argument; a skimmer reads only these.
-- No process headers such as Purpose or Testing. The shape's file names the headers it takes; nothing else gets one.
 - No tables, no emoji but the reading order's tier markers, and no bold but the decision lead-ins of `skills/pr-body/surface.md` and the labelled lead-ins a project's delta asks for. A bullet list only where its items run parallel, the paths a fix covers or the effects a user notices, never for an argument.
 - Each sentence opens on the plain-words version of what it says, then names the symbol. A term the reader lacks is defined in the sentence that first uses it, never taught: how the mechanism behind it works goes in `Topics you should know`.
-- A diagram wherever a shape is clearer drawn than written.
 - Before writing a body that fixes code, whatever its shape, show each kind of defect as code right after the sentence stating it: one block per kind, the fewest lines a caller writes to trigger it, taken from the branch's own test where one exists, with a comment on the call that goes wrong, so the reader sees the failure before the account of it. A crash and a silently wrong value are two kinds. Every package the block uses beyond its own gets its import line in the block. That block shows the defect, never the diff restated, and no cut for length takes it. Every other code block is real observed output, a diagram or a before and after of the fix, trimmed to the signal-bearing lines. A change that writes a file a person opens, an export or a report, shows a few real lines of it.
 - When writing the comment on a defect block's failing call, say what the call does on the base branch and, where a reference the project means to match answers the same call, what that reference gives: `prints 99; Go prints 1`.
 - Symbols in backticks. Delta from `skills/writing-style.md`: an in-repo symbol needs no link, a link anchors on a symbol, a file name or the name of the documentation section it opens, and never on a clause, and a body carries only the links a reader needs to check a claim the diff does not show. A paragraph that reads as one hyperlink has failed.
@@ -68,21 +64,16 @@ Order the paragraphs, in every shape:
 
 Before writing a pull request's state, back to draft, a commit its author has not reviewed, what it waits on, draft it as a comment on the pull request, never a line in the body: the body describes the change, and a state written there outlives the state.
 
-The reader has the diff: past the `In short:` part, give only the defect, the consequence, and the context the code cannot supply.
-
 **A body carries the calls, never the coverage.** Which endpoints got the check, which case the guard catches, what each test asserts: the reader opens the diff for all of it. What survives is the decision a reviewer could have made differently: what the default keeps working, what fails loudly rather than quietly, what is deliberately left alone.
 
 - Banned openers: "Today", "Currently", "At the moment", "This PR". The first sentence names what breaks, in plain present tense.
 - When the defect has a severe consequence and a mild one, lead with whichever is unambiguous. A severe example that looks like obvious garbage reads as correct rejection and hides the defect; the plainly wrong case that gets accepted lands.
 - Example values must be plausible. A version one step past the build shows the defect with nothing granted, where a version far past it invites "that should fail anyway". Quote the real string, and paste the actual error rather than describing it.
-- Explain why the existing guard failed only after the reader has watched it fail. When the defect is a disagreement between two builds, two nodes or two versions, and no reference the project means to match decides between them, say the disagreement is the defect and neither answer is.
+- When the defect is a disagreement between two builds, two nodes or two versions, and no reference the project means to match decides between them, say the disagreement is the defect and neither answer is.
 - When the project means to match a reference outside it, the language it implements or a spec it follows, and its code gives another answer, state in one sentence after the defect's code blocks what that reference requires, linked on the name of its section, leaving the diverging code to the mechanism and the answer to the block's comment: `Each case clause is its own block in Go, per the spec's [Blocks](https://go.dev/ref/spec#Blocks).`
-- Before a body goes up, put everything the fix leaves standing, a sibling with the same defect, a limit of the fix, a cost it does not remove, under `## Not fixed`, in every shape: one bullet each naming it, never a paragraph explaining it, and never a sentence under `## Fix` instead. Before writing each bullet, fix its item on the branch where step 5 of *Fix* in `skills/change.md` allows it, and write the bullet only for what that leaves. A fix that leaves nothing standing drops the heading.
+- Before a body goes up, put everything the fix leaves standing, a sibling with the same defect, a limit of the fix, a cost it does not remove, under `## Not fixed`, in every shape: one bullet each naming it, never a paragraph explaining it, and never a sentence under `## Fix` instead. Before writing each bullet, fix its item on the branch where step 5 of *Fix* in `skills/change.md` allows it, and write the bullet only for what that leaves.
 - When an input next to the defect already behaves correctly though a reader would take it for the same defect, name it beside the fix with why it is already right: `a type switch's variable cannot be redeclared in a case, since Go declares it in that clause's own block, per [Type switches](https://go.dev/ref/spec#Type_switches)`.
-- Leave out the branch's own history, what an earlier round carried or what this one drops. That goes in `plan.md`, and `./scripts/process-check.py`, run by `./scripts/post-fix.sh` and `./scripts/pr-body-apply`, refuses a body narrating it.
 - Name a rider commit in one line and never offer to split it. The maintainer asks when they want that.
-
-Hyperlink everything per `skills/writing-style.md`, to the blob at the reviewed sha or upstream documentation.
 
 ## Title
 

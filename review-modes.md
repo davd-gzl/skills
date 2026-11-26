@@ -5,21 +5,14 @@ description: Use when a review covers more than one target, or when the reviewer
 
 # Review modes
 
-Each case changes part of the workflow in `skills/review.md` and nothing else:
-the output, the verification and the push rules are unchanged. Read that file
-first.
-
 ### Parallel dispatch (multi-target)
-
-Use when `$ARGUMENTS` contains more than one target.
 
 1. The parent prepares each target first, per *Fetch & understand* in `skills/review.md`: its worktrees, its round directory, its `args`.
 2. Launch one workflow per target, all at once, each with its own `args`. Where the harness has no workflow runner, one agent per target instead, running the stages serially with this prompt:
 
 > Run the review workflow at `skills/review.md` on `<target>`, URL `<url>`, stages serial. Read `skills/writing-style.md` before drafting any prose; every line of `overview.md` and `comment_<model>.md` conforms to it. The worktrees already exist at `<paths>`: never create one at the shared path or switch branches. Do not commit, push, or post; the parent does that at the end. Report back the draft path and a one-paragraph summary of the verdict and headline findings.
 
-3. Runs proceed concurrently, never sequenced.
-   Corrections to a dispatched agent go in one message, sent once every QA result is in: a resumed agent replays its whole transcript, so each message costs the round again. Prose edits are the parent's own; an agent is resumed only for a run.
+3. Corrections to a dispatched agent go in one message, sent once every QA result is in: a resumed agent replays its whole transcript, so each message costs the round again. Prose edits are the parent's own; an agent is resumed only for a run.
 4. The parent runs the *Final check* in `skills/review-comment.md` over every returned draft, before the commit. A subagent's own pass never stands in for it.
 5. After all return, the parent makes a single commit covering all reviews, its subject naming every target, pushed as *Consent* in the workspace `AGENTS.md` says for its repository.
 6. Reconcile before handing over. When agents on coupled targets disagree, re-derive the answer from the source, name the constraint both sides must satisfy, and write the same conclusion into every affected draft. Never ship contradicting drafts, and never settle it by taking one agent's summary.
@@ -61,8 +54,6 @@ still resolves.
 3. The round note and the draft's `Round:` line say `Blind round`.
 
 ### Own PR (the reviewer authored it)
-
-Findings land as commits on the branch, never as a review to post.
 
 - Draft nothing for a reader: no `comment_<model>.md`, no `pr-body.md`, no text pass, and post nothing. `claims.md` is the record `round assemble` writes, never drafted by hand. The round ends at `findings.md` and the fixes come off it in the same turn.
 - Launch with `args.own_pr` true, which `./scripts/review-setup.sh` sets from the pull request's author and `--own-pr yes|no` overrides, and print its cost with `./scripts/review-plan.py --own-pr`: a solo round's judge then writes `findings.md` itself, and a pipeline round runs no writer and stops at the verdicts, where the parent runs the `round assemble` command the run returns, since an agent there would run that one command and nothing else.

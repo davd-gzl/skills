@@ -8,7 +8,7 @@ argument-hint: <pr-number> on <repo> | <repo>#<pr> | <branch> on <repo> | <repo>
 
 **Input:** `$ARGUMENTS`. A PR and a repo as `<n> on <repo>` or `<repo>#<n>`, a branch as `<branch> on <repo>`, or a repo alone, which means its default branch. The repo name resolves to `projects/<repo>/`.
 
-The output is a URL, a login, the click path, and what to watch for. The user tests the change themselves in a browser, in under a minute of their attention: a handover longer than that has already failed. Never hand over a command to run.
+The user tests the change themselves in a browser, in under a minute of their attention: a handover longer than that has already failed. Never hand over a command to run.
 
 ## Workflow
 
@@ -38,13 +38,9 @@ The output is a URL, a login, the click path, and what to watch for. The user te
 
 Write the recipe into `projects/<repo>/AGENTS.md` the moment it is measured, each failure with its symptom. A recipe from the project's own documentation is not measured until it has run here.
 
-- Backend from the checkout, frontend from the worktree, when the diff is frontend-only. Boot the backend once and reuse it for every later run.
-- Fixture first. Seed data a manual test needs is in place before the URL is handed over, never a step the user discovers.
 - A failure inside the boot is reported, never patched around. A stack the PR broke is the finding; say so and stop.
 
 ## Video
-
-The video is the last step, never the first. Order: the user tries it by hand, the claim settles, the recording proves the settled claim.
 
 1. Hand over first, per the workflow's last step, and wait for the user's report before scripting anything.
 2. Script the measurement, not the movie. Once the user reports what they saw, drive the same path headless and print the state after each step as a table, one row per step. Save the script under the review's `tests/`.
@@ -55,7 +51,7 @@ The video is the last step, never the first. Order: the user tries it by hand, t
 - When two defects ride together on screen, film the measurement, not the symptom. A clip of the symptom cannot say which defect produced it, and a reader who spots the second cause reads the clip as overclaiming. Put the numbers the code itself computes on screen beside the input, and let the picture carry the reading rather than the consequence.
 - One screen, one run, a row per state. A ledger gains a row per step, each holding the inputs the claim rests on beside the value on screen, sampled live from the page. The last frame tells the story to a reader who never presses play.
 - A readout must never imply a transition that did not happen. Label the absence of the container, not of the value; name a column for what it holds, not how it got there.
-- A clip replaces the written steps, and only the user can attach it. When a clip exists, the sentence drops the steps and states the rule the clip demonstrates. An image hosted in a private workspace will not render on someone else's pull request: hand the file to the user to drop into the comment box, and never post a link that renders as a broken image.
+- A clip replaces the written steps, and only the user can attach it. An image hosted in a private workspace will not render on someone else's pull request: hand the file to the user to drop into the comment box, and never post a link that renders as a broken image.
 
 The clip is the comment. What ships beside it is one sentence naming the rule the clip demonstrates, per the posted-comment shape in `skills/writing-style.md`. A caption walking through the clicks describes what the reader is already watching, and the shot list is the reviewer's check, never posted.
 

@@ -39,9 +39,7 @@ they spelled out, takes their fix as written and credits them with a
 place of theirs credits nobody, so take theirs wherever it holds. Invariant 7
 bars a trailer naming a model, never a human reviewer's.
 
-A fix branch under `projects/<repo>/changes/<slug>/checkout/` targets a public
-upstream and takes the user's handle even though the parent tree is private;
-only the parent's own commit takes the machine handle. A machine identity in
+A machine identity in
 either field of a public commit is co-authorship in another shape. Check with
 `git log -1 --format='%an <%ae> / %cn <%ce>'` before pushing, and leave past
 commits as they are.
@@ -121,8 +119,6 @@ the maintainer squashes at merge. A squash the user asks for, `squash push`
 included, folds only the commits the remote lacks, onto the pushed tip; one
 reaching below that tip is a force push, named as one before it is built.
 
-A skill edit lands in `davd-gzl/skills`. Every consumer tracks `branch = main`
-and its sync takes the tip at session start, so nobody needs a bump to read it.
 The pin moves in the workspace commit after a skills push lands, `skills at
 <sha>: <what it carries>`, so a clone resolves to the rules the work wrote
 about; between pushes `git status` reading `M skills` is the expected state.
@@ -133,10 +129,7 @@ Another machine pushes to this workspace mid-turn, so a push refused as
 non-fast-forward is the normal case and not an error.
 `./scripts/sync-push.sh '<subject>' <path>...` commits the named paths, rebases
 over what landed, retries, and carries the other session's uncommitted files
-across the rebase. A directory git tracks nothing under goes whole; one it
-tracks a file under goes only where every changed path beneath it is named too,
-else the script exits 2 listing the rest, so name each file the turn wrote
-there. Stop on a conflict rather than resolving it, and report the files.
+across the rebase. Stop on a conflict rather than resolving it, and report the files.
 
 ## Submodules
 
@@ -153,16 +146,6 @@ A submodule sits on a detached HEAD, and every failure here follows from that.
   `git branch -f main origin/main`; a submodule checked out on `main`, as the
   sync leaves `skills/`, is level once the push lands, and `git status -sb`
   shows it.
-- Version a fix branch as a submodule, never a worktree. A worktree's `.git`
-  is a file into the main object store, so git cannot track it.
-  `git submodule add -b <branch> <fork-url> <path>` records the branch, which
-  `git submodule update --remote` follows. Every presented fix pays a second
-  clone; the worktree stays scratch.
-- Write the submodule push and the parent's gitlink bump as one script of
-  `git -C <path>` commands, never a `cd` chain. A `cd` inside a compound
-  command leaves every later line running from the wrong tree, so the parent
-  bump fails after the submodule push already landed and the turn ends half
-  pushed. Neither half waits for a word the other did not need.
 - Restore a checkout to its default branch after working in it, or the
   parent's gitlink moves and the tree is dirty.
 
@@ -187,10 +170,6 @@ A submodule sits on a detached HEAD, and every failure here follows from that.
 - `gh pr edit` exits 0 on a token scope failure and sends nothing. A body goes
   up through `./scripts/pr-body-apply`, any other field over REST,
   `gh api -X PATCH repos/<owner>/<repo>/pulls/<n>`, read back after the edit.
-- Stage under `set -e` with care. A `git add` naming a path already staged
-  as deleted exits nonzero and stages nothing beside it, so the commit carries
-  the deletion alone. A tree that looks current is a snapshot of its last sync,
-  and a deletion the other side never touched merges silently.
 
 ## Merging
 

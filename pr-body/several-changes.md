@@ -12,8 +12,6 @@ One `### <symbol>: <one-line diagnosis>` section per change, separated by `---`.
 - What was proved goes in the section it belongs to. Where several sections share one method, one closing section names the method once and gives one row per section.
 - A section naming another change, in this pull request or another, says what the two have in common in one sentence and stops.
 
-Why: a reviewer reads the section for the file they own and skips the rest, so a fact two sections share goes in the framing paragraphs every reader reads, never in either section.
-
 ## Skeleton
 
 ```markdown

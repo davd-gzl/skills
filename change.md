@@ -19,9 +19,7 @@ Where a convention is missing, `./scripts/measure-repo.sh <checkout>
 and length, the commit granularity and the changelog placement; write each
 answer into that file with the command, per `skills/authoring.md`.
 
-Prose follows `skills/writing-style.md`. The title and body are
-`skills/pr-body.md`. An issue for a problem no upstream issue covers is
-`skills/issue.md`.
+Prose follows `skills/writing-style.md`.
 
 ## The change directory
 
@@ -360,8 +358,7 @@ makes the rest of the session pay for its test output and file reads.
    to, is named in the handover, and reopens nothing here. Every other Warning
    reopens this step.
    What survives unapplied needs a decision only the user can make, and each is
-   named as a decision rather than a leftover. Record what each round caught in
-   the plan where there is one, never silently amend it away. A measurement
+   named as a decision rather than a leftover. A measurement
    that moves a claim, or a change that makes one false, a line `plan.md`
    quotes from an earlier design or decision record included, is swept over
    the whole artifact by the claim's own words, every restatement included,
@@ -369,8 +366,6 @@ makes the rest of the session pay for its test output and file reads.
    the command and its hits written into `plan.md`, and each line the diff
    adds is read against the lead of the section it sits under: the loop reads
    the diff, and a line it never touched sits outside it.
-   `comment_<model>.md` stays the postable artifact, per
-   `skills/review-comment.md`.
 9. **Simplify, last.** Once the loop closes, run the harness simplification
    pass, `/simplify` with the worktree's absolute path in its argument, over
    the whole final diff: reuse, fewer lines for the same behaviour, a value

@@ -43,10 +43,6 @@ broader file and linked from the narrower, and the lint reports the copy. A
 prompt delegating a task to an agent names the skill file and never restates
 its steps.
 
-A rule about a repository never goes in the core skill, and a rule about every
-repository never goes in one project's delta. Both mistakes read as correct
-until someone works in the other house.
-
 ## The shape
 
 Name the action, not only its absence. `Push the submodule in the command that
@@ -138,9 +134,6 @@ one pass.
   what the block above already displays is the one to cut.
 - A table of contents at the head of a file a reader opens for one section,
   `skills/review.md` for one: one line per section naming the moment it is read.
-- A word the user types is defined in `skills/shortcuts.md` and nowhere
-  else. Another file names the word and points at that table; a second table
-  drifts from the first, which the lint reports as a copy.
 - A file whose sections fire at different moments declares its reader's set in
   its frontmatter, `prompt-sections: [<heading>, ...]`, and the gate hands that
   cut, rebuilt whenever the file changes, so the reader loads its own moment and
@@ -148,9 +141,7 @@ one pass.
   to the whole file. Split into a second file only where the sections are
   separate documents to whoever edits them. `./scripts/skill <name>` prints the
   path the gate hands over.
-- A skill the session opens with, `shortcuts.md`, `short-form.md` and
-  `thinking.md`, is never cut, whatever its frontmatter says: every turn runs on
-  it, and a `prompt-sections` line there changes nothing. A subagent carries
+- A subagent carries
   every `CLAUDE.md` import on every call, so only a file whose rules bind every
   agent is imported, `skills/short-form.md` for its *Claims*; a file only the user's
   chat needs comes whole through a SessionStart hook, which reaches that session
@@ -161,19 +152,6 @@ one pass.
   which bind every agent: no dispatch prompt names either on top, and `reply.md`
   is imported by nothing for that reason. A dispatch names the task
   skill, and `skills/writing-style.md` where the artifact is prose.
-
-## Capabilities
-
-What the machine can do is measured, never written down: `./scripts/env-check.sh`,
-per *Capabilities* in `workspace.md`, which carries why a recorded capability goes
-stale. A rule needing one of those facts names the command and lets the reader
-read the answer. The lint warns on the clause that records one instead, `stop
-re-deriving` and its neighbours, and wherever a capability is named with no
-command beside it.
-
-What does get written down is what a command cannot show: which recipe worked,
-what a failure looked like, the fixture a manual test needs. Those go in
-`projects/<repo>/AGENTS.md` with their symptom, per *A project's file* below.
 
 ## A project's file
 
@@ -199,8 +177,7 @@ unasked. Never offer the recording as a next step.
   session recognises the failure before diagnosing it again.
 
 A delta file for a skill sits beside these, short, opening by naming the core
-file it overrides. Work under `projects/<repo>/` reads the delta plus the core,
-and the delta wins where they disagree.
+file it overrides.
 
 ## A project's context
 

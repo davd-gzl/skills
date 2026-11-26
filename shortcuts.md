@@ -7,16 +7,12 @@ description: The words the user types and what each one starts, in any workspace
 
 A reply that waits names one letter, the first cell of its row below, never two
 words: the user types that letter to act, on a line of letters alone, so `p d`
-or `pd` gives both words and `d` inside a sentence gives none. A step the request needs
-is run, never offered, per *Consent* in the workspace `AGENTS.md`. A reply may coin a letter
+or `pd` gives both words and `d` inside a sentence gives none. A reply may coin a letter
 for a next step outside the request that publishes nothing, defined beside it, `s`: run
 the simplify pass; it holds for the next message only, and never takes a letter
 this table already gives. On a pull request the user did not author, the next
 step offered for a fix is its comment draft, sent on `post`, never a letter
 applying it to a worktree.
-
-In context as the session opens, through a SessionStart hook. The register is `skills/short-form.md`
-and the shape of a reply is `skills/reply.md`.
 
 ## The words
 

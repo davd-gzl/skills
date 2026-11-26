@@ -294,7 +294,7 @@ made the commit, any model or none:
 
 | Hook | Does |
 | --- | --- |
-| `pre-commit`, `pre-merge-commit` | warns on a commit carrying an artifact whose skill was not read; refuses one recording a submodule commit no remote holds, or a workflow script that does not parse |
+| `pre-commit`, `pre-merge-commit` | warns on a commit carrying an artifact whose skill was not read; refuses one recording a submodule commit no remote holds, or a workflow script that does not parse; `pre-commit` also refuses a change to this README or a blog post that leaves the site behind |
 | `commit-msg` | refuses a commit adding words to the rule files with no `Grows:` line giving a reason |
 | `pre-push` | refuses a pushed line or message carrying a secret shape or a name the workspace's `workspace.json` lists, through [`scrub.sh`](https://github.com/davd-gzl/skills/blob/main/scripts/scrub.sh); refuses a pushed commit that grew the rules with no reason, one made by `--no-verify`, a rebase or a cherry-pick included; warns as `pre-commit` does |
 
@@ -343,4 +343,4 @@ move the number.
 README and the posts under [`knowledge/blog/`](https://github.com/davd-gzl/skills/blob/main/knowledge/blog).
 [`scripts/site.py`](https://github.com/davd-gzl/skills/blob/main/scripts/site.py) builds them into `docs/`, each relative
 link rewritten to its GitHub URL, and `--check` exits 1 when `docs/` lags its
-sources.
+sources, which `pre-commit` runs on every commit touching them.

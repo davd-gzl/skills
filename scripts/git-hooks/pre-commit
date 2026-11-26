@@ -2,8 +2,18 @@
 # NOT AUDITED — AI-generated tooling. Review before executing in any privileged context.
 #
 # Warn on a commit carrying a mapped artifact whose governing skill was not read
-# this session; nothing blocks. Installed once per clone, in the workspace and in skills/:
+# this session. Refuse one in this repository that changes README.md or a post
+# under knowledge/blog/ while docs/, the site built from them, lags. Installed once
+# per clone, in the workspace and in skills/:
 #
 #   git config core.hooksPath scripts/git-hooks
 #   git -C skills config core.hooksPath ../scripts/git-hooks
-exec "$(dirname "$(readlink -f "$0")")/../skill-gate.py" pre-commit
+here=$(dirname "$(readlink -f "$0")")
+if [ "$(git rev-parse --show-toplevel 2>/dev/null)" = "$(cd "$here/../.." && pwd -P)" ] \
+    && git diff --cached --name-only -- README.md knowledge/blog docs | grep -q .; then
+  "$here/../site.py" --check >&2 || {
+    echo "refused: docs/ lags README.md or knowledge/blog/; run ./scripts/site.py and stage docs/" >&2
+    exit 1
+  }
+fi
+exec "$here/../skill-gate.py" pre-commit

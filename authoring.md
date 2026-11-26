@@ -204,12 +204,11 @@ project looked like before.
 
 ## What a new rule displaces
 
-The corpus grows on its own and shrinks only on purpose. A commit adding words
-to the rule files removes as many, whole rules that leave for a reason below,
-never words shaved off the rules that stay. `skills/scripts/rule-growth.py`
-refuses one that does not, merges aside. Where nothing can go,
-only the user's answer this turn, the rule they stated or their reply when
-asked, puts `Grows: <why>` on the commit, unasked fixes included.
+The corpus grows on its own and shrinks only on purpose. Before a commit adds
+words to the rule files, ask the user, naming what it adds; only their answer
+this turn, the rule they stated or their reply when asked, puts `Grows: <why>`
+on the commit, unasked fixes included. `skills/scripts/rule-growth.py` refuses
+a growing commit without one, merges aside.
 
 A rule leaves when any of these holds:
 

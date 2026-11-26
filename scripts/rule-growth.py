@@ -5,11 +5,10 @@
     rule-growth.py commit-msg <message file> [<pathspec>...]   from the commit-msg hook
     rule-growth.py pre-push [<pathspec>...]                     from the pre-push hook, ref lines on stdin
 
-*What a new rule displaces* in authoring.md: the corpus stays flat, so a commit
-adding words to the rule files removes as many in the same commit, across
-files. One that cannot carries a line the user's answer in the turn puts there:
+*What a new rule displaces* in authoring.md: a commit adding words to the rule
+files, across files, carries a line the user's answer in the turn puts there:
 
-    Grows: <why nothing could go>
+    Grows: <why it may grow>
 
 The template, however wrapped, bare words like `none` or `yes ok`, or a line
 with no word of three letters is no answer. A Grows: line covers its whole
@@ -41,12 +40,12 @@ import sys
 
 DEFAULT = [':(glob)*.md', ':(glob)pr-body/*.md', ':(exclude,glob)**/README.md', ':(exclude,glob)**/TODO.md']
 LINE = re.compile(r'^\s*grows:(.*)$', re.I)
-TEMPLATE = 'whynothingcouldgo'   # the reason the refusal prints, letters only; authoring.md prints its start
+TEMPLATE = 'whyitmaygrow'   # the reason the refusal prints, letters only; authoring.md prints its start
 BARE = {'no', 'none', 'nothing', 'yes', 'ok', 'todo', 'tbd'}
 SCISSORS = '------------------------ >8 ------------------------'   # `commit -v` puts the diff below it
-ASK = ('Cut as many words from the rule files in the same commit, whole rules per *What a new rule '
-       'displaces* in authoring.md. Where nothing can go, ask the user whether the rules may grow; '
-       'only their answer in the turn adds a `Grows: <why nothing could go>` line to the message.')
+ASK = ('Ask the user whether the rules may grow, naming what the commit adds, per *What a new rule '
+       'displaces* in authoring.md; only their answer in the turn adds a `Grows: <why it may grow>` line '
+       'to the message. Never cut words from the rules that stay to avoid asking.')
 
 
 def die(msg):

@@ -69,15 +69,13 @@ A model given many rules at once follows fewer of them: in one test of five
 models, none followed all of 80, per
 [`knowledge/rules-decay-past-eighty.md`](knowledge/rules-decay-past-eighty.md).
 A corpus that grows by one rule per mistake ends up enforcing none, so this one
-is held flat.
+grows only when I say so.
 
-- A commit adding words to the rule files removes as many, as whole rules: one
-  a script now enforces, one another rule already covers, one naming something
-  gone.
-- [`scripts/rule-growth.py`](scripts/rule-growth.py) refuses a commit that grows
-  them, at commit time and again at push, whatever model or command made it.
-- Where nothing can go, my answer in the turn puts a `Grows: <why>` line on the
-  commit, and the hook lets it through.
+- [`scripts/rule-growth.py`](scripts/rule-growth.py) refuses a commit that adds
+  words to the rule files, at commit time and again at push, whatever model or
+  command made it.
+- The agent asks me first; my answer in the turn puts a `Grows: <why>` line on
+  the commit, and the hook lets it through.
 - A mistake a rule already forbids gets a check, a hook or a lint, never more
   words.
 

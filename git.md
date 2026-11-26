@@ -107,7 +107,8 @@ before the push, never the URL it is browsed at. A 403 there is the wrong
 destination before it is a missing permission.
 
 1. The token can write it and the repo is the user's: straight to the default
-   branch, no feature branch, no `gh pr create`, `skills/` excepted below.
+   branch, no feature branch, no `gh pr create`; `skills/`, below, and any
+   change the consumer's `AGENTS.md` sends to a pull request excepted.
 2. Refused, or not the user's repo: push a branch and open the pull request. A
    pushed branch is never left without one.
 3. Creation refused: give the `compare/...?expand=1` URL.

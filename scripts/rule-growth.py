@@ -45,7 +45,8 @@ TEMPLATE = 'whynothingcouldgo'   # the reason the refusal prints, letters only; 
 BARE = {'no', 'none', 'nothing', 'yes', 'ok', 'todo', 'tbd'}
 SCISSORS = '------------------------ >8 ------------------------'   # `commit -v` puts the diff below it
 ASK = ('Cut as many words from the rule files in the same commit, whole rules per *What a new rule '
-       'displaces* in authoring.md. Where nothing can go, ask the user whether the rules may grow; '
+       'displaces* in authoring.md. Where nothing can go, ask the user whether the rules may grow, '
+       'one line per changed rule above the question: its file, then what it now says; '
        'only their answer in the turn adds a `Grows: <why nothing could go>` line to the message.')
 
 

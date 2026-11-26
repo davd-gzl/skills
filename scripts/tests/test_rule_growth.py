@@ -24,10 +24,10 @@ class Answer(unittest.TestCase):
         for message in (f'subject\n\n{YES}', 'x\n\nGrows: the new `<details>` rule has no older twin',
                         'x\n\nGrows: <= 3 retries need a rule here'):
             self.assertTrue(rg.answered(message), message)
-        for message in ('subject', 'x\n\nGrows: <why nothing could go>', 'x\n\nGrows: <why>', 'x\n\nGrows: ---',
+        for message in ('subject', 'x\n\nGrows: <why it may grow>', 'x\n\nGrows: <why>', 'x\n\nGrows: ---',
                         'x\n\nGrows:', 'x\n\nGrows: none', 'x\n\nGrows: yes.', 'x\n\nGrows: yes ok',
-                        'x\n\nGrows: <why', 'x\n\nGrows: `<why  nothing could go>`', 'x\n\nGrows: why',
-                        'x\n\ngrow\x0cGrows: because the user said so', 'x\n\nGrows: <why nothing'):
+                        'x\n\nGrows: <why', 'x\n\nGrows: `<why  it may grow>`', 'x\n\nGrows: why',
+                        'x\n\ngrow\x0cGrows: because the user said so', 'x\n\nGrows: <why it may'):
             self.assertFalse(rg.answered(message), message)
 
     def test_the_diff_below_the_scissors_is_no_part_of_the_message(self):

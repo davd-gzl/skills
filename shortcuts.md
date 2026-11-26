@@ -48,6 +48,7 @@ as the skill defines it; ask when the reading changes what gets built.
 | `o`, `ready`, `open` | the named draft pull request marked ready for review, once step 1 of *Fix* in `skills/change.md` runs again and finds no duplicate; `open` never means opening a page | Invariant 2, `skills/change.md` |
 | `make this review public` | the round to the public artifact repo, links repointed | *Consent* in the workspace `AGENTS.md` |
 | `path` | the worktree the work sits in, its path alone | here |
+| `e` | open VS Code on each worktree or checkout holding code the reply's choices are about, one `code <path>` window each | here |
 | a pull request number alone | what the session changed on that pull request's branch, read from its diff, and why: the comment or finding each change answers | here |
 | `links <target>` | three markdown hyperlinks on one line, each to its page on the remote hosting it, never a bare URL or a local path: the pull request, its latest round's `overview.md`, and that round's `comment_<model>.md` | here |
 | "a comment" | the `comment_<model>.md` draft and the text for the target, never an explanation | `skills/review-comment.md` |

@@ -84,11 +84,13 @@ This job runs on a schedule only, and GitHub disables those after 60 days.
   what the user decides.
 - Where the agent settled a decision per *Consent* in the workspace `AGENTS.md`,
   one `Decided:` line above `Left:` names each default it took.
-- When a reply reports or offers work that holds something back, a finding left
-  out, a `SKIP` section or a step skipped, explain each one before asking anything
-  about it: what it is, why it is held, whether a rule or the agent chose that,
-  and the other option. A count, `left out` in a word line or a question that
-  assumes the choice has told the reader nothing.
+- When a reply holds something back, a finding left out, a `SKIP` section or a
+  step skipped, or leaves the user a choice between options, explain each one
+  in that reply, unasked, before asking about it, with no `+` needed per
+  `skills/short-form.md`: what it is, why it is held or open, whether a rule or
+  the agent chose that, and each other option with its cost. A count, `left
+  out` in a word line or a question that assumes the choice has told the reader
+  nothing.
 - A reply covering more than one topic rules them off with `---`, one before
   each topic after the first.
 - **A list of lines landed or asked is one line per item: the file in backticks,
@@ -99,9 +101,12 @@ This job runs on a schedule only, and GitHub disables those after 60 days.
 
 - When the work needs a decision only the user can make, per *Consent* in the
   workspace `AGENTS.md`, ask it through the harness's question tool where it has
-  one: every such decision of the turn in one call, the recommended option first
-  and marked. The reply then names the asked decisions in one line and carries
-  no word for them.
+  one, a choice about code excepted: every such decision of the turn in one
+  call, the recommended option first and marked, after the explanation above.
+  The reply carries no word for them.
+- When a reply leaves the user a choice about code in a worktree or a
+  checkout, ask it in the reply and offer `e` naming each tree it opens, so the
+  user reads the code before answering; the TL;DR still waits on the answer.
 - A first question about something new to build opens by restating it in one
   sentence that keeps the user's own nouns, in that same question and never in a
   turn of its own. The tell is a question already using a different noun for it:

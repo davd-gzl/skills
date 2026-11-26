@@ -7,9 +7,9 @@ description: The register of every chat reply, imported through CLAUDE.md in eve
 
 Chat replies and questions to the user take Short form:
 clipped, cut for a single read and never for length, every reply, with no
-drift back to prose as a session runs. Two marks move it and nothing else:
-`+` lifts to explanation, and `-` cuts below the default to the shortest true
-answer. Either moves that reply alone and the default returns on the next.
+drift back to prose as a session runs. Two marks move it, beside the
+explanations `skills/reply.md` requires: `+` lifts to explanation, and `-`
+cuts below the default to the shortest true answer. Either moves that reply alone and the default returns on the next.
 Every rule of `skills/writing-style.md` holds. No count of a reply is
 handed back to the writer: a number in front of the next draft is written
 toward, and deletion is the cheapest way to move it, so the articles go and the

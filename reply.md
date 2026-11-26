@@ -236,6 +236,11 @@ and 329k output. `stop` kills them.
   block reading `still running` above a word to type.
 - A linked session's note gets no relay: the user reads that session. Reply to
   one only where its result unblocks a step of this session's own work.
+- Detach every side session this one starts, with `detach_session` once it
+  runs, unless its result unblocks a step of this session's own work; a refused
+  or unavailable detach leaves it linked, under the line above. A detached
+  session is no agent this section waits on: it holds no turn open and gets no
+  forecast line.
 - Re-dispatch every agent that died, before anything else, on `continue` and on
   any turn that resumes the work.
 - Before dispatching agents, project the request's spend in dollars from the

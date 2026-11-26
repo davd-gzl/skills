@@ -56,7 +56,8 @@ still resolves.
 ### Own PR (the reviewer authored it)
 
 - Draft nothing for a reader: no `comment_<model>.md`, no `pr-body.md`, no text pass, and post nothing. `claims.md` is the record `round assemble` writes, never drafted by hand. The round ends at `findings.md` and the fixes come off it in the same turn.
-- Launch with `args.own_pr` true, which `./scripts/review-setup.sh` sets from the pull request's author and `--own-pr yes|no` overrides, and print its cost with `./scripts/review-plan.py --own-pr`: a solo round's judge then writes `findings.md` itself, and a pipeline round runs no writer and stops at the verdicts, where the parent runs the `round assemble` command the run returns.
+- Launch with `args.own_pr` true. `./scripts/review-setup.sh` sets it on your own pull request, `--own-pr yes|no` overrides it, and `./scripts/review-plan.py --own-pr` prints the cost.
+- In a solo round, the judge writes `findings.md`. A pipeline round runs no writer and stops at the verdicts, and the parent runs the `round assemble` command the run returns.
 - Where the build is uncommitted, the round reads a snapshot of it:
   `./scripts/snapshot <worktree>` prints a dangling commit holding every
   uncommitted edit over HEAD, an untracked compiled executable aside, the

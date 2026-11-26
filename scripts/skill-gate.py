@@ -17,7 +17,7 @@ with a warning. Nothing here blocks: a rough draft lands, a later pass fixes it.
                                             pre-push lines on stdin
   ./scripts/skill-gate.py hook-claude       Claude Code PreToolUse adapter, hook JSON on stdin: the missing
                                             skills named by path, to Read whole first, or by their diff where the
-                                            session read an older copy; the write goes ahead
+                                            session read an older copy, once per agent and text; the write goes ahead
   ./scripts/skill-gate.py hook-read         Claude Code PreToolUse adapter on the Read tool: a whole read of a
                                             skill, a shape, a delta or a root file is recorded; a partial one is not
   ./scripts/skill-gate.py session-start     Claude Code SessionStart adapter, hook JSON on stdin: runs
@@ -55,7 +55,7 @@ import urllib.parse
 from pathlib import Path
 
 RECORD = '.skill-gate.json'
-COPIES = '.skill-gate'  # <root>/.skill-gate/<session>/<name>.md, the text as read
+COPIES = '.skill-gate'  # <root>/.skill-gate/<session>/<name>.md, the text as read; .named, what each agent was pointed to
 KEEP_DAYS = 7
 COMMIT_READS = ['git', 'workspace']
 CHECKOUT_READS = ['git']
@@ -795,6 +795,33 @@ def point(names, header, event, stdout, extra=()):
     return [name for name in names if resolve(name) is not None]
 
 
+def unnamed(names, agent):
+    """The names this agent was never pointed to at their current text, recorded as pointed to now. One naming is read
+    or passed over, and repeating it on every later write only fills the context; a change to the file names it again,
+    and a compaction, which forgets the session's directory, names everything again."""
+    state = root() / COPIES / session_key().replace('/', '_') / '.named'
+    try:
+        # The last text each agent was pointed to, so a file edited back to an older text is named again.
+        seen = dict(line.rsplit(':', 1) for line in state.read_text().split() if ':' in line)
+    except (OSError, ValueError):
+        seen = {}
+    fresh, keys = [], []
+    for name in names:
+        path = resolve(name)
+        key = f'{agent}:{name}:{digest(path)[:16]}' if path is not None else None
+        if key is None or seen.get(key.rsplit(':', 1)[0]) != key.rsplit(':', 1)[1]:
+            fresh.append(name)
+            if key:
+                keys.append(key)
+    if keys:
+        try:
+            state.parent.mkdir(parents=True, exist_ok=True)
+            with state.open('a') as f:
+                f.write(''.join(k + '\n' for k in keys))
+        except OSError:
+            pass
+    return fresh
+
 FRONT_EFFORT = re.compile(r'^effort-set:\s*\[(.*?)\]\s*$', re.M)
 TRANSCRIPT_TAIL = 262144
 
@@ -905,6 +932,7 @@ def cmd_session_start(stdin, stdout):
     elif source == 'compact':
         names = [n for n in session_reads() if n not in IMPORTED]
         forget_session()
+        names = unnamed(names, '')
     for name in IMPORTED:
         record_read(name)
     extra.append(INTRO)
@@ -1907,7 +1935,7 @@ def refusal(cmd, payload):
 
 
 def cmd_hook_claude(stdin, stdout):
-    """The skills a write still lacks are named by path, and the write proceeds."""
+    """The skills a write still lacks are named by path, once per agent and text, and the write proceeds."""
     payload = json.load(stdin)
     tool = payload.get('tool_name', '')
     inp = payload.get('tool_input', {}) or {}
@@ -1939,8 +1967,9 @@ def cmd_hook_claude(stdin, stdout):
         reads = {'git': COMMIT_READS, 'checkout': CHECKOUT_READS}.get(p)
         wanted = [n for n in reads if not is_read(n)] if reads else missing_reads(p, base)
         names += [n for n in wanted if n not in names]
-    point(names, 'Rules this write calls for, unread this session. Read each as its line says '
-                 'and then write; the write goes ahead.', 'PreToolUse', stdout)
+    point(unnamed(names, payload.get('agent_id') or ''),
+          'Rules this write calls for, unread this session. Read each as its line says '
+          'and then write; the write goes ahead.', 'PreToolUse', stdout)
     return 0
 
 

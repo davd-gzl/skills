@@ -320,8 +320,10 @@ makes the rest of the session pay for its test output and file reads.
    loop or a value shared at many places; many identities from one host; two
    callers at once; state that never expires; every return and call shape that
    reaches the guard; the largest input the deployed configuration admits, its
-   configured limit or size cap, never one workload's figure. An axis it cannot
-   run goes to the plan as an open call with its measured cost, except the
+   configured limit or size cap, never one workload's figure; each setting the
+   guard reads, at every value a deployment sets, from the deployment configs
+   the project's `AGENTS.md` names, never its code default alone. An axis it
+   cannot run goes to the plan as an open call with its measured cost, except the
    deployed limit, which runs or has its growth curve run per *Repro rules* in
    `skills/review.md`. A fix that caps, charges, adds work per call or per byte,
    or changes who waits on a lock times itself against its merge base with the

@@ -59,8 +59,6 @@ A video of a UI moving proves nothing about what was typed: mark each click and 
 
 Stills and a scripted walkthrough come from `./scripts/capture-web.mjs`, headless, and `./scripts/clip.sh` turns a recording into the GIF and the mp4; each header carries its usage.
 
-Playwright's bundled ffmpeg writes webm only, and a `.gif` or `.mp4` output fails with `Error initializing the muxer`, which reads as a bad filter string and is not one. `./scripts/setup-browser-recording.sh` installs a static ffmpeg and the shared libraries Chromium needs, without root; convert with `fps=10,scale=640:-1` plus `palettegen` and `paletteuse`. What this machine can do is `./scripts/env-check.sh capture`, never a fact written down here.
-
 ## Teardown
 
 - Where the agent booted the stack to check a change itself and handed over no

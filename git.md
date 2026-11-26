@@ -123,6 +123,9 @@ reaching below that tip is a force push, named as one before it is built.
 **A change to `skills/` goes on a branch of its own in its own worktree,
 `git -C skills worktree add <scratch>/skills-<branch> -b <branch> origin/main`,
 pushed with `-u` and opened as a pull request, never straight to its `main`.**
+A session's changes to `skills/`, whatever their subjects, share that one
+branch and pull request, one commit each: every extra pull request is one more
+for the user to read and one more conflict.
 The workspace's own `skills/` stays on `main`, which its sync fast-forwards. The pin moves in the workspace commit after that pull request
 merges, `skills at <sha>: <what it carries>`, so a clone resolves to merged
 rules.

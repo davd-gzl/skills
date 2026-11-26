@@ -921,8 +921,11 @@ def cmd_prompt(stdin, stdout):
     prompt = str(payload.get('prompt', ''))
     # A hand-back or a notification is the harness's message, never the user's prompt: its words call for nothing.
     # A hand-back reaches this hook as `<agent-message`, without the line the transcript puts above it.
-    names = ([n for n in prompt_reads(prompt) if not is_read(n)]
-             if not prompt.lstrip().startswith(NOT_TYPED + ('<agent-message',)) else [])
+    typed = prompt.strip() and not prompt.lstrip().startswith(NOT_TYPED + ('<agent-message',))
+    names = [n for n in prompt_reads(prompt) if not is_read(n)] if typed else []
+    # Every reply takes skills/reply.md and nothing imports it: named on each typed prompt until read.
+    if typed and not is_read('reply') and 'reply' not in names:
+        names.insert(0, 'reply')
     note = model_note(payload)
     extra = [note] if note else []
     point(names, 'Rules this prompt calls for, unread this session. Read each as its line says '
@@ -1950,6 +1953,9 @@ def cmd_hook_read(stdin):
     if inp.get('offset') or inp.get('limit') or not inp.get('file_path'):
         return 0
     name = name_of(inp['file_path'], payload.get('cwd'))
+    # A subagent shares the session id, and its read of the reply shape never reaches the chat it binds.
+    if name == 'reply' and payload.get('agent_id'):
+        return 0
     if name and resolve(name) is not None:
         record_read(name)
     return 0

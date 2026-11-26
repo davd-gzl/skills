@@ -1534,6 +1534,22 @@ class Prompt(HookCase):
         rc, context = self.run_hook('prompt', json.dumps({'prompt': 'push'}))
         self.assertEqual((rc, context), (0, ''))
 
+    def test_the_reply_shape_is_named_on_each_typed_prompt_until_read(self):
+        (self.root / 'skills' / 'reply.md').write_text('# The shape of a reply\n')
+        for prompt in ('push', 'and another question'):
+            rc, context = self.run_hook('prompt', json.dumps({'prompt': prompt}))
+            self.assertIn('skills/reply.md', context, prompt)
+        for prompt in ('<agent-message from="a1">done</agent-message>', '<task-notification>x</task-notification>', ' '):
+            rc, context = self.run_hook('prompt', json.dumps({'prompt': prompt}))
+            self.assertEqual(context, '', f'no typed prompt: {prompt!r}')
+        path = str(self.root / 'skills' / 'reply.md')
+        self.run_hook('hook-read', json.dumps({'tool_name': 'Read', 'agent_id': 'a1', 'tool_input': {'file_path': path}}))
+        rc, context = self.run_hook('prompt', json.dumps({'prompt': 'push'}))
+        self.assertIn('skills/reply.md', context, 'a subagent read binds no reply of the chat')
+        self.run_hook('hook-read', json.dumps({'tool_name': 'Read', 'tool_input': {'file_path': path}}))
+        rc, context = self.run_hook('prompt', json.dumps({'prompt': 'push'}))
+        self.assertEqual(context, '')
+
     def test_a_family_word_names_every_project_sharing_it(self):
         rc, context = self.run_hook('prompt', json.dumps({'prompt': 'fix gnolang/gno-sandbox 64'}))
         for piece in ('skills/change.md', 'skills/pr-body.md', 'skills/issue.md', 'projects/gno/AGENTS.md', 'projects/gno-agent-workspace/AGENTS.md'):

@@ -590,10 +590,23 @@ def unpushed_gitlinks(top, cwd):
         sub = top / path
         if not (sub / '.git').exists():
             continue
-        held = subprocess.run(['git', '-C', str(sub), 'branch', '-r', '--contains', sha], capture_output=True, text=True,
-                              env=env)
-        if held.returncode != 0 or not held.stdout.strip():
-            out.append(f'{path} points at {sha[:9]}, which no remote branch of that submodule holds: push the submodule first')
+        def held():
+            r = subprocess.run(['git', '-C', str(sub), 'branch', '-r', '--contains', sha], capture_output=True, text=True,
+                               env=env)
+            return r.returncode == 0 and r.stdout.strip()
+        if held():
+            continue
+        # A fresh worktree's submodule carries the remote-tracking refs of its clone, stale until fetched.
+        # Bounded and non-interactive: the hook runs on every commit, network or not.
+        quiet = {**env, 'GIT_TERMINAL_PROMPT': '0', 'GIT_SSH_COMMAND': 'ssh -o BatchMode=yes -o ConnectTimeout=10'}
+        try:
+            subprocess.run(['git', '-C', str(sub), 'fetch', '-q', 'origin'], capture_output=True, env=quiet,
+                           stdin=subprocess.DEVNULL, timeout=20)
+        except subprocess.TimeoutExpired:
+            pass
+        if not held():
+            out.append(f'{path} points at {sha[:9]}, which no remote branch of that submodule holds: push the submodule '
+                       'first, or fetch it where the push already landed')
     return out
 
 
@@ -1665,7 +1678,18 @@ def publish_words(cmd, cwd=None):
             edit = re.search(r'/issues/[^/]+/(labels|assignees)(/|$)|/pulls/[^/]+/requested_reviewers/?$', path)
             if method == 'DELETE' and not edit:
                 needs.append({'delete'})
-            elif repo in own and re.search(r'/(pulls|issues)(/|$)', path) and not re.search(r'/merge/?$', path):
+            # A merge, a close and a new issue keep their own words on the user's repositories too.
+            elif re.search(r'/pulls/[^/]+/merge/?$', path):
+                needs.append({'merge'})
+            elif 'state=closed' in fields or re.search(r'"state"\s*:\s*"closed"', body := (
+                    _read_at('@' + t[t.index('--input') + 1]) if has_input and t.index('--input') + 1 < len(t) else '')):
+                needs.append({'close'})
+            elif body.startswith('@'):
+                # an --input file the gate cannot read could carry anything
+                needs.append({'post'})
+            elif method == 'POST' and re.search(r'/issues/?$', path):
+                needs.append({'post'})
+            elif repo in own and re.search(r'/(pulls|issues)(/|$)', path):
                 continue
             elif repo in standing_publish_draft() and not keys & {'state', 'draft', 'base'} \
                     and (m := re.search(r'/(?:pulls|issues)/(\d+)(?:/(?:comments(?:/\d+/replies)?|labels(?:/[^/]+)?))?/?$', path)) \

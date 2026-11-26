@@ -12,8 +12,8 @@ repository, and is not a change until the gate in the workspace `AGENTS.md`
 Invariants has run.
 
 Read the project's own `AGENTS.md` and `projects/<repo>/AGENTS.md` before the
-first command: the build and test commands and what the project demands of a
-contribution live there, measured.
+first command, for its build and test commands and what it demands of a
+contribution.
 Where a convention is missing, `./scripts/measure-repo.sh <checkout>
 <remote>/<branch> <owner>/<repo>` prints the merge style, the commit body width
 and length, the commit granularity and the changelog placement; write each
@@ -29,9 +29,9 @@ never repeat what the other states. A change with no review behind it carries
 the same files minus the review links, and the kind of change goes in its
 `README.md`, never in the path.
 
-- `README.md`: the single entry point, linking every other artifact. What is
-  broken, what the fix does, status, the create-PR link, what is in the
-  directory, the link to the review.
+- `README.md`: the single entry point: what is broken, what the fix does,
+  status, the create-PR link, and a link to every other artifact with what it
+  holds, the review included.
 - `spec.md` and `plan.md`, below.
 - `pr-body.md`, per `skills/pr-body.md`.
 - `overview.md`, for every change, per *Overview* in `skills/review.md`; the
@@ -51,21 +51,22 @@ Written before any fix code, split by audience per
 
 - `spec.md` is what and why: the problem, the scenarios, the numbered
   requirements, the acceptance criteria, what is out of scope. No technology is
-  named in it. Write one for every change, before any code.
+  named in it. Write one for every change.
 - `plan.md` is how: root cause, approach, the files, how it is tested, a
-  `## Paths walked` section naming every path that reaches each absolute the
-  title, the body or the diff states about the code, a cap, a never, a cannot,
-  an at most, each with the run showing it holds or the body's `## Not fixed`
-  bullet naming it, enumerated before the first push and checked by
-  `./scripts/absolutes-check.py`; a path the walk finds the absolute exempts, a
-  transfer to the sender itself for one, narrows the sentence in that same
-  commit, in every doc and comment stating it; the commit split, the threat model and the
-  module inventory where the change is large enough to need them, and an
-  Iterations section naming every round and what caught it, failures included.
-  Write one where the fix has a second
-  defensible shape, or a call for a human, or a diff nobody reads in one sitting.
-  A fix with one shape and no call goes straight to the body.
+  `## Paths walked` section, an Iterations section naming every round and what
+  caught it, failures included, and the commit split, the threat model and the
+  module inventory where the change is large enough to need them. Write one
+  where the fix has a second defensible shape, or a call for a human, or a diff
+  nobody reads in one sitting. A fix with one shape and no call goes straight
+  to the body.
 
+`## Paths walked` names every path that reaches each absolute the title, the
+body or the diff states about the code, a cap, a never, a cannot, an at most,
+each with the run showing it holds or the body's `## Not fixed` bullet naming
+it, enumerated before the first push and checked by
+`./scripts/absolutes-check.py`. A path the walk finds the absolute exempts, a
+transfer to the sender itself for one, narrows the sentence in that same
+commit, in every doc and comment stating it.
 
 `plan.md` also carries what admits a change into scope: what is in, one row per
 finding with its effect on the failing signal; what is out, with the decision
@@ -77,8 +78,8 @@ enters the system or is first written, a peer message at its decode or a value
 where it is created or stored, and put the guard there. Keep a guard on every
 reader or at the output, a copy on each read or a cut on each logged error,
 only where `plan.md` shows by a command that the entry point cannot hold it,
-and reject a shape for its cost only on that cost measured. The
-tell is a guard each new reader of the value has to remember.
+and reject a shape for its cost only on that cost measured. The tell is a guard
+each new reader of the value has to remember.
 
 Code that displays a list with no limit is better with a pager.
 
@@ -98,20 +99,18 @@ Work asked for on an open pull request lands on that pull request's branch, and
 second pull request.
 
 Before drafting a reply to a reviewer, or reporting their comments on a pull
-request as handled, read every review body, thread and comment on it whole,
-from every reviewer, never cut to a length, and list each point it asks for
-with one disposition at the head of the draft: applied at a sha, a numbered
-open call, or a separate change the user agreed to. A brief that has an agent
-draft a reply hands it that list, never the one finding it fixes, or the reply
-answers that finding and leaves the reviewer's other points unread. A point a
-brief or an agent marked report-only, out of scope or left out goes back to the
-user as a question, never into the report as handled. The tell is a long
-review whose last paragraphs no brief quoted.
+request as handled, read every review body, thread and comment on it, from
+every reviewer, never cut to a length, and list each point it asks for with one
+disposition at the head of the draft: applied at a sha, a numbered open call,
+or a separate change the user agreed to. A brief that has an agent draft a
+reply hands it that list, never the one finding it fixes. A point a brief or an
+agent marked report-only, out of scope or left out goes back to the user as a
+question, never into the report as handled. The tell is a long review whose
+last paragraphs no brief quoted.
 
-Post a reply telling a reviewer their review is handled only on a pull request
-where every point in that list reads applied. Where any point is an open call,
-a separate change or documented rather than fixed, the reply waits until it is
-applied, since a reviewer reads "done" as the defect closed.
+Post a reply telling a reviewer their review is handled only once every point
+in that list reads applied, never while one is an open call, a separate change
+or documented rather than fixed: a reviewer reads "done" as the defect closed.
 
 ### Numbered open calls
 
@@ -140,14 +139,13 @@ premise the run disproves turns the call into a fix. The tell is a `Pick:` whose
 reason is a claim, `the base does the same` or `nothing reaches it`, with no
 command beside it.
 
-In the handover reply, repeat the first call in full and link the rest: chat is
-gone next session.
+In the handover reply, repeat the first call in full and link the rest.
 
 ## Setup
 
-`git -C <checkout> remote -v`, read in full and never truncated. The push
-target is the user's fork; every other remote is another contributor's and is
-never pushed to. Create the fork when it is missing:
+Read `git -C <checkout> remote -v` untruncated. The push target is the user's
+fork, and no other remote is ever pushed to. Create the fork when it is
+missing:
 
 ```bash
 gh repo fork <owner>/<repo> --remote-only --remote-name fork
@@ -163,9 +161,8 @@ Before step 2, dispatch steps 2 to 9 to one agent, given the finding, this
 file's path and the project's `AGENTS.md`, and keep only its report: the diff
 stat, the class evidence, each test with the mutation that turned it red, the
 items step 5 fixed instead of leaving under `## Not fixed` and those it left,
-and the open calls. Every tool result stays in the thread that called it and is
-re-read on each later call there, so a fix run in the session's own thread
-makes the rest of the session pay for its test output and file reads.
+and the open calls. A fix run in the session's own thread makes every later
+call in that thread re-read its test output and file reads.
 
 1. **Check that nothing already covers the problem**, before the branch exists,
    and again before the pull request opens and before acting on `o`, `ready`
@@ -207,8 +204,7 @@ makes the rest of the session pay for its test output and file reads.
    ritual; a fix that needs a regression test gets one that fails without it,
    per the plan.
 3. **Plan**, per *Spec and plan* above.
-4. **Worktree**, never the checkout, which is a submodule whose gitlink moves
-   the moment a branch lands in it:
+4. **Worktree**, never the checkout:
    ```bash
    git -C <checkout> fetch <canonical-remote> <default-branch>
    git -C <checkout> worktree add "$PWD/.worktrees/<repo>-fix-<id>" <canonical-remote>/<default-branch>
@@ -219,12 +215,11 @@ makes the rest of the session pay for its test output and file reads.
    relative one inside the checkout. Then run the tests step 2 listed, in the
    worktree, and note which fail before any edit. Before the first edit, run
    `./scripts/snapshot <worktree>`: its sha is the fix's base for step 10.
-5. **Weigh each finding before building it.** Name what implementing one costs in files and what
-   it buys in cases a user actually hits: a suggestion covering a transition
-   nobody has been through yet goes to the pull request body's `## Not fixed`
-   section, where the maintainer can ask for it, never to a second issue,
-   which puts a tracker item in front of maintainers who did not ask for one. A
-   finding whose absence makes the feature not work is never in this class.
+5. **Weigh each finding before building it.** Name what implementing one costs
+   in files and what it buys in cases a user hits: a suggestion covering a
+   transition nobody has been through yet goes to the pull request body's
+   `## Not fixed` section, never to a second issue. A finding whose absence
+   makes the feature not work is never in this class.
 
    Whenever an item would go to `## Not fixed` before the pull request opens,
    here, in steps 8 to 10 or while the first body is written, a sibling with
@@ -251,9 +246,8 @@ makes the rest of the session pay for its test output and file reads.
    Before step 7, and over every line a later step adds, read the change as a
    newcomer who knows the codebase's vocabulary and nothing of the change, and
    rewrite each line where they cannot tell what it does from the code and its
-   comments alone: code that needs the pull request body, the plan or the chat
-   for that is badly written, and the lines a rewrite adds are lines the fix
-   needs under the first Principle of the workspace `AGENTS.md`. Once per fix,
+   comments alone. The lines a rewrite adds are lines the fix needs under the
+   first Principle of the workspace `AGENTS.md`. Once per fix,
    before step 7, hand a fresh agent the diff, the worktree path and this
    file's path, and nothing of the body, the plan or the chat, for the same
    read, told to return lines and edit nothing, since the author no longer
@@ -293,24 +287,20 @@ makes the rest of the session pay for its test output and file reads.
    behaviour-preserving refactor of a pure function, ship an equivalence proof
    over a large input set. Run every mutation, this step's or step 8's, in a
    copy of the working tree, untracked files included,
-   `rsync -a --exclude .git ./ <scratch>/mut/`, never in the tree itself: a
-   suite left running in the background reports on whichever version the
-   scheduler reached, and a mutation a container or a later command forgets to
-   restore ships with the next commit. A mutation weakens the guard rather than
-   deleting it, a bound off by one or a check on the wrong length, and lands at
-   the call site as well as in the helper: a test only a deleted guard turns red
-   passes a guard that is wrong. A cap takes a second mutation at several times
-   its value, and the test asserts the cap's own figure or what it produces: two
-   inputs past the cap compared to each other match at any cap below them. One mutation per guard reproduces the defect
-   class the fix closes, a truncation, an alias, a copy nothing reads, and the
-   test meets it with an input the right code accepts: an input every version
-   refuses, all-zero bytes for one, reddens no mutation. A guard choosing
-   between two behaviours is mutated toward each. A test of a refusal asserts
-   the guard's own error, never only that one occurred. A guard a mutation turned
-   red stays proven until a fix changes it: a later pass mutates only the
-   guards its own fix changed.
+   `rsync -a --exclude .git ./ <scratch>/mut/`, never in the tree itself. A
+   mutation weakens the guard rather than deleting it, a bound off by one or a
+   check on the wrong length, and lands at the call site as well as in the
+   helper. A cap takes a second mutation at several times its value, and the
+   test asserts the cap's own figure or what it produces: two inputs past the
+   cap compared to each other match at any cap below them. One mutation per
+   guard reproduces the defect class the fix closes, a truncation, an alias, a
+   copy nothing reads, and the test meets it with an input the right code
+   accepts: an input every version refuses, all-zero bytes for one, reddens no
+   mutation. A guard choosing between two behaviours is mutated toward each. A
+   test of a refusal asserts the guard's own error, never only that one
+   occurred. A later pass mutates only the guards its own fix changed.
    Once green, run the issue's own repro from step 2 again, the way its
-   reporter hit it: the suite proves only the tests the agent could see.
+   reporter hit it.
 8. **Loop over the whole diff, green, until a pass returns no Critical or
    Warning, or only ones on lines the pass before it changed.** Read it as a
    reviewer who did not write it, with the *Verification discipline* and
@@ -345,10 +335,10 @@ makes the rest of the session pay for its test output and file reads.
    Warning the pass returned, or a round's `claims.md`; it exits 0 to stop,
    and counts every commit between the two heads as the fix.
    `<first rebased fix commit>^` stands in for the pass before's head after a
-   rebase. Apply the closing pass's findings too. That closing pass runs
-   unasked and gates the handover. Step 10's round is the closing pass, and
-   no fresh-agent pass runs before it: both read the same diff, and a finding
-   the round returns reopens this step anyway.
+   rebase. Apply the closing pass's findings too; it runs unasked and gates
+   the handover. Step 10's round is the closing pass, and no fresh-agent pass
+   runs before it: both read the same diff, and a finding the round returns
+   reopens this step anyway.
    A commit landing after the closing pass, a check moved or a line added,
    reopens this step and step 7's mutations for every guard it touches, and
    every review count the body states is measured again, never carried over.
@@ -365,29 +355,28 @@ makes the rest of the session pay for its test output and file reads.
    quotes from an earlier design or decision record included, is swept over
    the whole artifact by the claim's own words, every restatement included,
    with `git grep` on its key words over every tracked file and no pathspec,
-   the command and its hits written into `plan.md`, and each line the diff
-   adds is read against the lead of the section it sits under: the loop reads
-   the diff, and a line it never touched sits outside it.
+   the command and its hits written into `plan.md`. Each line the diff adds is
+   read against the lead of the section it sits under, since the loop reads
+   only the diff.
 9. **Simplify, last.** Once the loop closes, run the harness simplification
    pass, `/simplify` with the worktree's absolute path in its argument, over
    the whole final diff: reuse, fewer lines for the same behaviour, a value
    computed once. A hunk that undoes a step 6 rewrite is reverted, whichever
    finding made it. A subagent running the fix calls `/simplify` itself and
    follows it in its own thread: reviewer agents it launches in the background
-   are cut off when it hands back, before any of them reports. The pass's agents
-   may edit the tree to test a finding, so save `git diff HEAD --binary > <scratch>/pre-simplify.patch` and
-   `git status --porcelain > <scratch>/pre-simplify.status` before it and read
-   every hunk and new file after: one that no applied finding names is a probe
-   left behind, and is reverted. Every test the branch adds, a golden and a
-   fixture included and whoever asked for it, stays only where a mutation of
-   the code it covers turns it red, run per step 7; drop the rest. Apply what
-   holds, re-run the checks,
-   and report the behaviour unchanged only from the suite and the issue's
-   repro run after the pass, never from a read of the diff. It runs once per hand-back: step
-   10's round reads the diff it leaves, so what the pass changed reopens step 8
-   only through a finding of that round. It runs unasked, and
-   its trigger is every fix handed back rather than a change's end alone: a turn
-   reporting a behaviour change done runs this pass before reporting it.
+   are cut off when it hands back, before any of them reports. Save
+   `git diff HEAD --binary > <scratch>/pre-simplify.patch` and
+   `git status --porcelain > <scratch>/pre-simplify.status` before the pass,
+   read every hunk and new file after it, and revert one no applied finding
+   names, a probe the pass's agents left behind. Every test the branch adds, a
+   golden and a fixture included and whoever asked for it, stays only where a
+   mutation of the code it covers turns it red, run per step 7; drop the rest.
+   Apply what holds, re-run the checks, and report the behaviour unchanged only
+   from the suite and the issue's repro run after the pass, never from a read
+   of the diff. The pass runs unasked, its trigger every fix handed back and
+   not only a change's end: a turn reporting a behaviour change done runs it
+   before reporting. Step 10's round reads the diff it leaves, so what the pass
+   changed reopens step 8 only through a finding of that round.
 10. **After the simplify pass, run a `quick review` round over the fix's own
     diff, unasked, never over the branch's or the feature's.** The base
     worktree sits at step 4's snapshot and the head at `./scripts/snapshot
@@ -446,8 +435,7 @@ Before any claim about an open pull request's body, code or threads, run
 `./scripts/pr-state <change dir>`: it prints the pull request's head, the fork
 branch's tip, the local tree's HEAD and the sha the body names, and exits 1
 where they differ. A claim then reads the body, the diff and the threads at
-the pushed sha and says so, since the local branch may hold work nobody pushed
-and a body read against HEAD describes a tree the reviewer never saw.
+the pushed sha and says so.
 
 After any push to an open pull request the user authored, move their inline
 notes to the new head in the same command, per *Consent* in the workspace
@@ -459,7 +447,7 @@ up. Then read what the bots posted before the turn ends:
 `gh api repos/<owner>/<repo>/pulls/<n>/comments` for the inline
 ones, `gh api repos/<owner>/<repo>/issues/<n>/comments --jq '.[] | select(.user.type == "Bot")'`
 for the ones a quality gate posts on the conversation, each finding it links
-followed, and `gh pr checks <n>`. Report what landed, and say plainly when nothing has yet. A
-review bot answers a push within minutes, so a turn that stops at the push
-leaves the user to find the findings. Replying to one is the project's own
-rule, in `projects/<repo>/AGENTS.md`.
+followed, and `gh pr checks <n>`. Report what landed, or that nothing has
+yet. A review bot answers a push within minutes, so a turn that stops at the
+push leaves the user to find the findings. Replying to a bot's finding is the
+project's own rule, in `projects/<repo>/AGENTS.md`.

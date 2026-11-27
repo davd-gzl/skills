@@ -28,7 +28,7 @@ rule removes beside its estimate, per *A change to the run's shape*.
 | What waits for a word, and which repo a push may reach | The workspace `AGENTS.md` |
 | One task, whatever the repository: reviewing, drafting a body, filing an issue | The matching `skills/<task>.md` |
 | Visible prose of any kind | `skills/writing-style.md`, which every other skill defers to |
-| What the user's words start | `skills/shortcuts.md` |
+| What the user's words start | `skills/words.md`, and when one counts `skills/shortcuts.md` |
 | How the thinking before a reply is written, which a model whose thinking effort sets skips | `skills/thinking.md`, its `effort-set` patterns naming the models the gate lifts it for |
 | The shape of a reply to the user | `skills/reply.md` |
 | One repository: its merge style, its CI, its glossary, its boot recipe | `projects/<repo>/AGENTS.md` |
@@ -302,8 +302,10 @@ from it is measured here before it is trusted.
   Another session moves the pin mid-turn.
 - During other work, a rule that proves unclear, missing or wrong, or a step
   the work showed a skill should obviously have taken, is fixed in the skill in
-  that turn, unasked, per *Where it goes* and *The shape*, in a commit of its
-  own once the review loop below ends. Never offer the edit as a next step.
+  that turn only where it blocks the task or the user asks for that fix, per
+  *Where it goes* and *The shape*, in a commit of its own once the review below
+  ends. Any other goes on one line of the consumer's `TODO.md`, and the task
+  carries on.
 - A rule resting on a published result from outside this workspace gets that
   finding into `skills/knowledge/` in the same commit, per *Where it goes*.
 - A knob, a stage or a word that a change renames is grepped across `skills/`,
@@ -313,13 +315,15 @@ from it is measured here before it is trusted.
   root `AGENTS.md`, and fix what it reports rather than narrowing what it reads.
   It warns and never blocks: a rough rule lands, and a later pass fixes it.
 - **Before a change to a rule file, or a script or hook a rule names, is
-  pushed, review it in a loop.** Hand a fresh agent the diff and the change's
-  purpose, never the author's conclusions; it runs only commands that write
-  nothing and returns each defect with the command that shows it. Fix the real
-  defects and repeat with another fresh agent until the ones left are minor.
-  Until then the change stays uncommitted, overriding every same-turn commit
-  rule, and the reply to the Stop hook asking to commit `skills/` names the
-  open loop.
+  pushed, review it.** Hand a fresh agent the diff and the change's purpose,
+  never the author's conclusions; it runs only commands that write nothing and
+  returns each defect with the command that shows it. Fix what it finds. A
+  change moving what an agent may push, post or delete unasked takes a second
+  fresh pass over the fixed diff, unless the first found only minor defects;
+  any other takes the one pass. What the last pass finds is fixed, and the
+  change lands. Until then it stays uncommitted, overriding every same-turn
+  commit rule, and the reply to the Stop hook asking to commit `skills/` names
+  the open review.
 
 ## A deterministic step is a tool
 

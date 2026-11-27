@@ -1,0 +1,60 @@
+---
+name: words
+description: Every word the user types and what each one starts, in any workspace. A row reaches the session when a message opens with its word, through scripts/words.py; read the whole file before offering a word or coining a letter. When a word counts is skills/shortcuts.md.
+---
+
+# Words
+
+A reply that waits names one letter, the first cell of its row below, never two
+words: the user types that letter to act, at the start of a message, per
+`skills/shortcuts.md`. A reply may coin a letter
+for a next step outside the request that publishes nothing, defined beside it, `s`: run
+the simplify pass; it holds for the next message only, and never takes a letter
+this table already gives. On a pull request the user did not author, the next
+step offered for a fix is its comment draft, sent on `post`, never a letter
+applying it to a worktree.
+
+## The words
+
+What the user types, and what each word starts. A word a skill defines is read
+as the skill defines it; ask when the reading changes what gets built.
+
+| Word | What it starts | Rule |
+| --- | --- | --- |
+| `review <target>` | one review round: the overview, the comment draft, the claim table and its tests, committed, nothing pushed or posted unless a standing word in *Consent* in the workspace `AGENTS.md` covers the target. On a target the user authored it is the loop: the round, its fixes applied, then the next round, until `round stop` closes it, then `/simplify` over the branch's whole diff | `skills/review.md`, *Own PR* in `skills/review-modes.md` |
+| `quick review <target>`, `deep review <target>` | the same round on a preset: `quick` for the overview of what a change is worth, one finder per bundle on the Warning-finding angles, each running its own Warning checks, judges in short parallel batches, no reflector, the text pass past its word floor; `deep` where the code is complex or unknown, finders at more calls with the tests angle and claims on every bundle, small judge batches at the standard effort, the highest ceiling. Each word names an output ceiling that binds only with `+<n>` on the word, which sets it, and `+<angle>` runs that angle whatever the word, `+claims` for one. |
+| `review as ai <target>`, `rai <target>` opening the message | the round, `quick` or `deep` in front setting its preset, then its draft posted with `post as an AI` once it finishes, nothing asked on the way: the request carries the `post`, a target the user authored runs `--own-pr no` so a draft exists, and a missing catalog runs on its proposed draft. What an Invariant holds, an unsure read or a disclosure, still holds the post and goes to the user | `skills/review.md`, *Posting* in `skills/review-comment.md`, *Consent* in the workspace `AGENTS.md` |
+| `plan review <target>` | the round's steps 1 to 3, then three to five questions about the target in one reply, each answer a topic and one finder, the run launching on `go` | *Modes*, `skills/review.md` |
+| `review all` | every open target not yet reviewed, the scope written down first | `skills/review-modes.md` |
+| `plan` | what the next review round will run and cost, the stage table and the projection | `./scripts/review-plan.py` |
+| `config <stage> <key> <value>` | that knob of the review workflow changed, the plan reprinted, the estimate given | `./scripts/review-plan.py --set <stage>.<key>=<value> --write`, *A change to the run's shape* in `skills/authoring.md` |
+| `fix <issue or finding>` | a change on the fork: spec, plan, worktree, fix, CI, simplify, then a `quick review` of the fix's own diff, never the whole branch; nothing pushed | `skills/change.md` |
+| `fix as ai <pull request>`, `fix by ai <pull request>` | every reviewer comment on a pull request the user authored, applied per *Fix*, then pushed and each thread answered behind the AI reply marker once the fix finishes, nothing asked on the way: the request carries the `post` for those replies, the re-request of each author still requesting changes, and the body revision, and the `push` for the branch. What an Invariant holds, an unsure read or a point left unapplied, still holds that reply and goes to the user | `skills/change.md`, *Answering a finding on your own pull request* and *Posting* in `skills/review-comment.md` |
+| `try <pr> on <repo>` | the project booted locally, ready to click through | `skills/try.md` |
+| `video` | the clip, only once the finding's text is frozen | `skills/try.md` |
+| `stop` | the stack and the worktree torn down | `skills/try.md` |
+| `prune` | the worktrees the reply's fresh dry run listed removed, `./scripts/prune-worktrees.sh --apply` | *The scratch directory* in `workspace.md` |
+| `report [date]` | the period's status report | `skills/report.md` |
+| `upgrade skills` | the corpus checked and made better: the lint over every rule file, each real hit, stale name, copy and contradiction fixed, then every `TODO.md` line no word or pending run holds, fixed or its line updated; committed and pushed on each repository's standing word | `skills/authoring.md`, *Writing it down* in `workspace.md` |
+| `p`, `push` | everything the closing block names, once: every commit and push the work needs, then the post, upload, title or body it links | *Consent* in the workspace `AGENTS.md` |
+| `pr`, `p r`, `push review` | the round over the change's whole branch, step 10 of *Fix*, its fixes applied, then everything `p` sends; a bare `p` runs no further round | `skills/change.md` |
+| `r` | the same round over the change's branch, its fixes applied, nothing committed or pushed | `skills/change.md` |
+| `rlp`, `review loop push` | the loop `review <target>` runs on a pull request the user authored, on the one the session works on, then everything `p` sends; one word, never the letters `r`, `l` and `p` | *Own PR* in `skills/review-modes.md`, *Consent* in the workspace `AGENTS.md` |
+| `night` | every task the user assigned to the agent, run unattended: it reaches nobody, and each pick waits in the morning queue | *Night runs* in the workspace's `workspace.md` |
+| `sweep` | a project's security backlog, worked to its end unattended | the Sweep section of the project's delta |
+| `pf`, `p f`, `push force` | everything `p` sends, the branch it names replaced on its remote with `--force-with-lease`: Invariant 8's approval, for that push alone | Invariant 8 |
+| `post` | the shown draft goes to its target where nothing waits to be pushed, and `p` sends it the same; `post as an AI` adds the marker; `upload` sends media | `skills/review-comment.md`, `skills/issue.md`, `skills/change.md` |
+| `m`, `x`, `d` | merge, close or delete: that one action on the named target | Invariant 2 |
+| `o`, `ready`, `open` | the named draft pull request marked ready for review, once step 1 of *Fix* in `skills/change.md` runs again and finds no duplicate; `open` never means opening a page | Invariant 2, `skills/change.md` |
+| `make this review public` | the round to the public artifact repo, links repointed | *Consent* in the workspace `AGENTS.md` |
+| `path` | the worktree the work sits in, its path alone | here |
+| `e` | open VS Code on each worktree or checkout holding code the reply's choices are about, one `code <path>` window each | here |
+| a pull request number alone | what the session changed on that pull request's branch, read from its diff, and why: the comment or finding each change answers | here |
+| `links <target>` | three markdown hyperlinks on one line, each to its page on the remote hosting it, never a bare URL or a local path: the pull request, its latest round's `overview.md`, and that round's `comment_<model>.md` | here |
+| "a comment" | the `comment_<model>.md` draft and the text for the target, never an explanation | `skills/review-comment.md` |
+| `TLDR` | the answer in one line, and the word it waits on | here |
+| `ag`, `all good?` | the work in flight in one or two lines, no list: running, stuck or failed, and what comes next; a question asked mid-work, so the work carries on under the request's word; one word, never the letters `a` and `g` | *Consent* in the workspace `AGENTS.md` |
+| `continue` | the local work resumed, dead agents re-dispatched first; nothing published | here |
+| `pause`, `can I pause?`, `I have <n> min` | the laptop closes soon and every local agent, stack and server stops with it: in one reply, what stops, that the worktree keeps every edit, what restarts on return, and `p` offered for what is finished; nothing published unasked | here |
+| `retro` | the session's retro, now: how it worked, what slowed it, and one change for next time | *The closing block*, `skills/reply.md` |
+| `go`, `ok`, `yes`, `sure`, anything else | local work only, never a publish | Invariant 2 |

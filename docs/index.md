@@ -61,7 +61,7 @@ since they bind whoever acts:
 Nothing reaches anyone without my word, `post`, `push` or `merge`, typed in the
 turn or given ahead for one repository and one kind of action. `go`, `ok` and
 `yes` authorise nothing, and every draft is shown before it goes. Those rules
-sit in the workspace's `AGENTS.md` too, and [`shortcuts.md`](https://github.com/davd-gzl/skills/blob/main/shortcuts.md) is
+sit in the workspace's `AGENTS.md` too, and [`words.md`](https://github.com/davd-gzl/skills/blob/main/words.md) is
 the one place a word is defined.
 
 Every skill has a second goal beside its task: the same decision in fewer
@@ -108,7 +108,8 @@ what it displaces.
 | [`writing-style.md`](https://github.com/davd-gzl/skills/blob/main/writing-style.md) | any visible prose, in any project | the rules every other skill defers to, and the closing pass over every draft |
 | [`short-form.md`](https://github.com/davd-gzl/skills/blob/main/short-form.md) | every chat reply | the register: clipped, read once, left to right |
 | [`reply.md`](https://github.com/davd-gzl/skills/blob/main/reply.md) | a reply finishes a piece of work | what it opens with, its closing block, its links |
-| [`shortcuts.md`](https://github.com/davd-gzl/skills/blob/main/shortcuts.md) | I type a word | what each word starts |
+| [`shortcuts.md`](https://github.com/davd-gzl/skills/blob/main/shortcuts.md) | every session | when a typed word counts: opening the message, whitespace between words |
+| [`words.md`](https://github.com/davd-gzl/skills/blob/main/words.md) | I type a word | what each word starts, its row put in context when a message opens with it |
 | [`thinking.md`](https://github.com/davd-gzl/skills/blob/main/thinking.md) | every reply, on a model whose thinking depth no setting controls | how the thinking before the reply is written |
 | [`authoring.md`](https://github.com/davd-gzl/skills/blob/main/authoring.md) | a rule is added, edited or removed | where it lives, the shape it takes, what it displaces |
 | [`knowledge/`](https://github.com/davd-gzl/skills/blob/main/knowledge) | a design question about the workflow comes up | one published result per file: what holds, the numbers, the source, the rule it shaped |
@@ -154,7 +155,7 @@ the code, and keeps it as a finding or refutes it.
 | `review <target>` | any change | the standard round |
 | `deep review <target>` | code that is complex or unknown | finders with more tool calls, a higher Warning cap and the tests angle, smaller judge batches |
 
-[`shortcuts.md`](https://github.com/davd-gzl/skills/blob/main/shortcuts.md) defines each word, and the workspace's `plan`
+[`words.md`](https://github.com/davd-gzl/skills/blob/main/words.md) defines each word, and the workspace's `plan`
 word prints a round's stages and projected cost for a given diff before
 anything runs.
 

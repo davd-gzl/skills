@@ -121,7 +121,7 @@ This job runs on a schedule only, and GitHub disables those after 60 days.
   first: `` `m`: merge the site branch into main, then deploy ``. Never
   `Type m.`, never a word inside a sentence, never an emoji ahead of it, since
   the reader scans the left edge for what to type. One line per word offered,
-  each from `skills/shortcuts.md` or coined per its rule, `p` for a push and
+  each from `skills/words.md` or coined per its rule, `p` for a push and
   every publish it hosts, never two words to type in turn. The clause after
   the colon is imperative and names every destination it covers: what opens,
   in which repository, against which base, and whether it opens as a draft or

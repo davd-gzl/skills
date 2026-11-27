@@ -654,7 +654,7 @@ BASH_BOUND = 28000
 # alone: the drafting rules are the writer stage's, per its step 4, and the write hook
 # names them when the draft is written.
 PROMPT_HEAD = 6
-# `rai <target>` is `review as ai`, per skills/shortcuts.md: the word opens the message, a preset may lead
+# `rai <target>` is `review as ai`, per skills/words.md: the word opens the message, a preset may lead
 # it and a target follows, so `edit rai.md`, `what is rai` or a message ending in `?` gives nothing.
 RAI = r'\A(?![\s\S]*\?\s*\Z)\W*(?:(?:quick|deep)\W+)?rai\s+\S'
 PROMPT_SKILLS = [
@@ -1002,7 +1002,7 @@ def turn_text(transcript):
             if e.get('type') == 'attachment' and a.get('type') == 'queued_command' \
                     and (a.get('origin') or {}).get('kind') == 'human':
                 parts.append(str(a.get('prompt', '')))
-    return '\n'.join(parts)
+    return MESSAGE.join(parts)
 
 
 RETRY = re.compile(r'(?i)^\s*(try again|retry)\W*$')
@@ -1073,69 +1073,44 @@ def _typed(e):
     return None
 
 
-NEGATION = re.compile(r"(?i)\b(don'?t|do not|never|no|not|without)\W+(\w+\W+){0,2}$")
-# A verb after `before` or `until` is the condition holding it, `verify before you push`: it reads
-# both ways, and two readings publish nothing, per Invariant 1. A comma ends the clause, so
-# `before you merge, push` still gives push.
-HOLD = re.compile(r"(?i)\b(before|until|till)\s+(\w+\s+){0,2}$")
+_wspec = _ilu.spec_from_file_location('words', Path(__file__).resolve().parent / 'words.py')
+_words = _ilu.module_from_spec(_wspec); _wspec.loader.exec_module(_words)
+
+# The typed words that give the gate's words, each counting only where it opens a message, per
+# skills/shortcuts.md. `p` and `push` send everything the closing block named.
+GIVES = {
+    ('p',): {'push'}, ('push',): {'push'}, ('pr',): {'push'}, ('p', 'r'): {'push'}, ('push', 'review'): {'push'},
+    ('pf',): {'push', 'force'}, ('p', 'f'): {'push', 'force'}, ('push', 'force'): {'push', 'force'},
+    ('--force',): {'force'}, ('--force-with-lease',): {'force'},
+    ('post',): {'post'}, ('upload',): {'upload'},
+    ('m',): {'merge'}, ('merge',): {'merge'}, ('x',): {'close'}, ('close',): {'close'},
+    ('d',): {'delete'}, ('delete',): {'delete'}, ('o',): {'ready'}, ('ready',): {'ready'}, ('open',): {'ready'},
+}
+# `review as ai`, or `rai`, a preset in front or not, carries the post of the draft it finishes.
+for _preset in ((), ('quick',), ('deep',)):
+    for _ai in (('rai',), ('review', 'as', 'ai'), ('review', 'as', 'an', 'ai')):
+        GIVES[_preset + _ai] = {'post'}
+PUSH_COVERS = {'push', 'post', 'upload', 'ready'}
+MESSAGE = '\n\x1e\n'  # between the typed messages turn_text joins, so each opens on its own words
 
 
-def has_word(text, word):
-    """The word typed as a word, a hyphenated compound, a negation or a hold aside: `merge-base` is not merge."""
-    return _typed_as(text, rf'(?<![\w-]){word}(?![\w-])')
-
-
-def _typed_as(text, pattern):
-    for m in re.finditer(rf'(?i){pattern}', text):
-        before = text[max(0, m.start() - 40):m.start()]
-        if not NEGATION.search(before) and not HOLD.search(before):
-            return True
-    return False
+def lead_words(text):
+    """The gate's words the turn's typed messages open with."""
+    vocab = _words.vocabulary(GIVES)
+    return {g for message in text.split(MESSAGE) for w in _words.lead(message, vocab) for g in GIVES.get(w, ())}
 
 
 def gives_force(text):
-    """The turn approves a forced push: the word, `pf` or `p f` on a line of letters alone, or the flag spelled out."""
-    shortcut = any(
-        LETTER_LINE.match(line) and {'p', 'f'} <= {c.lower() for c in re.findall(r'[a-z]', line, re.I)}
-        for line in text.splitlines()
-    )
-    return shortcut or has_word(text, 'force') or _typed_as(text, r'(?<![\w-])--force(-with-lease|-if-includes)?(?![\w-])')
-
-
-# The letter the user types for each word, on a line of letters alone, so `p d`
-# and `pd` give both. `p` and `push` send everything the closing block named.
-LETTERS = {'p': 'push', 'm': 'merge', 'x': 'close', 'd': 'delete', 'o': 'ready'}
-PUSH_COVERS = {'push', 'post', 'upload', 'ready'}
-LETTER_LINE = re.compile(r'(?i)^[\s,]*(?:[a-z][\s,]*){1,4}$')
-# The shortcut letters, `r` and `f` riding with `p`. `o` gives `ready` only on a
-# line of these alone, since `ok` and `go` carry it inside a vague yes.
-SHORTCUT_LETTERS = set(LETTERS) | {'r', 'f'}
-# A word spelled only in shortcut letters is a word, never a verb.
-NOT_LETTERS = {'do', 'od'}
-# Capitals typed together are an acronym, `TLDR` or `WDYT`, whose `D` deletes nothing.
-ACRONYM = re.compile(r'^\s*[A-Z]{2,}\s*$')
-
-
-def letter_words(line):
-    """The words a line of letters alone gives: `pd` both, `ok`, `go`, `do` and `TLDR` none."""
-    if not LETTER_LINE.match(line) or ACRONYM.match(line):
-        return set()
-    letters = [c.lower() for c in re.findall(r'[a-z]', line, re.I)]
-    if ''.join(letters) in NOT_LETTERS:
-        return set()
-    pure = set(letters) <= SHORTCUT_LETTERS
-    return {LETTERS[c] for c in letters if c in LETTERS and (c != 'o' or pure)}
+    """The turn approves a forced push: `pf`, `p f`, `push force` or the flag, opening a message."""
+    return 'force' in lead_words(text)
 
 
 def gives(text, word):
-    """The turn gives the word: typed, carried by push, or its letter on a line of letters alone."""
-    words = {w for line in text.splitlines() for w in letter_words(line)}
-    if 'push' in words or has_word(text, 'push'):
+    """The turn gives the word: a message opens with it, or with push, which carries every word it covers."""
+    words = lead_words(text)
+    if 'push' in words:
         words |= PUSH_COVERS
-    # `review as ai`, or `rai`, carries the post of the draft it finishes, per skills/shortcuts.md.
-    if _typed_as(text, r'(?<![\w-])review as (?:an )?ai(?![\w-])|' + RAI):
-        words.add('post')
-    return word in words or has_word(text, word)
+    return word in words
 
 
 # A Co-authored-by trailer is refused only where it names a model or a bot: a human reviewer whose

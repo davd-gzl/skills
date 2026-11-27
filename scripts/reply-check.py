@@ -23,7 +23,7 @@ prompt opening or closing on `+` exempts its reply, as does one asking for an
 explanation, EXPLAIN naming the triggers; --last says which one lifted it. Every
 line carries the thinking tokens the turn spent, from the transcript's usage
 block, so a rule on the thinking has a number. Quotes, tables and code
-do not count toward WORDS. A coined letter, per skills/shortcuts.md, is defined
+do not count toward WORDS. A coined letter, per skills/words.md, is defined
 on the TL;DR line that names it and never takes a letter the table gives, and
 a phrase offered to type is one the table quotes.
 """
@@ -81,8 +81,8 @@ def unlinked(text):
     return [q for q in named if not re.search(r'\]\([^)]*' + re.escape(q.rsplit('/', 1)[-1]) + r'[^)]*\)', text)]
 
 
-SHORTCUTS = pathlib.Path(__file__).resolve().parent.parent / 'shortcuts.md'
-# A letter defined in place, per skills/shortcuts.md: `r`: run the round, or `r` (run the round).
+SHORTCUTS = pathlib.Path(__file__).resolve().parent.parent / 'words.md'
+# A letter defined in place, per skills/words.md: `r`: run the round, or `r` (run the round).
 DEFINED = re.compile(r'`([a-z])`\s*(?::|\(|=|—)\s*([A-Za-z]*)')
 
 

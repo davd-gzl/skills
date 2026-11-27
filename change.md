@@ -247,7 +247,7 @@ call in that thread re-read its test output and file reads.
    newcomer who knows the codebase's vocabulary and nothing of the change, and
    rewrite each line where they cannot tell what it does from the code and its
    comments alone. The lines a rewrite adds are lines the fix needs under the
-   first Principle of the workspace `AGENTS.md`. Once per fix,
+   Principle *Build what the task asks for* of the workspace `AGENTS.md`. Once per fix,
    before step 7, hand a fresh agent the diff, the worktree path and this
    file's path, and nothing of the body, the plan or the chat, for the same
    read, told to return lines and edit nothing, since the author no longer

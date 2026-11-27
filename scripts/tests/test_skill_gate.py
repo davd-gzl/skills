@@ -515,7 +515,7 @@ class PublishWords(GateCase):
         self.assertEqual(self.hook(post, prompt='braid o/r#5')[0], 2, 'rai inside a word gives nothing')
         self.assertEqual(self.hook(post, prompt='rai gno 105')[0], 0, 'any target shape')
         self.assertEqual(self.hook(post, prompt='/rai 105')[0], 0, 'leading punctuation, as prompt_reads strips it')
-        for stray in ('what does rai mean', 'edit rai.md', 'see /x/rai/foo', 'sudo rai', 'RAI', 'fix this\nrai o/r#5',
+        for stray in ('what does rai mean', 'edit rai.md', 'see /x/rai/foo', 'sudo rai', 'fix this\nrai o/r#5',
                       'rai 105?'):
             self.assertEqual(self.hook(post, prompt=stray)[0], 2, f'{stray!r}: rai not opening the message gives nothing')
         self.assertEqual(self.hook(post, prompt='review https://github.com/o/r/pull/5')[0], 2, 'a plain review posts nothing')
@@ -532,11 +532,11 @@ class PublishWords(GateCase):
         self.assertEqual(self.hook('gh pr merge 5', prompt='m')[0], 0)
         self.assertEqual(self.hook('gh pr merge 5', prompt='p')[0], 2, 'p does not merge')
 
-    def test_several_letters_on_one_line_each_give_their_word(self):
+    def test_several_words_opening_the_message_each_give_their_word(self):
         delete = 'git push origin --delete old-branch'
-        self.assertEqual(self.hook(delete, prompt='p d')[0], 0, 'a line of letters gives every word on it')
-        self.assertEqual(self.hook(delete, prompt='pd')[0], 0, 'letters typed together give each word')
-        self.assertEqual(self.hook(delete, prompt='p, d')[0], 0, 'a comma between letters is no prose')
+        self.assertEqual(self.hook(delete, prompt='p d')[0], 0, 'words separated by whitespace each give their word')
+        self.assertEqual(self.hook(delete, prompt='pd')[0], 2, 'letters typed together give no word')
+        self.assertEqual(self.hook(delete, prompt='p, d')[0], 0, 'a comma beside the whitespace changes nothing')
         self.assertEqual(self.hook(delete, prompt='p')[0], 2, 'p alone does not delete')
         self.assertEqual(self.hook(delete, prompt='pd is next')[0], 2, 'letters opening prose are no word')
         self.assertEqual(self.hook('gh pr merge 5', prompt='e m')[0], 0, 'a coined letter beside m leaves m its word')
@@ -547,7 +547,7 @@ class PublishWords(GateCase):
         ready = 'gh pr ready 79 -R o/r'
         self.assertEqual(self.hook(ready, prompt='o')[0], 0, 'o alone is ready')
         self.assertEqual(self.hook(ready, prompt='p o')[0], 0, 'o beside p keeps its word')
-        for vague in ('ok', 'go', 'so', 'no', 'o k'):
+        for vague in ('ok', 'go', 'so', 'no', 'ok o'):
             self.assertEqual(self.hook(ready, prompt=vague)[0], 2, f'{vague!r} is no ready')
         self.assertEqual(self.hook('git push origin --delete b', prompt='do')[0], 2, 'do is a word, not d')
         for acronym in ('TLDR', 'WDYT', 'LGTM'):
@@ -630,14 +630,14 @@ class PublishWords(GateCase):
         self.assertNotIn('merge 69', turn(user('merge 69'), replied, user('Try again')), 'a finished turn ends its word')
         self.assertNotIn('merge 69', turn(user('merge 69'), died, user('fix the test')), 'only a retry resumes it')
 
-    def test_a_verb_held_by_before_or_until_gives_no_word(self):
-        for text in ('I want to verify before you push', 'wait until I post', 'check the diff till you merge'):
+    def test_a_verb_inside_prose_gives_no_word(self):
+        for text in ('I want to verify before you push', 'wait until I post', 'check the diff till you merge',
+                     'fix and review and push'):
             word = next(w for w in ('push', 'post', 'merge') if w in text)
-            self.assertFalse(gate.has_word(text, word), text)
-        self.assertTrue(gate.has_word('fix and review and push', 'push'))
-        self.assertTrue(gate.has_word('push before you merge', 'push'))
-        self.assertFalse(gate.has_word('push before you merge', 'merge'))
-        self.assertTrue(gate.has_word('before you merge, push', 'push'), 'a comma ends the held clause')
+            self.assertFalse(gate.gives(text, word), text)
+        self.assertTrue(gate.gives('push before you merge', 'push'))
+        self.assertFalse(gate.gives('push before you merge', 'merge'))
+        self.assertTrue(gate.gives('post' + gate.MESSAGE + 'all good?', 'post'), 'each message opens on its own words')
         self.assertEqual(self.hook('gh pr merge 5', prompt='review it before you merge')[0], 2)
 
     def test_a_question_asked_while_the_work_runs_keeps_the_word(self):
@@ -843,7 +843,8 @@ class PublishWordsEdges(PublishWords):
     def test_every_publish_on_the_line_needs_its_own_word(self):
         both = 'gh pr comment 5 -b x && gh pr merge 5'
         self.assertEqual(self.hook(both, prompt='post')[0], 2)
-        self.assertEqual(self.hook(both, prompt='post and merge')[0], 0)
+        self.assertEqual(self.hook(both, prompt='post merge')[0], 0)
+        self.assertEqual(self.hook(both, prompt='post and merge')[0], 2, 'a word past the first non-word gives nothing')
         self.assertEqual(self.hook('gh pr comment 5 -b x', prompt="don't post anything yet")[0], 2)
 
     def test_combined_force_flags_and_mirror_are_forced(self):

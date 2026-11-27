@@ -25,22 +25,26 @@ All good
 
 - Lead with the answer or the recommendation, and never offer an option just argued against.
 - A reply ending a request's work opens on `Done:` and what landed, or on `Not done:` and what stopped it.
+- Say what the code does now, not what it took to get there.
 - Run the action and leave the user only the word: they never open a terminal, so a command in a reply is a dead end.
 - Before acting on a message about another target than the one the session works on, name both in one line and wait for the user to confirm.
 
 ## A draft
 
 - Show every draft whole between two `---` rules, before anything goes out and again in each turn that edits it: a body, a comment, a commit message, a label.
+- A question about a draft is answered in the reply and leaves the draft alone, unless answering finds a defect, which is fixed and reported.
 - Text the user will paste elsewhere goes in a fenced block.
 
 ## The closing block
 
 - `Left:` names what is not done or not checked, one line; `Decided:` above it names each default the agent took.
+- Anything held back, a finding left out or a step skipped, is explained unasked: what it is, why it is held, and whether a rule or the agent chose that.
 - A choice only the user can make is explained, each option with its cost, then asked once; a publish is never asked through the question tool, since its word is typed.
+- Before a reply in a summarized session says nothing waits, list every topic the session opened, from the summary and from `git log --since=<session start> --format=%s`.
 - Every word offered is its own line, word first, then an imperative naming every destination: `` `p`: push `fix-cache` to acme/app, updating #42 ``.
 - Above a word that pushes, one `Confidence:` line: how sure this session is, out of 10, that what goes out is right, and each part going out that no command this session checked.
 - Handing over a reviewer's comments gives each `problem n/10, fix n/10`: that the problem is real, and that the fix applied for it is right.
-- A table of the user's pull requests lists every draft, one row each, with every link needed to open it, ordered by severity, then by the shorter review.
+- A table the user asks for gives each row what it takes to understand it without opening anything else. A table of their pull requests lists every draft, one row each, with every link needed to open it, ordered by severity, then by the shorter review.
 - When the user ends the session, with `pause`, a goodbye or `retro`, a `Retro:` block names what slowed the session, what worked, and the one change for next time.
 - The last line is `All good`, or `Not all good` and what failed, went unchecked or was left open.
 

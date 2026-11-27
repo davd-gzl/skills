@@ -4,9 +4,7 @@
 # Before a push of this public repository, whatever made the commit: merge, rebase, cherry-pick, --no-verify.
 # 1. scrub.sh refuses a pushed line or message carrying a secret or a private name, which cannot be taken back.
 # 2. rule-growth.py refuses a pushed commit adding words to the rule files with no `Grows:` line giving a reason.
-# 3. skill-gate.py warns on a mapped artifact whose governing skill was not read this session.
 dir=$(dirname "$(readlink -f "$0")")
 input=$(cat)
 printf '%s\n' "$input" | "$dir/../scrub.sh" --push || exit 1
-printf '%s\n' "$input" | "$dir/../rule-growth.py" pre-push || exit 1
-printf '%s\n' "$input" | "$dir/../skill-gate.py" pre-push
+printf '%s\n' "$input" | "$dir/../rule-growth.py" pre-push

@@ -29,7 +29,7 @@ rule removes beside its estimate, per *A change to the run's shape*.
 | One task, whatever the repository: reviewing, drafting a body, filing an issue | The matching `skills/<task>.md` |
 | Visible prose of any kind | `skills/writing-style.md`, which every other skill defers to |
 | What the user types and what it starts | `skills/shortcuts.md`, and each command's file under `skills/commands/` |
-| How the thinking before a reply is written, which a model whose thinking effort sets skips | `skills/thinking.md`, its `effort-set` patterns naming the models the gate lifts it for |
+| How the thinking before a reply is written, which a model whose thinking effort sets skips | `skills/thinking.md`, its `effort-set` patterns naming the models it is left out for |
 | The shape of a reply to the user | `skills/reply.md` |
 | What a claim must rest on, for every agent | `skills/claims.md` |
 | One repository: its merge style, its CI, its glossary, its boot recipe | `projects/<repo>/AGENTS.md` |
@@ -135,13 +135,8 @@ one pass.
   what the block above already displays is the one to cut.
 - A table of contents at the head of a file a reader opens for one section,
   `skills/review.md` for one: one line per section naming the moment it is read.
-- A file whose sections fire at different moments declares its reader's set in
-  its frontmatter, `prompt-sections: [<heading>, ...]`, and the gate hands that
-  cut, rebuilt whenever the file changes, so the reader loads its own moment and
-  no other's. A heading the list names and the file has since renamed falls back
-  to the whole file. Split into a second file only where the sections are
-  separate documents to whoever edits them. `./scripts/skill <name>` prints the
-  path the gate hands over.
+- A file whose sections fire at different moments splits into a second file
+  only where the sections are separate documents to whoever edits them.
 - A subagent carries
   every `CLAUDE.md` import on every call, so only a file whose rules bind every
   agent is imported, `skills/claims.md`; a file only the user's

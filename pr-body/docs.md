@@ -1,6 +1,6 @@
 ---
 name: pr-body/docs
-description: The pull request body for a change to documentation pages, however many. Read through ./scripts/skill pr-body/docs once skills/pr-body.md has picked this shape.
+description: The pull request body for a change to documentation pages, however many. Read whole once skills/pr-body.md has picked this shape.
 ---
 
 # A docs change

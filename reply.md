@@ -1,6 +1,6 @@
 ---
 name: reply
-description: The shape of every reply to the user: what it opens with, how it handles a draft, its closing block, its links. Named by the gate on each typed prompt until read; nothing imports it. The words the user types are skills/shortcuts.md and the register is skills/short-form.md.
+description: The shape of every reply to the user: what it opens with, how it handles a draft, its closing block, its links. Read whole before the first reply that ends a piece of work; nothing imports it. The words the user types are skills/shortcuts.md and the register is skills/short-form.md.
 ---
 
 # The shape of a reply
@@ -42,6 +42,7 @@ All good
 - A choice only the user can make is explained, each option with its cost, then asked once; a publish is never asked through the question tool, since its word is typed.
 - Before a reply in a summarized session says nothing waits, list every topic the session opened, from the summary and from `git log --since=<session start> --format=%s`.
 - Every word offered is its own line, word first, then an imperative naming every destination: `` `/p`: push `fix-cache` to acme/app, updating #42 ``.
+- A pending action is named once and then carried silently, the closing block included: do everything it does not block, and raise it again only when asked what is pending or when new work makes it urgent.
 - Above a word that pushes, one `Confidence:` line: how sure this session is, out of 10, that what goes out is right, and each part going out that no command this session checked.
 - Handing over a reviewer's comments gives each `problem n/10, fix n/10`: that the problem is real, and that the fix applied for it is right.
 - A table the user asks for gives each row what it takes to understand it without opening anything else. A table of their pull requests lists every draft, one row each, with every link needed to open it, ordered by severity, then by the shorter review.

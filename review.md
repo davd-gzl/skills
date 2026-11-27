@@ -2,7 +2,6 @@
 name: review
 description: Use whenever a pull request, a branch, a working diff or a red CI is to be reviewed, in any project, and whenever the user types `/review`, `/rai`, `/plan-review` or `/review-all`, pastes a pull request URL alone, or asks what to think of a change or why CI is red. One round, finders per angle, judges batched by band, a reflector, a writer, a text pass, producing overview.md, comment_<model>.md per skills/review-comment.md, claims.md and links.md. Several targets at once and a target the reviewer wrote are skills/review-modes.md.
 argument-hint: <repo>#<pr-number> | <url> | <repo> <subject>
-prompt-sections: [Words and sections, The round, Design first, Launch, Triage, The critical pass, Fetch & understand, Re-review rounds, Reproduce the failure, Output, Retro, Handover]
 ---
 
 # Review
@@ -52,13 +51,13 @@ The word, how well the user knows the code, sets the shape:
 
 Each word's caps, batches, calls and output ceiling, `budget_total`, are its preset in `scripts/workflows/review-pipeline.json` laid over each stage's entry, `review` being `standard`; `./scripts/review-plan.py --preset <quick, standard or deep>` prints the caps, batches and calls per stage.
 
-Inside the word, whether one careful read holds the diff sets how many agents run, decided before the class: a diff one read holds runs solo whatever its class, the class then naming the round note and no stage. `./scripts/review-plan.py --diff` suggests a shape from the diff; the parent confirms it or overrides it with the reason.
+Every round runs solo but a `/review deep` one, which alone runs the pipeline; the class then names the round note and no stage. A diff past one careful read, which `./scripts/review-plan.py --diff` names, is offered as `/review deep`, and a solo round on it says so in its round note.
 
 | Shape | When | Stages |
 | --- | --- | --- |
-| solo | the lines a finder must reason about, callers included, fit one careful read on the session's model, per its note under `skills/knowledge/models/`; a run of generated data, a regenerated golden or a fixture table, counts once | a finder, then one fresh agent that answers the *Reflector*'s completeness question, judges, runs every Critical and Warning, and writes the draft and `claims.md`, and the overview where step 1 dispatched no overview agent: `args.solo` true, and no triage |
+| solo | every round but a `/review deep` one | a finder, then one fresh agent that answers the *Reflector*'s completeness question, judges, runs every Critical and Warning, and writes the draft and `claims.md`, and the overview where step 1 dispatched no overview agent: `args.solo` true, and no triage |
 | solo, wider | as solo, where the diff spans several code files, tests aside, or changes what a consensus, gas, funds or permission path computes, charges or accepts; touching such a path without changing its result is plain solo | `solo.finders` 2 ahead of that same judge, run side by side, the word's angles dealt between them; every finder past the first carries `--brief`, what it reads that the others do not; `./scripts/review-plan.py --solo --set solo.finders=<N>` prints the cost |
-| pipeline | one read does not hold it | the triage where no class is named, the finders, the reflector, the judges, the writer, the text pass and the overview, each as the word configures it |
+| pipeline | `/review deep` | the triage where no class is named, the finders, the reflector, the judges, the writer, the text pass and the overview, each as the word configures it |
 
 1. Prepare, per *Fetch & understand*, and dispatch the overview agent the moment the head worktree exists.
 2. Run the *Re-review rounds* gate when a prior round exists, then answer *Design first*, which may end the turn here.
@@ -112,7 +111,7 @@ it, and so does a pass run after a round per *The critical pass*.
 
 ### Triage
 
-The change's class sizes a pipeline, and the word caps it; a diff one read holds runs solo per *The round*, whatever its class. The parent names the class in
+The change's class sizes a pipeline, which only `/review deep` runs, per *The round*. The parent names the class in
 `args.shape` when it has read the diff whole, callers included; otherwise one
 short agent reads the diff, the risk table and the material and names it
 before any stage is sized. Size is one factor, never the trigger. Name what a

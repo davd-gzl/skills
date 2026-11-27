@@ -1,6 +1,6 @@
 ---
 name: pr-body/surface
-description: The pull request body for one change with a surface someone sees, a front-end feature or a change to what a page renders. Read through ./scripts/skill pr-body/surface once skills/pr-body.md has picked this shape.
+description: The pull request body for one change with a surface someone sees, a front-end feature or a change to what a page renders. Read whole once skills/pr-body.md has picked this shape.
 ---
 
 # One change with a surface someone sees

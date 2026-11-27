@@ -1,6 +1,6 @@
 ---
 name: pr-body/several-changes
-description: The pull request body for several independent changes sharing one pull request. Read through ./scripts/skill pr-body/several-changes once skills/pr-body.md has picked this shape.
+description: The pull request body for several independent changes sharing one pull request. Read whole once skills/pr-body.md has picked this shape.
 ---
 
 # Several independent changes

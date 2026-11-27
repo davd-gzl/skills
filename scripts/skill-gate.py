@@ -868,8 +868,8 @@ def is_effort_set(model):
 
 
 def model_note(payload):
-    """The line lifting skills/thinking.md, printed once per session and model, when the harness names an effort-set
-    model, and its reversal when the session moves off one. A model the gate cannot name gets no line: the rules hold."""
+    """The line asking for skills/thinking.md when the session moves off a model its `effort-set` lists, for which the
+    SessionStart hook left the file out; printed once per session and model. A model the gate cannot name gets no line."""
     model = session_model(payload)
     if not model:
         return None
@@ -880,11 +880,8 @@ def model_note(payload):
         return None
     record[key] = {'model': model, 'at': time.time()}
     save(record)
-    if is_effort_set(model):
-        return (f'This session runs on `{model}`, whose thinking depth effort sets: `skills/thinking.md` does not apply '
-                'to it.')
-    if prev and is_effort_set(prev):
-        return f'This session now runs on `{model}`: `skills/thinking.md` applies again.'
+    if prev and is_effort_set(prev) and not is_effort_set(model):
+        return f'This session now runs on `{model}`: read `skills/thinking.md`, which applies to it.'
     return None
 
 
@@ -897,7 +894,8 @@ def forget_session():
 
 INTRO = ('Principles, Invariants and the register are in context through `CLAUDE.md`, which imports '
          'the workspace `AGENTS.md` and `skills/short-form.md`; the words the user types, `skills/shortcuts.md`, '
-         'and `skills/thinking.md` come whole through SessionStart hooks, which reach this session and no '
+         'and, for a model its `effort-set` does not list, `skills/thinking.md` come whole through SessionStart '
+         'hooks, which reach this session and no '
          'subagent. Every other rule, `skills/reply.md` included, is read whole with the '
          'Read tool before its first command, and that read is what the gate records; '
          './scripts/skill <name> names its path.')

@@ -1,7 +1,7 @@
 ---
 name: thinking
-description: How the thinking before a reply is written, for every model whose thinking depth no harness setting controls. Loaded as the session opens, in the user's chat and never in a subagent; the gate lifts it for a model it has identified as effort-set.
-effort-set: [claude-opus-5*, claude-fable-5*, claude-mythos-5*, claude-sonnet-5*]
+description: How the thinking before a reply is written, for every model whose thinking depth no harness setting controls. Loaded as the session opens, in the user's chat and never in a subagent, and left out for a model its effort-set lists.
+effort-set: [claude-*]
 ---
 
 # Thinking

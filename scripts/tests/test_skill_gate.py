@@ -1803,13 +1803,11 @@ class ModelNote(GateCase):
         self.assertEqual(gate.model_id('deepseek/deepseek-reasoner'), 'deepseek-reasoner')
         self.assertEqual(gate.model_id('claude-opus-4-5@20251101'), 'claude-opus-4-5')
 
-    def test_payload_model_lifts_the_rules_once(self):
-        note = gate.model_note({'model': 'claude-opus-5-5'})
-        self.assertIn('does not apply', note)
+    def test_an_effort_set_model_gets_no_line(self):
         self.assertIsNone(gate.model_note({'model': 'claude-opus-5-5'}))
 
     def test_transcript_names_the_model_when_the_payload_does_not(self):
-        self.assertIn('claude-fable-5-1', gate.model_note(self.transcript('deepseek-chat', 'claude-fable-5-1')))
+        self.assertEqual(gate.session_model(self.transcript('deepseek-chat', 'claude-fable-5-1')), 'claude-fable-5-1')
 
     def test_synthetic_and_sidechain_entries_are_skipped(self):
         payload = self.transcript('claude-opus-5-5', '<synthetic>')
@@ -1823,13 +1821,14 @@ class ModelNote(GateCase):
 
     def test_moving_off_an_effort_set_model_restores_the_rules(self):
         gate.model_note({'model': 'claude-opus-5'})
-        self.assertIn('applies again', gate.model_note({'model': 'deepseek-reasoner'}))
+        self.assertIn('read `skills/thinking.md`', gate.model_note({'model': 'deepseek-reasoner'}))
 
     def test_an_unnamed_model_keeps_the_rules(self):
         self.assertIsNone(gate.model_note({}))
         self.assertIsNone(gate.model_note({'transcript_path': str(self.root / 'missing.jsonl')}))
 
     def test_prompt_hook_prints_the_line(self):
+        gate.model_note({'model': 'claude-opus-5-5'})
         out = io.StringIO()
-        gate.cmd_prompt(io.StringIO(json.dumps({'prompt': 'hello', **self.transcript('claude-opus-5-5')})), out)
-        self.assertIn('does not apply', json.loads(out.getvalue())['hookSpecificOutput']['additionalContext'])
+        gate.cmd_prompt(io.StringIO(json.dumps({'prompt': 'hello', **self.transcript('deepseek-chat')})), out)
+        self.assertIn('read `skills/thinking.md`', json.loads(out.getvalue())['hookSpecificOutput']['additionalContext'])

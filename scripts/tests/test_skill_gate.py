@@ -475,10 +475,16 @@ class PublishWords(GateCase):
     """A publish, a push outside the standing list, a forced push and an AI marker wait for their word."""
 
     def turn(self, prompt, queued=()):
+        """A transcript whose last turn opens on `prompt`; one opening on `/` is a slash command, recorded as the
+        harness records one: `/p d` as <command-name>/p</command-name> and <command-args>d</command-args>."""
         path = self.root / 'transcript.jsonl'
+        if prompt.startswith('/'):
+            name, _, args = prompt.partition(' ')
+            prompt = (f'<command-message>{name[1:]}</command-message>\n<command-name>{name}</command-name>\n'
+                      f'<command-args>{args}</command-args>')
         rows = [{'type': 'user', 'message': {'role': 'user', 'content': 'an earlier turn: post'}},
                 {'type': 'assistant', 'message': {'role': 'assistant', 'content': []}},
-                {'type': 'user', 'message': {'role': 'user', 'content': prompt}},
+                {'type': 'user', 'message': {'role': 'user', 'content': prompt}, 'origin': {'kind': 'human'}},
                 {'type': 'user', 'message': {'role': 'user', 'content': [{'type': 'tool_result', 'content': 'post'}]}}]
         rows += [{'type': 'attachment', 'attachment': {'type': 'queued_command', 'prompt': q, 'origin': {'kind': 'human'}}}
                  for q in queued]
@@ -499,60 +505,68 @@ class PublishWords(GateCase):
         subprocess.run(['git', '-C', str(repo), 'remote', 'add', 'origin', url], check=True)
         return str(repo)
 
-    def test_a_post_waits_for_the_word_in_this_turn_only(self):
+    def test_a_post_waits_for_the_command_in_this_turn_only(self):
         post = 'gh pr comment 5 -R o/r -b hi'
         self.assertEqual(self.hook(post)[0], 2, 'the word in an earlier turn or in a tool result is not the word')
-        self.assertEqual(self.hook(post, prompt='post it')[0], 0)
-        self.assertEqual(self.hook(post, queued=['post'])[0], 0, 'a message queued into the turn carries it')
+        self.assertEqual(self.hook(post, prompt='/post')[0], 0)
+        self.assertEqual(self.hook(post, prompt='/post as ai')[0], 0, 'an argument that is no command changes nothing')
+        self.assertEqual(self.hook(post, queued=['/post'])[0], 0, 'a command queued into the turn carries it')
+        self.assertEqual(self.hook(post, queued=['post'])[0], 2, 'a queued word without its slash gives nothing')
         self.assertEqual(self.hook(post, prompt='ok go')[0], 2, 'a vague yes authorises nothing')
 
-    def test_review_as_ai_carries_the_post_of_its_draft(self):
-        post = './scripts/post-review.sh r/comment_m.md --as-ai'
-        self.assertEqual(self.hook(post, prompt='review as ai https://github.com/o/r/pull/5')[0], 0)
-        self.assertEqual(self.hook(post, prompt='deep review as an AI o/r#5')[0], 0, 'a preset in front keeps it')
-        self.assertEqual(self.hook(post, prompt='rai https://github.com/o/r/pull/5')[0], 0, 'rai is the same word')
-        self.assertEqual(self.hook(post, prompt='quick rai o/r#5')[0], 0)
-        self.assertEqual(self.hook(post, prompt='braid o/r#5')[0], 2, 'rai inside a word gives nothing')
-        self.assertEqual(self.hook(post, prompt='rai gno 105')[0], 0, 'any target shape')
-        self.assertEqual(self.hook(post, prompt='/rai 105')[0], 0, 'leading punctuation, as prompt_reads strips it')
-        for stray in ('what does rai mean', 'edit rai.md', 'see /x/rai/foo', 'sudo rai', 'fix this\nrai o/r#5',
-                      'rai 105?'):
-            self.assertEqual(self.hook(post, prompt=stray)[0], 2, f'{stray!r}: rai not opening the message gives nothing')
-        self.assertEqual(self.hook(post, prompt='review https://github.com/o/r/pull/5')[0], 2, 'a plain review posts nothing')
-        self.assertEqual(self.hook(post, prompt="don't review as ai yet")[0], 2, 'a negation gives nothing')
-        self.assertEqual(self.hook('gh pr merge 5', prompt='review as ai o/r#5')[0], 2, 'it carries the post alone')
-
-    def test_a_letter_alone_is_its_word_and_push_sends_it_all(self):
+    def test_typed_prose_gives_nothing(self):
         post = 'gh pr comment 5 -R o/r -b hi'
-        self.assertEqual(self.hook(post, prompt='p')[0], 0, 'p alone is the word')
-        self.assertEqual(self.hook(post, prompt=' P \n')[0], 0, 'case and spaces aside')
-        self.assertEqual(self.hook(post, prompt='push')[0], 0, 'push sends the post it names')
-        self.assertEqual(self.hook(post, prompt='a p in a sentence')[0], 2, 'a letter inside prose is no word')
-        self.assertEqual(self.hook(post, prompt='m')[0], 2, 'merge does not post')
-        self.assertEqual(self.hook('gh pr merge 5', prompt='m')[0], 0)
-        self.assertEqual(self.hook('gh pr merge 5', prompt='p')[0], 2, 'p does not merge')
+        for prose in ('post', 'p', 'push', 'p d', 'PR 10 needs a rebase', 'Open questions', 'rai o/r#5',
+                      'fix it\n/p', '<command-name>/p</command-name> in a sentence', 'see /p'):
+            self.assertEqual(self.hook(post, prompt=prose)[0], 2, f'{prose!r}: typed prose is no command')
 
-    def test_several_words_opening_the_message_each_give_their_word(self):
+    def test_rai_carries_the_post_of_its_draft(self):
+        post = './scripts/post-review.sh r/comment_m.md --as-ai'
+        self.assertEqual(self.hook(post, prompt='/rai https://github.com/o/r/pull/5')[0], 0)
+        self.assertEqual(self.hook('gh pr merge 5', prompt='/rai o/r#5')[0], 2, 'it carries the post alone')
+        self.assertEqual(self.hook(post, prompt='/review https://github.com/o/r/pull/5')[0], 2, 'a review posts nothing')
+
+    def test_each_command_gives_its_word_and_p_sends_it_all(self):
+        post = 'gh pr comment 5 -R o/r -b hi'
+        self.assertEqual(self.hook(post, prompt='/p')[0], 0, '/p sends the post it names')
+        self.assertEqual(self.hook(post, prompt='/rlp')[0], 0, '/rlp sends what /p sends')
+        self.assertEqual(self.hook(post, prompt='/m')[0], 2, 'merge does not post')
+        self.assertEqual(self.hook('gh pr merge 5', prompt='/m')[0], 0)
+        self.assertEqual(self.hook('gh pr merge 5', prompt='/p')[0], 2, '/p does not merge')
+        self.assertEqual(self.hook('gh pr close 5', prompt='/x')[0], 0)
+        self.assertEqual(self.hook('gh pr ready 79 -R o/r', prompt='/o')[0], 0)
+
+    def test_arguments_that_are_commands_give_their_words(self):
         delete = 'git push origin --delete old-branch'
-        self.assertEqual(self.hook(delete, prompt='p d')[0], 0, 'words separated by whitespace each give their word')
-        self.assertEqual(self.hook(delete, prompt='pd')[0], 2, 'letters typed together give no word')
-        self.assertEqual(self.hook(delete, prompt='p, d')[0], 0, 'a comma beside the whitespace changes nothing')
-        self.assertEqual(self.hook(delete, prompt='p')[0], 2, 'p alone does not delete')
-        self.assertEqual(self.hook(delete, prompt='pd is next')[0], 2, 'letters opening prose are no word')
-        self.assertEqual(self.hook('gh pr merge 5', prompt='e m')[0], 0, 'a coined letter beside m leaves m its word')
-        self.assertEqual(self.hook('gh pr close 5', prompt='x')[0], 0)
-        self.assertEqual(self.hook('gh pr comment 5 -b hi', prompt='ok')[0], 2)
+        self.assertEqual(self.hook(delete, prompt='/p d')[0], 0, 'every argument a command gives its word')
+        self.assertEqual(self.hook(delete, prompt='/p')[0], 2, '/p alone does not delete')
+        self.assertEqual(self.hook(delete, prompt='/p d please')[0], 2, 'an argument that is no command voids the rest')
+        self.assertEqual(self.hook(delete, prompt='/p /d')[0], 0, 'an argument keeps its slash or drops it')
+        for other in ('/model d', '/simplify d', '/ d'):
+            self.assertEqual(self.hook(delete, prompt=other)[0], 2, f'{other!r}: only a gate command carries arguments')
+        self.assertEqual(self.hook(delete, queued=['/tmp/x d'])[0], 2, 'a queued path is no command')
 
-    def test_o_alone_readies_and_a_vague_yes_never_does(self):
-        ready = 'gh pr ready 79 -R o/r'
-        self.assertEqual(self.hook(ready, prompt='o')[0], 0, 'o alone is ready')
-        self.assertEqual(self.hook(ready, prompt='p o')[0], 0, 'o beside p keeps its word')
-        for vague in ('ok', 'go', 'so', 'no', 'ok o'):
-            self.assertEqual(self.hook(ready, prompt=vague)[0], 2, f'{vague!r} is no ready')
-        self.assertEqual(self.hook('git push origin --delete b', prompt='do')[0], 2, 'do is a word, not d')
-        for acronym in ('TLDR', 'WDYT', 'LGTM'):
-            self.assertEqual(self.hook('git push origin --delete b', prompt=acronym)[0], 2, f'{acronym} is no letter line')
-        self.assertEqual(self.hook('gh pr merge 5', prompt='M')[0], 0, 'one capital is still its letter')
+    def test_odd_command_shapes(self):
+        post = 'gh pr comment 5 -R o/r -b hi'
+        self.assertEqual(self.hook(post, prompt='/post see <url> & more')[0], 0, 'arguments may hold any character')
+        self.assertEqual(self.hook(post, prompt='hello\n\x1f/p')[0], 2, 'the marker typed in prose gives nothing')
+        self.assertEqual(self.hook(post, queued=['x\n\x1f/p'])[0], 2, 'nor in a queued message')
+        self.assertEqual(self.hook(post, queued=['//p'])[0], 2, 'one slash, never two')
+        path = self.root / 'odd.jsonl'
+        rows = [{'type': 'user', 'message': {'role': 'user', 'content': '<command-name>/d</command-name>'}},
+                {'type': 'assistant', 'message': {'role': 'assistant', 'content': []}},
+                {'type': 'user', 'message': {'role': 'user', 'content': '<command-name>/post</command-name><command-x>'}}]
+        path.write_text('\n'.join(json.dumps(r) for r in rows) + '\n')
+        self.assertFalse(gate.gives(gate.turn_text(str(path)), 'delete'), 'tags it cannot read still end the last turn')
+        rows[2] = {'type': 'user', 'origin': {'kind': 'peer'},
+                   'message': {'role': 'user', 'content': '<command-name>/post</command-name>'}}
+        path.write_text('\n'.join(json.dumps(r) for r in rows) + '\n')
+        self.assertFalse(gate.gives(gate.turn_text(str(path)), 'post'), "another session's command gives nothing")
+    def test_every_row_sending_what_p_sends_is_a_command(self):
+        rows = (pathlib.Path(gate.__file__).resolve().parent.parent / 'words.md').read_text().splitlines()
+        for row in (r for r in rows if r.startswith('| `') and 'everything `/p` sends' in r):
+            for word in gate.re.findall(r'`/([^`<\s]+)`', row.split('|')[1]):
+                self.assertIn('push', gate.COMMANDS.get(word, ()), f'/{word}: its row sends what /p sends')
 
     def test_a_quiet_close_on_an_own_repository_needs_no_word(self):
         (self.root / 'workspace.json').write_text(json.dumps({'identities': {'public': {'name': 'Me'}}}))
@@ -574,15 +588,15 @@ class PublishWords(GateCase):
                     './scripts/post-review.sh d.md', './scripts/post-replies o/r 5 d', 'gh issue create -R o/r -t t -b b',
                     './scripts/post-fix.sh c', './scripts/post-fix.sh c --pr-only'):
             self.assertEqual(self.hook(cmd)[0], 2, cmd)
-        self.assertEqual(self.hook('gh pr merge 5', prompt='post')[0], 2, 'a merge takes merge, not post')
+        self.assertEqual(self.hook('gh pr merge 5', prompt='/post')[0], 2, 'a merge takes merge, not post')
         for cmd in ('gh api -X DELETE repos/o/r/issues/5/labels/class:hardfork',
                     'gh api -X DELETE repos/o/r/pulls/5/requested_reviewers -f "reviewers[]=a"'):
-            self.assertEqual(self.hook(cmd, prompt='post')[0], 0, f'taking a label off is an edit: {cmd}')
-        self.assertEqual(self.hook('gh api -X DELETE repos/o/r/labels/bug', prompt='post')[0], 2, 'deleting a label is a delete')
-        self.assertEqual(self.hook('gh pr merge 5', prompt='merge 5')[0], 0)
+            self.assertEqual(self.hook(cmd, prompt='/post')[0], 0, f'taking a label off is an edit: {cmd}')
+        self.assertEqual(self.hook('gh api -X DELETE repos/o/r/labels/bug', prompt='/post')[0], 2, 'deleting a label is a delete')
+        self.assertEqual(self.hook('gh pr merge 5', prompt='/m')[0], 0)
 
     def test_an_ai_marker_is_refused_whatever_the_turn_says(self):
-        rc, err = self.hook('git commit -m "fix\n\nCo-Authored-By: Claude <noreply@anthropic.com>"', prompt='post push')
+        rc, err = self.hook('git commit -m "fix\n\nCo-Authored-By: Claude <noreply@anthropic.com>"', prompt='/p post')
         self.assertEqual(rc, 2)
         self.assertIn('Invariant 7', err)
 
@@ -593,24 +607,18 @@ class PublishWords(GateCase):
         shutil.rmtree(self.root / 'r')
         other = self.repo('https://github.com/me/public.git')
         self.assertEqual(self.hook(f'git -C {other} push origin HEAD:main')[0], 2)
-        self.assertEqual(self.hook(f'git -C {other} push origin HEAD:main', prompt='push')[0], 0)
+        self.assertEqual(self.hook(f'git -C {other} push origin HEAD:main', prompt='/p')[0], 0)
 
     def test_a_forced_push_waits_for_force_even_on_a_standing_repo(self):
         (self.root / 'workspace.json').write_text(json.dumps({'standing_push': ['me/private']}))
         mine = self.repo('https://github.com/me/private.git')
-        self.assertEqual(self.hook(f'git -C {mine} push --force origin HEAD:main', prompt='push')[0], 2)
-        self.assertEqual(self.hook(f'git -C {mine} push origin +HEAD:main', prompt='push')[0], 2)
-        self.assertEqual(self.hook(f'git -C {mine} push --force origin HEAD:main', prompt='push, force it')[0], 0)
+        self.assertEqual(self.hook(f'git -C {mine} push --force origin HEAD:main', prompt='/p')[0], 2)
+        self.assertEqual(self.hook(f'git -C {mine} push origin +HEAD:main', prompt='/p')[0], 2)
+        self.assertEqual(self.hook(f'git -C {mine} push --force origin HEAD:main', prompt='/pf')[0], 0)
         lease = f'git -C {mine} push --force-with-lease origin HEAD:main'
-        self.assertEqual(self.hook(lease, prompt='push --force-with-lease')[0], 0, 'the flag spelled out approves it')
-        self.assertEqual(self.hook(lease, prompt='push --force')[0], 0)
-        self.assertEqual(self.hook(lease, prompt="push, don't --force-with-lease")[0], 2)
-        # the shortcut table's `pf`, alone on its line, is the same word
-        self.assertEqual(self.hook(lease, prompt='pf')[0], 0)
-        self.assertEqual(self.hook(lease, prompt='p f')[0], 0)
-        self.assertEqual(self.hook(lease, prompt='p')[0], 2, 'a bare push forces nothing')
-        self.assertEqual(self.hook(lease, prompt='the pf files')[0], 2, 'letters inside a sentence give no word')
-        self.assertEqual(self.hook('gh pr merge 5', prompt='check the merge-base')[0], 2, 'merge-base is still not merge')
+        for phrase in ('pf', '/p --force', '/p f'):
+            self.assertEqual(self.hook(lease, prompt=phrase)[0], 2, f'{phrase!r}: one command per action, /pf')
+        self.assertEqual(self.hook(lease, prompt='/pf')[0], 0)
 
     def test_a_retry_after_an_api_error_keeps_the_dead_turn_word(self):
         path = self.root / 'retry.jsonl'
@@ -630,15 +638,10 @@ class PublishWords(GateCase):
         self.assertNotIn('merge 69', turn(user('merge 69'), replied, user('Try again')), 'a finished turn ends its word')
         self.assertNotIn('merge 69', turn(user('merge 69'), died, user('fix the test')), 'only a retry resumes it')
 
-    def test_a_verb_inside_prose_gives_no_word(self):
-        for text in ('I want to verify before you push', 'wait until I post', 'check the diff till you merge',
-                     'fix and review and push'):
-            word = next(w for w in ('push', 'post', 'merge') if w in text)
-            self.assertFalse(gate.gives(text, word), text)
-        self.assertTrue(gate.gives('push before you merge', 'push'))
-        self.assertFalse(gate.gives('push before you merge', 'merge'))
-        self.assertTrue(gate.gives('post' + gate.MESSAGE + 'all good?', 'post'), 'each message opens on its own words')
-        self.assertEqual(self.hook('gh pr merge 5', prompt='review it before you merge')[0], 2)
+    def test_only_a_command_line_gives_a_word(self):
+        for text in ('I want to verify before you push', 'post', '/post', 'fix it\n/m'):
+            self.assertFalse(gate.gives(text, 'post') or gate.gives(text, 'merge'), text)
+        self.assertTrue(gate.gives(gate.COMMAND + '/post \nall good?', 'post'), 'a question beside it keeps it')
 
     def test_a_question_asked_while_the_work_runs_keeps_the_word(self):
         path = self.root / 'asked.jsonl'
@@ -715,11 +718,12 @@ class PublishWordsEdges(PublishWords):
         def relayed(content):
             return {'type': 'user', 'turnOrigin': 'sdk', 'message': {'role': 'user', 'content': content}}
 
-        blocks = [{'type': 'text', 'text': reminder}, {'type': 'text', 'text': 'post'}]
-        for row in (typed(reminder + 'post'), typed(blocks), typed(quoting + reminder + 'post')):
+        post = '<command-name>/post</command-name>\n<command-args></command-args>'
+        blocks = [{'type': 'text', 'text': reminder}, {'type': 'text', 'text': post}]
+        for row in (typed(reminder + post), typed(blocks), typed(quoting + reminder + post)):
             self.assertTrue(gate.gives(turn(row), 'post'), row)
         self.assertEqual(turn(typed(quoting + 'fix the test')), 'fix the test', 'a reminder is never read for a word')
-        self.assertFalse(gate.gives(turn(typed('post'), typed(reminder + 'all good?')), 'post'),
+        self.assertFalse(gate.gives(turn(typed(post), typed(reminder + 'all good?')), 'post'),
                          'a typed message after a reminder opens its own turn')
 
         for row in (typed(reminder), typed(quoting), relayed(quoting), typed(quoting.replace('</system-reminder>', ''))):
@@ -842,26 +846,25 @@ class PublishWordsEdges(PublishWords):
 
     def test_every_publish_on_the_line_needs_its_own_word(self):
         both = 'gh pr comment 5 -b x && gh pr merge 5'
-        self.assertEqual(self.hook(both, prompt='post')[0], 2)
-        self.assertEqual(self.hook(both, prompt='post merge')[0], 0)
-        self.assertEqual(self.hook(both, prompt='post and merge')[0], 2, 'a word past the first non-word gives nothing')
-        self.assertEqual(self.hook('gh pr comment 5 -b x', prompt="don't post anything yet")[0], 2)
+        self.assertEqual(self.hook(both, prompt='/post')[0], 2)
+        self.assertEqual(self.hook(both, prompt='/post m')[0], 0)
+        self.assertEqual(self.hook(both, prompt='/post and m')[0], 2, 'an argument that is no command voids the rest')
 
     def test_combined_force_flags_and_mirror_are_forced(self):
         (self.root / 'workspace.json').write_text(json.dumps({'standing_push': ['me/private']}))
         mine = self.repo('https://github.com/me/private.git')
         for flag in ('-fu', '-uf', '--mirror'):
-            self.assertEqual(self.hook(f'git -C {mine} push {flag} origin HEAD:main', prompt='push')[0], 2, flag)
+            self.assertEqual(self.hook(f'git -C {mine} push {flag} origin HEAD:main', prompt='/p')[0], 2, flag)
 
     def test_marker_forms_are_all_caught(self):
         for cmd in ('git commit --message="x\n\nCo-Authored-By: Claude"', 'git commit -m"Co-Authored-By: Copilot"',
                     'git commit -am "Co-Authored-By: a <noreply@anthropic.com>"',
                     'git commit -m x --trailer "Co-authored-by: dependabot[bot] <a@b>"'):
-            self.assertEqual(self.hook(cmd, prompt='post push')[0], 2, cmd)
+            self.assertEqual(self.hook(cmd, prompt='/p post')[0], 2, cmd)
 
     def test_a_human_reviewer_co_author_passes(self):
         cmd = 'git commit -m "fix\n\nCo-authored-by: Alex Doe <123+alexdoe@users.noreply.github.com>"'
-        self.assertEqual(self.hook(cmd, prompt='post push')[0], 0)
+        self.assertEqual(self.hook(cmd, prompt='/p post')[0], 0)
 
 
 class PublishWordsRoundThree(PublishWords):
@@ -896,7 +899,7 @@ class PublishWordsRoundThree(PublishWords):
 
     def test_a_marker_in_a_heredoc_commit_message_is_caught_and_a_mention_elsewhere_is_not(self):
         heredoc = 'git commit -m "$(cat <<\'EOF\'\nfix\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)"'
-        self.assertEqual(self.hook(heredoc, prompt='push')[0], 2)
+        self.assertEqual(self.hook(heredoc, prompt='/p')[0], 2)
         elsewhere = './scripts/todo add "refuse Co-Authored-By: lines" && ./scripts/commit -m "TODO: a line" TODO.md'
         self.assertEqual(self.hook(elsewhere)[0], 0)
 
@@ -927,13 +930,13 @@ class PublishWordsRoundFour(PublishWordsRoundThree):
         self.standing()
         self.assertEqual(self.hook('gh api -X PUT repos/me/private/contents/a.png -f content=x -f message=m')[0], 0)
         self.assertEqual(self.hook('gh api -X PUT repos/me/public/contents/a.png -f content=x -f message=m')[0], 2)
-        self.assertEqual(self.hook('gh api -X PUT repos/me/public/contents/a.png -f content=x', prompt='upload')[0], 0)
+        self.assertEqual(self.hook('gh api -X PUT repos/me/public/contents/a.png -f content=x', prompt='/upload')[0], 0)
 
     def test_a_branch_delete_waits_for_delete(self):
         mine = self.standing()
         self.assertEqual(self.hook(f'git -C {mine} push origin --delete old')[0], 2)
         self.assertEqual(self.hook(f'git -C {mine} push origin :old')[0], 2)
-        self.assertEqual(self.hook(f'git -C {mine} push origin :old', prompt='delete old')[0], 0)
+        self.assertEqual(self.hook(f'git -C {mine} push origin :old', prompt='/d')[0], 0)
 
     def test_a_repo_where_every_change_takes_the_word(self):
         (self.root / 'workspace.json').write_text(json.dumps({'word_for_every_change': ['up/strict']}))
@@ -977,8 +980,8 @@ class PublishWordsRoundFive(PublishWordsRoundFour):
 
     def test_a_sync_is_a_push_and_a_forced_sync_is_never_allowed(self):
         self.assertEqual(self.hook('gh repo sync me/fork')[0], 2)
-        self.assertEqual(self.hook('gh repo sync me/fork', prompt='push')[0], 0)
-        self.assertEqual(self.hook('gh repo sync me/fork --force', prompt='push, force it')[0], 2)
+        self.assertEqual(self.hook('gh repo sync me/fork', prompt='/p')[0], 0)
+        self.assertEqual(self.hook('gh repo sync me/fork --force', prompt='/p')[0], 2)
         self.assertEqual(self.hook('gh api markdown/raw --input f.md')[0], 0)
 
 
@@ -1189,14 +1192,14 @@ class DraftPullRequestPush(GateCase):
         for state in (False, None, 'offline'):
             with self.github(state):
                 self.assertEqual(self.push('https://github.com/me/gno.git')[0], 2, state)
-                self.assertEqual(self.push('https://github.com/me/gno.git', prompt='push')[0], 0, state)
+                self.assertEqual(self.push('https://github.com/me/gno.git', prompt='/p')[0], 0, state)
 
     def test_a_ready_branch_waits_for_push_where_the_standing_word_covers_drafts_alone(self):
         with self.github(False, parent='up/fixes'):
             rc, err = self.push('https://github.com/me/fixes.git')
             self.assertEqual(rc, 2)
             self.assertIn('ready pull request', err)
-            self.assertEqual(self.push('https://github.com/me/fixes.git', prompt='p')[0], 0)
+            self.assertEqual(self.push('https://github.com/me/fixes.git', prompt='/p')[0], 0)
         for state in (True, None, 'offline'):
             with self.github(state, parent='up/fixes'):
                 self.assertEqual(self.push('https://github.com/me/fixes.git')[0], 0, state)

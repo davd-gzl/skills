@@ -5,8 +5,9 @@ description: When a word the user types counts, in context as the session opens.
 
 # Shortcuts
 
-A word the user types counts only at the start of a message, each word
-separated from the next by whitespace: `p d` gives `push` and `delete`, while
-`pd`, `please p` and a question give nothing. What each word starts is its row
-in `skills/words.md`, which `scripts/words.py` puts in context when a message
-opens with it.
+A word that publishes, a push, a post, a merge, a close, a delete or a
+ready-marking, is typed as its slash command, `/p`, `/post`, `/m`, and nothing
+else gives it: typed prose publishes nothing, `p` without its slash included.
+An argument that is itself such a command adds its word, so `/p d` pushes and
+deletes. Every other word in `skills/words.md` counts opening a line of the
+message, and `scripts/words.py` puts its row in context then.

@@ -109,13 +109,13 @@ parallel agents pay off until the human is the queue; measure the waiting.
 The operator types short words, `p` to push, `post`, `fix`, `review`. The
 median prompt over a month was six words, so the words are worth keeping: they
 are the operator's speed. Their cost was that all of their definitions, about
-1,500 words, loaded into every session. Changed: a word counts only at the
-start of a message, each separated by whitespace, so `p d` pushes and deletes
-while `pd` and `please p` do nothing. The always-loaded file now holds that
-rule in 84 words, and a prompt hook puts in context only the rows of the words
-a message opens with. The same parser feeds the push gate, so the gate and the
-definitions can no longer disagree. Reusable: a vocabulary the operator types
-is worth keeping; load each word when it is typed.
+1,500 words, loaded into every session. Changed: a word that publishes is a
+slash command, `/p`, `/post`, `/m`, which the harness records apart from prose,
+so `PR 10 needs a rebase` can never read as a push. The always-loaded file now
+holds that rule in 105 words, and a prompt hook puts in context only the rows of
+the words a line opens with. Reusable: a vocabulary the operator types is worth
+keeping, loaded when typed, and every word that publishes takes a marker prose
+cannot produce, as chat bots do with a slash.
 
 ## The mistakes, in one list
 

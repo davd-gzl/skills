@@ -58,7 +58,7 @@ since they bind whoever acts:
   this session, never from memory.
 - Read the artifact back after editing it, before reporting it done.
 
-Nothing reaches anyone without my word, `post`, `push` or `merge`, typed in the
+Nothing reaches anyone without my word, `/post`, `/p` or `/m`, typed in the
 turn or given ahead for one repository and one kind of action. `go`, `ok` and
 `yes` authorise nothing, and every draft is shown before it goes. Those rules
 sit in the workspace's `AGENTS.md` too, and [`words.md`](https://github.com/davd-gzl/skills/blob/main/words.md) is
@@ -109,8 +109,8 @@ what it displaces.
 | [`short-form.md`](https://github.com/davd-gzl/skills/blob/main/short-form.md) | every chat reply | the register: clipped, read once, left to right |
 | [`claims.md`](https://github.com/davd-gzl/skills/blob/main/claims.md) | every agent, subagents included | what a claim must rest on: a command run this session |
 | [`reply.md`](https://github.com/davd-gzl/skills/blob/main/reply.md) | a reply finishes a piece of work | what it opens with, its closing block, its links |
-| [`shortcuts.md`](https://github.com/davd-gzl/skills/blob/main/shortcuts.md) | every session | when a typed word counts: opening the message, whitespace between words |
-| [`words.md`](https://github.com/davd-gzl/skills/blob/main/words.md) | I type a word | what each word starts, its row put in context when a message opens with it |
+| [`shortcuts.md`](https://github.com/davd-gzl/skills/blob/main/shortcuts.md) | every session | when a typed word counts: a publish only as its slash command, `/p` |
+| [`words.md`](https://github.com/davd-gzl/skills/blob/main/words.md) | I type a word | what each word starts, its row put in context when a line opens with it |
 | [`thinking.md`](https://github.com/davd-gzl/skills/blob/main/thinking.md) | every reply, on a model whose thinking depth no setting controls | how the thinking before the reply is written |
 | [`authoring.md`](https://github.com/davd-gzl/skills/blob/main/authoring.md) | a rule is added, edited or removed | where it lives, the shape it takes, what it displaces |
 | [`knowledge/`](https://github.com/davd-gzl/skills/blob/main/knowledge) | a design question about the workflow comes up | one published result per file: what holds, the numbers, the source, the rule it shaped |

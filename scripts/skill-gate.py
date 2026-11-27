@@ -654,8 +654,8 @@ BASH_BOUND = 28000
 # alone: the drafting rules are the writer stage's, per its step 4, and the write hook
 # names them when the draft is written.
 PROMPT_HEAD = 6
-# `rai <target>` is `review as ai`, per skills/words.md: the word opens the message, a preset may lead
-# it and a target follows, so `edit rai.md`, `what is rai` or a message ending in `?` gives nothing.
+# `/rai <target>`, per skills/words.md, names the review skills: the command opens the message, the slash stripped
+# by prompt_head, and a target follows, so `edit rai.md`, `what is rai` or a message ending in `?` names nothing.
 RAI = r'\A(?![\s\S]*\?\s*\Z)\W*(?:(?:quick|deep)\W+)?rai\s+\S'
 PROMPT_SKILLS = [
     (r'\breview|' + RAI + r'|\blgtm\b', ['review']),
@@ -956,6 +956,10 @@ NOT_TYPED = ('<task-notification', '<command-', '<local-command-', '<system-remi
              'Another Claude session sent a message:', '<cross-session-message', '<side-sessions-event',
              '<ci-monitor-event', 'Background (from the session that started this one)')
 LEADING_REMINDERS = re.compile(r'\s*(?:<system-reminder>.*?</system-reminder>\s*)+', re.S)
+COMMAND = '\x1f'  # opens the line turn_text writes for a typed slash command, a character no keyboard types
+COMMAND_NAME = re.compile(r'<command-name>(/[\w:-]+)</command-name>')
+COMMAND_ARGS = re.compile(r'<command-args>(.*?)</command-args>', re.S)
+COMMAND_TAGS = re.compile(r'(?:\s*<command-(message|name|args)>.*?</command-\1>)+\s*', re.S)
 
 
 def turn_text(transcript):
@@ -999,8 +1003,9 @@ def turn_text(transcript):
             a = e.get('attachment') or {}
             if e.get('type') == 'attachment' and a.get('type') == 'queued_command' \
                     and (a.get('origin') or {}).get('kind') == 'human':
-                parts.append(str(a.get('prompt', '')))
-    return MESSAGE.join(parts)
+                queued = str(a.get('prompt', '')).replace(COMMAND, '')
+                parts.append(COMMAND + ' '.join(queued.split()) if queued.startswith('/') else queued)
+    return '\n'.join(parts)
 
 
 RETRY = re.compile(r'(?i)^\s*(try again|retry)\W*$')
@@ -1058,7 +1063,15 @@ def _said(e):
         if (e.get('origin') or {}).get('kind') != 'human' or lead.end() == len(text):
             return None
         text = text[lead.end():]
-    return None if text.lstrip().startswith(NOT_TYPED) else text
+    # A slash command the user typed reaches the transcript as tags, which turn_text keeps as one COMMAND line; tags
+    # it cannot read still open a turn, which then gives nothing, and another session's never count.
+    if text.lstrip().startswith('<command-'):
+        name = COMMAND_NAME.search(text) if COMMAND_TAGS.fullmatch(text) else None
+        if not name or (e.get('origin') or {}).get('kind') not in (None, 'human'):
+            return ''
+        args = COMMAND_ARGS.search(text)
+        return COMMAND + name.group(1) + ' ' + ' '.join((args.group(1) if args else '').split())
+    return None if text.lstrip().startswith(NOT_TYPED) else text.replace(COMMAND, '')
 
 
 def _typed(e):
@@ -1071,41 +1084,36 @@ def _typed(e):
     return None
 
 
-_wspec = _ilu.spec_from_file_location('words', Path(__file__).resolve().parent / 'words.py')
-_words = _ilu.module_from_spec(_wspec); _wspec.loader.exec_module(_words)
-
-# The typed words that give the gate's words, each counting only where it opens a message, per
-# skills/shortcuts.md. `p` and `push` send everything the closing block named.
-GIVES = {
-    ('p',): {'push'}, ('push',): {'push'}, ('pr',): {'push'}, ('p', 'r'): {'push'}, ('push', 'review'): {'push'},
-    ('pf',): {'push', 'force'}, ('p', 'f'): {'push', 'force'}, ('push', 'force'): {'push', 'force'},
-    ('--force',): {'force'}, ('--force-with-lease',): {'force'},
-    ('post',): {'post'}, ('upload',): {'upload'},
-    ('m',): {'merge'}, ('merge',): {'merge'}, ('x',): {'close'}, ('close',): {'close'},
-    ('d',): {'delete'}, ('delete',): {'delete'}, ('o',): {'ready'}, ('ready',): {'ready'}, ('open',): {'ready'},
+# The slash commands that give the gate's words, per skills/shortcuts.md; typed prose gives none. An argument that
+# is itself one of them gives its word too, so `/p d` pushes and deletes. `/p` sends everything the closing block
+# named.
+COMMANDS = {
+    'p': {'push'}, 'pr': {'push'}, 'rlp': {'push'}, 'pf': {'push', 'force'}, 'post': {'post'}, 'rai': {'post'},
+    'upload': {'upload'}, 'm': {'merge'}, 'x': {'close'}, 'd': {'delete'}, 'o': {'ready'},
 }
-# `review as ai`, or `rai`, a preset in front or not, carries the post of the draft it finishes.
-for _preset in ((), ('quick',), ('deep',)):
-    for _ai in (('rai',), ('review', 'as', 'ai'), ('review', 'as', 'an', 'ai')):
-        GIVES[_preset + _ai] = {'post'}
 PUSH_COVERS = {'push', 'post', 'upload', 'ready'}
-MESSAGE = '\n\x1e\n'  # between the typed messages turn_text joins, so each opens on its own words
 
 
-def lead_words(text):
-    """The gate's words the turn's typed messages open with."""
-    vocab = _words.vocabulary(GIVES)
-    return {g for message in text.split(MESSAGE) for w in _words.lead(message, vocab) for g in GIVES.get(w, ())}
+def command_words(text):
+    """The gate's words the turn's slash commands give, read from the lines turn_text marks with COMMAND."""
+    given = set()
+    for line in text.splitlines():
+        if line.startswith(COMMAND):
+            name, *args = [w[1:] if w.startswith('/') else w for w in line[len(COMMAND):].lower().split()] or ['']
+            words = [name] + args if name in COMMANDS and all(a in COMMANDS for a in args) else [name]
+            for word in words:
+                given |= COMMANDS.get(word, set())
+    return given
 
 
 def gives_force(text):
-    """The turn approves a forced push: `pf`, `p f`, `push force` or the flag, opening a message."""
-    return 'force' in lead_words(text)
+    """The turn approves a forced push: `/pf`."""
+    return 'force' in command_words(text)
 
 
 def gives(text, word):
-    """The turn gives the word: a message opens with it, or with push, which carries every word it covers."""
-    words = lead_words(text)
+    """The turn gives the word: a slash command gives it, or `/p`, which carries every word it covers."""
+    words = command_words(text)
     if 'push' in words:
         words |= PUSH_COVERS
     return word in words

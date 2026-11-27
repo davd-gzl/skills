@@ -88,7 +88,7 @@ DEFINED = re.compile(r'`([a-z])`\s*(?::|\(|=|—)\s*([A-Za-z]*)')
 
 def table_letters():
     """Each letter the shortcuts table gives, with the words it stands for: the other words of its row's
-    first cell, `p`, `push`, or where the cell holds letters alone, the second cell up to its first colon."""
+    first cell, or where the cell holds letters alone, `/p`, the second cell up to its first colon."""
     try:
         rows = SHORTCUTS.read_text(encoding='utf-8').splitlines()
     except OSError:
@@ -98,9 +98,9 @@ def table_letters():
         cells = row.split('|')
         if not row.startswith('| `') or len(cells) < 3:
             continue
-        named = re.sub(r'`[a-z]`', ' ', cells[1])
+        named = re.sub(r'`/?[a-z]`', ' ', cells[1])
         words = set(re.findall(r'[a-z]+', (named if re.search(r'[a-z]', named) else cells[2].split(':')[0]).lower()))
-        for c in re.findall(r'`([a-z])`', cells[1]):
+        for c in re.findall(r'`/?([a-z])`', cells[1]):
             out[c] = words
     return out
 

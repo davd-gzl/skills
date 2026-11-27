@@ -95,7 +95,7 @@ and saying so in its body. Before each push, read `git diff --stat
 to that area's branch.
 
 Work asked for on an open pull request lands on that pull request's branch, and
-`/p` pushes it there. A branch stacked on it opens only when the user names a
+`/davd:push` pushes it there. A branch stacked on it opens only when the user names a
 second pull request.
 
 Before drafting a reply to a reviewer, or reporting their comments on a pull
@@ -165,7 +165,7 @@ and the open calls. A fix run in the session's own thread makes every later
 call in that thread re-read its test output and file reads.
 
 1. **Check that nothing already covers the problem**, before the branch exists,
-   and again before the pull request opens and before acting on `/o`.
+   and again before the pull request opens and before acting on `/davd:ready`.
    Search the target repo's open and merged pull requests and its issues for the
    symbol the finding names and for the behaviour the fix changes, then the
    review corpus on disk and the upstream the repo forks. A duplicate found
@@ -376,16 +376,16 @@ call in that thread re-read its test output and file reads.
    not only a change's end: a turn reporting a behaviour change done runs it
    before reporting. Step 10's round reads the diff it leaves, so what the pass
    changed reopens step 8 only through a finding of that round.
-10. **After the simplify pass, run a `/review quick` round over the fix's own
+10. **After the simplify pass, run a `/davd:review quick` round over the fix's own
     diff, unasked, never over the branch's or the feature's.** The base
     worktree sits at step 4's snapshot and the head at `./scripts/snapshot
     <worktree>` taken now, each by `git -C <worktree> worktree add --detach
     <path> <sha>`; then `./scripts/review-setup.sh <head> <base> ... --preset
     quick` and the review runner by `scriptPath`, in Own PR mode per
     `skills/review-modes.md`, whose author check is the branch itself where no
-    pull request exists yet. A finding reopens step 8. On `/pr` the round reads
-    the whole branch diff instead, at the `quick` or `critical` preset, before
-    the push; a bare `/p` runs no further round. A review round's fixes take
+    pull request exists yet. A finding reopens step 8. On `/davd:push-review` the round
+    reads the whole branch diff instead, at the `quick` or `critical` preset,
+    before the push; a bare `/davd:push` runs no further round. A review round's fixes take
     the loop of *Own PR* in `skills/review-modes.md` instead, whose rounds
     already read the fixes alone. Its verdict goes on a `Verdict: <verdict> at
     <snapshot sha>` line of the change's `README.md`, beside a `Worktree:` line
@@ -410,7 +410,7 @@ proposing a pull request carries
 `https://github.com/<upstream>/compare/<base>...<fork-owner>:<repo>:<branch>`
 as a hyperlink, with the file and line counts in the sentence.
 
-On `/post`, the pull request opens on upstream, as a draft on a repo the user
+On `/davd:post`, the pull request opens on upstream, as a draft on a repo the user
 does not own, which `./scripts/post-fix.sh` passes, and ready on their own
 repos; the user marks a draft ready after revising it. A fork pull request
 opens only when the user asks for one, and closes when the upstream one opens,
@@ -421,7 +421,7 @@ closed head against the replacement, `git diff <replacement head> <closed head> 
 then the hunks, and name in the reply proposing the close every user-visible
 feature the replacement drops: each is carried over, or named as dropped.
 
-On `/post`, run `./scripts/post-fix.sh <review-dir> <change-dir>`: it
+On `/davd:post`, run `./scripts/post-fix.sh <review-dir> <change-dir>`: it
 reads `issue.md` and `pr-body.md`, creates what is missing, links the pull
 request to the issue, and writes both URLs into the drafts' `Target:` lines. A
 `Target:` holding a real URL counts as open, so a re-run finishes a partial

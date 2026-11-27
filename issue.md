@@ -89,7 +89,7 @@ Revise against the two checks below until a full pass changes nothing, then run 
 
 ## Posting
 
-On `/post`, run `./scripts/post-fix.sh` per *Presenting the change* in `skills/change.md`. To post standalone: `gh issue create -R <repo> --title "<title>" --body-file <path>`, body only, then write the URL into `Target:` yourself.
+On `/davd:post`, run `./scripts/post-fix.sh` per *Presenting the change* in `skills/change.md`. To post standalone: `gh issue create -R <repo> --title "<title>" --body-file <path>`, body only, then write the URL into `Target:` yourself.
 
 Check whether the repo actually uses labels before setting any.
 

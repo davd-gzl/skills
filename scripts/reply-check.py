@@ -24,7 +24,7 @@ explanation, EXPLAIN naming the triggers; --last says which one lifted it. Every
 line carries the thinking tokens the turn spent, from the transcript's usage
 block, so a rule on the thinking has a number. Quotes, tables and code
 do not count toward WORDS. A coined letter, per skills/shortcuts.md, is defined
-on the TL;DR line that names it and never takes a command's letter, and a
+on the TL;DR line that names it, and a
 phrase offered to type is a word skills/shortcuts.md gives or a command.
 """
 
@@ -93,21 +93,9 @@ def rows():
     except OSError:
         table = []
     out = [r.split('|')[1:3] for r in table if r.startswith('| `') and r.count('|') > 2]
-    for path in sorted((SKILLS / 'commands').glob('*.md')):
+    for path in sorted((SKILLS / 'commands').glob('*/*.md')):
         description = re.search(r'^description: (.*)$', path.read_text(encoding='utf-8'), re.M)
-        out.append([f'`/{path.stem}`', description.group(1) if description else ''])
-    return out
-
-
-def table_letters():
-    """Each letter a word or a command gives, with the words it stands for: the other words of its first cell,
-    or where the cell holds letters alone, `/p`, the description up to its first colon."""
-    out = {}
-    for first, second in rows():
-        named = re.sub(r'`/?[a-z]`', ' ', first)
-        words = set(re.findall(r'[a-z]+', (named if re.search(r'[a-z]', named) else second.split(':')[0]).lower()))
-        for c in re.findall(r'`/?([a-z])`', first):
-            out[c] = words
+        out.append([f'`/{path.parent.name}:{path.stem}`', description.group(1) if description else ''])
     return out
 
 
@@ -128,7 +116,8 @@ OFFERED = re.compile(r'\b(?:say|type)\s+\**`([^`]+)`|^\s*\**`([^`]+)`\**\s*:', r
 def phrases(text):
     """A phrase offered to type that no word or command gives, per skills/shortcuts.md."""
     allowed = table_words()
-    known = {t for first, _ in rows() for t in re.findall(r'[a-z]+', re.sub(r'<[^>]*>', ' ', first).lower())}
+    known = {t for first, _ in rows() if not first.startswith('`/')
+             for t in re.findall(r'[a-z]+', re.sub(r'<[^>]*>', ' ', first).lower())}
     out = []
     for said, head in OFFERED.findall(text):
         w = (said or head).strip()
@@ -140,15 +129,12 @@ def phrases(text):
 
 
 def letters(text):
-    """A coined letter the TL;DR line names with no definition beside it, and a letter coined over the table's."""
-    table, reasons = table_letters(), phrases(text)
+    """A coined letter the TL;DR line names with no definition beside it."""
+    reasons = phrases(text)
     for line in text.splitlines():
-        for c, word in DEFINED.findall(line):
-            if c in table and word.lower() not in table[c]:
-                reasons.append(f'coins `{c}`, a letter a word or a command already gives')
         if line.lstrip('*').startswith('TL;DR'):
             defined = {c for c, _ in DEFINED.findall(line)}
-            for c in sorted(set(re.findall(r'`([a-z])`', line)) - set(table) - defined):
+            for c in sorted(set(re.findall(r'`([a-z])`', line)) - defined):
                 reasons.append(f'the TL;DR names the coined letter `{c}` with no definition beside it')
     return list(dict.fromkeys(reasons))
 

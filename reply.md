@@ -12,11 +12,11 @@ Done: the review draft, seven findings, one Warning.
 
 Left: the Nit at line 88, which needs your call on the band.
 
-`/post`: send the draft to acme/app#42 as REQUEST_CHANGES
+`/davd:post`: send the draft to acme/app#42 as REQUEST_CHANGES
 
 [#42](https://github.com/acme/app/pull/42) `fix-cache`, [comment](https://github.com/acme/workspace/blob/main/projects/app/reviews/42-cache/comment.md)
 
-TL;DR: seven findings, one Warning; waits on `/post`.
+TL;DR: seven findings, one Warning; waits on `/davd:post`.
 
 All good
 ```
@@ -41,7 +41,7 @@ All good
 - Anything held back, a finding left out or a step skipped, is explained unasked: what it is, why it is held, and whether a rule or the agent chose that.
 - A choice only the user can make is explained, each option with its cost, then asked once; a publish is never asked through the question tool, since its word is typed.
 - Before a reply in a summarized session says nothing waits, list every topic the session opened, from the summary and from `git log --since=<session start> --format=%s`.
-- Every word offered is its own line, word first, then an imperative naming every destination: `` `/p`: push `fix-cache` to acme/app, updating #42 ``.
+- Every word offered is its own line, word first, then an imperative naming every destination: `` `/davd:push`: push `fix-cache` to acme/app, updating #42 ``.
 - A pending action is named once and then carried silently, the closing block included: do everything it does not block, and raise it again only when asked what is pending or when new work makes it urgent.
 - Above a word that pushes, one `Confidence:` line: how sure this session is, out of 10, that what goes out is right, and each part going out that no command this session checked.
 - Handing over a reviewer's comments gives each `problem n/10, fix n/10`: that the problem is real, and that the fix applied for it is right.
@@ -55,7 +55,7 @@ All good
 
 ## Agents
 
-- While agents the request started still run, end the turn on one forecast line: what went out, when to expect it back, and that `/down` kills it. Every question waits for the reply after they return.
+- While agents the request started still run, end the turn on one forecast line: what went out, when to expect it back, and that `/davd:down` kills it. Every question waits for the reply after they return.
 - Before dispatching agents, project the spend from the last comparable run, `./scripts/session-tokens.py <session>`, and past $50 ask first; past $50 spent mid-request, stop and report the total.
 - Report a count with its cost, at the rates *Capabilities* in `workspace.md` names.
 

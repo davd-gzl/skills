@@ -31,6 +31,7 @@ rule removes beside its estimate, per *A change to the run's shape*.
 | What the user's words start | `skills/words.md`, and when one counts `skills/shortcuts.md` |
 | How the thinking before a reply is written, which a model whose thinking effort sets skips | `skills/thinking.md`, its `effort-set` patterns naming the models the gate lifts it for |
 | The shape of a reply to the user | `skills/reply.md` |
+| What a claim must rest on, for every agent | `skills/claims.md` |
 | One repository: its merge style, its CI, its glossary, its boot recipe | `projects/<repo>/AGENTS.md` |
 | How this workspace runs: which skill a task takes, where a finding is logged, what the session start does | `workspace.md` |
 | What this machine can do | No file. It is a command, see *Capabilities* in `workspace.md` |
@@ -143,13 +144,12 @@ one pass.
   path the gate hands over.
 - A subagent carries
   every `CLAUDE.md` import on every call, so only a file whose rules bind every
-  agent is imported, `skills/short-form.md` for its *Claims*; a file only the user's
+  agent is imported, `skills/claims.md`; a file only the user's
   chat needs comes whole through a SessionStart hook, which reaches that session
   and no subagent.
 - A subagent gets the skills its own artifact needs and no others. It answers
-  the parent and never the user, so the words the user types never reach it, and
-  the register it inherits through `CLAUDE.md` holds only for the *Claims* in `skills/short-form.md`,
-  which bind every agent: no dispatch prompt names either on top, and `reply.md`
+  the parent and never the user, so neither the words the user types nor the
+  register reaches it: no dispatch prompt names either, and `reply.md`
   is imported by nothing for that reason. A dispatch names the task
   skill, and `skills/writing-style.md` where the artifact is prose.
 

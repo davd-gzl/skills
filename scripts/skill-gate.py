@@ -631,13 +631,13 @@ def cmd_pre_push(stdin, cwd):
     return report(check(['git', *sorted(relative(top / p) or str(top / p) for p in paths)]))
 
 
-# In context as every session opens, so recorded as read then: short-form through a CLAUDE.md
-# import, which subagents carry too since its Claims bind every model, and shortcuts and thinking
-# through one SessionStart hook each, which reaches the parent's chat and no subagent. A hook's
+# In context as every session opens, so recorded as read then: claims through a CLAUDE.md
+# import, which subagents carry too since it binds every model, and short-form, shortcuts and
+# thinking through one SessionStart hook each, which reaches the parent's chat and no subagent. A hook's
 # text arrives whole at 9 KB, measured, and each of these files is under half that.
 # `reply.md` is not among them: nothing loads it, it is the parent's own reply shape, and the
 # gate names it for a Read.
-IMPORTED = ['shortcuts', 'short-form', 'thinking']
+IMPORTED = ['claims', 'shortcuts', 'short-form', 'thinking']
 # A Bash result of 29.4 KB or more reaches the model as a stub naming a file, and a
 # hook's context does so from 10 KB, measured over every transcript of this
 # workspace. Only the Read tool carries a whole file, so this script names paths
@@ -892,10 +892,10 @@ def forget_session():
     shutil.rmtree(root() / COPIES / session_key().replace('/', '_'), ignore_errors=True)
 
 
-INTRO = ('Principles, Invariants and the register are in context through `CLAUDE.md`, which imports '
-         'the workspace `AGENTS.md` and `skills/short-form.md`; the words the user types, `skills/shortcuts.md`, '
-         'and, for a model its `effort-set` does not list, `skills/thinking.md` come whole through SessionStart '
-         'hooks, which reach this session and no '
+INTRO = ('Principles, Invariants and the claims rules are in context through `CLAUDE.md`, which imports '
+         'the workspace `AGENTS.md` and `skills/claims.md`; the register, `skills/short-form.md`, the words '
+         'the user types, `skills/shortcuts.md`, and, for a model its `effort-set` does not list, '
+         '`skills/thinking.md` come whole through SessionStart hooks, which reach this session and no '
          'subagent. Every other rule, `skills/reply.md` included, is read whole with the '
          'Read tool before its first command, and that read is what the gate records; '
          './scripts/skill <name> names its path.')

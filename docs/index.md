@@ -107,6 +107,7 @@ what it displaces.
 | [`git.md`](https://github.com/davd-gzl/skills/blob/main/git.md) | a turn commits, pushes, syncs a checkout, or touches a submodule or worktree | the commit identity, where a push goes, the commands that report success and move nothing |
 | [`writing-style.md`](https://github.com/davd-gzl/skills/blob/main/writing-style.md) | any visible prose, in any project | the rules every other skill defers to, and the closing pass over every draft |
 | [`short-form.md`](https://github.com/davd-gzl/skills/blob/main/short-form.md) | every chat reply | the register: clipped, read once, left to right |
+| [`claims.md`](https://github.com/davd-gzl/skills/blob/main/claims.md) | every agent, subagents included | what a claim must rest on: a command run this session |
 | [`reply.md`](https://github.com/davd-gzl/skills/blob/main/reply.md) | a reply finishes a piece of work | what it opens with, its closing block, its links |
 | [`shortcuts.md`](https://github.com/davd-gzl/skills/blob/main/shortcuts.md) | every session | when a typed word counts: opening the message, whitespace between words |
 | [`words.md`](https://github.com/davd-gzl/skills/blob/main/words.md) | I type a word | what each word starts, its row put in context when a message opens with it |
@@ -117,10 +118,10 @@ what it displaces.
 | [`archive/`](https://github.com/davd-gzl/skills/blob/main/archive) | nothing loads it | snapshots of a skill before a change of voice, the advisory shape for a disclosure, the harness that chose the chat register's wording |
 | [`TODO.md`](https://github.com/davd-gzl/skills/blob/main/TODO.md) | skill work I own and have not started | one line per item |
 
-Three files open every session: `shortcuts.md` and `thinking.md` through a
-session-start hook, and `short-form.md` through the workspace's `CLAUDE.md`,
-which every subagent inherits too, since its rules on what a claim must rest
-on bind every agent. Every other skill is read when the task names it, through
+Four files open every session: `short-form.md`, `shortcuts.md` and
+`thinking.md` through a session-start hook, which reaches the chat alone, and
+`claims.md` through the workspace's `CLAUDE.md`, which every subagent inherits
+too, since its rules on what a claim must rest on bind every agent. Every other skill is read when the task names it, through
 the Read tool or `scripts/skill <name>`. A file whose sections fire at
 different moments lists the ones its first reader needs on a `prompt-sections`
 line, and the gate hands over that cut. A subagent gets the skills its own

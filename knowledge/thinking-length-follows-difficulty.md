@@ -21,5 +21,5 @@ here and not a fact.
 
 Changes: `skills/thinking.md`: length by difficulty and never a count, each
 step opening with how it is known, one pass, nothing already in context
-restated, lifted where effort sets the model's thinking; *Claims* in
-`skills/short-form.md`: a claim in the reply rests on a command.
+restated, lifted where effort sets the model's thinking; `skills/claims.md`:
+a claim in the reply rests on a command.

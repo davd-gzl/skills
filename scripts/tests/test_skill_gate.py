@@ -526,6 +526,13 @@ class PublishWords(GateCase):
         self.assertEqual(self.hook('gh pr merge 5', prompt='/rai o/r#5')[0], 2, 'it carries the post alone')
         self.assertEqual(self.hook(post, prompt='/review https://github.com/o/r/pull/5')[0], 2, 'a review posts nothing')
 
+    def test_fai_carries_the_push_and_the_replies(self):
+        self.assertEqual(self.hook('gh pr comment 5 -R o/r -b hi', prompt='/fai o/r#5')[0], 0)
+        self.assertEqual(self.hook('gh pr merge 5', prompt='/fai o/r#5')[0], 2, 'it merges nothing')
+        self.assertEqual(self.hook('gh pr comment 5 -R o/r -b hi', prompt='fix as ai o/r#5')[0], 2, 'typed prose gives nothing')
+        self.assertEqual(gate.prompt_reads('/fai o/r#5')[:3], ['change', 'pr-body', 'issue'], 'it names the fix skills')
+        self.assertNotIn('change', gate.prompt_reads('what is fai'), 'fai inside prose names nothing')
+
     def test_each_command_gives_its_word_and_p_sends_it_all(self):
         post = 'gh pr comment 5 -R o/r -b hi'
         self.assertEqual(self.hook(post, prompt='/p')[0], 0, '/p sends the post it names')

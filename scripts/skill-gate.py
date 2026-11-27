@@ -660,7 +660,7 @@ RAI = r'\A(?![\s\S]*\?\s*\Z)\W*(?:(?:quick|deep)\W+)?rai\s+\S'
 PROMPT_SKILLS = [
     (r'\breview|' + RAI + r'|\blgtm\b', ['review']),
     # (?<!-) on fixes alone: a repository name ending in -fixes is not a request to fix.
-    (r'\bfix(ed|ing)?\b|(?<!-)\bfixes\b|\bimplement|\bsimplif|\bfeature\b', ['change', 'pr-body', 'issue']),
+    (r'\bfix(ed|ing)?\b|(?<!-)\bfixes\b|\bimplement|\bsimplif|\bfeature\b|\Afai\s+\S', ['change', 'pr-body', 'issue']),
     (r'\bissue', ['issue']),
     (r'\breport\b|\bweekly\b', ['report']),
     # try, run, boot and launch are ordinary verbs. Each names try.md only in the shortcut's own shape: try takes a
@@ -1089,6 +1089,7 @@ def _typed(e):
 # named.
 COMMANDS = {
     'p': {'push'}, 'pr': {'push'}, 'rlp': {'push'}, 'pf': {'push', 'force'}, 'post': {'post'}, 'rai': {'post'},
+    'fai': {'push', 'post'},
     'upload': {'upload'}, 'm': {'merge'}, 'x': {'close'}, 'd': {'delete'}, 'o': {'ready'},
 }
 PUSH_COVERS = {'push', 'post', 'upload', 'ready'}

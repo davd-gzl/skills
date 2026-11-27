@@ -1,4 +1,4 @@
 ---
 description: Push with --force-with-lease
 ---
-The user typed `/pf $ARGUMENTS`: run the `/pf` row of `skills/words.md`, then the row of each argument.
+Everything `/p` sends, the named branch replaced on its remote with `--force-with-lease`: the user's approval of that one forced push.

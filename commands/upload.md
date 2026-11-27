@@ -1,4 +1,4 @@
 ---
-description: Upload the media the draft links
+description: Upload the media the shown draft links
 ---
-The user typed `/upload $ARGUMENTS`: run the `/upload` row of `skills/words.md`, then the row of each argument.
+Upload the media the shown draft links.

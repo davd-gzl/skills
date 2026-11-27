@@ -1,4 +1,5 @@
 ---
-description: Send the shown draft; `as ai` adds the marker
+description: Send the shown draft; as ai adds the AI marker
+argument-hint: "[as ai]"
 ---
-The user typed `/post $ARGUMENTS`: run the `/post` row of `skills/words.md`, then the row of each argument.
+Send the shown draft to its target: $ARGUMENTS. `as ai` adds the marker of *Posting* in `skills/review-comment.md`. A draft linking work not yet pushed goes with `/p` instead.

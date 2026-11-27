@@ -569,11 +569,13 @@ class PublishWords(GateCase):
                    'message': {'role': 'user', 'content': '<command-name>/post</command-name>'}}
         path.write_text('\n'.join(json.dumps(r) for r in rows) + '\n')
         self.assertFalse(gate.gives(gate.turn_text(str(path)), 'post'), "another session's command gives nothing")
-    def test_every_row_sending_what_p_sends_is_a_command(self):
-        rows = (pathlib.Path(gate.__file__).resolve().parent.parent / 'words.md').read_text().splitlines()
-        for row in (r for r in rows if r.startswith('| `') and 'everything `/p` sends' in r):
-            for word in gate.re.findall(r'`/([^`<\s]+)`', row.split('|')[1]):
-                self.assertIn('push', gate.COMMANDS.get(word, ()), f'/{word}: its row sends what /p sends')
+    def test_every_command_sending_what_p_sends_gives_the_push(self):
+        commands = pathlib.Path(gate.__file__).resolve().parent.parent / 'commands'
+        for path in commands.glob('*.md'):
+            if 'everything `/p` sends' in path.read_text():
+                self.assertIn('push', gate.COMMANDS.get(path.stem, ()), f'/{path.stem} sends what /p sends')
+        for word in gate.COMMANDS:
+            self.assertTrue((commands / f'{word}.md').exists(), f'/{word} gives a word and has no command file')
 
     def test_a_quiet_close_on_an_own_repository_needs_no_word(self):
         (self.root / 'workspace.json').write_text(json.dumps({'identities': {'public': {'name': 'Me'}}}))

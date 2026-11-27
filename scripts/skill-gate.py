@@ -654,7 +654,7 @@ BASH_BOUND = 28000
 # alone: the drafting rules are the writer stage's, per its step 4, and the write hook
 # names them when the draft is written.
 PROMPT_HEAD = 6
-# `/rai <target>`, per skills/words.md, names the review skills: the command opens the message, the slash stripped
+# `/rai <target>`, per skills/commands/rai.md, names the review skills: the command opens the message, the slash stripped
 # by prompt_head, and a target follows, so `edit rai.md`, `what is rai` or a message ending in `?` names nothing.
 RAI = r'\A(?![\s\S]*\?\s*\Z)\W*(?:(?:quick|deep)\W+)?rai\s+\S'
 PROMPT_SKILLS = [
@@ -893,8 +893,8 @@ def forget_session():
 
 
 INTRO = ('Principles, Invariants and the claims rules are in context through `CLAUDE.md`, which imports '
-         'the workspace `AGENTS.md` and `skills/claims.md`; the register, `skills/short-form.md`, the words '
-         'the user types, `skills/shortcuts.md`, and, for a model its `effort-set` does not list, '
+         'the workspace `AGENTS.md` and `skills/claims.md`; the register, `skills/short-form.md`, what the '
+         'user types, `skills/shortcuts.md`, and, for a model its `effort-set` does not list, '
          '`skills/thinking.md` come whole through SessionStart hooks, which reach this session and no '
          'subagent. Every other rule, `skills/reply.md` included, is read whole with the '
          'Read tool before its first command, and that read is what the gate records; '

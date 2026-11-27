@@ -1,4 +1,5 @@
 ---
 description: Merge the named pull request
+argument-hint: "[target]"
 ---
-The user typed `/m $ARGUMENTS`: run the `/m` row of `skills/words.md`, then the row of each argument.
+Merge $ARGUMENTS.

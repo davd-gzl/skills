@@ -28,7 +28,7 @@ rule removes beside its estimate, per *A change to the run's shape*.
 | What waits for a word, and which repo a push may reach | The workspace `AGENTS.md` |
 | One task, whatever the repository: reviewing, drafting a body, filing an issue | The matching `skills/<task>.md` |
 | Visible prose of any kind | `skills/writing-style.md`, which every other skill defers to |
-| What the user's words start | `skills/words.md`, and when one counts `skills/shortcuts.md` |
+| What the user types and what it starts | `skills/shortcuts.md`, and each command's file under `skills/commands/` |
 | How the thinking before a reply is written, which a model whose thinking effort sets skips | `skills/thinking.md`, its `effort-set` patterns naming the models the gate lifts it for |
 | The shape of a reply to the user | `skills/reply.md` |
 | What a claim must rest on, for every agent | `skills/claims.md` |

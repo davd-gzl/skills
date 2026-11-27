@@ -196,7 +196,7 @@ class Unlinked(unittest.TestCase):
 
 
 class Letters(unittest.TestCase):
-    """A coined letter, per skills/shortcuts.md: defined beside it, and never a command's."""
+    """A coined letter, per skills/shortcuts.md: defined beside it."""
 
     def coined(self, text):
         return [r for r in rc.measure(text)['reasons'] if 'letter' in r]
@@ -206,19 +206,16 @@ class Letters(unittest.TestCase):
         self.assertFalse(self.coined('Fix ready.\n\nTL;DR: the fix is ready; `f`: fold it into #12, waits.'))
         self.assertFalse(self.coined('Fix ready.\n\nTL;DR: the fix is ready; `f` (fold it into #12) waits.'))
 
-    def test_a_table_letter_needs_no_definition(self):
-        self.assertFalse(self.coined('Fix ready.\n\nTL;DR: the fix is ready; waits on `p`.'))
-        self.assertFalse(self.coined('Fix ready.\n\nTL;DR: the fix is ready; `p` (push) sends it.'))
-
-    def test_coining_a_letter_the_table_gives_is_a_reason(self):
-        self.assertTrue(self.coined('`p`: fold the rooms in and test it.\n\nTL;DR: rooms differ; `p` makes them the same.'))
-        self.assertFalse(self.coined('`r`: round over the branch.\n\nTL;DR: round planned; `r`: round over the branch.'))
+    def test_a_command_is_no_letter(self):
+        self.assertTrue(self.coined('Fix ready.\n\nTL;DR: the fix is ready; waits on `p`.'))
+        self.assertFalse(self.coined('Fix ready.\n\nTL;DR: the fix is ready; waits on `/davd:push`.'))
 
     def test_a_phrase_offered_to_type_is_a_reason_unless_the_table_gives_it(self):
         phrase = lambda t: [r for r in rc.measure(t)['reasons'] if 'phrase' in r]
         self.assertTrue(phrase('Ready.\n\nSay `mark 42 ready` and it goes.'))
         self.assertTrue(phrase('`/push merge`: push, then merge once CI passes.'))
-        self.assertFalse(phrase('`/post as ai`: send the draft with the marker.'))
-        self.assertFalse(phrase('`/p d`: push, then delete the branch.'))
+        self.assertFalse(phrase('`/davd:post as ai`: send the draft with the marker.'))
+        self.assertFalse(phrase('`/davd:push delete`: push, then delete the branch.'))
         self.assertFalse(phrase('`links 42`: the three links.'))
         self.assertFalse(phrase('`git status`: clean.'))
+        self.assertFalse(phrase('`push --tags`: sends the tags.'), 'a command name without its slash is prose')

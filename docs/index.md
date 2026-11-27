@@ -56,11 +56,12 @@ since they bind whoever acts:
   this session, never from memory.
 - Read the artifact back after editing it, before reporting it done.
 
-Nothing reaches anyone without my word, `/post`, `/p` or `/m`, typed in the
-turn or given ahead for one repository and one kind of action. `go`, `ok` and
-`yes` authorise nothing, and every draft is shown before it goes. Those rules
-sit in the workspace's `AGENTS.md` too, and each command is one file under
-[`commands/`](https://github.com/davd-gzl/skills/blob/main/commands), the one place it is defined.
+Nothing reaches anyone without my word, `/davd:post`, `/davd:push` or
+`/davd:merge`, typed in the turn or given ahead for one repository and one kind
+of action. `go`, `ok` and `yes` authorise nothing, and every draft is shown
+before it goes. Those rules sit in the workspace's `AGENTS.md` too, and each
+command is one file under [`commands/davd/`](https://github.com/davd-gzl/skills/blob/main/commands/davd), the one place it
+is defined; the folder name is the `davd:` prefix Claude Code gives it.
 
 Every skill has a second goal beside its task: the same decision in fewer
 turns. A turn re-sends the whole context, so the turn count times the context
@@ -108,7 +109,7 @@ what it displaces.
 | [`claims.md`](https://github.com/davd-gzl/skills/blob/main/claims.md) | every agent, subagents included | what a claim must rest on: a command run this session |
 | [`reply.md`](https://github.com/davd-gzl/skills/blob/main/reply.md) | a reply finishes a piece of work | what it opens with, its closing block, its links |
 | [`shortcuts.md`](https://github.com/davd-gzl/skills/blob/main/shortcuts.md) | every session | every action a slash command, a publish only as one, and the words that shape a reply |
-| [`commands/`](https://github.com/davd-gzl/skills/blob/main/commands) | I type a slash command | what it starts and the rule it follows, one file each |
+| [`commands/davd/`](https://github.com/davd-gzl/skills/blob/main/commands/davd) | I type a slash command | what it starts and the rule it follows, one file each |
 | [`thinking.md`](https://github.com/davd-gzl/skills/blob/main/thinking.md) | every reply, on a model whose thinking depth no setting controls | how the thinking before the reply is written |
 | [`authoring.md`](https://github.com/davd-gzl/skills/blob/main/authoring.md) | a rule is added, edited or removed | where it lives, the shape it takes, what it displaces |
 | [`knowledge/`](https://github.com/davd-gzl/skills/blob/main/knowledge) | a design question about the workflow comes up | one published result per file: what holds, the numbers, the source, the rule it shaped |
@@ -147,11 +148,11 @@ the code, and keeps it as a finding or refutes it.
 
 | Word | For | What changes |
 | --- | --- | --- |
-| `/review quick <target>` | code I know | a smaller finding budget per round, no reflector, smaller judge batches |
-| `/review <target>` | any change | the standard round |
-| `/review deep <target>` | code that is complex or unknown | finders with more tool calls, a higher Warning cap and the tests angle, smaller judge batches |
+| `/davd:review quick <target>` | code I know | a smaller finding budget per round, no reflector, smaller judge batches |
+| `/davd:review <target>` | any change | the standard round |
+| `/davd:review deep <target>` | code that is complex or unknown | finders with more tool calls, a higher Warning cap and the tests angle, smaller judge batches |
 
-[`commands/`](https://github.com/davd-gzl/skills/blob/main/commands) defines each command, and `/cost`
+[`commands/davd/`](https://github.com/davd-gzl/skills/blob/main/commands/davd) defines each command, and `/davd:cost`
 prints a round's stages and projected cost for a given diff before
 anything runs.
 

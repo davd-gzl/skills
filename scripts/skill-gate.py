@@ -264,15 +264,22 @@ def _typed(e):
     return None
 
 
-# The slash commands that give the gate's words, per skills/shortcuts.md; typed prose gives none. An argument that
-# is itself one of them gives its word too, so `/p d` pushes and deletes. `/p` sends everything the closing block
-# named.
+# The slash commands that give the gate's words, per skills/shortcuts.md, each under the NAMESPACE that
+# commands/<namespace>/ gives it; typed prose gives none. An argument that is itself one of them gives its word too,
+# so `/davd:push delete` pushes and deletes. `/davd:push` sends everything the closing block named.
+NAMESPACE = 'davd:'
 COMMANDS = {
-    'p': {'push'}, 'pr': {'push'}, 'rlp': {'push'}, 'pf': {'push', 'force'}, 'post': {'post'}, 'rai': {'post'},
-    'fai': {'push', 'post'},
-    'upload': {'upload'}, 'm': {'merge'}, 'x': {'close'}, 'd': {'delete'}, 'o': {'ready'},
+    'push': {'push'}, 'push-review': {'push'}, 'review-loop-push': {'push'}, 'push-force': {'push', 'force'},
+    'post': {'post'}, 'review-as-ai': {'post'}, 'fix-as-ai': {'push', 'post'},
+    'upload': {'upload'}, 'merge': {'merge'}, 'close': {'close'}, 'delete': {'delete'}, 'ready': {'ready'},
 }
 PUSH_COVERS = {'push', 'post', 'upload', 'ready'}
+
+
+def _command(word):
+    """A command's name without its slash and namespace; a name outside the namespace is no command."""
+    word = word[1:] if word.startswith('/') else word
+    return word[len(NAMESPACE):] if word.startswith(NAMESPACE) else ''
 
 
 def command_words(text):
@@ -280,7 +287,9 @@ def command_words(text):
     given = set()
     for line in text.splitlines():
         if line.startswith(COMMAND):
-            name, *args = [w[1:] if w.startswith('/') else w for w in line[len(COMMAND):].lower().split()] or ['']
+            name, *args = line[len(COMMAND):].lower().split() or ['']
+            name = _command(name)
+            args = [_command(a) or a for a in args]
             words = [name] + args if name in COMMANDS and all(a in COMMANDS for a in args) else [name]
             for word in words:
                 given |= COMMANDS.get(word, set())
@@ -288,12 +297,12 @@ def command_words(text):
 
 
 def gives_force(text):
-    """The turn approves a forced push: `/pf`."""
+    """The turn approves a forced push: `/davd:push-force`."""
     return 'force' in command_words(text)
 
 
 def gives(text, word):
-    """The turn gives the word: a slash command gives it, or `/p`, which carries every word it covers."""
+    """The turn gives the word: a slash command gives it, or `/davd:push`, which carries every word it covers."""
     words = command_words(text)
     if 'push' in words:
         words |= PUSH_COVERS

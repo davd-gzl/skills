@@ -110,18 +110,19 @@ typed prompt in twenty asked whether things were going well or corrected drift.
 Changed: three working sessions at most, beside the dispatcher. Reusable:
 parallel agents pay off until the human is the queue; measure the waiting.
 
-## 8. The typed words stayed, and stopped loading
+## 8. The typed words became commands
 
-The operator types short words, `p` to push, `post`, `fix`, `review`. The
-median prompt over a month was six words, so the words are worth keeping: they
-are the operator's speed. Their cost was that all of their definitions, about
-1,500 words, loaded into every session. Changed: a word that publishes is a
-slash command, `/p`, `/post`, `/m`, which the harness records apart from prose,
-so `PR 10 needs a rebase` can never read as a push. The always-loaded file now
-holds that rule in 105 words, and a prompt hook puts in context only the rows of
-the words a line opens with. Reusable: a vocabulary the operator types is worth
-keeping, loaded when typed, and every word that publishes takes a marker prose
-cannot produce, as chat bots do with a slash.
+The operator typed short words, `p` to push, `post`, `fix`, `review`. The
+median prompt over a month was six words, so the words were the operator's
+speed. Their cost was that all of their definitions, about 1,500 words, loaded
+into every session. Changed: every action is a slash command, one file each,
+named in full under one prefix, `/davd:push`, `/davd:post`, `/davd:merge`, so
+the harness completes it on tab and records it apart from prose:
+`PR 10 needs a rebase` can never read as a push. A session carries only each
+command's one-line description until it is typed, and the always-loaded file
+fell to about 390 words. Reusable: make every action the operator types a
+command the harness completes and records, and every publish one of them, a
+marker prose cannot produce.
 
 ## The mistakes, in one list
 
@@ -143,7 +144,7 @@ cannot produce, as chat bots do with a slash.
 - Weigh a paper by the models and setup it measured, beside your own data.
 - A rule earns its place on the second correction.
 - One task per session; a dispatcher session keeps only summaries.
-- Load a typed word's definition when it is typed.
+- Make every typed action a command the harness completes and records.
 
 ## Next
 

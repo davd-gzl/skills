@@ -1,6 +1,6 @@
 ---
 name: review
-description: Use whenever a pull request, a branch, a working diff or a red CI is to be reviewed, in any project, and whenever the user types `/review`, `/rai`, `/plan-review` or `/review-all`, pastes a pull request URL alone, or asks what to think of a change or why CI is red. One round, finders per angle, judges batched by band, a reflector, a writer, a text pass, producing overview.md, comment_<model>.md per skills/review-comment.md, claims.md and links.md. Several targets at once and a target the reviewer wrote are skills/review-modes.md.
+description: Use whenever a pull request, a branch, a working diff or a red CI is to be reviewed, in any project, and whenever the user types `/davd:review`, `/davd:review-as-ai`, `/davd:plan-review` or `/davd:review-all`, pastes a pull request URL alone, or asks what to think of a change or why CI is red. One round, finders per angle, judges batched by band, a reflector, a writer, a text pass, producing overview.md, comment_<model>.md per skills/review-comment.md, claims.md and links.md. Several targets at once and a target the reviewer wrote are skills/review-modes.md.
 argument-hint: <repo>#<pr-number> | <url> | <repo> <subject>
 ---
 
@@ -24,7 +24,7 @@ Sections, and the moment each is read: *Workflow*, the parent, every round;
 *Design first*, the parent at the end of step 2; *Launch*, the parent at step 4; *Triage*, the parent naming a class at step 4; *Finders*, *Reflector*, *Verifiers*,
 *Writer* and *Text pass*, the stage of that name; *The critical pass*, a vulnerability
 fix; *Subjects*, a branch or a red CI; *Modes*, several targets, an authored
-target, `/plan-review`; *Fetch & understand*, the parent at step 1; *Re-review
+target, `/davd:plan-review`; *Fetch & understand*, the parent at step 1; *Re-review
 rounds*, a prior round exists; *Reproduce the failure*, the parent at step 3
 and every verifier; *Review the diff*, the finders and the reflector; *Write
 tests for test-shaped findings*, the finders and the judges; *Overview*, the overview
@@ -45,19 +45,19 @@ The word, how well the user knows the code, sets the shape:
 
 | Word | For | Shape |
 | --- | --- | --- |
-| `/review quick` | the overview of what a change is worth, the fewest tokens and the shortest clock | one finder per bundle carrying the angles that find Warnings, lines, reach, removed, the catalog and rollout, plus claims on a bundle carrying a doc, the Warning cap untouched and fewer Nit slots, each finder running its own Warning checks, no reflector, small judge batches on short runs, the writer, the text pass past its floor of visible words, the lowest ceiling |
-| `/review` | any change | one finder per bundle per angle with material, or one per bundle carrying every angle past `finder.fold_past_bundles` bundles, the defect angles, lines, reach, removed, the catalog and rollout, plus claims on a bundle carrying a doc, each running its own Warning checks, the standard caps, the reflector, the standard judge batches, the writer, the text pass, the standard ceiling |
-| `/review deep` | code that is complex or unknown | every finder at more calls, the tests angle and the claims angle on every bundle on top of the defect ones, missing tests kept, a higher Warning cap and the standard Nit caps, small judge batches on long runs at the standard effort, the writer, the text pass, the highest ceiling |
+| `/davd:review quick` | the overview of what a change is worth, the fewest tokens and the shortest clock | one finder per bundle carrying the angles that find Warnings, lines, reach, removed, the catalog and rollout, plus claims on a bundle carrying a doc, the Warning cap untouched and fewer Nit slots, each finder running its own Warning checks, no reflector, small judge batches on short runs, the writer, the text pass past its floor of visible words, the lowest ceiling |
+| `/davd:review` | any change | one finder per bundle per angle with material, or one per bundle carrying every angle past `finder.fold_past_bundles` bundles, the defect angles, lines, reach, removed, the catalog and rollout, plus claims on a bundle carrying a doc, each running its own Warning checks, the standard caps, the reflector, the standard judge batches, the writer, the text pass, the standard ceiling |
+| `/davd:review deep` | code that is complex or unknown | every finder at more calls, the tests angle and the claims angle on every bundle on top of the defect ones, missing tests kept, a higher Warning cap and the standard Nit caps, small judge batches on long runs at the standard effort, the writer, the text pass, the highest ceiling |
 
 Each word's caps, batches, calls and output ceiling, `budget_total`, are its preset in `scripts/workflows/review-pipeline.json` laid over each stage's entry, `review` being `standard`; `./scripts/review-plan.py --preset <quick, standard or deep>` prints the caps, batches and calls per stage.
 
-Every round runs solo but a `/review deep` one, which alone runs the pipeline; the class then names the round note and no stage. A diff past one careful read, which `./scripts/review-plan.py --diff` names, is offered as `/review deep`, and a solo round on it says so in its round note.
+Every round runs solo but a `/davd:review deep` one, which alone runs the pipeline; the class then names the round note and no stage. A diff past one careful read, which `./scripts/review-plan.py --diff` names, is offered as `/davd:review deep`, and a solo round on it says so in its round note.
 
 | Shape | When | Stages |
 | --- | --- | --- |
-| solo | every round but a `/review deep` one | a finder, then one fresh agent that answers the *Reflector*'s completeness question, judges, runs every Critical and Warning, and writes the draft and `claims.md`, and the overview where step 1 dispatched no overview agent: `args.solo` true, and no triage |
+| solo | every round but a `/davd:review deep` one | a finder, then one fresh agent that answers the *Reflector*'s completeness question, judges, runs every Critical and Warning, and writes the draft and `claims.md`, and the overview where step 1 dispatched no overview agent: `args.solo` true, and no triage |
 | solo, wider | as solo, where the diff spans several code files, tests aside, or changes what a consensus, gas, funds or permission path computes, charges or accepts; touching such a path without changing its result is plain solo | `solo.finders` 2 ahead of that same judge, run side by side, the word's angles dealt between them; every finder past the first carries `--brief`, what it reads that the others do not; `./scripts/review-plan.py --solo --set solo.finders=<N>` prints the cost |
-| pipeline | `/review deep` | the triage where no class is named, the finders, the reflector, the judges, the writer, the text pass and the overview, each as the word configures it |
+| pipeline | `/davd:review deep` | the triage where no class is named, the finders, the reflector, the judges, the writer, the text pass and the overview, each as the word configures it |
 
 1. Prepare, per *Fetch & understand*, and dispatch the overview agent the moment the head worktree exists.
 2. Run the *Re-review rounds* gate when a prior round exists, then answer *Design first*, which may end the turn here.
@@ -76,13 +76,13 @@ asks one question before any finder: is the design a good idea? Judge whether
 the problem is real and worth fixing here, whether the fix acts where the
 problem starts, and whether a simpler or more standard design covers it. The
 session the user talks to answers it, per target; no stage or subagent answers
-it. The round step 10 of *Fix* in `skills/change.md` runs, on `/pr` too, skips
+it. The round step 10 of *Fix* in `skills/change.md` runs, on `/davd:push-review` too, skips
 it, and so does a pass run after a round per *The critical pass*.
 
 - Answer from the description, its linked issue and the diff, and run the check that settles each doubt: the problem reproduced at the merge base, the alternative tried where one run shows it.
 - A sound design gets one line in the reply, `Design: sound`, then why in one clause, and the round runs as configured.
-- **A doubtful or wrong design turns the review that way and holds that target's launch, and every step the word names after it, for a talk with the user, whatever word started the round.** The reply ending the request's turn carries that review: the problem measured, what the design gets wrong, the alternative and what each costs, every claim beside the command that settled it; nothing is drafted for the author and nothing is posted. Other targets of the same request launch as configured. The overview agent step 1 dispatched still finishes, its `overview.md` committed, pushed and linked as *Fetch & understand* says, in the talk or in the reply after it lands; a turn its notification opens before the user answers launches nothing for the held target. Under `/plan-review` steps 1 to 3 still run and the case goes ahead of the questions, taking no topic. This overrides the same-turn launch of *Launch*, the `nothing asked on the way` of `/rai` and `/fai` and the unattended run of `/sweep`, under `skills/commands/`, the loop of *Own PR* in `skills/review-modes.md`, and the turn-ending cases of *Consent* in the workspace `AGENTS.md`, for the held target alone.
-- The user's answer to the talk ends the post a `/rai` carried, per *Consent* in the workspace `AGENTS.md`; the round then runs as their word sets it, a design objection they uphold reaching the stages through `--notes`.
+- **A doubtful or wrong design turns the review that way and holds that target's launch, and every step the word names after it, for a talk with the user, whatever word started the round.** The reply ending the request's turn carries that review: the problem measured, what the design gets wrong, the alternative and what each costs, every claim beside the command that settled it; nothing is drafted for the author and nothing is posted. Other targets of the same request launch as configured. The overview agent step 1 dispatched still finishes, its `overview.md` committed, pushed and linked as *Fetch & understand* says, in the talk or in the reply after it lands; a turn its notification opens before the user answers launches nothing for the held target. Under `/davd:plan-review` steps 1 to 3 still run and the case goes ahead of the questions, taking no topic. This overrides the same-turn launch of *Launch*, the `nothing asked on the way` of `/davd:review-as-ai` and `/davd:fix-as-ai` and the unattended run of `/davd:sweep`, under `skills/commands/davd/`, the loop of *Own PR* in `skills/review-modes.md`, and the turn-ending cases of *Consent* in the workspace `AGENTS.md`, for the held target alone.
+- The user's answer to the talk ends the post a `/davd:review-as-ai` carried, per *Consent* in the workspace `AGENTS.md`; the round then runs as their word sets it, a design objection they uphold reaching the stages through `--notes`.
 
 ### Launch
 
@@ -101,7 +101,7 @@ it, and so does a pass run after a round per *The critical pass*.
 - Launch or resume the workflow only from a turn whose message asks for the round: every stage obeys that turn's message over the runner's prompt.
 - Hand a stage the lines it needs from a vulnerability write-up, a prior security round or an exploit, never the whole file.
 - `./scripts/review-setup.sh --model <id>` names the session's model, so the triage reads `skills/knowledge/models/<id>.md`.
-- **An angle the user names in the launch turn runs, whatever the word.** The parent adds it to `args.stages.finder.angles` and clears `claims_docs_only` where claims is the one named, so `/review <target> +claims` buys the deep angle without the deep round.
+- **An angle the user names in the launch turn runs, whatever the word.** The parent adds it to `args.stages.finder.angles` and clears `claims_docs_only` where claims is the one named, so `/davd:review <target> +claims` buys the deep angle without the deep round.
 - A preset moves knobs, the Warning cap never among them.
 - A candidate a budget left unrun arrives with its check named as a statement; the user runs it and flips the section to posted or `SKIP`.
 - Each stage reads only the rule sections its artifact needs: the set per stage sits beside the stage's model in `scripts/workflows/review-pipeline.json`, written out by the plan as one file per stage, since an agent told `path#Heading` reads the file whole. The parent never picks the list.
@@ -111,7 +111,7 @@ it, and so does a pass run after a round per *The critical pass*.
 
 ### Triage
 
-The change's class sizes a pipeline, which only `/review deep` runs, per *The round*. The parent names the class in
+The change's class sizes a pipeline, which only `/davd:review deep` runs, per *The round*. The parent names the class in
 `args.shape` when it has read the diff whole, callers included; otherwise one
 short agent reads the diff, the risk table and the material and names it
 before any stage is sized. Size is one factor, never the trigger. Name what a
@@ -293,7 +293,7 @@ The subject is a PR by default. Two others recur; they change only *Fetch & unde
 Multi-target parallel dispatch and a target the reviewer authored are in
 `skills/review-modes.md`, read when the trigger fires.
 
-A third case is the user's briefing, `/plan-review <target>`: steps 1 to 3 run,
+A third case is the user's briefing, `/davd:plan-review <target>`: steps 1 to 3 run,
 then the parent asks what it could not read, three to five questions in one
 reply, the target's purpose, the invariants it must keep, where the user
 expects the risk and what they know of the area. Each answer naming a place or
@@ -336,7 +336,7 @@ The danger pass, before a branch from outside the project is fetched into a loca
 
 The catalog:
 
-- **A project with no invariant catalog gets one proposed before its first round starts**, built from the repository's own bug history, its past reviews and the classes its domain is known for, one class per entry with the check that settles it; the round waits for the user's word on the draft. Under `/rai` the draft runs the round and the handover names it.
+- **A project with no invariant catalog gets one proposed before its first round starts**, built from the repository's own bug history, its past reviews and the classes its domain is known for, one class per entry with the check that settles it; the round waits for the user's word on the draft. Under `/davd:review-as-ai` the draft runs the round and the handover names it.
 - A CONFIRMED finding whose class the catalog lacks adds that class to the catalog in the same round, with the check that found it.
 - **A defect a human reviewer raises on a head a round already reviewed, which no candidate of that round named, adds its class to the catalog in the turn it is read**, with the check that finds it, and goes under what failed in that round's `## Retro`, naming the angle that should have walked it.
 

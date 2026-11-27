@@ -1582,6 +1582,18 @@ class Prompt(HookCase):
         rc, context = self.run_hook('prompt', json.dumps({'prompt': 'push'}))
         self.assertEqual(context, '')
 
+    def test_a_whole_read_of_a_worktree_copy_counts_when_its_bytes_match(self):
+        (self.root / 'skills' / 'reply.md').write_text('# The shape of a reply\n')
+        copy = self.root / '.worktrees' / 'w' / 'skills' / 'reply.md'
+        copy.parent.mkdir(parents=True)
+        copy.write_text('# An older shape\n')
+        read = json.dumps({'tool_name': 'Read', 'tool_input': {'file_path': str(copy)}})
+        self.run_hook('hook-read', read)
+        self.assertIn('skills/reply.md', self.run_hook('prompt', json.dumps({'prompt': 'push'}))[1], 'other bytes count for nothing')
+        copy.write_text('# The shape of a reply\n')
+        self.run_hook('hook-read', read)
+        self.assertEqual(self.run_hook('prompt', json.dumps({'prompt': 'push'}))[1], '')
+
     def test_a_family_word_names_every_project_sharing_it(self):
         rc, context = self.run_hook('prompt', json.dumps({'prompt': 'fix gnolang/gno-sandbox 64'}))
         for piece in ('skills/change.md', 'skills/pr-body.md', 'skills/issue.md', 'projects/gno/AGENTS.md', 'projects/gno-agent-workspace/AGENTS.md'):

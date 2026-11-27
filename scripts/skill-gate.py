@@ -1941,6 +1941,17 @@ def cmd_hook_claude(stdin, stdout):
     return 0
 
 
+def worktree_copy(path, base=None):
+    """The rule a whole read of a worktree's copy stands for, `.worktrees/<w>/skills/reply.md` for `reply`, where the
+    copy's bytes are the rule's own: a session working in a worktree reads the rule there."""
+    for rel in relatives(path, base):
+        m = re.match(r'\.worktrees/[^/]+/(.+)$', rel)
+        name = name_of(m.group(1)) if m else None
+        if name and resolve(name) is not None and digest(root() / rel) == digest(resolve(name)):
+            return name
+    return None
+
+
 def cmd_hook_read(stdin):
     """A Read tool call on a skill, a shape, a delta or a root file records the read; a partial read records nothing."""
     payload = _payload(stdin)
@@ -1949,7 +1960,7 @@ def cmd_hook_read(stdin):
     inp = payload.get('tool_input', {}) or {}
     if inp.get('offset') or inp.get('limit') or not inp.get('file_path'):
         return 0
-    name = name_of(inp['file_path'], payload.get('cwd'))
+    name = name_of(inp['file_path'], payload.get('cwd')) or worktree_copy(inp['file_path'], payload.get('cwd'))
     # A subagent shares the session id, and its read of the reply shape never reaches the chat it binds.
     if name == 'reply' and payload.get('agent_id'):
         return 0

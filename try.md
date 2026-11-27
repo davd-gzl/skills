@@ -45,7 +45,7 @@ Write the recipe into `projects/<repo>/AGENTS.md` the moment it is measured, eac
 1. Hand over first, per the workflow's last step, and wait for the user's report before scripting anything.
 2. Script the measurement, not the movie. Once the user reports what they saw, drive the same path headless and print the state after each step as a table, one row per step. Save the script under the review's `tests/`.
 3. Show the shot list before recording, and wait. One numbered line per shot: the claim it proves, the clicks and keys in order, and what the screen must show for the claim to hold. A shot whose expected outcome cannot be written down is not understood well enough to film.
-4. Record only once the finding text is frozen, and only on the word `video`, which a request naming the clips already is: show the shot list and record in that turn. Reuse the measurement script.
+4. Record only once the finding text is frozen, and only on `/video`, which a request naming the clips already is: show the shot list and record in that turn. Reuse the measurement script.
 5. Re-run the shot list against the recording before sending it. Every caption states a claim the run can contradict; a decorative caption makes the check pass vacuously.
 
 - When two defects ride together on screen, film the measurement, not the symptom. A clip of the symptom cannot say which defect produced it, and a reader who spots the second cause reads the clip as overclaiming. Put the numbers the code itself computes on screen beside the input, and let the picture carry the reading rather than the consequence.
@@ -68,7 +68,7 @@ Stills and a scripted walkthrough come from `./scripts/capture-web.mjs`, headles
   and close its browser tab. Every file stays, the worktree
   included. The reply names what stopped.
 - A stack whose URL was handed over survives the turn.
-- On `stop`, kill its processes, remove the worktree, and leave the checkout as
+- On `/down`, kill its processes, remove the worktree, and leave the checkout as
   it was found.
 
 ## Rules

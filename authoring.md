@@ -28,9 +28,10 @@ rule removes beside its estimate, per *A change to the run's shape*.
 | What waits for a word, and which repo a push may reach | The workspace `AGENTS.md` |
 | One task, whatever the repository: reviewing, drafting a body, filing an issue | The matching `skills/<task>.md` |
 | Visible prose of any kind | `skills/writing-style.md`, which every other skill defers to |
-| What the user's words start | `skills/shortcuts.md` |
-| How the thinking before a reply is written, which a model whose thinking effort sets skips | `skills/thinking.md`, its `effort-set` patterns naming the models the gate lifts it for |
+| What the user types and what it starts | `skills/shortcuts.md`, and each command's file under `skills/commands/` |
+| How the thinking before a reply is written, which a model whose thinking effort sets skips | `skills/thinking.md`, its `effort-set` patterns naming the models it is left out for |
 | The shape of a reply to the user | `skills/reply.md` |
+| What a claim must rest on, for every agent | `skills/claims.md` |
 | One repository: its merge style, its CI, its glossary, its boot recipe | `projects/<repo>/AGENTS.md` |
 | How this workspace runs: which skill a task takes, where a finding is logged, what the session start does | `workspace.md` |
 | What this machine can do | No file. It is a command, see *Capabilities* in `workspace.md` |
@@ -134,22 +135,16 @@ one pass.
   what the block above already displays is the one to cut.
 - A table of contents at the head of a file a reader opens for one section,
   `skills/review.md` for one: one line per section naming the moment it is read.
-- A file whose sections fire at different moments declares its reader's set in
-  its frontmatter, `prompt-sections: [<heading>, ...]`, and the gate hands that
-  cut, rebuilt whenever the file changes, so the reader loads its own moment and
-  no other's. A heading the list names and the file has since renamed falls back
-  to the whole file. Split into a second file only where the sections are
-  separate documents to whoever edits them. `./scripts/skill <name>` prints the
-  path the gate hands over.
+- A file whose sections fire at different moments splits into a second file
+  only where the sections are separate documents to whoever edits them.
 - A subagent carries
   every `CLAUDE.md` import on every call, so only a file whose rules bind every
-  agent is imported, `skills/short-form.md` for its *Claims*; a file only the user's
+  agent is imported, `skills/claims.md`; a file only the user's
   chat needs comes whole through a SessionStart hook, which reaches that session
   and no subagent.
 - A subagent gets the skills its own artifact needs and no others. It answers
-  the parent and never the user, so the words the user types never reach it, and
-  the register it inherits through `CLAUDE.md` holds only for the *Claims* in `skills/short-form.md`,
-  which bind every agent: no dispatch prompt names either on top, and `reply.md`
+  the parent and never the user, so neither the words the user types nor the
+  register reaches it: no dispatch prompt names either, and `reply.md`
   is imported by nothing for that reason. A dispatch names the task
   skill, and `skills/writing-style.md` where the artifact is prose.
 
@@ -302,8 +297,10 @@ from it is measured here before it is trusted.
   Another session moves the pin mid-turn.
 - During other work, a rule that proves unclear, missing or wrong, or a step
   the work showed a skill should obviously have taken, is fixed in the skill in
-  that turn, unasked, per *Where it goes* and *The shape*, in a commit of its
-  own once the review loop below ends. Never offer the edit as a next step.
+  that turn only where it blocks the task or the user asks for that fix, per
+  *Where it goes* and *The shape*, in a commit of its own once the review below
+  ends. Any other goes on one line of the consumer's `TODO.md`, and the task
+  carries on.
 - A rule resting on a published result from outside this workspace gets that
   finding into `skills/knowledge/` in the same commit, per *Where it goes*.
 - A knob, a stage or a word that a change renames is grepped across `skills/`,
@@ -313,13 +310,15 @@ from it is measured here before it is trusted.
   root `AGENTS.md`, and fix what it reports rather than narrowing what it reads.
   It warns and never blocks: a rough rule lands, and a later pass fixes it.
 - **Before a change to a rule file, or a script or hook a rule names, is
-  pushed, review it in a loop.** Hand a fresh agent the diff and the change's
-  purpose, never the author's conclusions; it runs only commands that write
-  nothing and returns each defect with the command that shows it. Fix the real
-  defects and repeat with another fresh agent until the ones left are minor.
-  Until then the change stays uncommitted, overriding every same-turn commit
-  rule, and the reply to the Stop hook asking to commit `skills/` names the
-  open loop.
+  pushed, review it.** Hand a fresh agent the diff and the change's purpose,
+  never the author's conclusions; it runs only commands that write nothing and
+  returns each defect with the command that shows it. Fix what it finds. A
+  change moving what an agent may push, post or delete unasked takes a second
+  fresh pass over the fixed diff, unless the first found only minor defects;
+  any other takes the one pass. What the last pass finds is fixed, and the
+  change lands. Until then it stays uncommitted, overriding every same-turn
+  commit rule, and the reply to the Stop hook asking to commit `skills/` names
+  the open review.
 
 ## A deterministic step is a tool
 

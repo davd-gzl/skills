@@ -1,7 +1,7 @@
 # NOT AUDITED — AI-generated tooling. Review before executing in any privileged context.
 #
-# Behaviour of scripts/skill-gate.py: the path-to-skill map, the read record,
-# the refusal, and the parsing of a shell command for write targets.
+# Behaviour of scripts/skill-gate.py: the refusal of a command that publishes
+# without the user's slash command, and the pre-commit refusals.
 #
 #   python3 -m unittest discover -s skills/scripts/tests
 
@@ -46,381 +46,6 @@ class GateCase(unittest.TestCase):
         self.tmp.cleanup()
 
 
-class RequiredReads(GateCase):
-    def test_review_file_needs_review_output_style_and_delta(self):
-        got = gate.required_reads('projects/meet/reviews/1498-x/3-abc/review_claude_reviewer.md')
-        self.assertEqual(got, {'review', 'writing-style', 'meet'})
-
-    def test_overview_is_a_review_artifact(self):
-        got = gate.required_reads('projects/meet/reviews/1498-x/overview.md')
-        self.assertEqual(got, {'review', 'writing-style', 'meet'})
-
-    def test_comment_draft(self):
-        got = gate.required_reads('projects/meet/reviews/1498-x/3-abc/comment_claude.md')
-        self.assertEqual(got, {'review-comment', 'writing-style', 'meet'})
-
-    def test_issue_and_pr_body(self):
-        self.assertEqual(gate.required_reads('projects/meet/reviews/x/1-a/issue.md'),
-                         {'issue', 'writing-style', 'meet'})
-        self.assertEqual(gate.required_reads('projects/meet/changes/x/pr-body.md'),
-                         {'pr-body', 'writing-style', 'meet'})
-
-    def test_change_directory_files(self):
-        for name in ('plan.md', 'spec.md', 'README.md'):
-            self.assertEqual(gate.required_reads(f'projects/meet/changes/x/{name}'),
-                             {'change', 'writing-style', 'meet'}, name)
-
-    def test_rule_files_need_authoring(self):
-        self.assertEqual(gate.required_reads('AGENTS.md'), {'authoring'})
-        self.assertEqual(gate.required_reads('skills/review.md'), {'authoring'})
-        self.assertEqual(gate.required_reads('projects/meet/AGENTS.md'), {'authoring', 'meet'})
-
-    def test_a_shape_under_a_skill_reads_by_its_slashed_name(self):
-        (self.root / 'skills' / 'pr-body').mkdir()
-        (self.root / 'skills' / 'pr-body' / 'docs.md').write_text('# docs\n')
-        out = io.StringIO()
-        self.assertEqual(gate.cmd_read('pr-body/docs', out), 0)
-        self.assertEqual(out.getvalue(), '# docs\n')
-        self.assertTrue(gate.is_read('pr-body/docs'))
-        self.assertEqual(gate.cmd_read('skills/pr-body/docs.md', io.StringIO()), 1)
-
-    def test_a_skill_named_like_an_artifact_is_still_a_rule_file(self):
-        self.assertEqual(gate.required_reads('skills/issue.md'), {'authoring'})
-        self.assertEqual(gate.required_reads('skills/pr-body.md'), {'authoring'})
-        self.assertEqual(gate.required_reads('skills/pr-body/docs.md'), {'authoring'})
-        self.assertEqual(gate.required_reads('skills/archive/overview.md'), set())
-
-    def test_project_without_delta_needs_no_delta_read(self):
-        self.assertEqual(gate.required_reads('projects/bare/reviews/x/1-a/issue.md'),
-                         {'issue', 'writing-style'})
-
-    def test_unmapped_paths_need_nothing(self):
-        self.assertEqual(gate.required_reads('scripts/foo.py'), set())
-        self.assertEqual(gate.required_reads('skills/README.md'), set())
-        self.assertEqual(gate.required_reads('projects/meet/checkout/AGENTS.md'), {'meet'})
-
-    def test_checkout_code_needs_only_the_delta(self):
-        self.assertEqual(gate.required_reads('projects/meet/checkout/src/app.py'), {'meet'})
-
-    def test_a_project_context_rides_with_the_delta_and_is_a_rule_file(self):
-        (self.root / 'projects' / 'meet' / 'CONTEXT.md').write_text('# meet context\n')
-        self.assertEqual(gate.required_reads('projects/meet/checkout/src/app.py'), {'meet', 'meet/context'})
-        self.assertEqual(gate.required_reads('projects/meet/CONTEXT.md'), {'authoring', 'meet', 'meet/context'})
-        self.assertEqual(gate.required_reads('projects/meet/context-log.md'), {'authoring', 'meet', 'meet/context'})
-        self.assertEqual(gate.required_reads('projects/bare/reviews/x/1-a/issue.md'), {'issue', 'writing-style'})
-
-    def test_a_symlink_at_a_mapped_path_is_still_mapped(self):
-        link = self.root / 'projects/meet/changes/x/plan.md'
-        link.parent.mkdir(parents=True)
-        link.symlink_to('/tmp/elsewhere.md')
-        self.assertEqual(gate.required_reads(str(link)), {'change', 'writing-style', 'meet'})
-
-    def test_absolute_path_inside_root_is_relative(self):
-        got = gate.required_reads(str(self.root / 'projects/meet/changes/x/plan.md'))
-        self.assertEqual(got, {'change', 'writing-style', 'meet'})
-
-    def test_a_symlinked_ancestor_still_maps(self):
-        (self.root / 'projects/meet/changes/x').mkdir(parents=True)
-        link = pathlib.Path(self.tmp.name) / 'outlink'
-        link.symlink_to(self.root / 'projects/meet/changes/x')
-        self.assertEqual(gate.required_reads(str(link / 'plan.md')), {'change', 'writing-style', 'meet'})
-
-    def test_path_outside_root_needs_nothing(self):
-        self.assertEqual(gate.required_reads('/tmp/elsewhere/plan.md'), set())
-
-
-class SessionKey(GateCase):
-    def test_harness_session_id_wins(self):
-        self.assertEqual(gate.session_key(), 'session-a')
-
-    def test_without_harness_id_names_a_non_shell_ancestor(self):
-        os.environ.pop('CLAUDE_CODE_SESSION_ID')
-        key = gate.session_key()
-        self.assertRegex(key, r'^\d+-\d+$')
-        self.assertEqual(key, gate.session_key())
-        pid = int(key.split('-')[0])
-        self.assertNotIn(pathlib.Path(f'/proc/{pid}/comm').read_text().strip(), gate.PASS_THROUGH)
-
-
-class ReadRecord(GateCase):
-    PATH = 'projects/meet/reviews/1498-x/3-abc/comment_claude.md'
-
-    def test_nothing_read_means_every_read_missing(self):
-        self.assertEqual(gate.missing_reads(self.PATH), ['meet', 'review-comment', 'writing-style'])
-
-    def test_a_recorded_read_is_no_longer_missing(self):
-        gate.record_read('review-comment')
-        self.assertEqual(gate.missing_reads(self.PATH), ['meet', 'writing-style'])
-
-    def test_read_prints_the_file_whole(self):
-        out = io.StringIO()
-        with redirect_stdout(out):
-            rc = gate.main(['read', 'review-comment'])
-        self.assertEqual(rc, 0)
-        self.assertEqual(out.getvalue(), '# review-comment\n')
-
-    def test_read_resolves_a_project_delta(self):
-        out = io.StringIO()
-        with redirect_stdout(out):
-            gate.main(['read', 'meet'])
-        self.assertEqual(out.getvalue(), '# meet\n')
-        self.assertNotIn('meet', gate.missing_reads(self.PATH))
-
-    def test_read_resolves_a_project_context_by_its_slashed_name(self):
-        (self.root / 'projects' / 'meet' / 'CONTEXT.md').write_text('# meet context\n')
-        out = io.StringIO()
-        with redirect_stdout(out):
-            rc = gate.main(['read', 'meet/context'])
-        self.assertEqual((rc, out.getvalue()), (0, '# meet context\n'))
-        self.assertTrue(gate.is_read('meet/context'))
-        self.assertFalse(gate.is_read('bare/context'))
-
-    def test_a_name_with_a_slash_is_refused(self):
-        err = io.StringIO()
-        with redirect_stderr(err):
-            rc = gate.main(['read', 'skills/git'])
-        self.assertEqual(rc, 1)
-        self.assertIn('name', err.getvalue())
-        self.assertIn('git', gate.missing_reads('git') or ['git'])
-
-    def test_a_read_sent_to_dev_null_is_not_recorded(self):
-        with open(os.devnull, 'w') as sink:
-            rc = gate.main(['read', 'git'], stdout=sink)
-        self.assertEqual(rc, 1)
-        self.assertFalse(gate.is_read('git'))
-
-    def test_a_mapped_name_that_resolves_nowhere_is_not_read(self):
-        (self.root / 'skills' / 'git.md').unlink()
-        self.assertFalse(gate.is_read('git'))
-
-    def test_a_read_already_current_prints_one_line_not_the_file(self):
-        gate.record_read('git')
-        out = io.StringIO()
-        with redirect_stdout(out):
-            rc = gate.main(['read', 'git'])
-        self.assertEqual(rc, 0)
-        self.assertNotIn('# git', out.getvalue())
-        self.assertIn('unchanged', out.getvalue())
-        self.assertTrue(gate.is_read('git'))
-
-    def test_a_stale_read_prints_only_what_changed(self):
-        with redirect_stdout(io.StringIO()):
-            gate.main(['read', 'git'])
-        (self.root / 'skills' / 'git.md').write_text('# git\n\nA new rule another session added.\n')
-        self.assertFalse(gate.is_read('git'))
-        out = io.StringIO()
-        with redirect_stdout(out):
-            rc = gate.main(['read', 'git'])
-        self.assertEqual(rc, 0)
-        self.assertIn('+A new rule another session added.', out.getvalue())
-        self.assertIn('--- git as read', out.getvalue())
-        self.assertNotIn('# git\n\nA new rule', out.getvalue())
-        self.assertTrue(gate.is_read('git'))
-
-    def test_a_read_with_no_stored_copy_prints_the_whole_file(self):
-        gate.record_read('git')
-        for f in (self.root / '.skill-gate').rglob('*'):
-            if f.is_file():
-                f.unlink()
-        (self.root / 'skills' / 'git.md').write_text('# git\n\nchanged\n')
-        out = io.StringIO()
-        with redirect_stdout(out):
-            gate.main(['read', 'git'])
-        self.assertEqual(out.getvalue(), '# git\n\nchanged\n')
-
-    def test_a_stale_read_of_a_file_over_the_bash_bound_prints_its_diff(self):
-        big = '# review\n' + 'x\n' * gate.BASH_BOUND
-        (self.root / 'skills' / 'review.md').write_text(big)
-        gate.record_read('review')
-        (self.root / 'skills' / 'review.md').write_text(big + 'A new rule.\n')
-        out = io.StringIO()
-        rc = gate.main(['read', 'review'], stdout=out)
-        self.assertEqual(rc, 0)
-        self.assertIn('+A new rule.', out.getvalue())
-        self.assertTrue(gate.is_read('review'))
-
-    def test_a_file_over_the_bash_bound_is_named_not_printed(self):
-        (self.root / 'skills' / 'review.md').write_text('# review\n' + 'x' * (gate.BASH_BOUND + 1))
-        out = io.StringIO()
-        rc = gate.main(['read', 'review'], stdout=out)
-        self.assertEqual(rc, 0)
-        self.assertIn('Read', out.getvalue())
-        self.assertNotIn('xxxx', out.getvalue())
-        self.assertFalse(gate.is_read('review'))
-
-    def test_unknown_name_is_an_error(self):
-        err = io.StringIO()
-        with redirect_stderr(err):
-            rc = gate.main(['read', 'nope'])
-        self.assertEqual(rc, 1)
-        self.assertIn('nope', err.getvalue())
-
-    def test_editing_the_skill_invalidates_the_read(self):
-        gate.record_read('writing-style')
-        self.assertNotIn('writing-style', gate.missing_reads(self.PATH))
-        (self.root / 'skills' / 'writing-style.md').write_text('# writing-style, edited\n')
-        self.assertIn('writing-style', gate.missing_reads(self.PATH))
-
-    def test_another_session_does_not_inherit_the_read(self):
-        gate.record_read('writing-style')
-        os.environ['CLAUDE_CODE_SESSION_ID'] = 'session-b'
-        self.assertIn('writing-style', gate.missing_reads(self.PATH))
-
-
-class Check(GateCase):
-    PATH = 'projects/meet/changes/x/pr-body.md'
-
-    def test_names_the_reads_to_run_and_lets_it_through(self):
-        err = io.StringIO()
-        with redirect_stderr(err):
-            rc = gate.main(['check', self.PATH])
-        self.assertEqual(rc, 0)
-        self.assertEqual(err.getvalue().splitlines(), [
-            f'Run ./scripts/skill meet before writing {self.PATH}',
-            f'Run ./scripts/skill pr-body before writing {self.PATH}',
-            f'Run ./scripts/skill writing-style before writing {self.PATH}',
-        ])
-
-    def test_passes_once_every_read_is_recorded(self):
-        for name in ('meet', 'pr-body', 'writing-style'):
-            gate.record_read(name)
-        self.assertEqual(gate.main(['check', self.PATH]), 0)
-
-    def test_git_pseudo_path_needs_the_git_skill_and_the_workspace_file(self):
-        err = io.StringIO()
-        with redirect_stderr(err):
-            rc = gate.main(['check', 'git'])
-        self.assertEqual(rc, 0)
-        self.assertEqual(err.getvalue().splitlines(), [
-            'Run ./scripts/skill git before a commit or push',
-            'Run ./scripts/skill workspace before a commit or push'])
-        gate.record_read('git')
-        gate.record_read('workspace')
-        self.assertEqual(gate.main(['check', 'git']), 0)
-
-    def test_a_root_file_resolves_by_name(self):
-        out = io.StringIO()
-        with redirect_stdout(out):
-            self.assertEqual(gate.main(['read', 'workspace']), 0)
-        self.assertEqual(out.getvalue(), '# workspace\n')
-
-
-class BashTargets(unittest.TestCase):
-    def test_any_written_path_is_a_target(self):
-        self.assertEqual(gate.bash_targets('echo x > projects/meet/checkout/src/app.py'), {'projects/meet/checkout/src/app.py'})
-        self.assertEqual(gate.bash_targets('cp /tmp/x projects/meet/checkout/src/app.py 2>/dev/null'), {'projects/meet/checkout/src/app.py'})
-
-    def test_quoted_redirect_target(self):
-        self.assertEqual(gate.bash_targets('cat > "projects/meet/changes/my change/plan.md" <<EOF\nx\nEOF'), {'projects/meet/changes/my change/plan.md'})
-
-    def test_cd_carries_into_later_segments(self):
-        self.assertEqual(gate.bash_targets('cd projects/meet/changes/x && cat > pr-body.md <<EOF\nx\nEOF'), {'projects/meet/changes/x/pr-body.md'})
-
-    def test_heredoc_body_is_not_a_command(self):
-        self.assertEqual(gate.bash_targets("cat > /tmp/notes.txt <<'EOF'\necho hi > projects/a/changes/s/plan.md\nEOF"), {'/tmp/notes.txt'})
-
-    def test_script_runner_heredoc_names_the_files_it_writes(self):
-        cmd = "python3 - <<'EOF'\nimport pathlib\npathlib.Path('projects/meet/changes/x/plan.md').write_text('x')\nEOF"
-        self.assertEqual(gate.bash_targets(cmd), {'projects/meet/changes/x/plan.md'})
-
-    def test_a_fixture_string_in_an_inline_script_is_not_a_write(self):
-        cmd = ("python3 - <<'EOF'\nprefixes = ['- `skills/review.md` rule', 'projects/meet/changes/x/plan.md']\n"
-               "assert 'projects/meet/AGENTS.md' not in prefixes\np = 'TODO.md'\nopen(p, 'w').write('x')\nEOF")
-        self.assertEqual(gate.bash_targets(cmd), set())
-        cmd = "python3 - <<'EOF'\nnames = ['projects/meet/AGENTS.md']\nopen('projects/meet/changes/x/plan.md', 'w').write('x')\nEOF"
-        self.assertEqual(gate.bash_targets(cmd), {'projects/meet/changes/x/plan.md'})
-
-    def test_git_writers_and_prefixed_git(self):
-        self.assertEqual(gate.bash_targets('git mv a.md projects/a/changes/s/spec.md'), {'projects/a/changes/s/spec.md'})
-        self.assertEqual(gate.bash_targets('git -C skills commit -m x'), {'git'})
-        self.assertEqual(gate.bash_targets('/usr/bin/git -c a=b push'), {'git'})
-        self.assertEqual(gate.bash_targets('command git merge topic'), {'git'})
-        self.assertEqual(gate.bash_targets('git rebase --continue'), {'git'})
-        self.assertEqual(gate.bash_targets('git cherry-pick abc'), {'git'})
-        self.assertEqual(gate.bash_targets('git commit --no-verify -m x'), {'git'})
-        self.assertEqual(gate.bash_targets('bash scripts/sync-push.sh s p'), {'git'})
-
-    def test_one_liners_name_the_files_they_write(self):
-        self.assertEqual(gate.bash_targets("""python3 -c "open('projects/meet/changes/x/plan.md','w').write('x')\""""), {'projects/meet/changes/x/plan.md'})
-        self.assertEqual(gate.bash_targets("""python3 -c 'import sys; open("projects/meet/changes/x/plan.md","w").write(sys.argv[0])'"""), {'projects/meet/changes/x/plan.md'})
-        self.assertEqual(gate.bash_targets("""node -e "require('fs').writeFileSync('projects/meet/changes/x/plan.md', 'x')\""""), {'projects/meet/changes/x/plan.md'})
-
-    def test_a_script_file_run_with_a_path_argument_is_not_a_write(self):
-        self.assertEqual(gate.bash_targets('python3 scripts/prose-check.py "projects/meet/changes/x/pr-body.md"'), set())
-
-    def test_wrappers_and_prefixes(self):
-        self.assertEqual(gate.bash_targets('GIT_AUTHOR_NAME=x git commit -m y'), {'git'})
-        self.assertEqual(gate.bash_targets('env FOO=1 tee projects/a/changes/s/plan.md'), {'projects/a/changes/s/plan.md'})
-        self.assertEqual(gate.bash_targets('sudo -u ci tee projects/a/changes/s/plan.md'), {'projects/a/changes/s/plan.md'})
-        self.assertEqual(gate.bash_targets("bash -c 'tee projects/a/changes/s/plan.md < /tmp/x'"), {'projects/a/changes/s/plan.md'})
-        self.assertEqual(gate.bash_targets("bash <<'EOF'\necho x > projects/a/changes/s/plan.md\nEOF"), {'projects/a/changes/s/plan.md'})
-        self.assertEqual(gate.bash_targets("find . -name x | xargs sed -i 's/a/b/' projects/a/changes/s/plan.md"), {'projects/a/changes/s/plan.md'})
-        self.assertEqual(gate.bash_targets("sed -Ei 's/a/b/' projects/a/changes/s/plan.md"), {'projects/a/changes/s/plan.md'})
-
-    def test_here_string_is_not_a_heredoc(self):
-        self.assertEqual(gate.bash_targets('cat <<< hello\necho x > projects/a/changes/s/plan.md'), {'projects/a/changes/s/plan.md'})
-
-    def test_input_redirect_is_not_a_target(self):
-        self.assertEqual(gate.bash_targets('tee -a skills/review.md < projects/a/changes/s/plan.md'), {'skills/review.md'})
-
-    def test_perl_module_flag_is_not_in_place(self):
-        self.assertEqual(gate.bash_targets("perl -Mstrict -e 'print 1' skills/review.md"), set())
-
-    def test_an_unresolvable_cd_resets_the_base(self):
-        self.assertEqual(gate.bash_targets('cd "$(git rev-parse --show-toplevel)" && echo x > projects/a/changes/s/plan.md'), {'projects/a/changes/s/plan.md'})
-
-    def test_a_branch_put_in_a_tree_reads_git_and_a_restore_names_its_paths(self):
-        for cmd in ('git checkout -q -b topic', 'git checkout fix', 'git switch -c fix', 'git -C c worktree add /w/x origin/fix',
-                    'git worktree add -b fix /w/x 0123abc', 'git clone https://github.com/o/r', 'gh pr checkout 5 -R o/r',
-                    'gh repo clone o/r', 'git switch --create fix 0123abc', 'git checkout 0123abc', 'gh pr co 5'):
-            self.assertEqual(gate.bash_targets(cmd), {'checkout'}, cmd)
-        for cmd in ('git worktree list', 'gh pr view 5', 'git -C /s/head worktree add --detach /s/judge-1 0123abc',
-                    'git -C c checkout -q --detach 0123abc', 'git switch -d 0123abc', 'git checkout -d',
-                    'gh pr checkout 5 --detach'):
-            self.assertEqual(gate.bash_targets(cmd), set(), cmd)
-        self.assertEqual(gate.check(['checkout']), ['Run ./scripts/skill git before checking out a branch'])
-        self.assertEqual(gate.bash_targets('git checkout -- projects/a/changes/s/plan.md'), {'projects/a/changes/s/plan.md'})
-        self.assertEqual(gate.bash_targets('git restore --staged skills/review.md'), set())
-        self.assertEqual(gate.bash_targets('git restore skills/review.md'), {'skills/review.md'})
-        self.assertEqual(gate.bash_targets('git pull'), {'git'})
-
-    def test_more_writers(self):
-        self.assertEqual(gate.bash_targets('dd if=/tmp/x of=projects/a/changes/s/plan.md'), {'projects/a/changes/s/plan.md'})
-        self.assertEqual(gate.bash_targets("perl -pi -e 's/a/b/' projects/a/changes/s/plan.md"), {'projects/a/changes/s/plan.md'})
-        self.assertEqual(gate.bash_targets("sed --in-place 's/a/b/' projects/a/changes/s/plan.md"), {'projects/a/changes/s/plan.md'})
-        self.assertEqual(gate.bash_targets('echo x >| projects/a/changes/s/plan.md'), {'projects/a/changes/s/plan.md'})
-
-    def test_redirect_and_heredoc(self):
-        cmd = "mkdir -p projects/meet/changes/x && cat > projects/meet/changes/x/pr-body.md <<'EOF'\nhi\nEOF"
-        self.assertEqual(gate.bash_targets(cmd), {'projects/meet/changes/x/pr-body.md'})
-
-    def test_append_tee_sed_cp_mv(self):
-        self.assertEqual(gate.bash_targets('echo x >> projects/a/reviews/s/1-a/issue.md'),
-                         {'projects/a/reviews/s/1-a/issue.md'})
-        self.assertEqual(gate.bash_targets('printf x | tee projects/a/changes/s/plan.md'),
-                         {'projects/a/changes/s/plan.md'})
-        self.assertEqual(gate.bash_targets("sed -i 's/a/b/' projects/a/reviews/s/1-a/comment_c.md"),
-                         {'projects/a/reviews/s/1-a/comment_c.md'})
-        self.assertEqual(gate.bash_targets('cp /tmp/x projects/a/changes/s/spec.md'),
-                         {'projects/a/changes/s/spec.md'})
-        self.assertEqual(gate.bash_targets('mv /tmp/x skills/review.md'), {'skills/review.md'})
-
-    def test_a_read_only_command_has_no_target(self):
-        self.assertEqual(gate.bash_targets('grep foo projects/a/reviews/s/1-a/comment_c.md'), set())
-        self.assertEqual(gate.bash_targets('cat skills/review.md'), set())
-
-    def test_a_syntax_check_of_the_push_script_is_not_a_push(self):
-        self.assertEqual(gate.bash_targets('bash -n scripts/sync-push.sh && echo ok'), set())
-        self.assertEqual(gate.bash_targets('cat scripts/sync-push.sh'), set())
-        self.assertEqual(gate.bash_targets('bash scripts/sync-push.sh s p'), {'git'})
-
-    def test_commit_and_push_name_git(self):
-        self.assertEqual(gate.bash_targets('git add -A && git commit -m x'), {'git'})
-        self.assertEqual(gate.bash_targets('git push origin HEAD:main'), {'git'})
-        self.assertEqual(gate.bash_targets("./scripts/sync-push.sh 'subject' projects/a"), {'git'})
-        self.assertEqual(gate.bash_targets('git log -1'), set())
-
-
 class ClaudeHook(GateCase):
     def test_a_malformed_payload_warns_and_lets_it_through(self):
         err = io.StringIO()
@@ -436,35 +61,6 @@ class ClaudeHook(GateCase):
         text = out.getvalue()
         return rc, json.loads(text)['hookSpecificOutput']['additionalContext'] if text else ''
 
-    def test_a_checkout_names_git_alone(self):
-        rc, context = self.run_hook({'tool_name': 'Bash', 'tool_input': {'command': 'git checkout fix'},
-                                     'cwd': str(self.root)})
-        self.assertEqual(rc, 0)
-        self.assertIn('skills/git.md', context)
-        self.assertNotIn('workspace.md', context)
-
-    def test_write_of_an_unread_artifact_names_its_skills_by_path(self):
-        rc, context = self.run_hook({'tool_name': 'Write', 'tool_input': {
-            'file_path': str(self.root / 'projects/meet/changes/x/spec.md')}})
-        self.assertEqual(rc, 0)
-        for piece in ('skills/change.md', 'skills/writing-style.md', 'projects/meet/AGENTS.md', 'the write goes ahead'):
-            self.assertIn(piece, context)
-        self.assertNotIn('# change', context)
-        for name in ('change', 'writing-style', 'meet'):
-            self.assertFalse(gate.is_read(name), name)
-
-    def test_edit_after_the_reads_passes(self):
-        for name in ('meet', 'change', 'writing-style'):
-            gate.record_read(name)
-        rc, context = self.run_hook({'tool_name': 'Edit', 'tool_input': {
-            'file_path': str(self.root / 'projects/meet/changes/x/spec.md')}})
-        self.assertEqual((rc, context), (0, ''))
-
-    def test_bash_write_is_parsed(self):
-        rc, context = self.run_hook({'tool_name': 'Bash', 'tool_input': {
-            'command': 'cat > projects/meet/reviews/x/1-a/issue.md <<EOF\nx\nEOF'}})
-        self.assertEqual(rc, 0)
-        self.assertIn('skills/issue.md', context)
 
     def test_other_tools_pass(self):
         rc, _ = self.run_hook({'tool_name': 'Read', 'tool_input': {'file_path': 'x'}})
@@ -475,10 +71,16 @@ class PublishWords(GateCase):
     """A publish, a push outside the standing list, a forced push and an AI marker wait for their word."""
 
     def turn(self, prompt, queued=()):
+        """A transcript whose last turn opens on `prompt`; one opening on `/` is a slash command, recorded as the
+        harness records one: `/p d` as <command-name>/p</command-name> and <command-args>d</command-args>."""
         path = self.root / 'transcript.jsonl'
+        if prompt.startswith('/'):
+            name, _, args = prompt.partition(' ')
+            prompt = (f'<command-message>{name[1:]}</command-message>\n<command-name>{name}</command-name>\n'
+                      f'<command-args>{args}</command-args>')
         rows = [{'type': 'user', 'message': {'role': 'user', 'content': 'an earlier turn: post'}},
                 {'type': 'assistant', 'message': {'role': 'assistant', 'content': []}},
-                {'type': 'user', 'message': {'role': 'user', 'content': prompt}},
+                {'type': 'user', 'message': {'role': 'user', 'content': prompt}, 'origin': {'kind': 'human'}},
                 {'type': 'user', 'message': {'role': 'user', 'content': [{'type': 'tool_result', 'content': 'post'}]}}]
         rows += [{'type': 'attachment', 'attachment': {'type': 'queued_command', 'prompt': q, 'origin': {'kind': 'human'}}}
                  for q in queued]
@@ -499,60 +101,75 @@ class PublishWords(GateCase):
         subprocess.run(['git', '-C', str(repo), 'remote', 'add', 'origin', url], check=True)
         return str(repo)
 
-    def test_a_post_waits_for_the_word_in_this_turn_only(self):
+    def test_a_post_waits_for_the_command_in_this_turn_only(self):
         post = 'gh pr comment 5 -R o/r -b hi'
         self.assertEqual(self.hook(post)[0], 2, 'the word in an earlier turn or in a tool result is not the word')
-        self.assertEqual(self.hook(post, prompt='post it')[0], 0)
-        self.assertEqual(self.hook(post, queued=['post'])[0], 0, 'a message queued into the turn carries it')
+        self.assertEqual(self.hook(post, prompt='/post')[0], 0)
+        self.assertEqual(self.hook(post, prompt='/post as ai')[0], 0, 'an argument that is no command changes nothing')
+        self.assertEqual(self.hook(post, queued=['/post'])[0], 0, 'a command queued into the turn carries it')
+        self.assertEqual(self.hook(post, queued=['post'])[0], 2, 'a queued word without its slash gives nothing')
         self.assertEqual(self.hook(post, prompt='ok go')[0], 2, 'a vague yes authorises nothing')
 
-    def test_review_as_ai_carries_the_post_of_its_draft(self):
-        post = './scripts/post-review.sh r/comment_m.md --as-ai'
-        self.assertEqual(self.hook(post, prompt='review as ai https://github.com/o/r/pull/5')[0], 0)
-        self.assertEqual(self.hook(post, prompt='deep review as an AI o/r#5')[0], 0, 'a preset in front keeps it')
-        self.assertEqual(self.hook(post, prompt='rai https://github.com/o/r/pull/5')[0], 0, 'rai is the same word')
-        self.assertEqual(self.hook(post, prompt='quick rai o/r#5')[0], 0)
-        self.assertEqual(self.hook(post, prompt='braid o/r#5')[0], 2, 'rai inside a word gives nothing')
-        self.assertEqual(self.hook(post, prompt='rai gno 105')[0], 0, 'any target shape')
-        self.assertEqual(self.hook(post, prompt='/rai 105')[0], 0, 'leading punctuation, as prompt_reads strips it')
-        for stray in ('what does rai mean', 'edit rai.md', 'see /x/rai/foo', 'sudo rai', 'RAI', 'fix this\nrai o/r#5',
-                      'rai 105?'):
-            self.assertEqual(self.hook(post, prompt=stray)[0], 2, f'{stray!r}: rai not opening the message gives nothing')
-        self.assertEqual(self.hook(post, prompt='review https://github.com/o/r/pull/5')[0], 2, 'a plain review posts nothing')
-        self.assertEqual(self.hook(post, prompt="don't review as ai yet")[0], 2, 'a negation gives nothing')
-        self.assertEqual(self.hook('gh pr merge 5', prompt='review as ai o/r#5')[0], 2, 'it carries the post alone')
-
-    def test_a_letter_alone_is_its_word_and_push_sends_it_all(self):
+    def test_typed_prose_gives_nothing(self):
         post = 'gh pr comment 5 -R o/r -b hi'
-        self.assertEqual(self.hook(post, prompt='p')[0], 0, 'p alone is the word')
-        self.assertEqual(self.hook(post, prompt=' P \n')[0], 0, 'case and spaces aside')
-        self.assertEqual(self.hook(post, prompt='push')[0], 0, 'push sends the post it names')
-        self.assertEqual(self.hook(post, prompt='a p in a sentence')[0], 2, 'a letter inside prose is no word')
-        self.assertEqual(self.hook(post, prompt='m')[0], 2, 'merge does not post')
-        self.assertEqual(self.hook('gh pr merge 5', prompt='m')[0], 0)
-        self.assertEqual(self.hook('gh pr merge 5', prompt='p')[0], 2, 'p does not merge')
+        for prose in ('post', 'p', 'push', 'p d', 'PR 10 needs a rebase', 'Open questions', 'rai o/r#5',
+                      'fix it\n/p', '<command-name>/p</command-name> in a sentence', 'see /p'):
+            self.assertEqual(self.hook(post, prompt=prose)[0], 2, f'{prose!r}: typed prose is no command')
 
-    def test_several_letters_on_one_line_each_give_their_word(self):
+    def test_rai_carries_the_post_of_its_draft(self):
+        post = './scripts/post-review.sh r/comment_m.md --as-ai'
+        self.assertEqual(self.hook(post, prompt='/rai https://github.com/o/r/pull/5')[0], 0)
+        self.assertEqual(self.hook('gh pr merge 5', prompt='/rai o/r#5')[0], 2, 'it carries the post alone')
+        self.assertEqual(self.hook(post, prompt='/review https://github.com/o/r/pull/5')[0], 2, 'a review posts nothing')
+
+    def test_fai_carries_the_push_and_the_replies(self):
+        self.assertEqual(self.hook('gh pr comment 5 -R o/r -b hi', prompt='/fai o/r#5')[0], 0)
+        self.assertEqual(self.hook('gh pr merge 5', prompt='/fai o/r#5')[0], 2, 'it merges nothing')
+        self.assertEqual(self.hook('gh pr comment 5 -R o/r -b hi', prompt='fix as ai o/r#5')[0], 2, 'typed prose gives nothing')
+
+    def test_each_command_gives_its_word_and_p_sends_it_all(self):
+        post = 'gh pr comment 5 -R o/r -b hi'
+        self.assertEqual(self.hook(post, prompt='/p')[0], 0, '/p sends the post it names')
+        self.assertEqual(self.hook(post, prompt='/rlp')[0], 0, '/rlp sends what /p sends')
+        self.assertEqual(self.hook(post, prompt='/m')[0], 2, 'merge does not post')
+        self.assertEqual(self.hook('gh pr merge 5', prompt='/m')[0], 0)
+        self.assertEqual(self.hook('gh pr merge 5', prompt='/p')[0], 2, '/p does not merge')
+        self.assertEqual(self.hook('gh pr close 5', prompt='/x')[0], 0)
+        self.assertEqual(self.hook('gh pr ready 79 -R o/r', prompt='/o')[0], 0)
+
+    def test_arguments_that_are_commands_give_their_words(self):
         delete = 'git push origin --delete old-branch'
-        self.assertEqual(self.hook(delete, prompt='p d')[0], 0, 'a line of letters gives every word on it')
-        self.assertEqual(self.hook(delete, prompt='pd')[0], 0, 'letters typed together give each word')
-        self.assertEqual(self.hook(delete, prompt='p, d')[0], 0, 'a comma between letters is no prose')
-        self.assertEqual(self.hook(delete, prompt='p')[0], 2, 'p alone does not delete')
-        self.assertEqual(self.hook(delete, prompt='pd is next')[0], 2, 'letters opening prose are no word')
-        self.assertEqual(self.hook('gh pr merge 5', prompt='e m')[0], 0, 'a coined letter beside m leaves m its word')
-        self.assertEqual(self.hook('gh pr close 5', prompt='x')[0], 0)
-        self.assertEqual(self.hook('gh pr comment 5 -b hi', prompt='ok')[0], 2)
+        self.assertEqual(self.hook(delete, prompt='/p d')[0], 0, 'every argument a command gives its word')
+        self.assertEqual(self.hook(delete, prompt='/p')[0], 2, '/p alone does not delete')
+        self.assertEqual(self.hook(delete, prompt='/p d please')[0], 2, 'an argument that is no command voids the rest')
+        self.assertEqual(self.hook(delete, prompt='/p /d')[0], 0, 'an argument keeps its slash or drops it')
+        for other in ('/model d', '/simplify d', '/ d'):
+            self.assertEqual(self.hook(delete, prompt=other)[0], 2, f'{other!r}: only a gate command carries arguments')
+        self.assertEqual(self.hook(delete, queued=['/tmp/x d'])[0], 2, 'a queued path is no command')
 
-    def test_o_alone_readies_and_a_vague_yes_never_does(self):
-        ready = 'gh pr ready 79 -R o/r'
-        self.assertEqual(self.hook(ready, prompt='o')[0], 0, 'o alone is ready')
-        self.assertEqual(self.hook(ready, prompt='p o')[0], 0, 'o beside p keeps its word')
-        for vague in ('ok', 'go', 'so', 'no', 'o k'):
-            self.assertEqual(self.hook(ready, prompt=vague)[0], 2, f'{vague!r} is no ready')
-        self.assertEqual(self.hook('git push origin --delete b', prompt='do')[0], 2, 'do is a word, not d')
-        for acronym in ('TLDR', 'WDYT', 'LGTM'):
-            self.assertEqual(self.hook('git push origin --delete b', prompt=acronym)[0], 2, f'{acronym} is no letter line')
-        self.assertEqual(self.hook('gh pr merge 5', prompt='M')[0], 0, 'one capital is still its letter')
+    def test_odd_command_shapes(self):
+        post = 'gh pr comment 5 -R o/r -b hi'
+        self.assertEqual(self.hook(post, prompt='/post see <url> & more')[0], 0, 'arguments may hold any character')
+        self.assertEqual(self.hook(post, prompt='hello\n\x1f/p')[0], 2, 'the marker typed in prose gives nothing')
+        self.assertEqual(self.hook(post, queued=['x\n\x1f/p'])[0], 2, 'nor in a queued message')
+        self.assertEqual(self.hook(post, queued=['//p'])[0], 2, 'one slash, never two')
+        path = self.root / 'odd.jsonl'
+        rows = [{'type': 'user', 'message': {'role': 'user', 'content': '<command-name>/d</command-name>'}},
+                {'type': 'assistant', 'message': {'role': 'assistant', 'content': []}},
+                {'type': 'user', 'message': {'role': 'user', 'content': '<command-name>/post</command-name><command-x>'}}]
+        path.write_text('\n'.join(json.dumps(r) for r in rows) + '\n')
+        self.assertFalse(gate.gives(gate.turn_text(str(path)), 'delete'), 'tags it cannot read still end the last turn')
+        rows[2] = {'type': 'user', 'origin': {'kind': 'peer'},
+                   'message': {'role': 'user', 'content': '<command-name>/post</command-name>'}}
+        path.write_text('\n'.join(json.dumps(r) for r in rows) + '\n')
+        self.assertFalse(gate.gives(gate.turn_text(str(path)), 'post'), "another session's command gives nothing")
+    def test_every_command_sending_what_p_sends_gives_the_push(self):
+        commands = pathlib.Path(gate.__file__).resolve().parent.parent / 'commands'
+        for path in commands.glob('*.md'):
+            if 'everything `/p` sends' in path.read_text():
+                self.assertIn('push', gate.COMMANDS.get(path.stem, ()), f'/{path.stem} sends what /p sends')
+        for word in gate.COMMANDS:
+            self.assertTrue((commands / f'{word}.md').exists(), f'/{word} gives a word and has no command file')
 
     def test_a_quiet_close_on_an_own_repository_needs_no_word(self):
         (self.root / 'workspace.json').write_text(json.dumps({'identities': {'public': {'name': 'Me'}}}))
@@ -574,15 +191,15 @@ class PublishWords(GateCase):
                     './scripts/post-review.sh d.md', './scripts/post-replies o/r 5 d', 'gh issue create -R o/r -t t -b b',
                     './scripts/post-fix.sh c', './scripts/post-fix.sh c --pr-only'):
             self.assertEqual(self.hook(cmd)[0], 2, cmd)
-        self.assertEqual(self.hook('gh pr merge 5', prompt='post')[0], 2, 'a merge takes merge, not post')
+        self.assertEqual(self.hook('gh pr merge 5', prompt='/post')[0], 2, 'a merge takes merge, not post')
         for cmd in ('gh api -X DELETE repos/o/r/issues/5/labels/class:hardfork',
                     'gh api -X DELETE repos/o/r/pulls/5/requested_reviewers -f "reviewers[]=a"'):
-            self.assertEqual(self.hook(cmd, prompt='post')[0], 0, f'taking a label off is an edit: {cmd}')
-        self.assertEqual(self.hook('gh api -X DELETE repos/o/r/labels/bug', prompt='post')[0], 2, 'deleting a label is a delete')
-        self.assertEqual(self.hook('gh pr merge 5', prompt='merge 5')[0], 0)
+            self.assertEqual(self.hook(cmd, prompt='/post')[0], 0, f'taking a label off is an edit: {cmd}')
+        self.assertEqual(self.hook('gh api -X DELETE repos/o/r/labels/bug', prompt='/post')[0], 2, 'deleting a label is a delete')
+        self.assertEqual(self.hook('gh pr merge 5', prompt='/m')[0], 0)
 
     def test_an_ai_marker_is_refused_whatever_the_turn_says(self):
-        rc, err = self.hook('git commit -m "fix\n\nCo-Authored-By: Claude <noreply@anthropic.com>"', prompt='post push')
+        rc, err = self.hook('git commit -m "fix\n\nCo-Authored-By: Claude <noreply@anthropic.com>"', prompt='/p post')
         self.assertEqual(rc, 2)
         self.assertIn('Invariant 7', err)
 
@@ -593,24 +210,18 @@ class PublishWords(GateCase):
         shutil.rmtree(self.root / 'r')
         other = self.repo('https://github.com/me/public.git')
         self.assertEqual(self.hook(f'git -C {other} push origin HEAD:main')[0], 2)
-        self.assertEqual(self.hook(f'git -C {other} push origin HEAD:main', prompt='push')[0], 0)
+        self.assertEqual(self.hook(f'git -C {other} push origin HEAD:main', prompt='/p')[0], 0)
 
     def test_a_forced_push_waits_for_force_even_on_a_standing_repo(self):
         (self.root / 'workspace.json').write_text(json.dumps({'standing_push': ['me/private']}))
         mine = self.repo('https://github.com/me/private.git')
-        self.assertEqual(self.hook(f'git -C {mine} push --force origin HEAD:main', prompt='push')[0], 2)
-        self.assertEqual(self.hook(f'git -C {mine} push origin +HEAD:main', prompt='push')[0], 2)
-        self.assertEqual(self.hook(f'git -C {mine} push --force origin HEAD:main', prompt='push, force it')[0], 0)
+        self.assertEqual(self.hook(f'git -C {mine} push --force origin HEAD:main', prompt='/p')[0], 2)
+        self.assertEqual(self.hook(f'git -C {mine} push origin +HEAD:main', prompt='/p')[0], 2)
+        self.assertEqual(self.hook(f'git -C {mine} push --force origin HEAD:main', prompt='/pf')[0], 0)
         lease = f'git -C {mine} push --force-with-lease origin HEAD:main'
-        self.assertEqual(self.hook(lease, prompt='push --force-with-lease')[0], 0, 'the flag spelled out approves it')
-        self.assertEqual(self.hook(lease, prompt='push --force')[0], 0)
-        self.assertEqual(self.hook(lease, prompt="push, don't --force-with-lease")[0], 2)
-        # the shortcut table's `pf`, alone on its line, is the same word
-        self.assertEqual(self.hook(lease, prompt='pf')[0], 0)
-        self.assertEqual(self.hook(lease, prompt='p f')[0], 0)
-        self.assertEqual(self.hook(lease, prompt='p')[0], 2, 'a bare push forces nothing')
-        self.assertEqual(self.hook(lease, prompt='the pf files')[0], 2, 'letters inside a sentence give no word')
-        self.assertEqual(self.hook('gh pr merge 5', prompt='check the merge-base')[0], 2, 'merge-base is still not merge')
+        for phrase in ('pf', '/p --force', '/p f'):
+            self.assertEqual(self.hook(lease, prompt=phrase)[0], 2, f'{phrase!r}: one command per action, /pf')
+        self.assertEqual(self.hook(lease, prompt='/pf')[0], 0)
 
     def test_a_retry_after_an_api_error_keeps_the_dead_turn_word(self):
         path = self.root / 'retry.jsonl'
@@ -630,15 +241,10 @@ class PublishWords(GateCase):
         self.assertNotIn('merge 69', turn(user('merge 69'), replied, user('Try again')), 'a finished turn ends its word')
         self.assertNotIn('merge 69', turn(user('merge 69'), died, user('fix the test')), 'only a retry resumes it')
 
-    def test_a_verb_held_by_before_or_until_gives_no_word(self):
-        for text in ('I want to verify before you push', 'wait until I post', 'check the diff till you merge'):
-            word = next(w for w in ('push', 'post', 'merge') if w in text)
-            self.assertFalse(gate.has_word(text, word), text)
-        self.assertTrue(gate.has_word('fix and review and push', 'push'))
-        self.assertTrue(gate.has_word('push before you merge', 'push'))
-        self.assertFalse(gate.has_word('push before you merge', 'merge'))
-        self.assertTrue(gate.has_word('before you merge, push', 'push'), 'a comma ends the held clause')
-        self.assertEqual(self.hook('gh pr merge 5', prompt='review it before you merge')[0], 2)
+    def test_only_a_command_line_gives_a_word(self):
+        for text in ('I want to verify before you push', 'post', '/post', 'fix it\n/m'):
+            self.assertFalse(gate.gives(text, 'post') or gate.gives(text, 'merge'), text)
+        self.assertTrue(gate.gives(gate.COMMAND + '/post \nall good?', 'post'), 'a question beside it keeps it')
 
     def test_a_question_asked_while_the_work_runs_keeps_the_word(self):
         path = self.root / 'asked.jsonl'
@@ -715,11 +321,12 @@ class PublishWordsEdges(PublishWords):
         def relayed(content):
             return {'type': 'user', 'turnOrigin': 'sdk', 'message': {'role': 'user', 'content': content}}
 
-        blocks = [{'type': 'text', 'text': reminder}, {'type': 'text', 'text': 'post'}]
-        for row in (typed(reminder + 'post'), typed(blocks), typed(quoting + reminder + 'post')):
+        post = '<command-name>/post</command-name>\n<command-args></command-args>'
+        blocks = [{'type': 'text', 'text': reminder}, {'type': 'text', 'text': post}]
+        for row in (typed(reminder + post), typed(blocks), typed(quoting + reminder + post)):
             self.assertTrue(gate.gives(turn(row), 'post'), row)
         self.assertEqual(turn(typed(quoting + 'fix the test')), 'fix the test', 'a reminder is never read for a word')
-        self.assertFalse(gate.gives(turn(typed('post'), typed(reminder + 'all good?')), 'post'),
+        self.assertFalse(gate.gives(turn(typed(post), typed(reminder + 'all good?')), 'post'),
                          'a typed message after a reminder opens its own turn')
 
         for row in (typed(reminder), typed(quoting), relayed(quoting), typed(quoting.replace('</system-reminder>', ''))):
@@ -842,25 +449,25 @@ class PublishWordsEdges(PublishWords):
 
     def test_every_publish_on_the_line_needs_its_own_word(self):
         both = 'gh pr comment 5 -b x && gh pr merge 5'
-        self.assertEqual(self.hook(both, prompt='post')[0], 2)
-        self.assertEqual(self.hook(both, prompt='post and merge')[0], 0)
-        self.assertEqual(self.hook('gh pr comment 5 -b x', prompt="don't post anything yet")[0], 2)
+        self.assertEqual(self.hook(both, prompt='/post')[0], 2)
+        self.assertEqual(self.hook(both, prompt='/post m')[0], 0)
+        self.assertEqual(self.hook(both, prompt='/post and m')[0], 2, 'an argument that is no command voids the rest')
 
     def test_combined_force_flags_and_mirror_are_forced(self):
         (self.root / 'workspace.json').write_text(json.dumps({'standing_push': ['me/private']}))
         mine = self.repo('https://github.com/me/private.git')
         for flag in ('-fu', '-uf', '--mirror'):
-            self.assertEqual(self.hook(f'git -C {mine} push {flag} origin HEAD:main', prompt='push')[0], 2, flag)
+            self.assertEqual(self.hook(f'git -C {mine} push {flag} origin HEAD:main', prompt='/p')[0], 2, flag)
 
     def test_marker_forms_are_all_caught(self):
         for cmd in ('git commit --message="x\n\nCo-Authored-By: Claude"', 'git commit -m"Co-Authored-By: Copilot"',
                     'git commit -am "Co-Authored-By: a <noreply@anthropic.com>"',
                     'git commit -m x --trailer "Co-authored-by: dependabot[bot] <a@b>"'):
-            self.assertEqual(self.hook(cmd, prompt='post push')[0], 2, cmd)
+            self.assertEqual(self.hook(cmd, prompt='/p post')[0], 2, cmd)
 
     def test_a_human_reviewer_co_author_passes(self):
         cmd = 'git commit -m "fix\n\nCo-authored-by: Alex Doe <123+alexdoe@users.noreply.github.com>"'
-        self.assertEqual(self.hook(cmd, prompt='post push')[0], 0)
+        self.assertEqual(self.hook(cmd, prompt='/p post')[0], 0)
 
 
 class PublishWordsRoundThree(PublishWords):
@@ -895,7 +502,7 @@ class PublishWordsRoundThree(PublishWords):
 
     def test_a_marker_in_a_heredoc_commit_message_is_caught_and_a_mention_elsewhere_is_not(self):
         heredoc = 'git commit -m "$(cat <<\'EOF\'\nfix\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)"'
-        self.assertEqual(self.hook(heredoc, prompt='push')[0], 2)
+        self.assertEqual(self.hook(heredoc, prompt='/p')[0], 2)
         elsewhere = './scripts/todo add "refuse Co-Authored-By: lines" && ./scripts/commit -m "TODO: a line" TODO.md'
         self.assertEqual(self.hook(elsewhere)[0], 0)
 
@@ -926,13 +533,13 @@ class PublishWordsRoundFour(PublishWordsRoundThree):
         self.standing()
         self.assertEqual(self.hook('gh api -X PUT repos/me/private/contents/a.png -f content=x -f message=m')[0], 0)
         self.assertEqual(self.hook('gh api -X PUT repos/me/public/contents/a.png -f content=x -f message=m')[0], 2)
-        self.assertEqual(self.hook('gh api -X PUT repos/me/public/contents/a.png -f content=x', prompt='upload')[0], 0)
+        self.assertEqual(self.hook('gh api -X PUT repos/me/public/contents/a.png -f content=x', prompt='/upload')[0], 0)
 
     def test_a_branch_delete_waits_for_delete(self):
         mine = self.standing()
         self.assertEqual(self.hook(f'git -C {mine} push origin --delete old')[0], 2)
         self.assertEqual(self.hook(f'git -C {mine} push origin :old')[0], 2)
-        self.assertEqual(self.hook(f'git -C {mine} push origin :old', prompt='delete old')[0], 0)
+        self.assertEqual(self.hook(f'git -C {mine} push origin :old', prompt='/d')[0], 0)
 
     def test_a_repo_where_every_change_takes_the_word(self):
         (self.root / 'workspace.json').write_text(json.dumps({'word_for_every_change': ['up/strict']}))
@@ -976,8 +583,8 @@ class PublishWordsRoundFive(PublishWordsRoundFour):
 
     def test_a_sync_is_a_push_and_a_forced_sync_is_never_allowed(self):
         self.assertEqual(self.hook('gh repo sync me/fork')[0], 2)
-        self.assertEqual(self.hook('gh repo sync me/fork', prompt='push')[0], 0)
-        self.assertEqual(self.hook('gh repo sync me/fork --force', prompt='push, force it')[0], 2)
+        self.assertEqual(self.hook('gh repo sync me/fork', prompt='/p')[0], 0)
+        self.assertEqual(self.hook('gh repo sync me/fork --force', prompt='/p')[0], 2)
         self.assertEqual(self.hook('gh api markdown/raw --input f.md')[0], 0)
 
 
@@ -1188,14 +795,14 @@ class DraftPullRequestPush(GateCase):
         for state in (False, None, 'offline'):
             with self.github(state):
                 self.assertEqual(self.push('https://github.com/me/gno.git')[0], 2, state)
-                self.assertEqual(self.push('https://github.com/me/gno.git', prompt='push')[0], 0, state)
+                self.assertEqual(self.push('https://github.com/me/gno.git', prompt='/p')[0], 0, state)
 
     def test_a_ready_branch_waits_for_push_where_the_standing_word_covers_drafts_alone(self):
         with self.github(False, parent='up/fixes'):
             rc, err = self.push('https://github.com/me/fixes.git')
             self.assertEqual(rc, 2)
             self.assertIn('ready pull request', err)
-            self.assertEqual(self.push('https://github.com/me/fixes.git', prompt='p')[0], 0)
+            self.assertEqual(self.push('https://github.com/me/fixes.git', prompt='/p')[0], 0)
         for state in (True, None, 'offline'):
             with self.github(state, parent='up/fixes'):
                 self.assertEqual(self.push('https://github.com/me/fixes.git')[0], 0, state)
@@ -1217,88 +824,10 @@ class DraftPullRequestPush(GateCase):
             self.assertIsNone(gate._gh_api('repos/me/gno', '.parent.full_name'))
 
 
-class HookRead(GateCase):
-    def read(self, payload):
-        return gate.main(['hook-read'], stdin=io.StringIO(json.dumps(payload)))
-
-    def test_a_whole_read_of_a_skill_records_it(self):
-        rc = self.read({'tool_name': 'Read', 'tool_input': {'file_path': str(self.root / 'skills/review.md')}})
-        self.assertEqual(rc, 0)
-        self.assertTrue(gate.is_read('review'))
-
-    def test_a_partial_read_records_nothing(self):
-        self.read({'tool_name': 'Read', 'tool_input': {'file_path': str(self.root / 'skills/review.md'), 'offset': 10}})
-        self.read({'tool_name': 'Read', 'tool_input': {'file_path': str(self.root / 'skills/review.md'), 'limit': 5}})
-        self.assertFalse(gate.is_read('review'))
-
-    def test_a_delta_a_shape_and_a_root_file_record(self):
-        (self.root / 'skills' / 'pr-body').mkdir()
-        (self.root / 'skills' / 'pr-body' / 'docs.md').write_text('# docs\n')
-        for path, name in ((self.root / 'projects/meet/AGENTS.md', 'meet'),
-                           (self.root / 'skills/pr-body/docs.md', 'pr-body/docs'),
-                           (self.root / 'workspace.md', 'workspace')):
-            self.read({'tool_name': 'Read', 'tool_input': {'file_path': str(path)}})
-            self.assertTrue(gate.is_read(name), name)
-
-    def test_a_project_context_records_under_its_slashed_name(self):
-        (self.root / 'projects' / 'meet' / 'CONTEXT.md').write_text('# meet context\n')
-        self.read({'tool_name': 'Read', 'tool_input': {'file_path': str(self.root / 'projects/meet/CONTEXT.md')}})
-        self.assertTrue(gate.is_read('meet/context'))
-        self.assertFalse(gate.is_read('meet'))
-
-    def test_a_relative_path_resolves_against_cwd(self):
-        self.read({'tool_name': 'Read', 'tool_input': {'file_path': 'skills/git.md'}, 'cwd': str(self.root)})
-        self.assertTrue(gate.is_read('git'))
-
-    def test_other_paths_and_tools_record_nothing(self):
-        self.read({'tool_name': 'Read', 'tool_input': {'file_path': str(self.root / 'projects/meet/checkout/README.md')}})
-        self.read({'tool_name': 'Write', 'tool_input': {'file_path': str(self.root / 'skills/review.md')}})
-        self.assertEqual(gate.session_reads(), [])
-
-    def test_a_malformed_payload_is_quiet(self):
-        err = io.StringIO()
-        with redirect_stderr(err):
-            rc = gate.main(['hook-read'], stdin=io.StringIO('not json'))
-        self.assertEqual((rc, err.getvalue()), (0, ''))
-
-
-class PreCommit(GateCase):
-    def test_a_commit_needs_the_git_reads_too(self):
-        repo = self.root
-        subprocess.run(['git', 'init', '-q', str(repo)], check=True)
-        (repo / 'notes.txt').write_text('x')
-        subprocess.run(['git', '-C', str(repo), 'add', 'notes.txt'], check=True)
-        err = io.StringIO()
-        with redirect_stderr(err):
-            rc = gate.main(['pre-commit'], cwd=str(repo))
-        self.assertEqual(rc, 0)
-        self.assertIn('Run ./scripts/skill git before a commit or push', err.getvalue())
-        self.assertIn('Run ./scripts/skill workspace before a commit or push', err.getvalue())
-
-
-    def test_staged_mapped_path_is_named_until_read(self):
-        repo = self.root
-        subprocess.run(['git', 'init', '-q', str(repo)], check=True)
-        target = repo / 'projects/meet/changes/x/plan.md'
-        target.parent.mkdir(parents=True)
-        target.write_text('plan\n')
-        subprocess.run(['git', '-C', str(repo), 'add', 'projects/meet/changes/x/plan.md'], check=True)
-        err = io.StringIO()
-        with redirect_stderr(err):
-            rc = gate.main(['pre-commit'], cwd=str(repo))
-        self.assertEqual(rc, 0)
-        self.assertIn('Run ./scripts/skill change', err.getvalue())
-        for name in ('meet', 'change', 'writing-style', 'git', 'workspace'):
-            gate.record_read(name)
-        self.assertEqual(gate.main(['pre-commit'], cwd=str(repo)), 0)
-
-
 class PreCommitRefusals(GateCase):
     def _repo(self):
         repo = self.root
         subprocess.run(['git', 'init', '-q', str(repo)], check=True)
-        for name in ('git', 'workspace'):
-            gate.record_read(name)
         return repo
 
     def test_a_workflow_script_with_a_bare_backtick_is_refused(self):
@@ -1376,51 +905,6 @@ class PreCommitRefusals(GateCase):
         self.assertEqual(rc, 0, err.getvalue())
 
 
-class PrePush(GateCase):
-    def test_pushed_commits_are_checked_whatever_made_them(self):
-        repo = self.root
-        env = dict(os.environ, GIT_AUTHOR_NAME='t', GIT_AUTHOR_EMAIL='t@x', GIT_COMMITTER_NAME='t', GIT_COMMITTER_EMAIL='t@x')
-        run = lambda *a: subprocess.run(['git', '-C', str(repo), *a], check=True, env=env, capture_output=True, text=True).stdout.strip()
-        run('init', '-q'); (repo / 'base.txt').write_text('b'); run('add', 'base.txt'); run('commit', '-q', '-n', '-m', 'base')
-        base = run('rev-parse', 'HEAD')
-        target = repo / 'projects/meet/changes/x/plan.md'; target.parent.mkdir(parents=True); target.write_text('p')
-        run('add', 'projects/meet/changes/x/plan.md'); run('commit', '-q', '-n', '-m', 'plan')
-        head = run('rev-parse', 'HEAD')
-        for name in ('git', 'workspace'):
-            gate.record_read(name)
-        line = f'refs/heads/main {head} refs/heads/main {base}\n'
-        err = io.StringIO()
-        with redirect_stderr(err):
-            rc = gate.main(['pre-push'], stdin=io.StringIO(line), cwd=str(repo))
-        self.assertEqual(rc, 0)
-        self.assertIn('Run ./scripts/skill change before writing projects/meet/changes/x/plan.md', err.getvalue())
-        for name in ('meet', 'change', 'writing-style'):
-            gate.record_read(name)
-        self.assertEqual(gate.main(['pre-push'], stdin=io.StringIO(line), cwd=str(repo)), 0)
-        zeros = f'refs/heads/main {head} refs/heads/main {"0" * 40}\n'
-        self.assertEqual(gate.main(['pre-push'], stdin=io.StringIO(zeros), cwd=str(repo)), 0)
-
-    def test_a_first_push_checks_only_the_commits_no_remote_has(self):
-        repo = self.root
-        env = dict(os.environ, GIT_AUTHOR_NAME='t', GIT_AUTHOR_EMAIL='t@x', GIT_COMMITTER_NAME='t', GIT_COMMITTER_EMAIL='t@x')
-        run = lambda *a: subprocess.run(['git', '-C', str(repo), *a], check=True, env=env, capture_output=True, text=True).stdout.strip()
-        run('init', '-q')
-        remote = pathlib.Path(self.tmp.name) / 'remote.git'
-        subprocess.run(['git', 'init', '-q', '--bare', str(remote)], check=True)
-        run('remote', 'add', 'origin', str(remote))
-        old = repo / 'projects/meet/changes/old/plan.md'; old.parent.mkdir(parents=True); old.write_text('old')
-        run('add', '-A'); run('commit', '-q', '-n', '-m', 'base with an old plan'); run('push', '-q', 'origin', 'HEAD:main')
-        run('checkout', '-q', '-b', 'topic'); (repo / 'notes.txt').write_text('n'); run('add', 'notes.txt'); run('commit', '-q', '-n', '-m', 'notes')
-        head = run('rev-parse', 'HEAD')
-        for name in ('git', 'workspace'):
-            gate.record_read(name)
-        line = f'refs/heads/topic {head} refs/heads/topic {"0" * 40}\n'
-        err = io.StringIO()
-        with redirect_stderr(err):
-            rc = gate.main(['pre-push'], stdin=io.StringIO(line), cwd=str(repo))
-        self.assertEqual((rc, err.getvalue()), (0, ''))
-
-
 class HookCase(GateCase):
     def setUp(self):
         super().setUp()
@@ -1446,327 +930,8 @@ class HookCase(GateCase):
         return rc, json.loads(text)['hookSpecificOutput']['additionalContext'] if text else ''
 
 
-class SessionStart(HookCase):
-    def test_startup_syncs_and_records_the_imports(self):
-        rc, context = self.run_hook('session-start', json.dumps({'source': 'startup'}))
-        self.assertEqual(rc, 0)
-        self.assertIn('Sync ran: synced here', context)
-        self.assertIn('Read tool', context)
-        for piece in ('- rule', 'Clipped', 'skills/writing-style.md'):
-            self.assertNotIn(piece, context)
-        for name in ('shortcuts', 'short-form'):
-            self.assertTrue(gate.is_read(name), name)
-        for name in ('writing-style', 'git', 'workspace'):
-            self.assertFalse(gate.is_read(name), name)
-
-    def test_compact_forgets_the_reads_and_names_them_for_rereading(self):
-        gate.record_read('review')
-        gate.record_read('shortcuts')
-        rc, context = self.run_hook('session-start', json.dumps({'source': 'compact'}))
-        self.assertEqual(rc, 0)
-        self.assertNotIn('Sync', context)
-        self.assertIn('- review: Read `skills/review.md`', context)
-        self.assertNotIn('- shortcuts: Read', context)
-        self.assertFalse(gate.is_read('review'))
-        self.assertTrue(gate.is_read('shortcuts'))
-
-    def test_resume_keeps_the_reads(self):
-        gate.record_read('review')
-        rc, context = self.run_hook('session-start', json.dumps({'source': 'resume'}))
-        self.assertEqual(rc, 0)
-        self.assertNotIn('- review:', context)
-        self.assertTrue(gate.is_read('review'))
-
-    def test_a_changed_file_this_session_read_is_named_for_its_diff(self):
-        gate.record_read('git')
-        (self.root / 'skills' / 'git.md').write_text('# git\n\nchanged\n')
-        self.run_hook('session-start', json.dumps({'source': 'resume'}))
-        out = io.StringIO()
-        gate.point([n for n in ('git', 'workspace') if not gate.is_read(n)], 'Rules', 'PreToolUse', out)
-        self.assertIn('./scripts/skill git', out.getvalue())
-        self.assertIn('where this agent never read it', out.getvalue())
-        self.assertIn('Read `workspace.md` whole', out.getvalue())
-
-    def test_compact_drops_the_copies_so_a_reread_is_whole(self):
-        gate.record_read('git')
-        self.run_hook('session-start', json.dumps({'source': 'compact'}))
-        (self.root / 'skills' / 'git.md').write_text('# git\n\nchanged\n')
-        out = io.StringIO()
-        gate.main(['read', 'git'], stdout=out)
-        self.assertEqual(out.getvalue(), '# git\n\nchanged\n')
-
-    def test_a_failing_sync_still_reports(self):
-        self.sync.write_text('#!/bin/sh\necho no network >&2\nexit 1\n')
-        rc, context = self.run_hook('session-start', json.dumps({'source': 'startup'}))
-        self.assertEqual(rc, 0)
-        self.assertIn('Sync failed: no network', context)
-        self.assertTrue(gate.is_read('short-form'))
-
-    def test_a_malformed_payload_still_records_the_imports(self):
-        rc, context = self.run_hook('session-start', 'not json')
-        self.assertEqual(rc, 0)
-        self.assertIn('Read tool', context)
-        self.assertTrue(gate.is_read('shortcuts'))
-
-    def test_the_payload_session_id_keys_the_record(self):
-        os.environ.pop('CLAUDE_CODE_SESSION_ID')
-        self.run_hook('session-start', json.dumps({'source': 'startup', 'session_id': 'from-payload'}))
-        self.assertIn('from-payload:shortcuts', gate.load())
-
-    def test_the_context_stays_under_the_hook_bound(self):
-        for name in SKILLS:
-            gate.record_read(name)
-        rc, context = self.run_hook('session-start', json.dumps({'source': 'compact'}))
-        self.assertLess(len(context), 10000)
-
-
-class Prompt(HookCase):
-    def test_a_review_prompt_names_the_review_skills_and_the_repo_delta(self):
-        rc, context = self.run_hook('prompt', json.dumps(
-            {'prompt': 'deep review https://github.com/suitenumerique/meet/pull/1675'}))
-        self.assertEqual(rc, 0)
-        for piece in ('skills/review.md', 'projects/meet/AGENTS.md'):
-            self.assertIn(piece, context)
-        # the drafting rules are the writer stage's, per review.md step 4; the write hook names them
-        for piece in ('skills/review-comment.md', 'skills/change.md'):
-            self.assertNotIn(piece, context)
-        self.assertNotIn('# review', context)
-        self.assertFalse(gate.is_read('meet'))
-
-    def test_rai_names_the_review_skill_and_rai_in_prose_does_not(self):
-        self.assertIn('review', gate.prompt_reads('rai https://github.com/o/r/pull/5'))
-        self.assertIn('review', gate.prompt_reads('quick rai 105'))
-        self.assertIn('review', gate.prompt_reads('rai gno 105'))
-        self.assertNotIn('review', gate.prompt_reads('edit rai.md now'))
-
-    def test_a_repo_with_a_context_file_names_it_beside_the_delta(self):
-        (self.root / 'projects' / 'meet' / 'CONTEXT.md').write_text('# meet context\n')
-        rc, context = self.run_hook('prompt', json.dumps({'prompt': 'review meet 1675'}))
-        self.assertEqual(rc, 0)
-        for piece in ('projects/meet/AGENTS.md', 'projects/meet/CONTEXT.md'):
-            self.assertIn(piece, context)
-        self.assertNotIn('projects/gno/CONTEXT.md', context)
-        gate.record_read('meet/context')
-        rc, context = self.run_hook('prompt', json.dumps({'prompt': 'review meet 1675'}))
-        self.assertNotIn('CONTEXT.md', context)
-
-    def test_a_second_prompt_names_nothing_already_read(self):
-        for name in ('review', 'review-comment', 'meet'):
-            gate.record_read(name)
-        rc, context = self.run_hook('prompt', json.dumps({'prompt': 'review meet 1675 again'}))
-        self.assertEqual((rc, context), (0, ''))
-
-    def test_an_unread_skill_is_named_on_every_prompt_until_read(self):
-        self.run_hook('prompt', json.dumps({'prompt': 'review meet 1675'}))
-        rc, context = self.run_hook('prompt', json.dumps({'prompt': 'review meet 1675 again'}))
-        self.assertIn('skills/review.md', context)
-
-    def test_a_word_with_no_skill_names_nothing(self):
-        rc, context = self.run_hook('prompt', json.dumps({'prompt': 'push'}))
-        self.assertEqual((rc, context), (0, ''))
-
-    def test_the_reply_shape_is_named_on_each_typed_prompt_until_read(self):
-        (self.root / 'skills' / 'reply.md').write_text('# The shape of a reply\n')
-        for prompt in ('push', 'and another question'):
-            rc, context = self.run_hook('prompt', json.dumps({'prompt': prompt}))
-            self.assertIn('skills/reply.md', context, prompt)
-        for prompt in ('<agent-message from="a1">done</agent-message>', '<task-notification>x</task-notification>', ' '):
-            rc, context = self.run_hook('prompt', json.dumps({'prompt': prompt}))
-            self.assertEqual(context, '', f'no typed prompt: {prompt!r}')
-        path = str(self.root / 'skills' / 'reply.md')
-        self.run_hook('hook-read', json.dumps({'tool_name': 'Read', 'agent_id': 'a1', 'tool_input': {'file_path': path}}))
-        rc, context = self.run_hook('prompt', json.dumps({'prompt': 'push'}))
-        self.assertIn('skills/reply.md', context, 'a subagent read binds no reply of the chat')
-        self.run_hook('hook-read', json.dumps({'tool_name': 'Read', 'tool_input': {'file_path': path}}))
-        rc, context = self.run_hook('prompt', json.dumps({'prompt': 'push'}))
-        self.assertEqual(context, '')
-
-    def test_a_family_word_names_every_project_sharing_it(self):
-        rc, context = self.run_hook('prompt', json.dumps({'prompt': 'fix gnolang/gno-sandbox 64'}))
-        for piece in ('skills/change.md', 'skills/pr-body.md', 'skills/issue.md', 'projects/gno/AGENTS.md', 'projects/gno-agent-workspace/AGENTS.md'):
-            self.assertIn(piece, context)
-        self.assertNotIn('projects/meet', context)
-
-    def test_an_owner_in_a_slug_or_a_url_names_no_project(self):
-        (self.root / 'projects' / 'tx-indexer').mkdir(parents=True)
-        (self.root / 'projects' / 'tx-indexer' / 'AGENTS.md').write_text('# tx-indexer\n')
-        (self.root / '.gitmodules').write_text(
-            '[submodule "projects/tx-indexer/checkout"]\n\tpath = projects/tx-indexer/checkout\n'
-            '\turl = https://github.com/gnolang/tx-indexer.git\n')
-        for prompt in ('review https://github.com/gnolang/tx-indexer/pull/241', 'review gnolang/tx-indexer#241'):
-            rc, context = self.run_hook('prompt', json.dumps({'prompt': prompt}))
-            self.assertIn('projects/tx-indexer/AGENTS.md', context, prompt)
-            self.assertNotIn('projects/gno/AGENTS.md', context, prompt)
-        rc, context = self.run_hook('prompt', json.dumps({'prompt': 'review gnolang/gno#123'}))
-        self.assertIn('projects/gno/AGENTS.md', context)
-        self.assertNotIn('projects/tx-indexer/AGENTS.md', context)
-
-    def test_a_repo_name_carrying_fixes_names_no_change_skill(self):
-        rc, context = self.run_hook('prompt', json.dumps({'prompt': 'review acme/acme-fixes 12'}))
-        self.assertIn('skills/review.md', context)
-        for piece in ('skills/change.md', 'skills/pr-body.md', 'skills/issue.md'):
-            self.assertNotIn(piece, context)
-
-    def test_a_hyphenated_fix_still_names_the_change_skill(self):
-        rc, context = self.run_hook('prompt', json.dumps({'prompt': 'a hot-fix for the crash'}))
-        self.assertIn('skills/change.md', context)
-
-    def test_a_shortcut_word_past_the_head_names_nothing(self):
-        for prompt in ('the finder cap sits where the last round left it, so fix nothing', 'a note on the writer: it reads every candidate, so simplify later',
-                       'yes change both lines to samourai.coop', 'TLDR what did you change'):
-            rc, context = self.run_hook('prompt', json.dumps({'prompt': prompt}))
-            self.assertEqual((rc, context), (0, ''), prompt)
-
-    def test_a_shortcut_word_in_the_head_fires_after_an_opener(self):
-        rc, context = self.run_hook('prompt', json.dumps({'prompt': 'Ok fix the conflict again, and we merge this time'}))
-        self.assertIn('skills/change.md', context)
-
-    def test_a_question_names_only_a_url_target(self):
-        rc, context = self.run_hook('prompt', json.dumps({'prompt': 'our todo will fix the cache read problem?'}))
-        self.assertEqual((rc, context), (0, ''))
-        rc, context = self.run_hook('prompt', json.dumps({'prompt': 'did you fix https://github.com/acme/acme/issues/76?'}))
-        self.assertIn('skills/change.md', context)
-
-    def test_try_names_its_skill_only_in_the_shortcut_shape(self):
-        (self.root / 'skills' / 'try.md').write_text('# try\n')
-        for prompt in ('try 4242 on gno', 'go in the workspace. Try 1498', 'try 1408 meet', 'boot meet',
-                       'try https://github.com/acme/acme/pull/9', 'try the fix on meet', 'run the app on 1498', 'launch acme/acme#12'):
-            rc, context = self.run_hook('prompt', json.dumps({'prompt': prompt}))
-            self.assertIn('skills/try.md', context, prompt)
-        for prompt in ('anything else? Try to deep to make that perfect', 'run the tests', 'launch the round', 'the run took 40 minutes',
-                       'run it', 'try again', 'Ok I run both', 'and launch workflow', 'run a review on 4242',
-                       'comments run 16 to 33 words', 'the idea to run workflows for people from outside', 'boot it',
-                       'Write me a prompt so I can launch an agent on that subject'):
-            rc, context = self.run_hook('prompt', json.dumps({'prompt': prompt}))
-            self.assertNotIn('skills/try.md', context, prompt)
-
-    def test_no_register_numbers_reach_the_next_prompt(self):
-        transcript = self.root / 't.jsonl'
-        drifted = ('The forged heading and the rule die, and the forged line does not, since the renderer '
-                   'preserves the inline links by design, so a description can still print a line that reads '
-                   'exactly like the one the page built, and the cost is real while the fix is not.')
-        lines = [json.dumps({'type': 'user', 'message': {'content': 'why'}}),
-                 json.dumps({'type': 'assistant', 'message': {'content': [{'type': 'text', 'text': drifted}]}}),
-                 json.dumps({'type': 'user', 'message': {'content': 'push'}})]
-        transcript.write_text('\n'.join(lines) + '\n')
-        rc, context = self.run_hook('prompt', json.dumps({'prompt': 'push', 'transcript_path': str(transcript)}))
-        self.assertEqual(rc, 0)
-        self.assertNotIn('articles per 100', context)
-        self.assertNotIn('drifted from the register', context)
-
-    def test_the_context_stays_under_the_hook_bound(self):
-        rc, context = self.run_hook('prompt', json.dumps({'prompt': 'review fix issue report try skill gno meet'}))
-        self.assertLess(len(context), 10000)
-
-    def test_a_malformed_payload_is_quiet(self):
-        rc, context = self.run_hook('prompt', 'not json')
-        self.assertEqual((rc, context), (0, ''))
-
-    def test_a_subagent_hand_back_is_no_typed_prompt(self):
-        handback = ('Another Claude session sent a message:\n<agent-message from="a1">\n[Subagent hand-back] '
-                    'review of meet done, the gno fix landed; push it when ready\n</agent-message>')
-        rc, context = self.run_hook('prompt', json.dumps({'prompt': handback}))
-        self.assertEqual((rc, context), (0, ''), 'a hand-back names no project and no skill')
-        bare = handback.split('\n', 1)[1]
-        rc, context = self.run_hook('prompt', json.dumps({'prompt': bare}))
-        self.assertEqual((rc, context), (0, ''), 'nor as the hook receives it, with no line above the tag')
-        transcript = self.root / 't.jsonl'
-        transcript.write_text(json.dumps({'type': 'user', 'message': {'content': 'fix it'}}) + '\n'
-                              + json.dumps({'type': 'user', 'message': {'content': handback}}) + '\n')
-        self.assertFalse(gate.gives(gate.turn_text(str(transcript)), 'push'), 'nor does it give a word')
-
-
 if __name__ == '__main__':
     unittest.main()
-
-
-class PromptSections(GateCase):
-    """A skill declaring prompt-sections is read as that cut, so the reader loads its moment's sections
-    and not the stage sections some other moment needs."""
-
-    FILE = ('---\nname: review\nprompt-sections: [Alpha, Gamma]\n---\n\n# Review\n\nIntro line.\n\n'
-            '## Alpha\n\nkeep alpha\n\n### Alpha child\n\nkeep child\n\n'
-            '## Beta\n\nDROP beta\n\n## Gamma\n\nkeep gamma\n')
-
-    def declare(self, text=None):
-        (self.root / 'skills' / 'review.md').write_text(text if text is not None else self.FILE)
-
-    def test_resolve_returns_the_cut_and_drops_the_undeclared_section(self):
-        self.declare()
-        cut = gate.resolve('review')
-        self.assertEqual(cut.name, 'review.md')
-        self.assertIn('.skill-gate/sets', cut.as_posix())
-        body = cut.read_text()
-        self.assertIn('keep alpha', body)
-        self.assertIn('keep child', body)      # a ### rides with its ## parent
-        self.assertIn('keep gamma', body)
-        self.assertNotIn('DROP beta', body)
-        self.assertIn('# Review', body)        # the title and the intro survive the cut
-
-    def test_no_declaration_resolves_to_the_file_itself(self):
-        self.declare('# Review\n\n## Alpha\n\nbody\n')
-        self.assertEqual(gate.resolve('review'), self.root / 'skills' / 'review.md')
-
-    def test_a_renamed_heading_falls_back_to_the_whole_file(self):
-        self.declare(self.FILE.replace('## Gamma', '## Delta'))
-        self.assertEqual(gate.resolve('review'), self.root / 'skills' / 'review.md')
-
-    def test_the_cut_refreshes_when_the_source_changes(self):
-        self.declare()
-        self.assertIn('keep gamma', gate.resolve('review').read_text())
-        self.declare(self.FILE.replace('keep gamma', 'gamma rewritten'))
-        self.assertIn('gamma rewritten', gate.resolve('review').read_text())
-
-    def test_the_cut_records_as_a_read_of_the_skill(self):
-        self.declare()
-        self.assertEqual(gate.name_of(gate.resolve('review')), 'review')
-        self.assertTrue(gate.record_read('review'))
-        self.assertTrue(gate.is_read('review'))
-
-
-class AlwaysWhole(PromptSections):
-    """The skills every turn runs on are never cut, however they are declared: the harness carries them whole
-    as the session opens, so a cut would record bytes the session never loaded."""
-
-    def test_an_imported_skill_is_never_cut(self):
-        (self.root / 'skills' / 'short-form.md').write_text(self.FILE)
-        self.assertEqual(gate.resolve('short-form'), self.root / 'skills' / 'short-form.md')
-
-    def test_a_claude_md_import_is_never_cut(self):
-        (self.root / 'CLAUDE.md').write_text('@AGENTS.md\n@skills/writing-style.md\n')
-        (self.root / 'skills' / 'writing-style.md').write_text(self.FILE)
-        self.assertEqual(gate.resolve('writing-style'), self.root / 'skills' / 'writing-style.md')
-
-    def test_a_skill_no_one_imports_still_cuts(self):
-        (self.root / 'CLAUDE.md').write_text('@AGENTS.md\n')
-        self.declare()
-        self.assertIn('.skill-gate/sets', gate.resolve('review').as_posix())
-
-
-class FencedHashIsNotAHeading(GateCase):
-    """A `#` line inside a fenced block is content. Reading one as a heading ended the section at the fence and
-    dropped the rest in silence, which cost skills/review.md#Overview its whole skeleton."""
-
-    FILE = ('---\nname: review\nprompt-sections: [Alpha]\n---\n\n# Review\n\n'
-            '## Alpha\n\nbefore\n\n```markdown\n# <the subject>\n## What it is for\n```\n\nafter\n\n'
-            '## Beta\n\nDROP beta\n')
-
-    def test_a_fenced_hash_does_not_end_the_section(self):
-        body = gate.section(self.FILE, 'Alpha')
-        self.assertIn('before', body)
-        self.assertIn('after', body)          # the fence used to end it here
-        self.assertIn('# <the subject>', body)
-        self.assertNotIn('DROP beta', body)
-
-    def test_the_cut_carries_the_whole_fenced_section(self):
-        (self.root / 'skills' / 'review.md').write_text(self.FILE)
-        body = gate.resolve('review').read_text()
-        self.assertIn('after', body)
-        self.assertNotIn('DROP beta', body)
-
-    def test_a_tilde_fence_counts_too(self):
-        body = gate.section(self.FILE.replace('```', '~~~'), 'Alpha')
-        self.assertIn('after', body)
 
 
 class IdentityRefusal(unittest.TestCase):
@@ -1783,52 +948,3 @@ class IdentityRefusal(unittest.TestCase):
         self.assertEqual(self.run_hook('./scripts/commit -m "gate: a commit that sets user.name or --author is refused" a.md'), 0)
 
 
-class ModelNote(GateCase):
-    def setUp(self):
-        super().setUp()
-        (self.root / 'skills' / 'thinking.md').write_text(
-            '---\nname: thinking\neffort-set: [claude-opus-5*, claude-fable-5*]\n---\n\n# Thinking\n')
-
-    def transcript(self, *models):
-        path = self.root / 'transcript.jsonl'
-        rows = [{'type': 'user', 'message': {'content': 'hi'}}]
-        rows += [{'type': 'assistant', 'message': {'model': m}} for m in models]
-        path.write_text('\n'.join(json.dumps(r) for r in rows) + '\n')
-        return {'transcript_path': str(path)}
-
-    def test_model_id_drops_provider_version_and_context_suffix(self):
-        self.assertEqual(gate.model_id('us.anthropic.claude-opus-5-5-v1:0'), 'claude-opus-5-5')
-        self.assertEqual(gate.model_id('claude-opus-5-5[1m]'), 'claude-opus-5-5')
-        self.assertEqual(gate.model_id('deepseek/deepseek-reasoner'), 'deepseek-reasoner')
-        self.assertEqual(gate.model_id('claude-opus-4-5@20251101'), 'claude-opus-4-5')
-
-    def test_payload_model_lifts_the_rules_once(self):
-        note = gate.model_note({'model': 'claude-opus-5-5'})
-        self.assertIn('does not apply', note)
-        self.assertIsNone(gate.model_note({'model': 'claude-opus-5-5'}))
-
-    def test_transcript_names_the_model_when_the_payload_does_not(self):
-        self.assertIn('claude-fable-5-1', gate.model_note(self.transcript('deepseek-chat', 'claude-fable-5-1')))
-
-    def test_synthetic_and_sidechain_entries_are_skipped(self):
-        payload = self.transcript('claude-opus-5-5', '<synthetic>')
-        with open(payload['transcript_path'], 'a') as f:
-            f.write(json.dumps({'type': 'assistant', 'isSidechain': True, 'message': {'model': 'deepseek-chat'}}) + '\n')
-        self.assertEqual(gate.session_model(payload), 'claude-opus-5-5')
-
-    def test_a_model_outside_the_set_gets_no_line(self):
-        self.assertIsNone(gate.model_note({'model': 'deepseek-reasoner'}))
-        self.assertIsNone(gate.model_note({'model': 'claude-haiku-4-5'}))
-
-    def test_moving_off_an_effort_set_model_restores_the_rules(self):
-        gate.model_note({'model': 'claude-opus-5'})
-        self.assertIn('applies again', gate.model_note({'model': 'deepseek-reasoner'}))
-
-    def test_an_unnamed_model_keeps_the_rules(self):
-        self.assertIsNone(gate.model_note({}))
-        self.assertIsNone(gate.model_note({'transcript_path': str(self.root / 'missing.jsonl')}))
-
-    def test_prompt_hook_prints_the_line(self):
-        out = io.StringIO()
-        gate.cmd_prompt(io.StringIO(json.dumps({'prompt': 'hello', **self.transcript('claude-opus-5-5')})), out)
-        self.assertIn('does not apply', json.loads(out.getvalue())['hookSpecificOutput']['additionalContext'])

@@ -1,6 +1,6 @@
 ---
 name: short-form
-description: The register of every chat reply, imported through CLAUDE.md in every session. The rules of skills/writing-style.md all hold under it.
+description: The register of every chat reply, loaded in the user's chat through a SessionStart hook and never in a subagent. The rules of skills/writing-style.md all hold under it; what a claim rests on is skills/claims.md.
 ---
 
 # Short form
@@ -17,16 +17,6 @@ reader pays a second pass for prose that measures well. The test is a reply that
 reads once, left to right, and no reply is drafted into a file first: a draft
 prints the reply twice. A comment posted anywhere takes *Posted comments*
 in `skills/writing-style.md`, which keeps full sentences.
-
-## Claims
-
-These bind every model. How the thinking is written is `skills/thinking.md`,
-which the gate lifts for a model whose thinking depth effort sets.
-
-- **Before sending a reply, match each sentence saying what a file, a script, a number or a fix does to the command this session ran that returned it.** A sentence with no match is run now or goes out named as the inference it is. The tell is a claim read off something that names the thing without running it: a command a doc lists, a config's keys, a default projection priced for no target, a remedy whose premise was never run. The gap that costs most is between what a command returned and what the sentence asserts from it.
-- Before proposing anything the user is asked to act on, a set, a grouping, a plan or a price, run every check that settles one of its parts this turn, then read the whole proposal again and run what that read raises, looping until a full pass changes nothing; only then send it. An estimate or an inference goes out only where no command could settle it this turn, named with the command that would. The tell is a follow-up question that turns up a correction: the check that found it belonged before the proposal.
-- An unknown fact gets its command before anything builds on it, and the command returns the smallest output that settles it: a count, a `head`, a `--stat`, a grep, since every tool result stays in context for every later turn and the reply does not.
-- Follow a written recipe where it fits the task, and name a departure from it.
 
 ## The reply
 
@@ -52,7 +42,7 @@ callback sees the same room either way."
 - YAGNI the reply: one labelled part per thing asked, nothing else. A bold lead-in or a short heading, in the order the user asked, so they see which part answers which before reading a word of it. One thing asked stays one block with no label: a heading over a single answer is furniture. Work the reply did that nobody asked about goes in one closing line offering it.
 - Imperative, never a request.
 - Never announce the reply, no `Explaining one line`, no `In words`: the first line is the answer.
-- Every file, path, script name and word the user types, `p` or `ok`, in backticks, in every reply.
+- Every file, path, script name and word the user types, `/p` or `ok`, in backticks, in every reply.
 - Open with `And` or `But` when adding to a previous point.
 - A question is one line and ends there.
 - Text between tool calls is one short line, written only where the plan changed or a result changes what the user decides: the task list carries the stage.

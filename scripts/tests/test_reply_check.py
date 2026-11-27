@@ -196,7 +196,7 @@ class Unlinked(unittest.TestCase):
 
 
 class Letters(unittest.TestCase):
-    """A coined letter, per skills/shortcuts.md: defined beside it, and never one the table gives."""
+    """A coined letter, per skills/shortcuts.md: defined beside it, and never a command's."""
 
     def coined(self, text):
         return [r for r in rc.measure(text)['reasons'] if 'letter' in r]
@@ -217,7 +217,8 @@ class Letters(unittest.TestCase):
     def test_a_phrase_offered_to_type_is_a_reason_unless_the_table_gives_it(self):
         phrase = lambda t: [r for r in rc.measure(t)['reasons'] if 'phrase' in r]
         self.assertTrue(phrase('Ready.\n\nSay `mark 42 ready` and it goes.'))
-        self.assertTrue(phrase('`push merge`: push, then merge once CI passes.'))
-        self.assertFalse(phrase('`post as an AI`: send the draft with the marker.'))
-        self.assertFalse(phrase('`p d`: push, then delete the branch.'))
+        self.assertTrue(phrase('`/push merge`: push, then merge once CI passes.'))
+        self.assertFalse(phrase('`/post as ai`: send the draft with the marker.'))
+        self.assertFalse(phrase('`/p d`: push, then delete the branch.'))
+        self.assertFalse(phrase('`links 42`: the three links.'))
         self.assertFalse(phrase('`git status`: clean.'))

@@ -1,6 +1,6 @@
 ---
 name: pr-body/one-concern
-description: The pull request body for one concern, which is every bug fix, whatever the number of decisions behind it. Read through ./scripts/skill pr-body/one-concern once skills/pr-body.md has picked this shape.
+description: The pull request body for one concern, which is every bug fix, whatever the number of decisions behind it. Read whole once skills/pr-body.md has picked this shape.
 ---
 
 # One concern

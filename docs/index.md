@@ -8,7 +8,7 @@ permalink: /
 The instruction sets my coding agents load before they write anything on my
 projects, and the tools that hold the agents to them. A skill is one Markdown
 file per kind of artifact: a review, a pull request body, an issue, a commit, a
-reply to me. The tools are a gate that records which skill an agent read, git
+reply to me. The tools are a gate that refuses a publish I did not type, git
 hooks that fire whatever tool or model made the commit, and a Rust crate
 holding the lint over the rules and the steps a program does better than a
 model.
@@ -24,14 +24,12 @@ run there and nowhere bare.
 # 1. Point git at the hooks, from a workspace that mounts this repository as skills/
 git config core.hooksPath skills/scripts/git-hooks
 git -C skills config core.hooksPath scripts/git-hooks
-# 2. Print a skill and record the read
-skills/scripts/skill review
-# 3. Build the tools, then lint the rule files
+# 2. Build the tools, then lint the rule files
 cargo build --release --manifest-path skills/tools/Cargo.toml
 skills/tools/target/release/rules lint AGENTS.md skills/*.md skills/pr-body/*.md skills/knowledge/*.md
-# 4. Measure a chat reply
+# 3. Measure a chat reply
 skills/scripts/reply-check.py <file>
-# 5. Run every test
+# 4. Run every test
 python3 -m unittest discover -s skills/scripts/tests
 skills/scripts/tests/test_scrub.sh
 cargo test --manifest-path skills/tools/Cargo.toml
@@ -58,11 +56,11 @@ since they bind whoever acts:
   this session, never from memory.
 - Read the artifact back after editing it, before reporting it done.
 
-Nothing reaches anyone without my word, `post`, `push` or `merge`, typed in the
+Nothing reaches anyone without my word, `/post`, `/p` or `/m`, typed in the
 turn or given ahead for one repository and one kind of action. `go`, `ok` and
 `yes` authorise nothing, and every draft is shown before it goes. Those rules
-sit in the workspace's `AGENTS.md` too, and [`shortcuts.md`](https://github.com/davd-gzl/skills/blob/main/shortcuts.md) is
-the one place a word is defined.
+sit in the workspace's `AGENTS.md` too, and each command is one file under
+[`commands/`](https://github.com/davd-gzl/skills/blob/main/commands), the one place it is defined.
 
 Every skill has a second goal beside its task: the same decision in fewer
 turns. A turn re-sends the whole context, so the turn count times the context
@@ -107,8 +105,10 @@ what it displaces.
 | [`git.md`](https://github.com/davd-gzl/skills/blob/main/git.md) | a turn commits, pushes, syncs a checkout, or touches a submodule or worktree | the commit identity, where a push goes, the commands that report success and move nothing |
 | [`writing-style.md`](https://github.com/davd-gzl/skills/blob/main/writing-style.md) | any visible prose, in any project | the rules every other skill defers to, and the closing pass over every draft |
 | [`short-form.md`](https://github.com/davd-gzl/skills/blob/main/short-form.md) | every chat reply | the register: clipped, read once, left to right |
+| [`claims.md`](https://github.com/davd-gzl/skills/blob/main/claims.md) | every agent, subagents included | what a claim must rest on: a command run this session |
 | [`reply.md`](https://github.com/davd-gzl/skills/blob/main/reply.md) | a reply finishes a piece of work | what it opens with, its closing block, its links |
-| [`shortcuts.md`](https://github.com/davd-gzl/skills/blob/main/shortcuts.md) | I type a word | what each word starts |
+| [`shortcuts.md`](https://github.com/davd-gzl/skills/blob/main/shortcuts.md) | every session | every action a slash command, a publish only as one, and the words that shape a reply |
+| [`commands/`](https://github.com/davd-gzl/skills/blob/main/commands) | I type a slash command | what it starts and the rule it follows, one file each |
 | [`thinking.md`](https://github.com/davd-gzl/skills/blob/main/thinking.md) | every reply, on a model whose thinking depth no setting controls | how the thinking before the reply is written |
 | [`authoring.md`](https://github.com/davd-gzl/skills/blob/main/authoring.md) | a rule is added, edited or removed | where it lives, the shape it takes, what it displaces |
 | [`knowledge/`](https://github.com/davd-gzl/skills/blob/main/knowledge) | a design question about the workflow comes up | one published result per file: what holds, the numbers, the source, the rule it shaped |
@@ -116,13 +116,10 @@ what it displaces.
 | [`archive/`](https://github.com/davd-gzl/skills/blob/main/archive) | nothing loads it | snapshots of a skill before a change of voice, the advisory shape for a disclosure, the harness that chose the chat register's wording |
 | [`TODO.md`](https://github.com/davd-gzl/skills/blob/main/TODO.md) | skill work I own and have not started | one line per item |
 
-Three files open every session: `shortcuts.md` and `thinking.md` through a
-session-start hook, and `short-form.md` through the workspace's `CLAUDE.md`,
-which every subagent inherits too, since its rules on what a claim must rest
-on bind every agent. Every other skill is read when the task names it, through
-the Read tool or `scripts/skill <name>`. A file whose sections fire at
-different moments lists the ones its first reader needs on a `prompt-sections`
-line, and the gate hands over that cut. A subagent gets the skills its own
+Four files open every session: `short-form.md`, `shortcuts.md` and
+`thinking.md` through a session-start hook, which reaches the chat alone, and
+`claims.md` through the workspace's `CLAUDE.md`, which every subagent inherits
+too, since its rules on what a claim must rest on bind every agent. Every other skill is read whole when the task names it. A subagent gets the skills its own
 artifact needs and no others.
 
 ## Models
@@ -130,9 +127,9 @@ artifact needs and no others.
 One file binds only some models: [`thinking.md`](https://github.com/davd-gzl/skills/blob/main/thinking.md), how the
 thinking before a reply is written, binds a model whose thinking depth no
 setting controls. Its `effort-set`
-frontmatter names the models the gate exempts; the gate reads the running
-model from the harness's session-start payload or the transcript, and a model
-it cannot name keeps the rules. [`knowledge/models/`](https://github.com/davd-gzl/skills/blob/main/knowledge/models) holds a
+frontmatter names the models it is left out for; the consumer's session-start
+hook reads the running model from the harness's payload or the transcript, and
+a model it cannot name keeps the rules. [`knowledge/models/`](https://github.com/davd-gzl/skills/blob/main/knowledge/models) holds a
 note per model a stage runs on, which the review reads to decide whether one
 agent can hold a diff.
 
@@ -150,12 +147,12 @@ the code, and keeps it as a finding or refutes it.
 
 | Word | For | What changes |
 | --- | --- | --- |
-| `quick review <target>` | code I know | a smaller finding budget per round, no reflector, smaller judge batches |
-| `review <target>` | any change | the standard round |
-| `deep review <target>` | code that is complex or unknown | finders with more tool calls, a higher Warning cap and the tests angle, smaller judge batches |
+| `/review quick <target>` | code I know | a smaller finding budget per round, no reflector, smaller judge batches |
+| `/review <target>` | any change | the standard round |
+| `/review deep <target>` | code that is complex or unknown | finders with more tool calls, a higher Warning cap and the tests angle, smaller judge batches |
 
-[`shortcuts.md`](https://github.com/davd-gzl/skills/blob/main/shortcuts.md) defines each word, and the workspace's `plan`
-word prints a round's stages and projected cost for a given diff before
+[`commands/`](https://github.com/davd-gzl/skills/blob/main/commands) defines each command, and `/cost`
+prints a round's stages and projected cost for a given diff before
 anything runs.
 
 The word sets the most a round may run, and the change's class decides how
@@ -264,26 +261,17 @@ on the corpus's own argument until the outcome table measures it.
 
 ## What enforces it
 
-### The read gate
+### The publish gate
 
-[`scripts/skill-gate.py`](https://github.com/davd-gzl/skills/blob/main/scripts/skill-gate.py) records every read of a skill,
-by the Read tool or by [`scripts/skill`](https://github.com/davd-gzl/skills/blob/main/scripts/skill): `scripts/skill review`
-for a skill, `scripts/skill pr-body/docs` for a body shape, `scripts/skill
-<project>` for a project's own rules file. Before a write, it puts the skills
-that write still lacks into context with a warning, names each by path, and
-lets the write through. A read holds while the file's hash matches and the
-session is the same; a stale read prints only the diff since it was made.
+[`scripts/skill-gate.py`](https://github.com/davd-gzl/skills/blob/main/scripts/skill-gate.py) refuses the few commands that
+cannot be taken back without my command typed in the turn: a publish, a sync
+that resets a remote branch, an AI-authorship marker in a message, a commit
+identity set by hand. Reading a skill before its artifact is a rule the gate
+does not check.
 
-The same hook refuses the few commands that cannot be taken back without my
-word: a publish the turn carries no word for, a sync that resets a remote
-branch, an AI-authorship marker in a message, a commit identity set by hand.
-
-In Claude Code, the workspace's settings file wires it: the before-write hook
-on `Write|Edit|MultiEdit|Bash` calls `skill-gate.py hook-claude`, the hook
-before `Read` calls `hook-read` to record the read, the session-start hook calls
-`session-start`, and the prompt hook `prompt`. Another harness runs
-`skill-gate.py check <path>` before writing and exports its session id as
-`CLAUDE_CODE_SESSION_ID`.
+In Claude Code, the workspace's settings file wires it: the hook before `Bash`
+calls `skill-gate.py hook-claude`. Another harness wires its before-command hook
+the same way.
 
 ### The git hooks
 
@@ -292,9 +280,9 @@ made the commit, any model or none:
 
 | Hook | Does |
 | --- | --- |
-| `pre-commit`, `pre-merge-commit` | warns on a commit carrying an artifact whose skill was not read; refuses one recording a submodule commit no remote holds, or a workflow script that does not parse; `pre-commit` also refuses a change to this README or a blog post that leaves the site behind |
+| `pre-commit`, `pre-merge-commit` | refuses a commit recording a submodule commit no remote holds, or a workflow script that does not parse; `pre-commit` also refuses a change to this README or a blog post that leaves the site behind |
 | `commit-msg` | refuses a commit adding words to the rule files with no `Grows:` line giving a reason |
-| `pre-push` | refuses a pushed line or message carrying a secret shape or a name the workspace's `workspace.json` lists, through [`scrub.sh`](https://github.com/davd-gzl/skills/blob/main/scripts/scrub.sh); refuses a pushed commit that grew the rules with no reason, one made by `--no-verify`, a rebase or a cherry-pick included; warns as `pre-commit` does |
+| `pre-push` | refuses a pushed line or message carrying a secret shape or a name the workspace's `workspace.json` lists, through [`scrub.sh`](https://github.com/davd-gzl/skills/blob/main/scripts/scrub.sh); refuses a pushed commit that grew the rules with no reason, one made by `--no-verify`, a rebase or a cherry-pick included |
 
 ### The lint
 
@@ -324,9 +312,8 @@ move the number.
 
 | Path | Does |
 | --- | --- |
-| [`scripts/skill`](https://github.com/davd-gzl/skills/blob/main/scripts/skill) | prints a skill or a project's own rules file and records the read |
-| [`scripts/skill-gate.py`](https://github.com/davd-gzl/skills/blob/main/scripts/skill-gate.py) | the read gate and its hooks |
-| [`scripts/sections.py`](https://github.com/davd-gzl/skills/blob/main/scripts/sections.py) | cuts one `path#Heading` section out of a rule file; `check` lists every section name a pipeline config or a `prompt-sections` line gives that matches no heading or matches two |
+| [`scripts/skill-gate.py`](https://github.com/davd-gzl/skills/blob/main/scripts/skill-gate.py) | the publish gate and its hooks |
+| [`scripts/sections.py`](https://github.com/davd-gzl/skills/blob/main/scripts/sections.py) | cuts one `path#Heading` section out of a rule file; `check` lists every section name a pipeline config gives that matches no heading or matches two |
 | [`scripts/rule-growth.py`](https://github.com/davd-gzl/skills/blob/main/scripts/rule-growth.py) | the growth check behind `commit-msg` and `pre-push` |
 | [`scripts/scrub.sh`](https://github.com/davd-gzl/skills/blob/main/scripts/scrub.sh) | the secret and private-name scan behind `pre-push`; `--tree` reads the whole tree |
 | [`scripts/snapshot`](https://github.com/davd-gzl/skills/blob/main/scripts/snapshot) | commits a worktree's uncommitted build over its HEAD without moving a branch and prints the sha, so a round reviews a build before anything is committed |

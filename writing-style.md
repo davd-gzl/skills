@@ -20,8 +20,8 @@ gh api "repos/<repo>/issues?state=all&creator=<login>&per_page=10" --jq '.[]|"\(
 ```
 
 The counts go into `projects/<repo>/AGENTS.md` in the same turn, per
-`skills/authoring.md`, so the next session reads them through the gate instead
-of measuring again.
+`skills/authoring.md`, so the next session reads them there instead of
+measuring again.
 
 ## The rules
 
